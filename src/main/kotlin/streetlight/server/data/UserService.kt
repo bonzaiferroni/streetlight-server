@@ -1,6 +1,6 @@
-package vanguard_unicorn.server.data
+package streetlight.server.data
 
-import vanguard_unicon.model.User
+import streetlight.model.User
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass

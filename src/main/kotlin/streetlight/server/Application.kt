@@ -1,6 +1,6 @@
-package vanguard_unicorn.server
+package streetlight.server
 
-import vanguard_unicorn.server.plugins.*
+import streetlight.server.plugins.*
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {

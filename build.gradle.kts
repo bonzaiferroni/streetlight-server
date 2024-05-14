@@ -13,7 +13,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-group = "vanguard-unicorn.server"
+group = "streetlight.server"
 version = "0.0.1"
 
 application {

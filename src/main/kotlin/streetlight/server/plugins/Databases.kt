@@ -1,7 +1,7 @@
-package vanguard_unicorn.server.plugins
+package streetlight.server.plugins
 
-import vanguard_unicorn.server.data.UserService
-import vanguard_unicon.model.User
+import streetlight.server.data.UserService
+import streetlight.model.User
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*

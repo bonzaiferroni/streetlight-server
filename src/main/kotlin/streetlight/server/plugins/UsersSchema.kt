@@ -1,4 +1,4 @@
-package vanguard_unicorn.server.plugins
+package streetlight.server.plugins
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

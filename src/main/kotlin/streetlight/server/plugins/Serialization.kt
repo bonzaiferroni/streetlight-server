@@ -1,4 +1,4 @@
-package vanguard_unicorn.server.plugins
+package streetlight.server.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
