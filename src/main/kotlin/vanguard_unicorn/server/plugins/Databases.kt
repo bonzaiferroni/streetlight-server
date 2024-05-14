@@ -1,7 +1,7 @@
 package vanguard_unicorn.server.plugins
 
 import vanguard_unicorn.server.data.UserService
-import vanguard_unicorn.server.model.User
+import vanguard_unicon.model.User
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*

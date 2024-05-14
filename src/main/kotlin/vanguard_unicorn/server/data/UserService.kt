@@ -1,6 +1,6 @@
 package vanguard_unicorn.server.data
 
-import vanguard_unicorn.server.model.User
+import vanguard_unicon.model.User
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
