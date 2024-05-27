@@ -18,6 +18,7 @@ class LocationEntity(id: EntityID<Int>) : IntEntity(id) {
     var name by LocationService.LocationTable.name
     var latitude by LocationService.LocationTable.latitude
     var longitude by LocationService.LocationTable.longitude
+    var area by AreaEntity referencedOn LocationService.LocationTable.area
 }
 
 class LocationService(private val database: Database) {
@@ -25,6 +26,7 @@ class LocationService(private val database: Database) {
         val name = text("name")
         val latitude = double("latitude")
         val longitude = double("longitude")
+        val area = reference("area_id", AreaService.AreaTable).uniqueIndex()
     }
 
     init {

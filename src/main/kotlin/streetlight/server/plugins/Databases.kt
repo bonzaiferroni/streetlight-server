@@ -15,9 +15,11 @@ fun Application.configureDatabases() {
         )
     val userService = UserService(database)
     val locationService = LocationService(database)
+    val areaService = AreaService(database)
 
     routing {
         userRouting(userService)
         locationRouting(locationService)
+        areaRouting(areaService)
     }
 }
