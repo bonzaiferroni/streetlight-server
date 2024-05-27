@@ -12,6 +12,11 @@ import io.ktor.server.routing.put
 import streetlight.model.Location
 
 fun Routing.locationRouting(locationService: LocationService) {
+    get("/locations") {
+        val locations = locationService.readAll()
+        call.respond(locations)
+    }
+
     post("/locations") {
         val location = call.receive<Location>()
         val id = locationService.create(location)
