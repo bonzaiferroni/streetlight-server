@@ -2,6 +2,7 @@ package streetlight.server.data
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
@@ -19,10 +20,12 @@ fun Routing.areaRouting(areaService: AreaService) {
         call.respond(HttpStatusCode.OK, areas)
     }
 
-    post("/areas") {
-        val area = call.receive<Area>()
-        val id = areaService.create(area)
-        call.respond(HttpStatusCode.Created, id)
+    authenticate("auth-jwt") {
+        post("/areas") {
+            val area = call.receive<Area>()
+            val id = areaService.create(area)
+            call.respond(HttpStatusCode.Created, id)
+        }
     }
 
     // Read area
