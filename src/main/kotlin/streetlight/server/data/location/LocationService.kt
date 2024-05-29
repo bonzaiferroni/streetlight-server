@@ -2,6 +2,7 @@ package streetlight.server.data.location
 
 import streetlight.model.Location
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.lowerCase
 import streetlight.server.data.ApiService
 import streetlight.server.data.area.AreaEntity
 
@@ -18,28 +19,11 @@ class LocationService : ApiService() {
     }
 
     suspend fun read(id: Int): Location? = dbQuery {
-        LocationEntity.findById(id)
-            ?.let {
-                Location(
-                    it.id.value,
-                    it.name,
-                    it.latitude,
-                    it.longitude,
-                    it.area.id.value
-                )
-            }
+        LocationEntity.findById(id)?.toLocation()
     }
 
     suspend fun readAll(): List<Location> = dbQuery {
-        LocationEntity.all().map {
-            Location(
-                it.id.value,
-                it.name,
-                it.latitude,
-                it.longitude,
-                it.area.id.value
-            )
-        }
+        LocationEntity.all().map { it.toLocation() }
     }
 
     suspend fun update(id: Int, location: Location) = dbQuery {
@@ -47,8 +31,8 @@ class LocationService : ApiService() {
             it.name = location.name
             it.latitude = location.latitude
             it.longitude = location.longitude
-            AreaEntity.findById(location.areaId)?.let {
-                    a -> it.area = a
+            AreaEntity.findById(location.areaId)?.let { a ->
+                it.area = a
             }
         }
     }
@@ -57,34 +41,21 @@ class LocationService : ApiService() {
         LocationEntity.findById(id)?.delete()
     }
 
-    suspend fun search(search: String, count: Int): List<Location> {
-        if (search.isBlank()) {
-            dbQuery {
-                LocationEntity.all().take(count).map {
-                    Location(
-                        it.id.value,
-                        it.name,
-                        it.latitude,
-                        it.longitude,
-                        it.area.id.value
-                    )
-                }
-
-            }
-        }
+    suspend fun search(search: String, limit: Int): List<Location> {
         return dbQuery {
             LocationEntity.find(Op.build {
-                LocationTable.name like search
-            }).map {
-                Location(
-                    it.id.value,
-                    it.name,
-                    it.latitude,
-                    it.longitude,
-                    it.area.id.value
-                )
-            }
+                LocationTable.name.lowerCase() like "${search.lowercase()}%"
+            })
+                .limit(limit)
+                .map { it.toLocation() }
         }
     }
 }
 
+fun LocationEntity.toLocation() = Location(
+    id.value,
+    name,
+    latitude,
+    longitude,
+    area.id.value
+)

@@ -14,16 +14,14 @@ import streetlight.server.data.getIdOrThrow
 
 fun Routing.locationRouting(locationService: LocationService) {
     get("/locations") {
-        val locations = locationService.readAll()
-        call.respond(locations)
-    }
-
-    // search events
-    get("/locations?search={search}&count={count}") {
         val search = call.parameters["search"] ?: ""
-        val count = call.parameters["count"]?.toIntOrNull() ?: 10
-        val locations = locationService.search(search, count)
-        call.respond(HttpStatusCode.OK, locations)
+        val count = call.parameters["limit"]?.toIntOrNull() ?: 10
+        val locations = if (search.isBlank()) {
+            locationService.readAll()
+        } else {
+            locationService.search(search, count)
+        }
+        call.respond(locations)
     }
 
     post("/locations") {
