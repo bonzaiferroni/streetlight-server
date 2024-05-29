@@ -1,4 +1,4 @@
-package streetlight.server.data
+package streetlight.server.data.user
 
 import streetlight.model.User
 import kotlinx.coroutines.Dispatchers
@@ -11,20 +11,8 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class UserEntity(id: EntityID<Int>) : Entity<Int>(id) {
-    companion object : EntityClass<Int, UserEntity>(UserService.UserTable)
-
-    var name by UserService.UserTable.name
-    var email by UserService.UserTable.email
-    var password by UserService.UserTable.password
-}
-
 class UserService(private val database: Database) {
-    object UserTable : IntIdTable() {
-        val name = text("name")
-        val email = text("email")
-        val password = text("password")
-    }
+
 
     init {
         transaction(database) {

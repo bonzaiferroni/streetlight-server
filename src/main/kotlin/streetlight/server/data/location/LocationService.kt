@@ -1,37 +1,15 @@
-package streetlight.server.data
+package streetlight.server.data.location
 
 import streetlight.model.Location
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-
-class LocationEntity(id: EntityID<Int>) : IntEntity(id) {
-    companion object : EntityClass<Int, LocationEntity>(LocationService.LocationTable)
-
-    var name by LocationService.LocationTable.name
-    var latitude by LocationService.LocationTable.latitude
-    var longitude by LocationService.LocationTable.longitude
-    var area by AreaEntity referencedOn LocationService.LocationTable.area
-}
+import streetlight.server.data.area.AreaEntity
 
 class LocationService(private val database: Database) {
-    object LocationTable : IntIdTable() {
-        val name = text("name")
-        val latitude = double("latitude")
-        val longitude = double("longitude")
-        val area = reference(
-            name = "area_id",
-            foreign = AreaService.AreaTable,
-            onDelete = ReferenceOption.CASCADE
-        ).uniqueIndex()
-    }
 
     init {
         transaction(database) {
@@ -43,17 +21,17 @@ class LocationService(private val database: Database) {
         newSuspendedTransaction(Dispatchers.IO) { block() }
 
     suspend fun create(location: Location): Int = dbQuery {
-        val a = AreaEntity.findById(location.areaId) ?: return@dbQuery -1
-        LocationEntity.new {
+        val dbArea = AreaEntity.findById(location.areaId) ?: return@dbQuery -1
+        Locations.new {
             name = location.name
             latitude = location.latitude
             longitude = location.longitude
-            area = a
+            area = dbArea
         }.id.value
     }
 
     suspend fun read(id: Int): Location? = dbQuery {
-        LocationEntity.findById(id)
+        Locations.findById(id)
             ?.let {
                 Location(
                     it.id.value,
@@ -66,7 +44,7 @@ class LocationService(private val database: Database) {
     }
 
     suspend fun readAll(): List<Location> = dbQuery {
-        LocationEntity.all().map {
+        Locations.all().map {
             Location(
                 it.id.value,
                 it.name,
@@ -78,7 +56,7 @@ class LocationService(private val database: Database) {
     }
 
     suspend fun update(id: Int, location: Location) = dbQuery {
-        LocationEntity.findById(id)?.let {
+        Locations.findById(id)?.let {
             it.name = location.name
             it.latitude = location.latitude
             it.longitude = location.longitude
@@ -89,7 +67,37 @@ class LocationService(private val database: Database) {
     }
 
     suspend fun delete(id: Int) = dbQuery {
-        LocationEntity.findById(id)?.delete()
+        Locations.findById(id)?.delete()
+    }
+
+    suspend fun search(search: String, count: Int): List<Location> {
+        if (search.isBlank()) {
+            dbQuery {
+                Locations.all().take(count).map {
+                    Location(
+                        it.id.value,
+                        it.name,
+                        it.latitude,
+                        it.longitude,
+                        it.area.id.value
+                    )
+                }
+
+            }
+        }
+        return dbQuery {
+            Locations.find(Op.build {
+                LocationTable.name like search
+            }).map {
+                Location(
+                    it.id.value,
+                    it.name,
+                    it.latitude,
+                    it.longitude,
+                    it.area.id.value
+                )
+            }
+        }
     }
 }
 
