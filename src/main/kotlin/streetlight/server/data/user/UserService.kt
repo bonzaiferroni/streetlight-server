@@ -1,18 +1,9 @@
 package streetlight.server.data.user
 
 import streetlight.model.User
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.ApiService
 
-class UserService(database: Database) : ApiService(database, UserTable) {
+class UserService : ApiService() {
 
     suspend fun create(user: User): Int = dbQuery {
         UserEntity.new {

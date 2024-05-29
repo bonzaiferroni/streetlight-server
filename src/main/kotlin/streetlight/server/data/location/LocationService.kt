@@ -1,16 +1,11 @@
 package streetlight.server.data.location
 
 import streetlight.model.Location
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.ApiService
 import streetlight.server.data.area.AreaEntity
 
-class LocationService(database: Database) : ApiService(database, LocationTable) {
+class LocationService : ApiService() {
 
     suspend fun create(location: Location): Int = dbQuery {
         val dbArea = AreaEntity.findById(location.areaId) ?: return@dbQuery -1

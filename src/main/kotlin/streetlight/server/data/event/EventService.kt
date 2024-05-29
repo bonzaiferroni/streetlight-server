@@ -1,21 +1,10 @@
 package streetlight.server.data.event
 
 import streetlight.model.Event
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.ApiService
-import streetlight.server.data.location.LocationService
-import streetlight.server.data.location.LocationTable
 import streetlight.server.data.location.Locations
 
-class EventService(database: Database) : ApiService(database, EventTable) {
+class EventService : ApiService() {
 
     suspend fun create(event: Event): Int = dbQuery {
         val dbLocation = Locations.findById(event.locationId) ?: return@dbQuery -1
