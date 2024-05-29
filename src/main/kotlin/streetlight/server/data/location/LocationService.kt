@@ -7,18 +7,10 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import streetlight.server.data.ApiService
 import streetlight.server.data.area.AreaEntity
 
-class LocationService(private val database: Database) {
-
-    init {
-        transaction(database) {
-            SchemaUtils.create(LocationTable)
-        }
-    }
-
-    suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
+class LocationService(database: Database) : ApiService(database, LocationTable) {
 
     suspend fun create(location: Location): Int = dbQuery {
         val dbArea = AreaEntity.findById(location.areaId) ?: return@dbQuery -1

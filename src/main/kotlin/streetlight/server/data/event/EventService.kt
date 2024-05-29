@@ -10,20 +10,12 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import streetlight.server.data.ApiService
 import streetlight.server.data.location.LocationService
 import streetlight.server.data.location.LocationTable
 import streetlight.server.data.location.Locations
 
-class EventService(database: Database) {
-
-    init {
-        transaction(database) {
-            SchemaUtils.create(EventTable)
-        }
-    }
-
-    suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
+class EventService(database: Database) : ApiService(database, EventTable) {
 
     suspend fun create(event: Event): Int = dbQuery {
         val dbLocation = Locations.findById(event.locationId) ?: return@dbQuery -1
