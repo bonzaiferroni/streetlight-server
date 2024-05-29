@@ -6,7 +6,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import streetlight.server.data.area.AreaEntity
-import streetlight.server.data.area.AreaService
 import streetlight.server.data.area.AreaTable
 
 object LocationTable : IntIdTable() {
@@ -20,8 +19,8 @@ object LocationTable : IntIdTable() {
     )
 }
 
-class Locations(id: EntityID<Int>) : IntEntity(id) {
-    companion object : EntityClass<Int, Locations>(LocationTable)
+class LocationEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : EntityClass<Int, LocationEntity>(LocationTable)
 
     var name by LocationTable.name
     var latitude by LocationTable.latitude

@@ -5,12 +5,12 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import streetlight.server.data.location.LocationTable
-import streetlight.server.data.location.Locations
+import streetlight.server.data.location.LocationEntity
 
 class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : EntityClass<Int, EventEntity>(EventTable)
 
-    var location by Locations referencedOn EventTable.location
+    var location by LocationEntity referencedOn EventTable.location
     var timeStart by EventTable.timeStart
     var timeEnd by EventTable.timeEnd
 }

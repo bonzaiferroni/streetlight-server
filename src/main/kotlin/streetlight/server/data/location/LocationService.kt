@@ -9,7 +9,7 @@ class LocationService : ApiService() {
 
     suspend fun create(location: Location): Int = dbQuery {
         val dbArea = AreaEntity.findById(location.areaId) ?: return@dbQuery -1
-        Locations.new {
+        LocationEntity.new {
             name = location.name
             latitude = location.latitude
             longitude = location.longitude
@@ -18,7 +18,7 @@ class LocationService : ApiService() {
     }
 
     suspend fun read(id: Int): Location? = dbQuery {
-        Locations.findById(id)
+        LocationEntity.findById(id)
             ?.let {
                 Location(
                     it.id.value,
@@ -31,7 +31,7 @@ class LocationService : ApiService() {
     }
 
     suspend fun readAll(): List<Location> = dbQuery {
-        Locations.all().map {
+        LocationEntity.all().map {
             Location(
                 it.id.value,
                 it.name,
@@ -43,7 +43,7 @@ class LocationService : ApiService() {
     }
 
     suspend fun update(id: Int, location: Location) = dbQuery {
-        Locations.findById(id)?.let {
+        LocationEntity.findById(id)?.let {
             it.name = location.name
             it.latitude = location.latitude
             it.longitude = location.longitude
@@ -54,13 +54,13 @@ class LocationService : ApiService() {
     }
 
     suspend fun delete(id: Int) = dbQuery {
-        Locations.findById(id)?.delete()
+        LocationEntity.findById(id)?.delete()
     }
 
     suspend fun search(search: String, count: Int): List<Location> {
         if (search.isBlank()) {
             dbQuery {
-                Locations.all().take(count).map {
+                LocationEntity.all().take(count).map {
                     Location(
                         it.id.value,
                         it.name,
@@ -73,7 +73,7 @@ class LocationService : ApiService() {
             }
         }
         return dbQuery {
-            Locations.find(Op.build {
+            LocationEntity.find(Op.build {
                 LocationTable.name like search
             }).map {
                 Location(

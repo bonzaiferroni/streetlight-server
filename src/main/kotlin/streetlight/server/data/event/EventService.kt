@@ -2,12 +2,12 @@ package streetlight.server.data.event
 
 import streetlight.model.Event
 import streetlight.server.data.ApiService
-import streetlight.server.data.location.Locations
+import streetlight.server.data.location.LocationEntity
 
 class EventService : ApiService() {
 
     suspend fun create(event: Event): Int = dbQuery {
-        val dbLocation = Locations.findById(event.locationId) ?: return@dbQuery -1
+        val dbLocation = LocationEntity.findById(event.locationId) ?: return@dbQuery -1
         EventEntity.new {
             location = dbLocation
             timeStart = event.startTime
@@ -44,7 +44,7 @@ class EventService : ApiService() {
 
     suspend fun update(id: Int, event: Event) {
         dbQuery {
-            val dbLocation = Locations.findById(event.locationId)
+            val dbLocation = LocationEntity.findById(event.locationId)
             EventEntity.findById(id)?.let {
                 if (dbLocation != null) {
                     it.location = dbLocation

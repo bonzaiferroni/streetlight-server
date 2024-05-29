@@ -8,8 +8,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.area.AreaService
 import streetlight.server.data.area.AreaTable
 import streetlight.server.data.area.areaRouting
+import streetlight.server.data.event.EventInfoService
 import streetlight.server.data.event.EventService
 import streetlight.server.data.event.EventTable
+import streetlight.server.data.event.eventInfoRouting
 import streetlight.server.data.event.eventRouting
 import streetlight.server.data.location.LocationService
 import streetlight.server.data.location.LocationTable
@@ -30,12 +32,5 @@ fun Application.configureDatabases() {
         SchemaUtils.create(LocationTable)
         SchemaUtils.create(AreaTable)
         SchemaUtils.create(EventTable)
-    }
-
-    routing {
-        userRouting(UserService())
-        locationRouting(LocationService())
-        areaRouting(AreaService())
-        eventRouting(EventService())
     }
 }
