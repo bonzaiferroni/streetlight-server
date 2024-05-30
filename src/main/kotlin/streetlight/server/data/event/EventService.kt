@@ -10,8 +10,8 @@ class EventService : ApiService() {
         val dbLocation = LocationEntity.findById(event.locationId) ?: return@dbQuery -1
         EventEntity.new {
             location = dbLocation
-            timeStart = event.startTime
-            timeEnd = event.endTime
+            timeStart = event.timeStart
+            hours = event.hours
         }.id.value
     }
 
@@ -23,7 +23,7 @@ class EventService : ApiService() {
                         it.id.value,
                         it.location.id.value,
                         it.timeStart,
-                        it.timeEnd,
+                        it.hours,
                     )
                 }
         }
@@ -36,7 +36,7 @@ class EventService : ApiService() {
                     it.id.value,
                     it.location.id.value,
                     it.timeStart,
-                    it.timeEnd,
+                    it.hours,
                 )
             }
         }
@@ -49,8 +49,8 @@ class EventService : ApiService() {
                 if (dbLocation != null) {
                     it.location = dbLocation
                 }
-                it.timeStart = event.startTime
-                it.timeEnd = event.endTime
+                it.timeStart = event.timeStart
+                it.hours = event.hours
             }
         }
     }

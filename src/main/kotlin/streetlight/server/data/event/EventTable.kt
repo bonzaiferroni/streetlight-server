@@ -12,11 +12,11 @@ class EventEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var location by LocationEntity referencedOn EventTable.location
     var timeStart by EventTable.timeStart
-    var timeEnd by EventTable.timeEnd
+    var hours by EventTable.hours
 }
 
 object EventTable : IntIdTable() {
     val location = reference("location_id", LocationTable)
     val timeStart = long("time_start")
-    val timeEnd = long("time_end")
+    val hours = float("hours")
 }
