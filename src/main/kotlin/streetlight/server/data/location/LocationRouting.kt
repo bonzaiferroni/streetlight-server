@@ -11,9 +11,10 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import streetlight.model.Location
 import streetlight.server.data.getIdOrThrow
+import streetlight.server.plugins.v1
 
 fun Routing.locationRouting(locationService: LocationService) {
-    get("/locations") {
+    get("$v1/locations") {
         val search = call.parameters["search"] ?: ""
         val count = call.parameters["limit"]?.toIntOrNull() ?: 10
         val locations = if (search.isBlank()) {
@@ -24,14 +25,14 @@ fun Routing.locationRouting(locationService: LocationService) {
         call.respond(locations)
     }
 
-    post("/locations") {
+    post("$v1/locations") {
         val location = call.receive<Location>()
         val id = locationService.create(location)
         call.respond(HttpStatusCode.Created, id)
     }
 
     // Read location
-    get("/locations/{id}") {
+    get("$v1/locations/{id}") {
         val id = call.getIdOrThrow()
         val location = locationService.read(id)
         if (location != null) {
@@ -42,7 +43,7 @@ fun Routing.locationRouting(locationService: LocationService) {
     }
 
     // Update location
-    put("/locations/{id}") {
+    put("$v1/locations/{id}") {
         val id = call.getIdOrThrow()
         val location = call.receive<Location>()
         locationService.update(id, location)
@@ -50,7 +51,7 @@ fun Routing.locationRouting(locationService: LocationService) {
     }
 
     // Delete location
-    delete("/locations/{id}") {
+    delete("$v1/locations/{id}") {
         val id = call.getIdOrThrow()
         locationService.delete(id)
         call.respond(HttpStatusCode.OK)

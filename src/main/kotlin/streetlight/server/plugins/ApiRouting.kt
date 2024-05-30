@@ -2,7 +2,6 @@ package streetlight.server.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.http.HttpHeaders.Date
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.request.receive
@@ -21,9 +20,9 @@ import streetlight.server.data.user.UserService
 import streetlight.server.data.user.userRouting
 import java.util.Date
 
-fun Application.configureRouting() {
+fun Application.configureApiRouting() {
     routing {
-        get("/") {
+        get(v1) {
             call.respondText("Hello World!")
         }
 
@@ -33,7 +32,7 @@ fun Application.configureRouting() {
         eventRouting(EventService())
         eventInfoRouting(EventInfoService())
 
-        post("/login") {
+        post("$v1/login") {
             val audience = "http://localhost:8080/"
             val issuer = "http://localhost:8080/"
             val secret = "secret"
@@ -55,3 +54,5 @@ fun Application.configureRouting() {
         }
     }
 }
+
+val v1 = "/api/v1"

@@ -12,17 +12,18 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import streetlight.model.Area
 import streetlight.server.data.getIdOrThrow
+import streetlight.server.plugins.v1
 
 fun Routing.areaRouting(areaService: AreaService) {
 
     // Fetch all areas
-    get("/areas") {
+    get("$v1/areas") {
         val areas = areaService.readAll()
         call.respond(HttpStatusCode.OK, areas)
     }
 
     // Read area
-    get("/areas/{id}") {
+    get("$v1/areas/{id}") {
         val id = call.getIdOrThrow()
         val area = areaService.read(id)
         if (area != null) {
@@ -33,14 +34,14 @@ fun Routing.areaRouting(areaService: AreaService) {
     }
 
     authenticate("auth-jwt") {
-        post("/areas") {
+        post("$v1/areas") {
             val area = call.receive<Area>()
             val id = areaService.create(area)
             call.respond(HttpStatusCode.Created, id)
         }
 
         // Update area
-        put("/areas/{id}") {
+        put("$v1/areas/{id}") {
             val id = call.getIdOrThrow()
             val area = call.receive<Area>()
             areaService.update(id, area)
@@ -48,7 +49,7 @@ fun Routing.areaRouting(areaService: AreaService) {
         }
 
         // Delete area
-        delete("/areas/{id}") {
+        delete("$v1/areas/{id}") {
             val id = call.getIdOrThrow()
             areaService.delete(id)
             call.respond(HttpStatusCode.OK)

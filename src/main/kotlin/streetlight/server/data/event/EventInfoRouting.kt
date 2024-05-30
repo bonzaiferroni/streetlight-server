@@ -6,9 +6,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import streetlight.server.data.getIdOrThrow
+import streetlight.server.plugins.v1
 
 fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
-    get("/event_info/{id}") {
+    get("$v1/event_info/{id}") {
         val id = call.getIdOrThrow()
         val event = eventInfoService.read(id)
         if (event != null) {
@@ -18,7 +19,7 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         }
     }
 
-    get("/event_info") {
+    get("$v1/event_info") {
         val events = eventInfoService.readAll()
         call.respond(HttpStatusCode.OK, events)
     }

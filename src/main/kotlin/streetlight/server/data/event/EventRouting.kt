@@ -12,17 +12,18 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import streetlight.model.Event
 import streetlight.server.data.getIdOrThrow
+import streetlight.server.plugins.v1
 
 fun Routing.eventRouting(eventService: EventService) {
 
     // Fetch all events
-    get("/events") {
+    get("$v1/events") {
         val events = eventService.readAll()
         call.respond(HttpStatusCode.OK, events)
     }
 
     // Read event
-    get("/events/{id}") {
+    get("$v1/events/{id}") {
         val id = call.getIdOrThrow()
         val event = eventService.read(id)
         if (event != null) {
@@ -33,14 +34,14 @@ fun Routing.eventRouting(eventService: EventService) {
     }
 
     authenticate("auth-jwt") {
-        post("/events") {
+        post("$v1/events") {
             val event = call.receive<Event>()
             val id = eventService.create(event)
             call.respond(HttpStatusCode.Created, id)
         }
 
         // Update event
-        put("/events/{id}") {
+        put("$v1/events/{id}") {
             val id = call.getIdOrThrow()
             val event = call.receive<Event>()
             eventService.update(id, event)
@@ -48,7 +49,7 @@ fun Routing.eventRouting(eventService: EventService) {
         }
 
         // Delete event
-        delete("/events/{id}") {
+        delete("$v1/events/{id}") {
             val id = call.getIdOrThrow()
             eventService.delete(id)
             call.respond(HttpStatusCode.OK)

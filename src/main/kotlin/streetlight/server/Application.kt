@@ -11,5 +11,6 @@ fun Application.module() {
     configureSerialization()
     configureDatabases()
     configureSecurity()
-    configureRouting()
+    configureApiRouting()
+    configureHtmlRouting()
 }
