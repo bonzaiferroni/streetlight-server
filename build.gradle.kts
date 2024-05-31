@@ -36,7 +36,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+
     implementation("com.h2database:h2:2.1.214")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
     implementation("io.ktor:ktor-server-auth-jvm")
     implementation("io.ktor:ktor-server-auth-jwt-jvm")

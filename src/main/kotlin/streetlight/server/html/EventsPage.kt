@@ -2,13 +2,10 @@ package streetlight.server.html
 
 import kotlinx.html.*
 import streetlight.dto.EventInfo
+import streetlight.utils.toLocalDateTime
 
 fun HTML.eventsPage(events: List<EventInfo>) {
-    head {
-        title {
-            +"Events | streetlight"
-        }
-    }
+    pageHeader("Events")
     body {
         h1 {
             +"Events"
@@ -17,7 +14,7 @@ fun HTML.eventsPage(events: List<EventInfo>) {
             p {
                 +"${it.locationName}, ${it.areaName}"
                 br
-                +"${it.timeStart} - ${it.hours} hours"
+                +"${it.timeStart.toLocalDateTime()} - ${it.hours} hours"
             }
         }
     }

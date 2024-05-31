@@ -7,11 +7,7 @@ import kotlinx.html.head
 import kotlinx.html.title
 
 fun HTML.homePage() {
-    head {
-        title {
-            +"streetlight"
-        }
-    }
+    pageHeader("Home")
     body {
         h1 {
             +"Hello world!"
