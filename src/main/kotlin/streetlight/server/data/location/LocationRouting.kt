@@ -2,6 +2,7 @@ package streetlight.server.data.location
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
@@ -25,12 +26,6 @@ fun Routing.locationRouting(locationService: LocationService) {
         call.respond(locations)
     }
 
-    post("$v1/locations") {
-        val location = call.receive<Location>()
-        val id = locationService.create(location)
-        call.respond(HttpStatusCode.Created, id)
-    }
-
     // Read location
     get("$v1/locations/{id}") {
         val id = call.getIdOrThrow()
@@ -42,18 +37,26 @@ fun Routing.locationRouting(locationService: LocationService) {
         }
     }
 
-    // Update location
-    put("$v1/locations/{id}") {
-        val id = call.getIdOrThrow()
-        val location = call.receive<Location>()
-        locationService.update(id, location)
-        call.respond(HttpStatusCode.OK)
-    }
+    authenticate {
+        post("$v1/locations") {
+            val location = call.receive<Location>()
+            val id = locationService.create(location)
+            call.respond(HttpStatusCode.Created, id)
+        }
 
-    // Delete location
-    delete("$v1/locations/{id}") {
-        val id = call.getIdOrThrow()
-        locationService.delete(id)
-        call.respond(HttpStatusCode.OK)
+        // Update location
+        put("$v1/locations/{id}") {
+            val id = call.getIdOrThrow()
+            val location = call.receive<Location>()
+            locationService.update(id, location)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        // Delete location
+        delete("$v1/locations/{id}") {
+            val id = call.getIdOrThrow()
+            locationService.delete(id)
+            call.respond(HttpStatusCode.OK)
+        }
     }
 }

@@ -10,13 +10,19 @@ import io.ktor.server.routing.*
 import streetlight.model.User
 import streetlight.server.data.area.AreaService
 import streetlight.server.data.area.areaRouting
+import streetlight.server.data.event.ArtEventService
 import streetlight.server.data.event.EventInfoService
 import streetlight.server.data.event.EventService
+import streetlight.server.data.event.RequestService
+import streetlight.server.data.event.artEventRouting
 import streetlight.server.data.event.eventInfoRouting
 import streetlight.server.data.event.eventRouting
+import streetlight.server.data.event.requestRouting
 import streetlight.server.data.location.LocationService
 import streetlight.server.data.location.locationRouting
+import streetlight.server.data.user.PerformanceService
 import streetlight.server.data.user.UserService
+import streetlight.server.data.user.performanceRouting
 import streetlight.server.data.user.userRouting
 import java.util.Date
 
@@ -31,6 +37,9 @@ fun Application.configureApiRouting() {
         areaRouting(AreaService())
         eventRouting(EventService())
         eventInfoRouting(EventInfoService())
+        requestRouting(RequestService())
+        artEventRouting(ArtEventService())
+        performanceRouting(PerformanceService())
 
         post("$v1/login") {
             val audience = "http://localhost:8080/"
