@@ -37,7 +37,7 @@ fun Routing.locationRouting(locationService: LocationService) {
         }
     }
 
-    authenticate {
+    authenticate("auth-jwt") {
         post("$v1/locations") {
             val location = call.receive<Location>()
             val id = locationService.create(location)

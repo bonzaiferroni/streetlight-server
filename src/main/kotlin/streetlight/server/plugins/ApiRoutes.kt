@@ -8,8 +8,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.model.User
-import streetlight.server.data.area.AreaService
-import streetlight.server.data.area.areaRouting
+import streetlight.server.data.applyServiceRouting
+import streetlight.server.data.area.AreaServiceProto
 import streetlight.server.data.event.ArtEventService
 import streetlight.server.data.event.EventInfoService
 import streetlight.server.data.event.EventService
@@ -26,7 +26,7 @@ import streetlight.server.data.user.performanceRouting
 import streetlight.server.data.user.userRouting
 import java.util.Date
 
-fun Application.configureApiRouting() {
+fun Application.configureApiRoutes() {
     routing {
         get(v1) {
             call.respondText("Hello World!")
@@ -34,7 +34,8 @@ fun Application.configureApiRouting() {
 
         userRouting(UserService())
         locationRouting(LocationService())
-        areaRouting(AreaService())
+        //areaRouting(AreaService())
+        applyServiceRouting(AreaServiceProto())
         eventRouting(EventService())
         eventInfoRouting(EventInfoService())
         requestRouting(RequestService())

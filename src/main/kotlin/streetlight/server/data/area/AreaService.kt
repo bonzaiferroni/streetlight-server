@@ -2,6 +2,7 @@ package streetlight.server.data.area
 
 import streetlight.model.Area
 import streetlight.server.data.ApiService
+import streetlight.server.data.ApiServiceBase
 
 
 class AreaService : ApiService() {
