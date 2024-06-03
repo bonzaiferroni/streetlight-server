@@ -1,7 +1,6 @@
 package streetlight.server.data.event
 
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.selectAll
 import streetlight.dto.EventInfo
 import streetlight.server.data.ApiService
 import streetlight.server.data.area.AreaTable

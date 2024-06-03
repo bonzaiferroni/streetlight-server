@@ -2,6 +2,7 @@ package streetlight.server.data.user
 
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
+import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
@@ -11,7 +12,7 @@ object UserTable : IntIdTable() {
     val password = text("password")
 }
 
-class UserEntity(id: EntityID<Int>) : Entity<Int>(id) {
+class UserEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : EntityClass<Int, UserEntity>(UserTable)
 
     var name by UserTable.name

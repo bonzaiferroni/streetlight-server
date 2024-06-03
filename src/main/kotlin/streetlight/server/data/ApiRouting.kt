@@ -14,10 +14,16 @@ import org.jetbrains.exposed.dao.IntEntity
 import streetlight.server.plugins.v1
 
 inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
-    service: ApiServiceBase<Data, DataEntity>
+    service: DataService<Data, DataEntity>
 ) {
     get("$v1/${service.endpoint}") {
-        val data = service.readAll()
+        val search = call.parameters["search"] ?: ""
+        val count = call.parameters["limit"]?.toIntOrNull() ?: 10
+        val data = if (search.isBlank()) {
+            service.readAll()
+        } else {
+            service.search(service.getSearchOp(search), count)
+        }
         call.respond(HttpStatusCode.OK, data)
     }
 

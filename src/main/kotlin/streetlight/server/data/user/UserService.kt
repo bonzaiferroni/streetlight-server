@@ -1,46 +1,20 @@
 package streetlight.server.data.user
 
 import streetlight.model.User
-import streetlight.server.data.ApiService
+import streetlight.server.data.DataService
 
-class UserService : ApiService() {
-
-    suspend fun create(user: User): Int = dbQuery {
-        UserEntity.new {
-            name = user.name
-            email = user.email
-            password = user.password
-        }.id.value
+class UserService : DataService<User, UserEntity>("users", UserEntity) {
+    override suspend fun createEntity(data: User): UserEntity.() -> Unit = {
+        name = data.name
+        email = data.email
+        password = data.password
     }
 
-    suspend fun read(id: Int): User? {
-        return dbQuery {
-            UserEntity.findById(id)
-                ?.let {
-                    User(
-                        it.id.value,
-                        it.name,
-                        it.email,
-                        it.password
-                    )
-                }
-        }
-    }
-
-    suspend fun update(id: Int, user: User) {
-        dbQuery {
-            UserEntity.findById(id)?.let {
-                it.name = user.name
-                it.email = user.email
-                it.password = user.password
-            }
-        }
-    }
-
-    suspend fun delete(id: Int) {
-        dbQuery {
-            UserEntity.findById(id)?.delete()
-        }
-    }
+    override fun UserEntity.toData() = User(
+        this.id.value,
+        this.name,
+        this.email,
+        this.password
+    )
 }
 
