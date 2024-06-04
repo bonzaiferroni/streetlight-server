@@ -50,7 +50,6 @@ fun Application.configureApiRoutes() {
             val token = JWT.create()
                 .withAudience(audience)
                 .withIssuer(issuer)
-
                 .withExpiresAt(Date(System.currentTimeMillis() + 60000))
                 // .withClaim("username", user.name)
                 .sign(Algorithm.HMAC256(secret))

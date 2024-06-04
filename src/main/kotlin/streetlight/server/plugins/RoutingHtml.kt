@@ -4,16 +4,19 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import kotlinx.datetime.LocalDateTime
-import streetlight.dto.EventInfo
 import streetlight.server.data.event.EventInfoService
+import streetlight.server.data.location.LocationEntity
+import streetlight.server.data.location.LocationService
 import streetlight.server.html.*
-import streetlight.utils.toLocalDateTime
+import java.io.File
 
 fun Application.configureHtmlRouting() {
     routing {
+        staticFiles("/static", File("www"))
+
         get("/") {
             call.respondHtml(HttpStatusCode.OK) {
                 homePage()
@@ -24,6 +27,13 @@ fun Application.configureHtmlRouting() {
             val events = eventInfoService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
                 eventsPage(events)
+            }
+        }
+
+        get("map") {
+            val locations = LocationService().readAll()
+            call.respondHtml(HttpStatusCode.OK) {
+                mapPage(locations)
             }
         }
     }
