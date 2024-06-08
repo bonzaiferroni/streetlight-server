@@ -6,9 +6,9 @@ import streetlight.server.data.location.LocationEntity
 
 class EventService : DataService<Event, EventEntity>("events", EventEntity) {
     override suspend fun createEntity(data: Event): (EventEntity.() -> Unit)? {
-        val dbLocation = LocationEntity.findById(data.locationId) ?: return null
+        val location = LocationEntity.findById(data.locationId) ?: return null
         return {
-            location = dbLocation
+            this.location = location
             timeStart = data.timeStart
             hours = data.hours
         }
@@ -21,6 +21,15 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
             timeStart,
             hours
         )
+    }
+
+    override suspend fun updateEntity(data: Event): ((EventEntity) -> Unit)? {
+        val location = LocationEntity.findById(data.locationId) ?: return null
+        return {
+            it.location = location
+            it.timeStart = data.timeStart
+            it.hours = data.hours
+        }
     }
 }
 

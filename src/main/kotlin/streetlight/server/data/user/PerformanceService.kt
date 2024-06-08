@@ -17,4 +17,12 @@ class PerformanceService : DataService<Performance, PerformanceEntity>("performa
         user.id.value,
         name
     )
+
+    override suspend fun updateEntity(data: Performance): ((PerformanceEntity) -> Unit)? {
+        val user = UserEntity.findById(data.userId) ?: return null
+        return {
+            it.user = user
+            it.name = data.name
+        }
+    }
 }

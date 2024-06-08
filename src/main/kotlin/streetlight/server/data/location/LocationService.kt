@@ -26,6 +26,16 @@ class LocationService : DataService<Location, LocationEntity>("locations", Locat
         area.id.value
     )
 
+    override suspend fun updateEntity(data: Location): ((LocationEntity) -> Unit)? {
+        val area = AreaEntity.findById(data.areaId) ?: return null
+        return {
+            it.name = data.name
+            it.latitude = data.latitude
+            it.longitude = data.longitude
+            it.area = area
+        }
+    }
+
     override fun getSearchOp(search: String): Op<Boolean> = Op.build {
         LocationTable.name.lowerCase() like "${search.lowercase()}%"
     }

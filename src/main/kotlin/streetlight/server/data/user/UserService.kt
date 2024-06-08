@@ -16,5 +16,11 @@ class UserService : DataService<User, UserEntity>("users", UserEntity) {
         this.email,
         this.password
     )
+
+    override suspend fun updateEntity(data: User): (UserEntity) -> Unit = {
+        it.name = data.name
+        it.email = data.email
+        it.password = data.password
+    }
 }
 

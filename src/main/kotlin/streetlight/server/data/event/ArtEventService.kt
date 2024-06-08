@@ -24,4 +24,14 @@ class ArtEventService : DataService<ArtEvent, ArtEventEntity>("art_events", ArtE
         tips,
     )
 
+    override suspend fun updateEntity(data: ArtEvent): ((ArtEventEntity) -> Unit)? {
+        val event = EventEntity.findById(data.eventId) ?: return null
+        val user = UserEntity.findById(data.userId) ?: return null
+        return {
+            it.streamUrl = data.streamUrl
+            it.tips = data.tips
+            it.user = user
+            it.event = event
+        }
+    }
 }

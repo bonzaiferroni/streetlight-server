@@ -12,4 +12,8 @@ class AreaService : DataService<Area, AreaEntity>("areas", AreaEntity) {
         this.id.value,
         this.name,
     )
+
+    override suspend fun updateEntity(data: Area): (AreaEntity) -> Unit = {
+        it.name = data.name
+    }
 }

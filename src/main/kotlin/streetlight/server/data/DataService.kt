@@ -11,6 +11,7 @@ abstract class DataService<Data : Any, DataEntity : IntEntity>(
     protected val entity: EntityClass<Int, DataEntity>
 ) : ApiService() {
     protected abstract suspend fun createEntity(data: Data): (DataEntity.() -> Unit)?
+    protected abstract suspend fun updateEntity(data: Data): ((DataEntity) -> Unit)?
     protected abstract fun DataEntity.toData(): Data
     open fun getSearchOp(search: String): Op<Boolean> = Op.TRUE
 
@@ -27,11 +28,9 @@ abstract class DataService<Data : Any, DataEntity : IntEntity>(
         entity.all().map { it.toData() }
     }
 
-    suspend fun update(id: Int, data: Data) = dbQuery {
-        val creation = createEntity(data) ?: return@dbQuery
-        entity.findById(id)?.let {
-            creation
-        }
+    suspend fun update(id: Int, data: Data): Boolean = dbQuery {
+        val update = updateEntity(data) ?: return@dbQuery false
+        return@dbQuery entity.findByIdAndUpdate(id, update) != null
     }
 
     suspend fun delete(id: Int) = dbQuery {
