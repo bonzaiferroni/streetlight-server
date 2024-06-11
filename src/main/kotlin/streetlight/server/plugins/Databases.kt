@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.area.AreaTable
 import streetlight.server.data.event.EventTable
 import streetlight.server.data.location.LocationTable
+import streetlight.server.data.user.PerformanceTable
 import streetlight.server.data.user.UserTable
 
 fun Application.configureDatabases() {
@@ -21,5 +22,6 @@ fun Application.configureDatabases() {
         SchemaUtils.create(LocationTable)
         SchemaUtils.create(AreaTable)
         SchemaUtils.create(EventTable)
+        SchemaUtils.create(PerformanceTable)
     }
 }

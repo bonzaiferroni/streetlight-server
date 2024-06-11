@@ -10,7 +10,6 @@ import io.ktor.server.routing.*
 import streetlight.model.User
 import streetlight.server.data.applyServiceRouting
 import streetlight.server.data.area.AreaService
-import streetlight.server.data.event.ArtEventService
 import streetlight.server.data.event.EventInfoService
 import streetlight.server.data.event.EventService
 import streetlight.server.data.event.RequestService
@@ -31,7 +30,6 @@ fun Application.configureApiRoutes() {
         applyServiceRouting(UserService())
         applyServiceRouting(LocationService())
         applyServiceRouting(RequestService())
-        applyServiceRouting(ArtEventService())
         applyServiceRouting(PerformanceService())
 
         eventInfoRouting(EventInfoService())
