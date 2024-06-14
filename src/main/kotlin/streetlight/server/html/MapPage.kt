@@ -37,6 +37,3 @@ fun HTML.mapPage(locations: List<Location>) {
         }
     }
 }
-
-@Serializable
-data class Person(val name: String, val age: Int)

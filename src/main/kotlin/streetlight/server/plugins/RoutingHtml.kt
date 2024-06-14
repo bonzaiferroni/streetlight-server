@@ -10,6 +10,7 @@ import io.ktor.server.routing.routing
 import streetlight.server.data.event.EventInfoService
 import streetlight.server.data.location.LocationEntity
 import streetlight.server.data.location.LocationService
+import streetlight.server.data.user.PerformanceService
 import streetlight.server.html.*
 import java.io.File
 
@@ -27,6 +28,14 @@ fun Application.configureHtmlRouting() {
             val events = eventInfoService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
                 eventsPage(events)
+            }
+        }
+
+        get("/request") {
+            val performanceService = PerformanceService()
+            val performances = performanceService.readAll()
+            call.respondHtml(HttpStatusCode.OK) {
+                requestPage(performances)
             }
         }
 
