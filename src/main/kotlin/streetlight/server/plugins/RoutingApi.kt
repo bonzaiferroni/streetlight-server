@@ -31,6 +31,7 @@ fun Application.configureApiRoutes() {
         applyServiceRouting(LocationService())
         applyServiceRouting(RequestService())
         applyServiceRouting(PerformanceService())
+        applyServiceRouting(RequestService())
 
         eventInfoRouting(EventInfoService())
 
