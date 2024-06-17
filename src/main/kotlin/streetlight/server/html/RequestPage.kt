@@ -12,7 +12,7 @@ import kotlinx.html.script
 import streetlight.dto.EventInfo
 import streetlight.model.Performance
 
-fun HTML.requestPage(performances: List<Performance>) {
+fun HTML.requestPage(eventId: Int, performances: List<Performance>) {
     pageHeader("Request")
     body {
         h1 {
@@ -22,7 +22,7 @@ fun HTML.requestPage(performances: List<Performance>) {
             button {
                 id = "button-${it.id}"
                 classes = setOf("btn", "btn-primary")
-                onClick = "makeRequest(${it.id})"
+                onClick = "makeRequest(${it.id}, $eventId)"
                 +it.name
             }
         }

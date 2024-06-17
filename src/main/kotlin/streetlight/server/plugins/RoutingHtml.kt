@@ -5,9 +5,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticFiles
+import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import streetlight.server.data.event.EventInfoService
+import streetlight.server.data.getIdOrThrow
 import streetlight.server.data.location.LocationEntity
 import streetlight.server.data.location.LocationService
 import streetlight.server.data.user.PerformanceService
@@ -31,11 +33,26 @@ fun Application.configureHtmlRouting() {
             }
         }
 
-        get("/request") {
+        get("/event") {
+            val id = call.parameters["id"]?.toInt() ?: suspend {
+                // return the last event
+                val eventService = EventInfoService()
+                val events = eventService.readAll()
+                if (events.isEmpty()) {
+                    null
+                } else {
+                    events.last().id
+                }
+            }()
+            if (id == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+
             val performanceService = PerformanceService()
             val performances = performanceService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
-                requestPage(performances)
+                requestPage(id, performances)
             }
         }
 
