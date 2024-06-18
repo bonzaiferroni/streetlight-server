@@ -13,6 +13,7 @@ object RequestTable : IntIdTable() {
     val event = reference("event_id", EventTable)
     val performance = reference("performance_id", PerformanceTable)
     val time = long("time")
+    val performed = bool("performed")
 }
 
 class RequestEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -21,4 +22,5 @@ class RequestEntity(id: EntityID<Int>) : IntEntity(id) {
     var event by EventEntity referencedOn RequestTable.event
     var performance by PerformanceEntity referencedOn RequestTable.performance
     var time by RequestTable.time
+    var performed by RequestTable.performed
 }

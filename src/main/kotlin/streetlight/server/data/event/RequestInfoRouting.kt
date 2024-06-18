@@ -6,7 +6,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import streetlight.server.data.getIdOrThrow
-import streetlight.server.data.request.RequestInfoService
 import streetlight.server.plugins.v1
 
 fun Routing.requestInfoRouting(requestInfoService: RequestInfoService) {

@@ -1,12 +1,8 @@
-package streetlight.server.data.request
+package streetlight.server.data.event
 
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import streetlight.dto.RequestInfo
 import streetlight.server.data.ApiService
-import streetlight.server.data.area.AreaTable
-import streetlight.server.data.event.EventTable
-import streetlight.server.data.event.RequestTable
 import streetlight.server.data.location.LocationTable
 import streetlight.server.data.user.PerformanceTable
 
@@ -46,6 +42,7 @@ val requestInfoColumns = listOf(
     PerformanceTable.id,
     PerformanceTable.name,
     RequestTable.time,
+    RequestTable.performed
 )
 
 fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
@@ -55,4 +52,5 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     performanceId = this[PerformanceTable.id].value,
     performanceName = this[PerformanceTable.name],
     time = this[RequestTable.time],
+    performed = this[RequestTable.performed]
 )

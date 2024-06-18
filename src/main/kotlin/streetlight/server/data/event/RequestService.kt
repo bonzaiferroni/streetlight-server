@@ -12,6 +12,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
             this.event = event
             this.performance = performance
             time = data.time
+            performed = data.performed
         }
     }
 
@@ -20,6 +21,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
         event.id.value,
         performance.id.value,
         time,
+        performed
     )
 
     override suspend fun updateEntity(data: Request): ((RequestEntity) -> Unit)? {
@@ -29,6 +31,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
             it.event = event
             it.performance = performance
             it.time = data.time
+            it.performed = data.performed
         }
     }
 }
