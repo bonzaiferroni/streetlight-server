@@ -16,7 +16,7 @@ import streetlight.server.data.event.RequestService
 import streetlight.server.data.event.eventInfoRouting
 import streetlight.server.data.location.LocationService
 import streetlight.server.data.request.RequestInfoService
-import streetlight.server.data.request.requestInfoRouting
+import streetlight.server.data.event.requestInfoRouting
 import streetlight.server.data.user.PerformanceService
 import streetlight.server.data.user.UserService
 import java.util.Date
