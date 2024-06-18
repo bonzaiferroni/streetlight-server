@@ -28,6 +28,15 @@ class RequestInfoService : ApiService() {
                 .map { it.toRequestInfo() }
         }
     }
+
+    suspend fun readAllByEvent(eventId: Int): List<RequestInfo> {
+        return dbQuery {
+            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(PerformanceTable)
+                .select(requestInfoColumns)
+                .where { EventTable.id eq eventId }
+                .map { it.toRequestInfo() }
+        }
+    }
 }
 
 val requestInfoColumns = listOf(
