@@ -1,6 +1,7 @@
 package streetlight.server.plugins
 
 import io.ktor.server.application.*
+import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.data.area.AreaTable
@@ -8,7 +9,9 @@ import streetlight.server.data.event.EventTable
 import streetlight.server.data.event.RequestTable
 import streetlight.server.data.location.LocationTable
 import streetlight.server.data.user.PerformanceTable
+import streetlight.server.data.user.UserService
 import streetlight.server.data.user.UserTable
+import streetlight.server.utilities.DbBackup
 
 fun Application.configureDatabases() {
     val database = Database.connect(
@@ -25,5 +28,18 @@ fun Application.configureDatabases() {
         SchemaUtils.create(EventTable)
         SchemaUtils.create(PerformanceTable)
         SchemaUtils.create(RequestTable)
+    }
+
+    environment.monitor.subscribe(ApplicationStarted) {
+        launch {
+            val userCount = UserService().readAll().size
+            if (userCount == 0) {
+                println("backup restored")
+                DbBackup.restore()
+            } else {
+                println("backup created")
+                DbBackup.create()
+            }
+        }
     }
 }
