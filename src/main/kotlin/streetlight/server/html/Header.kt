@@ -22,6 +22,10 @@ fun HTML.pageHeader(
             rel = "stylesheet"
             href = "static/styles.css"
         }
+        link {
+            rel = "stylesheet"
+            href = "static/foxy.css"
+        }
         elements?.invoke(this)
     }
 }

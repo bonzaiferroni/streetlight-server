@@ -9,6 +9,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import streetlight.server.data.event.EventInfoService
+import streetlight.server.data.event.RequestInfoService
+import streetlight.server.data.event.RequestService
 import streetlight.server.data.getIdOrThrow
 import streetlight.server.data.location.LocationEntity
 import streetlight.server.data.location.LocationService
@@ -50,6 +52,7 @@ fun Application.configureHtmlRouting() {
             }
 
             val performanceService = PerformanceService()
+
             val performances = performanceService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
                 requestPage(id, performances)

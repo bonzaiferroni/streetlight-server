@@ -26,7 +26,7 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         call.respond(HttpStatusCode.OK, events)
     }
 
-    post("$v1/event/request/{id}/{perf}") {
+    post("$v1/event_profile/{id}/{perf}") {
         val eventId = call.getIdOrThrow()
         val performanceId = call.parameters["perf"]?.toInt()
         if (performanceId == null) {
@@ -42,5 +42,11 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         val id = RequestService().create(request)
 
         call.respond(HttpStatusCode.Created, id)
+    }
+
+    get("$v1/event_profile/{id}") {
+        val eventId = call.getIdOrThrow()
+        val requests = RequestInfoService().readAllByEvent(eventId)
+        call.respond(HttpStatusCode.OK, requests)
     }
 }
