@@ -5,8 +5,7 @@ import streetlight.dto.EventInfo
 import streetlight.utils.toLocalDateTime
 
 fun HTML.eventsPage(events: List<EventInfo>) {
-    pageHeader("Events")
-    body {
+    basePage("Events") {
         h1 {
             +"Events"
         }

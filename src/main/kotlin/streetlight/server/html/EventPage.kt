@@ -1,22 +1,16 @@
 package streetlight.server.html
 
 import kotlinx.html.*
-import streetlight.dto.RequestInfo
 import streetlight.model.Performance
 import streetlight.server.utilities.callFunction
 
-fun HTML.requestPage(
+fun HTML.eventPage(
     eventId: Int,
     performances: List<Performance>,
 ) {
-    pageHeader("Event")
-    body("container") {
+    basePage("Event") {
         h1 {
-            +"Request a song"
-        }
-        p {
-            +"Thank you for stopping by :) "
-            +"My name is Luke and I'm working on an app for street performers. "
+            +"Event name"
         }
         div("request-list") {
             h5 {
@@ -29,13 +23,15 @@ fun HTML.requestPage(
             performances.forEach {
                 button {
                     id = "song-button-${it.id}"
-                    classes = setOf("btn", "btn-primary")
+                    classes = setOf("btn", "btn-primary", "song-button")
                     onClick = "makeRequest(${it.id}, $eventId)"
                     +it.name
                 }
             }
         }
         p {
+            +"Thank you for stopping by :) "
+            +"My name is Luke and I'm working on an app for street performers. "
             +"You can follow me on my blog or support me through Patreon or venmo. "
         }
         script {

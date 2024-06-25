@@ -26,7 +26,7 @@ fun Routing.requestInfoRouting(requestInfoService: RequestInfoService) {
 
     get("$v1/request_info/event/{id}") {
         val eventId = call.getIdOrThrow()
-        val requests = requestInfoService.readAllByEvent(eventId)
+        val requests = requestInfoService.readAllByEvent(eventId).filter { !it.performed }
         call.respond(HttpStatusCode.OK, requests)
     }
 }
