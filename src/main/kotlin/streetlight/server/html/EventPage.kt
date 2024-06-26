@@ -9,7 +9,7 @@ fun HTML.eventPage(
     performances: List<Performance>,
 ) {
     basePage("Event") {
-        h1 {
+        h1("text-2xl") {
             +"Event name"
         }
         div("request-list") {
@@ -31,7 +31,7 @@ fun HTML.eventPage(
         }
         p {
             +"Thank you for stopping by :) "
-            +"My name is Luke and I'm working on an app for street performers. "
+            +"My name is Luke and I'm working on an app for street performers and artists. "
             +"You can follow me on my blog or support me through Patreon or venmo. "
         }
         script {
