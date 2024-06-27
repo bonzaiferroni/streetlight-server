@@ -12,8 +12,8 @@ fun HTML.homePage() {
             +"Hello world!"
         }
         button {
-            +"Click me"
             onClick = "alert('Hello, world!')"
+            +"Click me"
         }
     }
 }

@@ -14,7 +14,7 @@ fun HTML.eventPage(
         }
         div("request-list") {
             h5 {
-                +"What song should I play next?"
+                +"What song should I play next? :)"
             }
             p {
                 +"requested: "
