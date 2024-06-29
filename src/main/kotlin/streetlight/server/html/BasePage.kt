@@ -5,13 +5,13 @@ import kotlinx.html.*
 fun HTML.basePage(
     title: String,
     headElements: (HEAD.() -> Unit)? = null,
-    content: BODY.() -> Unit,
+    content: MAIN.() -> Unit,
 ) {
     head {
         title {
             +"$title | streetlight"
         }
-        // link { rel = "stylesheet"; href = "static/css/styles.css" }
+        link { rel = "stylesheet"; href = "static/css/styles.css" }
         // link { rel = "stylesheet"; href = "static/css/layout.css" }
         // link { rel = "stylesheet"; href = "static/css/foxy.css" }
         // google font
@@ -23,10 +23,22 @@ fun HTML.basePage(
             href =
                 "https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
         }
-        link { rel = "stylesheet"; href = "static/css/tailwind.css" }
+        // link { rel = "stylesheet"; href = "static/css/tailwind.css" }
+        link {
+            rel = "stylesheet"
+            href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+        }
+        link {
+            rel = "stylesheet"
+            href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
+        }
         headElements?.invoke(this)
     }
-    body("bg-gray") {
-        content()
+    body {
+        header { }
+        main("container") {
+            content()
+        }
+        footer { }
     }
 }

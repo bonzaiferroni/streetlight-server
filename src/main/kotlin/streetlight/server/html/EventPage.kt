@@ -9,10 +9,10 @@ fun HTML.eventPage(
     performances: List<Performance>,
 ) {
     basePage("Event") {
-        h1("text-2xl") {
-            +"Event name"
+        h1 {
+            +"artist name @ location"
         }
-        div("request-list") {
+        div {
             h5 {
                 +"What song should I play next? :)"
             }
@@ -20,23 +20,26 @@ fun HTML.eventPage(
                 +"requested: "
                 span { id = "requests" }
             }
-            performances.forEach {
-                button {
-                    id = "song-button-${it.id}"
-                    classes = setOf("btn", "btn-primary", "song-button")
-                    onClick = "makeRequest(${it.id}, $eventId)"
-                    +it.name
+            div("rows") {
+                performances.forEach {
+                    requestRow(eventId, it)
                 }
             }
-        }
-        p {
-            +"Thank you for stopping by :) "
-            +"My name is Luke and I'm working on an app for street performers and artists. "
-            +"You can follow me on my blog or support me through Patreon or venmo. "
         }
         script {
             src = "static/request.js"
         }
         callFunction("getRequests", eventId)
+    }
+}
+
+fun FlowContent.requestRow(eventId: Int, performance: Performance) {
+    div("row") {
+        button {
+            id = "song-button-${performance.id}"
+            classes = setOf("btn", "btn-primary", "song-button")
+            onClick = "makeRequest(${performance.id}, $eventId)"
+            +performance.name
+        }
     }
 }
