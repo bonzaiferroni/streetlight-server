@@ -39,6 +39,8 @@ val requestInfoColumns = listOf(
     LocationTable.name,
     PerformanceTable.id,
     PerformanceTable.name,
+    PerformanceTable.artist,
+    RequestTable.notes,
     RequestTable.time,
     RequestTable.performed
 )
@@ -50,8 +52,8 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     performanceId = this[PerformanceTable.id].value,
     performanceName = this[PerformanceTable.name],
     artist = this[PerformanceTable.artist],
-    time = this[RequestTable.time],
     notes = this[RequestTable.notes],
+    time = this[RequestTable.time],
     performed = this[RequestTable.performed],
 
 )
