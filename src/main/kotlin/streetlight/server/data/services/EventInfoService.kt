@@ -1,10 +1,8 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import org.jetbrains.exposed.sql.ResultRow
 import streetlight.dto.EventInfo
 import streetlight.server.data.ApiService
-import streetlight.server.data.area.AreaTable
-import streetlight.server.data.location.LocationTable
 
 class EventInfoService : ApiService() {
     suspend fun read(id: Int): EventInfo? {

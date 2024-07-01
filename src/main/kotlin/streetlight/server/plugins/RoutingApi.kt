@@ -9,16 +9,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.model.User
 import streetlight.server.data.applyServiceRouting
-import streetlight.server.data.area.AreaService
-import streetlight.server.data.event.EventInfoService
-import streetlight.server.data.event.EventService
-import streetlight.server.data.event.RequestService
-import streetlight.server.data.event.eventInfoRouting
-import streetlight.server.data.location.LocationService
-import streetlight.server.data.event.RequestInfoService
-import streetlight.server.data.event.requestInfoRouting
-import streetlight.server.data.user.PerformanceService
-import streetlight.server.data.user.UserService
+import streetlight.server.data.services.AreaService
+import streetlight.server.data.services.EventInfoService
+import streetlight.server.data.services.EventService
+import streetlight.server.data.services.RequestService
+import streetlight.server.data.services.eventInfoRouting
+import streetlight.server.data.services.LocationService
+import streetlight.server.data.services.RequestInfoService
+import streetlight.server.data.services.requestInfoRouting
+import streetlight.server.data.services.PerformanceService
+import streetlight.server.data.services.UserService
 import java.util.Date
 
 fun Application.configureApiRoutes() {

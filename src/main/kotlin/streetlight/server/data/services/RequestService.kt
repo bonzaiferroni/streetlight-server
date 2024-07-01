@@ -1,8 +1,7 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import streetlight.model.Request
 import streetlight.server.data.DataService
-import streetlight.server.data.user.PerformanceEntity
 
 class RequestService : DataService<Request, RequestEntity>("requests", RequestEntity) {
     override suspend fun createEntity(data: Request): (RequestEntity.() -> Unit)? {
@@ -13,6 +12,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
             this.performance = performance
             time = data.time
             performed = data.performed
+            notes = data.notes
         }
     }
 
@@ -21,7 +21,8 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
         event.id.value,
         performance.id.value,
         time,
-        performed
+        performed,
+        notes,
     )
 
     override suspend fun updateEntity(data: Request): ((RequestEntity) -> Unit)? {
@@ -32,6 +33,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
             it.performance = performance
             it.time = data.time
             it.performed = data.performed
+            it.notes = data.notes
         }
     }
 }

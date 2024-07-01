@@ -14,7 +14,12 @@ fun HTML.eventPage(
         }
         div {
             h5 {
-                +"What song should I play next? :)"
+                +"You can "
+                a {
+                    href = "https://www.venmo.com/u/colfaxband"
+                    +"send a tip with venmo"
+                }
+                +" ❤"
             }
             p {
                 +"requested: "

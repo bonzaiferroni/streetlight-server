@@ -1,12 +1,10 @@
-package streetlight.server.data.location
+package streetlight.server.data.services
 
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import streetlight.server.data.area.AreaEntity
-import streetlight.server.data.area.AreaTable
 
 object LocationTable : IntIdTable() {
     val name = text("name")

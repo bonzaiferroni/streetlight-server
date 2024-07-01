@@ -1,4 +1,4 @@
-package streetlight.server.data.user
+package streetlight.server.data.services
 
 import streetlight.model.User
 import streetlight.server.data.DataService

@@ -8,9 +8,9 @@ import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import streetlight.server.data.event.EventInfoService
-import streetlight.server.data.location.LocationService
-import streetlight.server.data.user.PerformanceService
+import streetlight.server.data.services.EventInfoService
+import streetlight.server.data.services.LocationService
+import streetlight.server.data.services.PerformanceService
 import streetlight.server.html.*
 import java.io.File
 

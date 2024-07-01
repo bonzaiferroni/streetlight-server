@@ -1,4 +1,4 @@
-package streetlight.server.data.user
+package streetlight.server.data.services
 
 import streetlight.model.Performance
 import streetlight.server.data.DataService
@@ -9,13 +9,15 @@ class PerformanceService : DataService<Performance, PerformanceEntity>("performa
         return {
             this.user = user
             name = data.name
+            artist = data.artist
         }
     }
 
     override fun PerformanceEntity.toData() = Performance(
         id.value,
         user.id.value,
-        name
+        name,
+        artist
     )
 
     override suspend fun updateEntity(data: Performance): ((PerformanceEntity) -> Unit)? {
@@ -23,6 +25,7 @@ class PerformanceService : DataService<Performance, PerformanceEntity>("performa
         return {
             it.user = user
             it.name = data.name
+            it.artist = data.artist
         }
     }
 }

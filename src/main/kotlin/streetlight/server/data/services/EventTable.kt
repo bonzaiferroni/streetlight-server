@@ -1,13 +1,9 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import streetlight.server.data.location.LocationTable
-import streetlight.server.data.location.LocationEntity
-import streetlight.server.data.user.UserEntity
-import streetlight.server.data.user.UserTable
 
 class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : EntityClass<Int, EventEntity>(EventTable)

@@ -1,4 +1,4 @@
-package streetlight.server.data.area
+package streetlight.server.data.services
 
 import streetlight.model.Area
 import streetlight.server.data.DataService

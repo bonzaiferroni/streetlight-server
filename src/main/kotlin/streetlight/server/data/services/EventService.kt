@@ -1,9 +1,7 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import streetlight.model.Event
 import streetlight.server.data.DataService
-import streetlight.server.data.location.LocationEntity
-import streetlight.server.data.user.UserEntity
 
 class EventService : DataService<Event, EventEntity>("events", EventEntity) {
     override suspend fun createEntity(data: Event): (EventEntity.() -> Unit)? {

@@ -1,6 +1,5 @@
-package streetlight.server.data.user
+package streetlight.server.data.services
 
-import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID

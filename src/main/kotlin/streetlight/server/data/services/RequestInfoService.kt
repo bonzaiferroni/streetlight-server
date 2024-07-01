@@ -1,10 +1,8 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import org.jetbrains.exposed.sql.ResultRow
 import streetlight.dto.RequestInfo
 import streetlight.server.data.ApiService
-import streetlight.server.data.location.LocationTable
-import streetlight.server.data.user.PerformanceTable
 
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {
@@ -51,6 +49,9 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     locationName = this[LocationTable.name],
     performanceId = this[PerformanceTable.id].value,
     performanceName = this[PerformanceTable.name],
+    artist = this[PerformanceTable.artist],
     time = this[RequestTable.time],
-    performed = this[RequestTable.performed]
+    notes = this[RequestTable.notes],
+    performed = this[RequestTable.performed],
+
 )

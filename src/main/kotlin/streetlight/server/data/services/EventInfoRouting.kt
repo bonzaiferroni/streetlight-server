@@ -1,4 +1,4 @@
-package streetlight.server.data.event
+package streetlight.server.data.services
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call

@@ -1,10 +1,9 @@
-package streetlight.server.data.location
+package streetlight.server.data.services
 
 import streetlight.model.Location
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.lowerCase
 import streetlight.server.data.DataService
-import streetlight.server.data.area.AreaEntity
 
 class LocationService : DataService<Location, LocationEntity>("locations", LocationEntity) {
 
