@@ -14,7 +14,7 @@ inline fun <reified T> T.toJsVar(name: String) =
 fun FlowOrMetaDataOrPhrasingContent.callFunction(name: String, vararg args: Any) {
     script {
         unsafe {
-            raw("$name(${args.joinToString()});")
+            raw("$name(${args.joinToString(", ")});")
         }
     }
 }

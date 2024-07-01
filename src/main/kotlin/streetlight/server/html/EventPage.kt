@@ -5,6 +5,7 @@ import streetlight.model.Performance
 import streetlight.server.utilities.callFunction
 
 fun HTML.eventPage(
+    host: String,
     eventId: Int,
     performances: List<Performance>,
 ) {
@@ -32,19 +33,39 @@ fun HTML.eventPage(
             }
         }
         script {
-            src = "static/request.js"
+            src = "static/js/request.js"
         }
-        callFunction("getRequests", eventId)
+        callFunction("init", "\"$host\"", eventId)
     }
 }
 
 fun FlowContent.requestRow(eventId: Int, performance: Performance) {
-    div("row") {
-        button {
-            id = "song-button-${performance.id}"
-            classes = setOf("btn", "btn-primary", "song-button")
-            onClick = "makeRequest(${performance.id}, $eventId)"
-            +performance.name
+    article {
+        div("row, request-row") {
+            div("name") {
+                div("property") {
+                    +"song"
+                }
+                div("value") {
+                    +performance.name
+                }
+            }
+            div("artist") {
+                performance.artist?.let {
+                    div("property") {
+                        +"artist"
+                    }
+                    div("value") {
+                        +it
+                    }
+                }
+            }
+            button {
+                id = "song-button-${performance.id}"
+                classes = setOf("btn", "btn-primary", "song-button")
+                onClick = "makeRequest(${performance.id}, $eventId)"
+                +"Request"
+            }
         }
     }
 }

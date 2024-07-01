@@ -3,6 +3,8 @@ package streetlight.server
 import streetlight.server.plugins.*
 import io.ktor.server.application.*
 
+val host = "http://localhost:8080"
+
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
@@ -12,6 +14,6 @@ fun Application.module() {
     configureDatabases()
     configureSecurity()
     configureApiRoutes()
-    configureHtmlRouting()
+    configureHtmlRouting(host)
     configureWebSockets()
 }

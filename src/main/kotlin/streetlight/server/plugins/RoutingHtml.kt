@@ -14,7 +14,7 @@ import streetlight.server.data.services.PerformanceService
 import streetlight.server.html.*
 import java.io.File
 
-fun Application.configureHtmlRouting() {
+fun Application.configureHtmlRouting(host: String) {
     routing {
         staticFiles("/static", File("www"))
 
@@ -51,7 +51,7 @@ fun Application.configureHtmlRouting() {
 
             val performances = performanceService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
-                eventPage(id, performances)
+                eventPage(host, id, performances)
             }
         }
 
