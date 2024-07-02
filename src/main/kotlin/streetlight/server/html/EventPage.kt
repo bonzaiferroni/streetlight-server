@@ -29,7 +29,7 @@ fun HTML.eventPage(
                 span { id = "requests" }
             }
             h3 {
-                +"Make a request"
+                +"Requests"
             }
             settings()
             div("rows") {
@@ -47,19 +47,7 @@ fun HTML.eventPage(
 
 fun FlowContent.settings() {
     // input { type = InputType.text; placeholder = "your name (optional)" }
-    div("columns") {
-        fieldSet {
-            legend { +"Guitar" }
-            label {
-                input {
-                    id = "luke-guitar"
-                    type = InputType.checkBox
-                    name = "luke-guitar"
-                    checked = true
-                }
-                +"Luke plays guitar"
-            }
-        }
+    div("columns gap") {
         fieldSet {
             legend { +"Singers" }
             label {
@@ -86,6 +74,24 @@ fun FlowContent.settings() {
                     name = "voice"
                 }
                 +"I'll sing"
+            }
+        }
+        fieldSet {
+            legend { +"Guitar" }
+            label {
+                input {
+                    id = "luke-guitar"
+                    type = InputType.checkBox
+                    name = "luke-guitar"
+                    checked = true
+                }
+                +"Luke plays guitar"
+            }
+            legend { +"You" }
+            input {
+                id = "requester-name"
+                type = InputType.text
+                placeholder = "Your name (optional)"
             }
         }
     }
