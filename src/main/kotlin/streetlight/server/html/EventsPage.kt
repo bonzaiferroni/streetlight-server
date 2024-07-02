@@ -1,8 +1,8 @@
 package streetlight.server.html
 
 import kotlinx.html.*
-import streetlight.dto.EventInfo
-import streetlight.utils.toLocalDateTime
+import streetlight.model.dto.EventInfo
+import streetlight.model.utils.toLocalDateTime
 
 fun HTML.eventsPage(events: List<EventInfo>) {
     basePage("Events") {

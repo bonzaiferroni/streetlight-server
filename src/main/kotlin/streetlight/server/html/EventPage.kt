@@ -1,7 +1,7 @@
 package streetlight.server.html
 
 import kotlinx.html.*
-import streetlight.dto.EventInfo
+import streetlight.model.dto.EventInfo
 import streetlight.model.Event
 import streetlight.model.Performance
 import streetlight.server.utilities.callFunction

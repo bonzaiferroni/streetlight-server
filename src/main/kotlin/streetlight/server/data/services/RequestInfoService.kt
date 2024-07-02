@@ -1,7 +1,7 @@
 package streetlight.server.data.services
 
 import org.jetbrains.exposed.sql.ResultRow
-import streetlight.dto.RequestInfo
+import streetlight.model.dto.RequestInfo
 import streetlight.server.data.ApiService
 
 class RequestInfoService : ApiService() {
