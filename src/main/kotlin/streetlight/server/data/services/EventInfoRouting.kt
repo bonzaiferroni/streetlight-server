@@ -2,6 +2,7 @@ package streetlight.server.data.services
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
@@ -41,6 +42,12 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         )
         val id = RequestService().create(request)
 
+        call.respond(HttpStatusCode.Created, id)
+    }
+
+    post("$v1/event_profile/request") {
+        val request = call.receive<Request>()
+        val id = RequestService().create(request.copy(time = System.currentTimeMillis()))
         call.respond(HttpStatusCode.Created, id)
     }
 

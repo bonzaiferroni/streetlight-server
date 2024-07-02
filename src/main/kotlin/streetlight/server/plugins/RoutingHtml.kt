@@ -32,9 +32,9 @@ fun Application.configureHtmlRouting(host: String) {
         }
 
         get("/event") {
+            val eventService = EventInfoService()
             val id = call.parameters["id"]?.toInt() ?: suspend {
                 // return the last event
-                val eventService = EventInfoService()
                 val events = eventService.readAll()
                 if (events.isEmpty()) {
                     null
@@ -47,11 +47,11 @@ fun Application.configureHtmlRouting(host: String) {
                 return@get
             }
 
+            val event = eventService.read(id)!!
             val performanceService = PerformanceService()
-
             val performances = performanceService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
-                eventPage(host, id, performances)
+                eventPage(host, event, performances)
             }
         }
 
