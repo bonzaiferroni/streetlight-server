@@ -2,6 +2,7 @@ package streetlight.server.plugins
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticFiles
@@ -23,15 +24,14 @@ fun Application.configureHtmlRouting(host: String) {
                 homePage()
             }
         }
-        get("/events") {
-            val eventInfoService = EventInfoService()
-            val events = eventInfoService.readAll()
+
+        get("/about") {
             call.respondHtml(HttpStatusCode.OK) {
-                eventsPage(events)
+                aboutPage()
             }
         }
 
-        get("/event") {
+        get("/qr") {
             val eventService = EventInfoService()
             val id = call.parameters["id"]?.toInt() ?: suspend {
                 // return the last event

@@ -11,7 +11,6 @@ fun HTML.basePage(
         title {
             +"$title | streetlight"
         }
-        link { rel = "stylesheet"; href = "static/css/styles.css" }
         // link { rel = "stylesheet"; href = "static/css/layout.css" }
         // link { rel = "stylesheet"; href = "static/css/foxy.css" }
         // google font
@@ -32,10 +31,31 @@ fun HTML.basePage(
             rel = "stylesheet"
             href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
         }
+        link { rel = "stylesheet"; href = "static/css/styles.css" }
+        // <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        meta("viewport", "width=device-width, initial-scale=1.0")
         headElements?.invoke(this)
     }
     body {
-        header { }
+        header("site-header") {
+            div("site-title") { +"streetlight" }
+            div(classes = "logo") {
+                img(src = "static/img/logo.png", alt = "Streetlight Logo")
+            }
+            nav {
+                ul {
+                    li { a(href = "/about") { +"About" } }
+                    li { a(href = "https://eosris.ing") { +"Blog" } }
+                    // github logo
+                    li {
+                        a(href = "https://github.com/bonzaiferroni/streetlight") {
+                            img(classes = "logo-small", src = "static/img/github.svg", alt = "GitHub Logo")
+                        }
+                    }
+                }
+            }
+        }
+
         main("container") {
             content()
         }

@@ -3,7 +3,7 @@ package streetlight.server
 import streetlight.server.plugins.*
 import io.ktor.server.application.*
 
-val host = "http://localhost:8080"
+val host = "https://streetlight.ing"
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)

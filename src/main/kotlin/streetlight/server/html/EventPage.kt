@@ -12,7 +12,10 @@ fun HTML.eventPage(
     performances: List<Performance>,
 ) {
     basePage("Event") {
-        h1 {
+        img {
+            src = "static/img/bridge.jpg"
+        }
+        h1("event-title") {
             +"Luke @ ${event.locationName}"
         }
         div {
