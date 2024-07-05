@@ -2,16 +2,15 @@ package streetlight.server.plugins
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import streetlight.server.data.services.EventInfoService
-import streetlight.server.data.services.LocationService
-import streetlight.server.data.services.PerformanceService
+import streetlight.server.db.services.EventInfoService
+import streetlight.server.db.services.LocationService
+import streetlight.server.db.services.PerformanceService
 import streetlight.server.html.*
 import java.io.File
 

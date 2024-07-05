@@ -1,10 +1,8 @@
-package streetlight.server.data
+package streetlight.server.db
 
-import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 abstract class DataService<Data : Any, DataEntity : IntEntity>(
     val endpoint: String,

@@ -1,4 +1,4 @@
-package streetlight.server.data
+package streetlight.server.db
 
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

@@ -1,7 +1,7 @@
-package streetlight.server.data.services
+package streetlight.server.db.services
 
 import streetlight.model.User
-import streetlight.server.data.DataService
+import streetlight.server.db.DataService
 
 class UserService : DataService<User, UserEntity>("users", UserEntity) {
     override suspend fun createEntity(data: User): UserEntity.() -> Unit = {

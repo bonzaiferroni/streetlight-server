@@ -9,12 +9,12 @@ import streetlight.model.Location
 import streetlight.model.Performance
 import streetlight.model.Request
 import streetlight.model.User
-import streetlight.server.data.services.AreaService
-import streetlight.server.data.services.EventService
-import streetlight.server.data.services.RequestService
-import streetlight.server.data.services.LocationService
-import streetlight.server.data.services.PerformanceService
-import streetlight.server.data.services.UserService
+import streetlight.server.db.services.AreaService
+import streetlight.server.db.services.EventService
+import streetlight.server.db.services.RequestService
+import streetlight.server.db.services.LocationService
+import streetlight.server.db.services.PerformanceService
+import streetlight.server.db.services.UserService
 import java.io.File
 import kotlin.reflect.KClass
 

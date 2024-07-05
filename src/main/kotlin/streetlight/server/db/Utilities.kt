@@ -1,4 +1,4 @@
-package streetlight.server.data
+package streetlight.server.db
 
 import io.ktor.server.application.ApplicationCall
 

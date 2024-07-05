@@ -1,8 +1,8 @@
-package streetlight.server.data.services
+package streetlight.server.db.services
 
 import org.jetbrains.exposed.sql.ResultRow
 import streetlight.model.dto.RequestInfo
-import streetlight.server.data.ApiService
+import streetlight.server.db.ApiService
 
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {

@@ -3,9 +3,9 @@ val kotlin_version: String by project
 val logback_version: String by project
 
 plugins {
-    kotlin("jvm") version "1.9.22"
-    id("io.ktor.plugin") version "2.3.10"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.serialization)
 }
 
 java {
@@ -40,7 +40,6 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-
 
     implementation("com.h2database:h2:2.1.214")
 

@@ -1,7 +1,7 @@
-package streetlight.server.data.services
+package streetlight.server.db.services
 
 import streetlight.model.Performance
-import streetlight.server.data.DataService
+import streetlight.server.db.DataService
 
 class PerformanceService : DataService<Performance, PerformanceEntity>("performances", PerformanceEntity) {
     override suspend fun createEntity(data: Performance): (PerformanceEntity.() -> Unit)? {

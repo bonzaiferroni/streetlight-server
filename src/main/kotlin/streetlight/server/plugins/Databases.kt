@@ -4,13 +4,13 @@ import io.ktor.server.application.*
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import streetlight.server.data.services.AreaTable
-import streetlight.server.data.services.EventTable
-import streetlight.server.data.services.RequestTable
-import streetlight.server.data.services.LocationTable
-import streetlight.server.data.services.PerformanceTable
-import streetlight.server.data.services.UserService
-import streetlight.server.data.services.UserTable
+import streetlight.server.db.services.AreaTable
+import streetlight.server.db.services.EventTable
+import streetlight.server.db.services.RequestTable
+import streetlight.server.db.services.LocationTable
+import streetlight.server.db.services.PerformanceTable
+import streetlight.server.db.services.UserService
+import streetlight.server.db.services.UserTable
 import streetlight.server.utilities.DbBackup
 
 fun Application.configureDatabases() {
