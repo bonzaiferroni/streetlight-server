@@ -6,14 +6,14 @@ import kotlinx.serialization.json.Json
 import streetlight.model.Area
 import streetlight.model.Event
 import streetlight.model.Location
-import streetlight.model.Performance
+import streetlight.model.Song
 import streetlight.model.Request
 import streetlight.model.User
 import streetlight.server.db.services.AreaService
 import streetlight.server.db.services.EventService
 import streetlight.server.db.services.RequestService
 import streetlight.server.db.services.LocationService
-import streetlight.server.db.services.PerformanceService
+import streetlight.server.db.services.SongService
 import streetlight.server.db.services.UserService
 import java.io.File
 import kotlin.reflect.KClass
@@ -24,11 +24,11 @@ object DbBackup {
         val areas = AreaService().readAll()
         val events = EventService().readAll()
         val locations = LocationService().readAll()
-        val performances = PerformanceService().readAll()
+        val songs = SongService().readAll()
         val requests = RequestService().readAll()
         val users = UserService().readAll()
 
-        val backup = DataBackup(areas, events, locations, performances, requests, users)
+        val backup = DataBackup(areas, events, locations, songs, requests, users)
         val json = Json.encodeToString(backup)
         File("backup.json").writeText(json)
     }
@@ -65,19 +65,19 @@ object DbBackup {
             val eventId = EventService().create(it.copy(locationId = locationId, userId = userId))
             IdMap.setNewId(Event::class, it.id, eventId)
         }
-        backup.performances.forEach {
+        backup.songs.forEach {
             val userId = IdMap.getNewId(User::class, it.userId)
                 ?: throw IllegalStateException("User not found")
-            val performanceId = PerformanceService().create(it.copy(userId = userId))
-            IdMap.setNewId(Performance::class, it.id, performanceId)
+            val songId = SongService().create(it.copy(userId = userId))
+            IdMap.setNewId(Song::class, it.id, songId)
         }
         backup.requests.forEach {
             val eventId = IdMap.getNewId(Event::class, it.eventId)
                 ?: throw IllegalStateException("Event not found")
-            val performanceId = IdMap.getNewId(Performance::class, it.performanceId)
+            val songId = IdMap.getNewId(Song::class, it.songId)
                 ?: throw IllegalStateException("Performance not found")
             val requestId = RequestService()
-                .create(it.copy(eventId = eventId, performanceId = performanceId))
+                .create(it.copy(eventId = eventId, songId = songId))
             IdMap.setNewId(Request::class, it.id, requestId)
         }
     }
@@ -101,7 +101,7 @@ data class DataBackup(
     val areas: List<Area>,
     val events: List<Event>,
     val locations: List<Location>,
-    val performances: List<Performance>,
+    val songs: List<Song>,
     val requests: List<Request>,
     val users: List<User>,
 )

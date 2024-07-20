@@ -10,7 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import streetlight.server.db.services.EventInfoService
 import streetlight.server.db.services.LocationService
-import streetlight.server.db.services.PerformanceService
+import streetlight.server.db.services.SongService
 import streetlight.server.html.*
 import java.io.File
 
@@ -47,10 +47,10 @@ fun Application.configureHtmlRouting(host: String) {
             }
 
             val event = eventService.read(id)!!
-            val performanceService = PerformanceService()
-            val performances = performanceService.readAll()
+            val songService = SongService()
+            val songs = songService.readAll()
             call.respondHtml(HttpStatusCode.OK) {
-                eventPage(host, event, performances)
+                eventPage(host, event, songs)
             }
         }
 

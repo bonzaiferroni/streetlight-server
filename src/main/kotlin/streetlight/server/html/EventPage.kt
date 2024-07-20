@@ -2,14 +2,13 @@ package streetlight.server.html
 
 import kotlinx.html.*
 import streetlight.model.dto.EventInfo
-import streetlight.model.Event
-import streetlight.model.Performance
+import streetlight.model.Song
 import streetlight.server.utilities.callFunction
 
 fun HTML.eventPage(
     host: String,
     event: EventInfo,
-    performances: List<Performance>,
+    songs: List<Song>,
 ) {
     basePage("Event") {
         img {
@@ -36,7 +35,7 @@ fun HTML.eventPage(
             }
             settings()
             div("rows") {
-                performances.forEach {
+                songs.forEach {
                     requestRow(event.id, it)
                 }
             }
@@ -100,7 +99,7 @@ fun FlowContent.settings() {
     }
 }
 
-fun FlowContent.requestRow(eventId: Int, performance: Performance) {
+fun FlowContent.requestRow(eventId: Int, song: Song) {
     article {
         div("row, request-row") {
             div("name") {
@@ -108,11 +107,11 @@ fun FlowContent.requestRow(eventId: Int, performance: Performance) {
                     +"song"
                 }
                 div("value") {
-                    +performance.name
+                    +song.name
                 }
             }
             div("artist") {
-                performance.artist?.let {
+                song.artist?.let {
                     div("property") {
                         +"artist"
                     }
@@ -122,9 +121,9 @@ fun FlowContent.requestRow(eventId: Int, performance: Performance) {
                 }
             }
             button {
-                id = "song-button-${performance.id}"
+                id = "song-button-${song.id}"
                 classes = setOf("btn", "btn-primary", "song-button")
-                onClick = "postRequest(${performance.id}, $eventId)"
+                onClick = "postRequest(${song.id}, $eventId)"
                 +"Request"
             }
         }

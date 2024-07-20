@@ -27,17 +27,17 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         call.respond(HttpStatusCode.OK, events)
     }
 
-    post("$v1/event_profile/{id}/{perf}") {
+    post("$v1/event_profile/{id}/{song}") {
         val eventId = call.getIdOrThrow()
-        val performanceId = call.parameters["perf"]?.toInt()
-        if (performanceId == null) {
+        val songId = call.parameters["song"]?.toInt()
+        if (songId == null) {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
         val request = Request(
             id = 0,
             eventId = eventId,
-            performanceId = performanceId,
+            songId = songId,
             time = System.currentTimeMillis()
         )
         val id = RequestService().create(request)

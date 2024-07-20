@@ -8,7 +8,7 @@ import streetlight.server.db.services.AreaTable
 import streetlight.server.db.services.EventTable
 import streetlight.server.db.services.RequestTable
 import streetlight.server.db.services.LocationTable
-import streetlight.server.db.services.PerformanceTable
+import streetlight.server.db.services.SongTable
 import streetlight.server.db.services.UserService
 import streetlight.server.db.services.UserTable
 import streetlight.server.utilities.DbBackup
@@ -26,7 +26,7 @@ fun Application.configureDatabases() {
         SchemaUtils.create(LocationTable)
         SchemaUtils.create(AreaTable)
         SchemaUtils.create(EventTable)
-        SchemaUtils.create(PerformanceTable)
+        SchemaUtils.create(SongTable)
         SchemaUtils.create(RequestTable)
     }
 

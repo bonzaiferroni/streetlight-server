@@ -17,7 +17,7 @@ import streetlight.server.db.services.eventInfoRouting
 import streetlight.server.db.services.LocationService
 import streetlight.server.db.services.RequestInfoService
 import streetlight.server.db.services.requestInfoRouting
-import streetlight.server.db.services.PerformanceService
+import streetlight.server.db.services.SongService
 import streetlight.server.db.services.UserService
 import java.util.Date
 
@@ -32,7 +32,7 @@ fun Application.configureApiRoutes() {
         applyServiceRouting(UserService())
         applyServiceRouting(LocationService())
         applyServiceRouting(RequestService())
-        applyServiceRouting(PerformanceService())
+        applyServiceRouting(SongService())
         applyServiceRouting(RequestService())
 
         eventInfoRouting(EventInfoService())

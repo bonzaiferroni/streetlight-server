@@ -1,10 +1,10 @@
 package streetlight.server.db.services
 
-import streetlight.model.Performance
+import streetlight.model.Song
 import streetlight.server.db.DataService
 
-class PerformanceService : DataService<Performance, PerformanceEntity>("performances", PerformanceEntity) {
-    override suspend fun createEntity(data: Performance): (PerformanceEntity.() -> Unit)? {
+class SongService : DataService<Song, SongEntity>("songs", SongEntity) {
+    override suspend fun createEntity(data: Song): (SongEntity.() -> Unit)? {
         val user = UserEntity.findById(data.userId) ?: return null
         return {
             this.user = user
@@ -13,14 +13,14 @@ class PerformanceService : DataService<Performance, PerformanceEntity>("performa
         }
     }
 
-    override fun PerformanceEntity.toData() = Performance(
+    override fun SongEntity.toData() = Song(
         id.value,
         user.id.value,
         name,
         artist
     )
 
-    override suspend fun updateEntity(data: Performance): ((PerformanceEntity) -> Unit)? {
+    override suspend fun updateEntity(data: Song): ((SongEntity) -> Unit)? {
         val user = UserEntity.findById(data.userId) ?: return null
         return {
             it.user = user

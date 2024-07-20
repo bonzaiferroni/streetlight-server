@@ -6,10 +6,10 @@ import streetlight.server.db.DataService
 class RequestService : DataService<Request, RequestEntity>("requests", RequestEntity) {
     override suspend fun createEntity(data: Request): (RequestEntity.() -> Unit)? {
         val event = EventEntity.findById(data.eventId) ?: return null
-        val performance = PerformanceEntity.findById(data.performanceId) ?: return null
+        val song = SongEntity.findById(data.songId) ?: return null
         return {
             this.event = event
-            this.performance = performance
+            this.song = song
             time = data.time
             performed = data.performed
             notes = data.notes
@@ -19,7 +19,7 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
     override fun RequestEntity.toData() = Request(
         id.value,
         event.id.value,
-        performance.id.value,
+        song.id.value,
         time,
         performed,
         notes,
@@ -27,10 +27,10 @@ class RequestService : DataService<Request, RequestEntity>("requests", RequestEn
 
     override suspend fun updateEntity(data: Request): ((RequestEntity) -> Unit)? {
         val event = EventEntity.findById(data.eventId) ?: return null
-        val performance = PerformanceEntity.findById(data.performanceId) ?: return null
+        val song = SongEntity.findById(data.songId) ?: return null
         return {
             it.event = event
-            it.performance = performance
+            it.song = song
             it.time = data.time
             it.performed = data.performed
             it.notes = data.notes

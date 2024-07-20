@@ -7,7 +7,7 @@ import streetlight.server.db.ApiService
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {
         return dbQuery {
-            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(PerformanceTable)
+            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(SongTable)
                 .select(requestInfoColumns)
                 .where { RequestTable.id eq id }
                 .firstOrNull()
@@ -17,7 +17,7 @@ class RequestInfoService : ApiService() {
 
     suspend fun readAll(): List<RequestInfo> {
         return dbQuery {
-            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(PerformanceTable)
+            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(SongTable)
                 .select(requestInfoColumns)
                 .map { it.toRequestInfo() }
         }
@@ -25,7 +25,7 @@ class RequestInfoService : ApiService() {
 
     suspend fun readAllByEvent(eventId: Int): List<RequestInfo> {
         return dbQuery {
-            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(PerformanceTable)
+            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(SongTable)
                 .select(requestInfoColumns)
                 .where { EventTable.id eq eventId }
                 .map { it.toRequestInfo() }
@@ -37,9 +37,9 @@ val requestInfoColumns = listOf(
     RequestTable.id,
     EventTable.id,
     LocationTable.name,
-    PerformanceTable.id,
-    PerformanceTable.name,
-    PerformanceTable.artist,
+    SongTable.id,
+    SongTable.name,
+    SongTable.artist,
     RequestTable.notes,
     RequestTable.time,
     RequestTable.performed
@@ -49,9 +49,9 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     id = this[RequestTable.id].value,
     eventId = this[EventTable.id].value,
     locationName = this[LocationTable.name],
-    performanceId = this[PerformanceTable.id].value,
-    performanceName = this[PerformanceTable.name],
-    artist = this[PerformanceTable.artist],
+    songId = this[SongTable.id].value,
+    songName = this[SongTable.name],
+    artist = this[SongTable.artist],
     notes = this[RequestTable.notes],
     time = this[RequestTable.time],
     performed = this[RequestTable.performed],
