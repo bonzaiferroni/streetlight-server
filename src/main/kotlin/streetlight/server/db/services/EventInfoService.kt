@@ -33,7 +33,8 @@ val eventInfoColumns = listOf(
     LocationTable.latitude,
     LocationTable.longitude,
     AreaTable.name,
-    AreaTable.id
+    AreaTable.id,
+    EventTable.url
 )
 
 fun ResultRow.toEventInfo(): EventInfo = EventInfo(
@@ -45,5 +46,6 @@ fun ResultRow.toEventInfo(): EventInfo = EventInfo(
     latitude = this[LocationTable.latitude],
     longitude = this[LocationTable.longitude],
     areaName = this[AreaTable.name],
-    areaId = this[AreaTable.id].value
+    areaId = this[AreaTable.id].value,
+    url = this[EventTable.url]
 )

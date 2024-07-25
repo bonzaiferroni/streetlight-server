@@ -19,6 +19,7 @@ import streetlight.server.db.services.RequestInfoService
 import streetlight.server.db.services.requestInfoRouting
 import streetlight.server.db.services.SongService
 import streetlight.server.db.services.UserService
+import streetlight.server.db.services.eventRouting
 import java.util.Date
 
 fun Application.configureApiRoutes() {
@@ -37,6 +38,7 @@ fun Application.configureApiRoutes() {
 
         eventInfoRouting(EventInfoService())
         requestInfoRouting(RequestInfoService())
+        eventRouting(EventService())
 
         post("$v1/login") {
             val audience = "http://localhost:8080/"

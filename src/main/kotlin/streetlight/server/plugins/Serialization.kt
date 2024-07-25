@@ -8,6 +8,11 @@ import io.ktor.server.routing.*
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        json()
+        json(
+            json = kotlinx.serialization.json.Json {
+                isLenient = true
+                ignoreUnknownKeys = true
+            }
+        )
     }
 }

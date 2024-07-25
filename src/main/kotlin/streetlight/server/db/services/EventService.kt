@@ -38,5 +38,10 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
             it.url = data.url
         }
     }
+
+    suspend fun startEvent(id: Int) {
+        val event = EventEntity.findById(id) ?: return
+        event.timeStart = System.currentTimeMillis()
+    }
 }
 
