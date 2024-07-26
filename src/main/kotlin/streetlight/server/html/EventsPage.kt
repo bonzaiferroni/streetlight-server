@@ -11,9 +11,9 @@ fun HTML.eventsPage(events: List<EventInfo>) {
         }
         events.forEach {
             p {
-                +"${it.locationName}, ${it.areaName}"
+                +"${it.location.name}, ${it.area.name}"
                 br
-                +"${it.timeStart.toLocalDateTime()} - ${it.hours} hours"
+                +"${it.event.timeStart.toLocalDateTime()} - ${it.event.hours} hours"
             }
         }
     }

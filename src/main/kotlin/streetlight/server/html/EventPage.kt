@@ -7,7 +7,7 @@ import streetlight.server.utilities.callFunction
 
 fun HTML.eventPage(
     host: String,
-    event: EventInfo,
+    info: EventInfo,
     songs: List<Song>,
 ) {
     basePage("Event") {
@@ -15,7 +15,7 @@ fun HTML.eventPage(
             src = "static/img/bridge.jpg"
         }
         h1("event-title") {
-            +"Luke @ ${event.locationName}"
+            +"Luke @ ${info.location.name}"
         }
         div {
             h5 {
@@ -36,14 +36,14 @@ fun HTML.eventPage(
             settings()
             div("rows") {
                 songs.forEach {
-                    requestRow(event.id, it)
+                    requestRow(info.event.id, it)
                 }
             }
         }
         script {
             src = "static/js/request.js"
         }
-        callFunction("init", "\"$host\"", event.id)
+        callFunction("init", "\"$host\"", info.event.id)
     }
 }
 

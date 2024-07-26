@@ -38,7 +38,7 @@ fun Application.configureHtmlRouting(host: String) {
                 if (events.isEmpty()) {
                     null
                 } else {
-                    events.last().id
+                    events.last().event.id
                 }
             }()
             if (id == null) {

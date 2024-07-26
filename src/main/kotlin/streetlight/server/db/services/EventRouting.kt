@@ -5,8 +5,6 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
-import io.ktor.util.decodeBase64String
-import io.ktor.utils.io.core.toByteArray
 import streetlight.model.dto.ImageUploadRequest
 import streetlight.server.plugins.v1
 import java.io.File
@@ -21,7 +19,7 @@ fun Routing.eventRouting(eventService: EventService) {
         val file = File("www/uploads/${request.filename}")
         file.parentFile.mkdirs()
         file.writeBytes(Base64.decode(request.image))
-        event = event.copy(url = "static/uploads/${request.filename}")
+        event = event.copy(imageUrl = "static/uploads/${request.filename}")
         val result = eventService.update(request.eventId, event)
         if (result) {
             call.respond(HttpStatusCode.OK)
