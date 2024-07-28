@@ -10,7 +10,7 @@ object EventTable : IntIdTable() {
     val user = reference("user_id", UserTable)
     val location = reference("location_id", LocationTable)
     val timeStart = long("time_start")
-    val hours = float("hours")
+    val hours = float("hours").nullable()
     val url = text("url").nullable()
     val imageUrl = text("image_url").nullable()
     val streamUrl = text("stream_url").nullable()
@@ -29,7 +29,7 @@ class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     var location by LocationEntity referencedOn EventTable.location
     var timeStart by EventTable.timeStart
     var hours by EventTable.hours
-    var url by EventTable.imageUrl
+    var url by EventTable.url
     var imageUrl by EventTable.imageUrl
     var streamUrl by EventTable.streamUrl
     var name by EventTable.name

@@ -29,4 +29,15 @@ fun Routing.requestInfoRouting(requestInfoService: RequestInfoService) {
         val requests = requestInfoService.readAllByEvent(eventId).filter { !it.performed }
         call.respond(HttpStatusCode.OK, requests)
     }
+
+    get("$v1/request_info/{id}/queue") {
+        val eventId = call.getIdOrThrow()
+        var requests = requestInfoService.getQueue(eventId)
+        if (requests.isEmpty()) {
+            val random = requestInfoService.getRandomRequest(eventId)
+                ?: return@get call.respond(HttpStatusCode.NotFound)
+            requests = listOf(random)
+        }
+        call.respond(HttpStatusCode.OK, requests)
+    }
 }
