@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import streetlight.model.dto.RequestInfo
 import streetlight.server.db.ApiService
@@ -25,7 +26,8 @@ class RequestInfoService : ApiService() {
 
     suspend fun readAllByEvent(eventId: Int): List<RequestInfo> {
         return dbQuery {
-            RequestTable.innerJoin(EventTable).innerJoin(LocationTable).innerJoin(SongTable)
+            RequestTable.innerJoin(EventTable).innerJoin(LocationTable)
+                .join(SongTable, JoinType.INNER, SongTable.id, RequestTable.song)
                 .select(requestInfoColumns)
                 .where { EventTable.id eq eventId }
                 .map { it.toRequestInfo() }

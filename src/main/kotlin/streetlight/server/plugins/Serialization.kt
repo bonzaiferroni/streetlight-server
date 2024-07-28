@@ -12,6 +12,7 @@ fun Application.configureSerialization() {
             json = kotlinx.serialization.json.Json {
                 isLenient = true
                 ignoreUnknownKeys = true
+                prettyPrint = true
             }
         )
     }
