@@ -8,9 +8,12 @@ import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.or
 import streetlight.model.dto.RequestInfo
 import streetlight.server.db.ApiService
+import javax.management.Query.or
 import kotlin.math.min
+import kotlin.text.Typography.greater
 
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {
@@ -53,6 +56,8 @@ class RequestInfoService : ApiService() {
             val songCount = SongEntity.count().toInt()
             if (songCount == 0) return@dbQuery null
 
+            var lastWeek = System.currentTimeMillis() - 604800000
+
             val songCountColumn = SongTable.id.count().alias("SongCount")
             val playedSongs = RequestTable.select(RequestTable.id, RequestTable.songId)
                 .where { RequestTable.performed eq true }
@@ -70,7 +75,11 @@ class RequestInfoService : ApiService() {
                         SongTable.artist,
                         SongTable.userId
                     )
-                    .where { SongTable.id notInList playedSongs}
+                    .where { SongTable.id notInList playedSongs and
+                            (RequestTable.performed neq false and
+                                    (RequestTable.time.isNull() or
+                                            (RequestTable.time greater lastWeek)))
+                    }
                     .groupBy(SongTable.id)
                     .orderBy(songCountColumn)
                     .firstOrNull() ?: return@dbQuery null
@@ -119,5 +128,4 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     notes = this[RequestTable.notes],
     time = this[RequestTable.time],
     performed = this[RequestTable.performed],
-
-    )
+)
