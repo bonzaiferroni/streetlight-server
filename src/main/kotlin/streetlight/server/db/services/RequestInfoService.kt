@@ -56,7 +56,7 @@ class RequestInfoService : ApiService() {
             val songCount = SongEntity.count().toInt()
             if (songCount == 0) return@dbQuery null
 
-            var lastWeek = System.currentTimeMillis() - 604800000
+            val lastWeek = System.currentTimeMillis() - 604800000
 
             val songCountColumn = SongTable.id.count().alias("SongCount")
             val playedSongs = RequestTable.select(RequestTable.id, RequestTable.songId)
@@ -75,10 +75,9 @@ class RequestInfoService : ApiService() {
                         SongTable.artist,
                         SongTable.userId
                     )
-                    .where { SongTable.id notInList playedSongs and
-                            (RequestTable.performed neq false and
-                                    (RequestTable.time.isNull() or
-                                            (RequestTable.time greater lastWeek)))
+                    .where {
+                        SongTable.id notInList playedSongs and
+                                (RequestTable.time.isNull() or (RequestTable.time greater lastWeek))
                     }
                     .groupBy(SongTable.id)
                     .orderBy(songCountColumn)
