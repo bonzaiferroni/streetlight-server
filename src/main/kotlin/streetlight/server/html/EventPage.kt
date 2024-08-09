@@ -12,7 +12,7 @@ fun HTML.eventPage(
 ) {
     basePage("Event") {
         img {
-            src = "static/img/bridge.jpg"
+            src = info.event.imageUrl ?: "static/img/bridge.jpg"
         }
         h1("event-title") {
             +"Luke @ ${info.location.name}"

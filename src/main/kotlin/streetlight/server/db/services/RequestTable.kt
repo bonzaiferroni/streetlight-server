@@ -4,10 +4,11 @@ import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 
 object RequestTable : IntIdTable() {
-    val eventId = reference("event_id", EventTable)
-    val songId = reference("song_id", SongTable)
+    val eventId = reference("event_id", EventTable, onDelete = ReferenceOption.CASCADE)
+    val songId = reference("song_id", SongTable, onDelete = ReferenceOption.CASCADE)
     val time = long("time")
     val performed = bool("performed")
     val notes = text("notes")

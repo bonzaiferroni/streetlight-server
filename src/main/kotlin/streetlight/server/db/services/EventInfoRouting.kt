@@ -27,6 +27,11 @@ fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {
         call.respond(HttpStatusCode.OK, events)
     }
 
+    get("$v1/event_info/current") {
+        val events = eventInfoService.readAllCurrent()
+        call.respond(HttpStatusCode.OK, events)
+    }
+
     post("$v1/event_profile/{id}/{song}") {
         val eventId = call.getIdOrThrow()
         val songId = call.parameters["song"]?.toInt()

@@ -77,7 +77,7 @@ class RequestInfoService : ApiService() {
                     )
                     .where {
                         SongTable.id notInList playedSongs and
-                                (RequestTable.time.isNull() or (RequestTable.time greater lastWeek))
+                                (RequestTable.time.isNull() or (RequestTable.time less lastWeek))
                     }
                     .groupBy(SongTable.id)
                     .orderBy(songCountColumn)

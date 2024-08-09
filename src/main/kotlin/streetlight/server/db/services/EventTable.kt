@@ -4,11 +4,12 @@ import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import streetlight.model.EventStatus
 
 object EventTable : IntIdTable() {
-    val user = reference("user_id", UserTable)
-    val location = reference("location_id", LocationTable)
+    val user = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
+    val location = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val timeStart = long("time_start")
     val hours = float("hours").nullable()
     val url = text("url").nullable()
@@ -17,7 +18,7 @@ object EventTable : IntIdTable() {
     val name = text("name").nullable()
     val description = text("description").nullable()
     val status = enumerationByName("status", 20, EventStatus::class)
-    val currentSong = reference("current_song_id", SongTable).nullable()
+    val currentSong = reference("current_song_id", SongTable, onDelete = ReferenceOption.CASCADE).nullable()
     val cashTips = float("cash_tips").nullable()
     val cardTips = float("card_tips").nullable()
 }
