@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.Random
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.alias
