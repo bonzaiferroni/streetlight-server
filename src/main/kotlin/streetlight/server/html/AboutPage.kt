@@ -11,17 +11,17 @@ fun HTML.aboutPage() {
             +"About Streetlight"
         }
         p {
-            +"Humans, we like to perform. "
-            +"It is an ancient tradition, a kind of play, a gift for both the performer and audience. "
-            +"The streetlight app seeks to be a bridge between the two."
-        }
-        p {
-            +"Are you a performer? Use the app to take requests and interact with an online audience. "
+            +"My name is Luke, I'm a musician and freelance software developer. "
+            +"You can find out more about me and my story at "
+            a { href = "https://eosris.ing"; +"my blog" }
+            +". I am traveling as a musician and developing the app at the same time. "
+            +"Soon it will be available for other performers. "
+            +"Use the app to take requests and interact with an online audience. "
             +"See who is performing in your area. Find open mics and other resources for your journey. "
             +"Get feedback, connect with fans and other performers, grow your art."
         }
         p {
-            +"Streetlight is open source and community owned. "
+            +"Streetlight is free, open source and community owned. "
             +"If you would like to contribute, please join us on "
             a { href = "https://github.com/bonzaiferroni/streetlight"; +"GitHub" }
             +". "

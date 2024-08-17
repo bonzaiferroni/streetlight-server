@@ -24,7 +24,12 @@ fun HTML.eventPage(
                     href = "https://www.venmo.com/u/colfaxband"
                     +"send a tip with venmo"
                 }
-                +" ❤"
+                +" or find out more "
+                a {
+                    href = "https://streetlight.ing/about"
+                    +"about this app"
+                }
+                +". Thank you for listening!"
             }
             p {
                 +"up next: "
