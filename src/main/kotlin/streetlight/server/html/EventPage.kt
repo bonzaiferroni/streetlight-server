@@ -35,7 +35,7 @@ fun HTML.eventPage(
                 +"Let me know if you have any questions or feedback, and thank you for listening!"
             }
             article {
-                div {
+                p {
                     span("label-text") { +"now playing: "}
                     span { id = "now-playing" }
                 }

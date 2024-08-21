@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.or
+import streetlight.model.dto.EventInfo
 import streetlight.model.dto.RequestInfo
 import streetlight.server.db.ApiService
 import javax.management.Query.or
@@ -69,9 +70,10 @@ class RequestInfoService : ApiService() {
                         SongTable.name,
                         SongTable.artist,
                         SongTable.userId,
+                        RequestTable.eventId,
                     )
                     .where {
-                        RequestTable.eventId eq eventId // and (RequestTable.time.isNull() or (RequestTable.time less lastTenMinutes))
+                        RequestTable.eventId.isNull() or (RequestTable.eventId eq eventId) // and (RequestTable.time.isNull() or (RequestTable.time less lastTenMinutes))
                     }
                     .groupBy(SongTable.id)
                     .orderBy(songCountColumn)
@@ -82,8 +84,9 @@ class RequestInfoService : ApiService() {
                 it[songId] = song[SongTable.id]
                 it[time] = System.currentTimeMillis()
                 it[performed] = false
-                it[notes] = ""
+                it[notes] = "auto"
             }
+            println(id.value)
 
             if (id.value == 0) return@dbQuery null
             requestInfos
@@ -101,14 +104,16 @@ val requestInfoColumns = listOf(
     SongTable.id,
     SongTable.name,
     SongTable.artist,
-    RequestTable.requesterName,
     RequestTable.notes,
+    RequestTable.requesterName,
     RequestTable.time,
     RequestTable.performed,
 )
 
 val requestInfos: Query
-    get() = RequestTable.innerJoin(EventTable).innerJoin(LocationTable)
+    get() = RequestTable
+        .join(EventTable, JoinType.INNER, EventTable.id, RequestTable.eventId)
+        .join(LocationTable, JoinType.INNER, LocationTable.id, EventTable.location)
         .join(SongTable, JoinType.INNER, SongTable.id, RequestTable.songId)
         .select(requestInfoColumns)
 
@@ -118,9 +123,22 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     locationName = this[LocationTable.name],
     songId = this[SongTable.id].value,
     songName = this[SongTable.name],
+    requesterName = this[RequestTable.requesterName],
     notes = this[RequestTable.notes],
     artist = this[SongTable.artist],
-    requesterName = this[RequestTable.requesterName],
     time = this[RequestTable.time],
     performed = this[RequestTable.performed],
+)
+
+fun RequestEntity.toRequestInfo(): RequestInfo = RequestInfo(
+    this.id.value,
+    this.event.id.value,
+    this.event.location.name,
+    this.song.id.value,
+    this.song.name,
+    this.song.artist,
+    this.notes,
+    this.requesterName,
+    this.time,
+    this.performed
 )

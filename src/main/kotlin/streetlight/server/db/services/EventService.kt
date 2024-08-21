@@ -3,17 +3,15 @@ package streetlight.server.db.services
 import streetlight.model.Area
 import streetlight.model.Event
 import streetlight.model.Location
-import streetlight.model.Song
 import streetlight.model.User
 import streetlight.model.dto.EventInfo
-import streetlight.model.dto.RequestInfo
 import streetlight.server.db.DataService
 
 class EventService : DataService<Event, EventEntity>("events", EventEntity) {
     override suspend fun createEntity(data: Event): (EventEntity.() -> Unit)? {
         val location = LocationEntity.findById(data.locationId) ?: return null
         val user = UserEntity.findById(data.userId) ?: return null
-        val currentSong = data.currentSongId?.let { SongEntity.findById(it) }
+        val currentRequest = data.currentRequestId?.let { RequestEntity.findById(it) }
         return {
             this.user = user
             this.location = location
@@ -25,7 +23,7 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
             name = data.name
             description = data.description
             status = data.status
-            this.currentSong = currentSong
+            this.currentRequest = currentRequest
             cashTips = data.cashTips
             cardTips = data.cardTips
         }
@@ -36,7 +34,7 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
     override suspend fun updateEntity(data: Event): ((EventEntity) -> Unit)? {
         val location = LocationEntity.findById(data.locationId) ?: return null
         val user = UserEntity.findById(data.userId) ?: return null
-        val currentSong = data.currentSongId?.let { SongEntity.findById(it) }
+        val currentRequest = data.currentRequestId?.let { RequestEntity.findById(it) }
         return {
             it.location = location
             it.user = user
@@ -48,7 +46,7 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
             it.name = data.name
             it.description = data.description
             it.status = data.status
-            it.currentSong = currentSong
+            it.currentRequest = currentRequest
             it.cashTips = data.cashTips
             it.cardTips = data.cardTips
         }
@@ -57,20 +55,20 @@ class EventService : DataService<Event, EventEntity>("events", EventEntity) {
 
 fun EventEntity.toEvent(): Event {
     return Event(
-        id.value,
-        location.id.value,
-        user.id.value,
-        timeStart,
-        hours,
-        url,
-        imageUrl,
-        streamUrl,
-        name,
-        description,
-        status,
-        currentSong?.id?.value,
-        cashTips,
-        cardTips
+        id = id.value,
+        locationId = location.id.value,
+        userId = user.id.value,
+        timeStart = timeStart,
+        hours = hours,
+        url = url,
+        imageUrl = imageUrl,
+        streamUrl = streamUrl,
+        name = name,
+        description = description,
+        status = status,
+        currentRequestId = currentRequest?.id?.value,
+        cashTips = cashTips,
+        cardTips = cardTips
     )
 }
 
@@ -92,30 +90,9 @@ fun EventEntity.toEventInfo(): EventInfo {
             name = user.name,
             email = user.email
         ),
-        currentSong = currentSong?.let {
-            Song(
-                id = it.id.value,
-                userId = it.user.id.value,
-                name = it.name,
-                artist = it.artist,
-                // music = it.music
-            )
-        },
+        currentRequest = currentRequest?.toRequestInfo(),
         requests = requests
             .filter { !it.performed }
-            .map {
-                RequestInfo(
-                    it.id.value,
-                    it.event.id.value,
-                    location.name,
-                    it.song.id.value,
-                    it.song.name,
-                    it.song.artist,
-                    it.notes,
-                    it.requesterName,
-                    it.time,
-                    it.performed
-                )
-            }
+            .map { it.toRequestInfo() }
     )
 }

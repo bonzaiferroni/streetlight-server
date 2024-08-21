@@ -18,7 +18,7 @@ object EventTable : IntIdTable() {
     val name = text("name").nullable()
     val description = text("description").nullable()
     val status = enumerationByName("status", 20, EventStatus::class)
-    val currentSong = reference("current_song_id", SongTable, onDelete = ReferenceOption.CASCADE).nullable()
+    val currentRequest = reference("current_song_id", RequestTable).nullable()
     val cashTips = float("cash_tips").nullable()
     val cardTips = float("card_tips").nullable()
 }
@@ -36,7 +36,7 @@ class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     var name by EventTable.name
     var description by EventTable.description
     var status by EventTable.status
-    var currentSong by SongEntity optionalReferencedOn EventTable.currentSong
+    var currentRequest by RequestEntity optionalReferencedOn EventTable.currentRequest
     var cashTips by EventTable.cashTips
     var cardTips by EventTable.cardTips
     val requests by RequestEntity referrersOn RequestTable.eventId
