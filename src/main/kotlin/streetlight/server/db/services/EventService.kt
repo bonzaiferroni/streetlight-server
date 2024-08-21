@@ -6,6 +6,7 @@ import streetlight.model.Location
 import streetlight.model.Song
 import streetlight.model.User
 import streetlight.model.dto.EventInfo
+import streetlight.model.dto.RequestInfo
 import streetlight.server.db.DataService
 
 class EventService : DataService<Event, EventEntity>("events", EventEntity) {
@@ -99,6 +100,22 @@ fun EventEntity.toEventInfo(): EventInfo {
                 artist = it.artist,
                 // music = it.music
             )
-        }
+        },
+        requests = requests
+            .filter { !it.performed }
+            .map {
+                RequestInfo(
+                    it.id.value,
+                    it.event.id.value,
+                    location.name,
+                    it.song.id.value,
+                    it.song.name,
+                    it.song.artist,
+                    it.notes,
+                    it.requesterName,
+                    it.time,
+                    it.performed
+                )
+            }
     )
 }

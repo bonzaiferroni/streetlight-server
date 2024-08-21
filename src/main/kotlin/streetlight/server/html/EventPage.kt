@@ -11,32 +11,41 @@ fun HTML.eventPage(
     songs: List<Song>,
 ) {
     basePage("Event") {
-        img {
-            src = info.event.imageUrl ?: "static/img/bridge.jpg"
+        div("event-image") {
+            img {
+                src = info.event.imageUrl ?: "static/img/bridge.jpg"
+            }
         }
         h1("event-title") {
             +"Luke @ ${info.location.name}"
         }
         div {
-            h5 {
-                +"You can "
+            h4("venmo") {
+                strong { +"venmo: " }
                 a {
                     href = "https://www.venmo.com/u/colfaxband"
-                    +"send a tip with venmo"
+                    +"@colfaxband"
                 }
-                +" or find out more "
-                a {
-                    href = "https://streetlight.ing/about"
-                    +"about this app"
-                }
-                +". Thank you for listening!"
+
             }
             p {
-                +"up next: "
-                span { id = "requests" }
+                +"Howdy, thanks for stopping by! "
+                +"You can request a song or sing with me, just look below to see my song list. "
+                +"100% of your support goes toward the development of the streetlight app and community. "
+                +"Let me know if you have any questions or feedback, and thank you for listening!"
+            }
+            article {
+                div {
+                    span("label-text") { +"now playing: "}
+                    span { id = "now-playing" }
+                }
+                div {
+                    span("label-text") { +"up next: " }
+                    span { id = "requests" }
+                }
             }
             h3 {
-                +"Requests"
+                +"Request a song"
             }
             settings()
             div("rows") {
@@ -46,7 +55,7 @@ fun HTML.eventPage(
             }
         }
         script {
-            src = "static/js/request.js"
+            src = "static/js/event.js"
         }
         callFunction("init", "\"$host\"", info.event.id)
     }
@@ -56,7 +65,7 @@ fun FlowContent.settings() {
     // input { type = InputType.text; placeholder = "your name (optional)" }
     div("columns gap") {
         fieldSet {
-            legend { +"Singers" }
+            legend { +"Options" }
             label {
                 input {
                     id = "luke-sings"
@@ -80,25 +89,19 @@ fun FlowContent.settings() {
                     type = InputType.radio
                     name = "voice"
                 }
-                +"I'll sing"
+                +"I'll sing solo"
             }
         }
         fieldSet {
-            legend { +"Guitar" }
-            label {
-                input {
-                    id = "luke-guitar"
-                    type = InputType.checkBox
-                    name = "luke-guitar"
-                    checked = true
-                }
-                +"Luke plays guitar"
-            }
-            legend { +"You" }
             input {
                 id = "requester-name"
                 type = InputType.text
                 placeholder = "Your name (optional)"
+            }
+            input {
+                id = "other-notes"
+                type = InputType.text
+                placeholder = "Other notes (optional)"
             }
         }
     }

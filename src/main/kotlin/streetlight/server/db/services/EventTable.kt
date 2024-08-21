@@ -39,4 +39,5 @@ class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     var currentSong by SongEntity optionalReferencedOn EventTable.currentSong
     var cashTips by EventTable.cashTips
     var cardTips by EventTable.cardTips
+    val requests by RequestEntity referrersOn RequestTable.eventId
 }

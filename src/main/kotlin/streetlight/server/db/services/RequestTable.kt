@@ -12,6 +12,7 @@ object RequestTable : IntIdTable() {
     val time = long("time")
     val performed = bool("performed")
     val notes = text("notes")
+    val requesterName = text("requester_name").nullable()
 }
 
 class RequestEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -22,4 +23,5 @@ class RequestEntity(id: EntityID<Int>) : IntEntity(id) {
     var time by RequestTable.time
     var performed by RequestTable.performed
     var notes by RequestTable.notes
+    var requesterName by RequestTable.requesterName
 }

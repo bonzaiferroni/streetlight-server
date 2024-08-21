@@ -60,12 +60,6 @@ class RequestInfoService : ApiService() {
             // val lastTenMinutes = System.currentTimeMillis() - 10 * 60 * 1000
 
             val songCountColumn = SongTable.id.count().alias("SongCount")
-            val playedSongs = RequestTable.select(RequestTable.id, RequestTable.songId)
-                .where { RequestTable.performed eq true }
-                .orderBy(RequestTable.id, SortOrder.DESC)
-                .limit(min(songCount - 1, 10))
-                .map { it[RequestTable.songId] }
-                .toList()
 
             val song =
                 SongTable.join(RequestTable, JoinType.LEFT, SongTable.id, RequestTable.songId)
@@ -74,10 +68,10 @@ class RequestInfoService : ApiService() {
                         SongTable.id,
                         SongTable.name,
                         SongTable.artist,
-                        SongTable.userId
+                        SongTable.userId,
                     )
                     .where {
-                        SongTable.id notInList playedSongs // and (RequestTable.time.isNull() or (RequestTable.time less lastTenMinutes))
+                        RequestTable.eventId eq eventId // and (RequestTable.time.isNull() or (RequestTable.time less lastTenMinutes))
                     }
                     .groupBy(SongTable.id)
                     .orderBy(songCountColumn)
@@ -107,9 +101,10 @@ val requestInfoColumns = listOf(
     SongTable.id,
     SongTable.name,
     SongTable.artist,
+    RequestTable.requesterName,
     RequestTable.notes,
     RequestTable.time,
-    RequestTable.performed
+    RequestTable.performed,
 )
 
 val requestInfos: Query
@@ -123,8 +118,9 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     locationName = this[LocationTable.name],
     songId = this[SongTable.id].value,
     songName = this[SongTable.name],
-    artist = this[SongTable.artist],
     notes = this[RequestTable.notes],
+    artist = this[SongTable.artist],
+    requesterName = this[RequestTable.requesterName],
     time = this[RequestTable.time],
     performed = this[RequestTable.performed],
 )

@@ -4,7 +4,7 @@ import kotlinx.html.*
 import streetlight.model.dto.EventInfo
 import streetlight.model.utils.toLocalDateTime
 
-fun HTML.eventsPage(events: List<EventInfo>) {
+fun HTML.nowPage(events: List<EventInfo>) {
     basePage("Events") {
         h1 {
             +"Events"
