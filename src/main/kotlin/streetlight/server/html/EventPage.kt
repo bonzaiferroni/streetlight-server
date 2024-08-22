@@ -12,8 +12,10 @@ fun HTML.eventPage(
 ) {
     basePage("Event") {
         div("event-image") {
-            img {
-                src = info.event.imageUrl ?: "static/img/bridge.jpg"
+            div {
+                img {
+                    src = info.event.imageUrl ?: "static/img/bridge.jpg"
+                }
             }
         }
         h1("event-title") {
@@ -30,7 +32,7 @@ fun HTML.eventPage(
             }
             p {
                 +"Howdy, thanks for stopping by! "
-                +"You can request a song or sing with me, just look below to see my song list. "
+                +"You can send a request or sing with me, just look below for my song list. "
                 +"100% of your support goes toward the development of the streetlight app and community. "
                 +"Let me know if you have any questions or feedback, and thank you for listening!"
             }

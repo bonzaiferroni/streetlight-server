@@ -3,7 +3,7 @@ package streetlight.server
 import streetlight.server.plugins.*
 import io.ktor.server.application.*
 
-// val host = "https://streetlight.ing"
+//val host = "https://streetlight.ing"
 val host = "http://192.168.1.122:8080"
 
 fun main(args: Array<String>) {

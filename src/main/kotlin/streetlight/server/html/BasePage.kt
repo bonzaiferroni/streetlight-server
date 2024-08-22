@@ -11,8 +11,8 @@ fun HTML.basePage(
         title {
             +"$title | streetlight"
         }
-        // link { rel = "stylesheet"; href = "static/css/layout.css" }
-        // link { rel = "stylesheet"; href = "static/css/foxy.css" }
+        link(rel = "icon", href = "static/icon/favicon.ico") { type = "image/x-icon" }
+
         // google font
         link { rel = "preconnect"; href = "https://fonts.googleapis.com" }
         link { rel = "preconnect"; href = "https://fonts.gstatic.com" }
@@ -22,7 +22,6 @@ fun HTML.basePage(
             href =
                 "https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
         }
-        // link { rel = "stylesheet"; href = "static/css/tailwind.css" }
         link {
             rel = "stylesheet"
             href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
@@ -40,7 +39,7 @@ fun HTML.basePage(
         header("site-header") {
             div("site-title") { +"streetlight" }
             div(classes = "logo") {
-                img(src = "static/img/logo.png", alt = "Streetlight Logo")
+                img(src = "static/img/logo-small.png", alt = "Streetlight Logo")
             }
             nav {
                 ul {
