@@ -17,6 +17,7 @@ import java.io.File
 fun Application.configureHtmlRouting(host: String) {
     routing {
         staticFiles("/static", File("www"))
+        staticFiles("/kvision", File("www/kvision"))
 
         get("/") {
             call.respondHtml(HttpStatusCode.OK) {
