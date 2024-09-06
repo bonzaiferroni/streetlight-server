@@ -14,9 +14,9 @@ import org.jetbrains.exposed.dao.IntEntity
 import streetlight.server.plugins.v1
 
 inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
-    service: DataService<Data, DataEntity>
+    endpoint: String, service: DataService<Data, DataEntity>
 ) {
-    get("$v1/${service.endpoint}") {
+    get("$v1/${endpoint}") {
         val search = call.parameters["search"] ?: ""
         val count = call.parameters["limit"]?.toIntOrNull() ?: 10
         val data = if (search.isBlank()) {
@@ -27,7 +27,7 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
         call.respond(HttpStatusCode.OK, data)
     }
 
-    get("$v1/${service.endpoint}/{id}") {
+    get("$v1/${endpoint}/{id}") {
         val id = call.getIdOrThrow()
         val data = service.read(id)
         if (data != null) {
@@ -38,20 +38,20 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
     }
 
     authenticate("auth-jwt") {
-        post("$v1/${service.endpoint}") {
+        post("$v1/${endpoint}") {
             val data = call.receive<Data>()
             val id = service.create(data)
             call.respond(HttpStatusCode.Created, id)
         }
 
-        put("$v1/${service.endpoint}/{id}") {
+        put("$v1/${endpoint}/{id}") {
             val id = call.getIdOrThrow()
             val data = call.receive<Data>()
             service.update(id, data)
             call.respond(HttpStatusCode.OK)
         }
 
-        delete("$v1/${service.endpoint}/{id}") {
+        delete("$v1/${endpoint}/{id}") {
             val id = call.getIdOrThrow()
             service.delete(id)
             call.respond(HttpStatusCode.OK)

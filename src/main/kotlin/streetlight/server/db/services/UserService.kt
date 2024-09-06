@@ -3,24 +3,45 @@ package streetlight.server.db.services
 import streetlight.model.User
 import streetlight.server.db.DataService
 
-class UserService : DataService<User, UserEntity>("users", UserEntity) {
+class UserService : DataService<User, UserEntity>(UserEntity) {
     override suspend fun createEntity(data: User): UserEntity.() -> Unit = {
         name = data.name
+        username = data.username
+        hashedPassword = data.hashedPassword
+        salt = data.salt
         email = data.email
-        password = data.password
+        roles = data.roles
+        createdAt = data.createdAt
+        updatedAt = data.updatedAt
+        avatarUrl = data.avatarUrl
+        venmo = data.venmo
     }
 
     override fun UserEntity.toData() = User(
         this.id.value,
         this.name,
+        this.username,
+        this.hashedPassword,
+        this.salt,
         this.email,
-        this.password
+        this.roles,
+        this.createdAt,
+        this.updatedAt,
+        this.avatarUrl,
+        this.venmo
     )
 
     override suspend fun updateEntity(data: User): (UserEntity) -> Unit = {
         it.name = data.name
+        it.username = data.username
+        it.hashedPassword = data.hashedPassword
+        it.salt = data.salt
         it.email = data.email
-        it.password = data.password
+        it.roles = data.roles
+        it.createdAt = data.createdAt
+        it.updatedAt = data.updatedAt
+        it.avatarUrl = data.avatarUrl
+        it.venmo = data.venmo
     }
 }
 

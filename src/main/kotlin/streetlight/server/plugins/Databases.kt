@@ -34,11 +34,13 @@ fun Application.configureDatabases() {
         launch {
             val userCount = UserService().readAll().size
             if (userCount == 0) {
-                println("backup restored")
+                println("empty db found, restoring from backup")
                 DbBackup.restore()
+                println("backup restored")
             } else {
-                println("backup created")
+                println("creating backup")
                 DbBackup.create()
+                println("backup created")
             }
         }
     }

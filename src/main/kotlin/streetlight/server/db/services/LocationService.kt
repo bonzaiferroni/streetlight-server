@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.lowerCase
 import streetlight.server.db.DataService
 
-class LocationService : DataService<Location, LocationEntity>("locations", LocationEntity) {
+class LocationService : DataService<Location, LocationEntity>(LocationEntity) {
 
     override suspend fun createEntity(data: Location): (LocationEntity.() -> Unit)? {
         val area = AreaEntity.findById(data.areaId) ?: return null

@@ -9,6 +9,7 @@ import streetlight.model.Location
 import streetlight.model.Song
 import streetlight.model.Request
 import streetlight.model.User
+import streetlight.server.db.core.VariableStore
 import streetlight.server.db.services.AreaService
 import streetlight.server.db.services.EventService
 import streetlight.server.db.services.RequestService
@@ -34,9 +35,16 @@ object DbBackup {
     }
 
     suspend fun restore() {
+        suspend fun createAdmin() {
+            println("creating admin")
+            val admin = VariableStore().admin
+            UserService().create(admin)
+        }
+
         val file = File("backup.json")
         if (!file.exists()) {
             println("backup not found")
+            createAdmin()
             return
         }
         val json = file.readText()

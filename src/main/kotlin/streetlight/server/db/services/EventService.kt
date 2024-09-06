@@ -7,7 +7,7 @@ import streetlight.model.User
 import streetlight.model.dto.EventInfo
 import streetlight.server.db.DataService
 
-class EventService : DataService<Event, EventEntity>("events", EventEntity) {
+class EventService : DataService<Event, EventEntity>(EventEntity) {
     override suspend fun createEntity(data: Event): (EventEntity.() -> Unit)? {
         val location = LocationEntity.findById(data.locationId) ?: return null
         val user = UserEntity.findById(data.userId) ?: return null

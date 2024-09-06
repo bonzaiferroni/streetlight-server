@@ -5,7 +5,6 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.sql.Op
 
 abstract class DataService<Data : Any, DataEntity : IntEntity>(
-    val endpoint: String,
     protected val entity: EntityClass<Int, DataEntity>
 ) : ApiService() {
     protected abstract suspend fun createEntity(data: Data): (DataEntity.() -> Unit)?

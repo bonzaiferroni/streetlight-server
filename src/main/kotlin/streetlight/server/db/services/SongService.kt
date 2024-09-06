@@ -3,7 +3,7 @@ package streetlight.server.db.services
 import streetlight.model.Song
 import streetlight.server.db.DataService
 
-class SongService : DataService<Song, SongEntity>("songs", SongEntity) {
+class SongService : DataService<Song, SongEntity>(SongEntity) {
     override suspend fun createEntity(data: Song): (SongEntity.() -> Unit)? {
         val user = UserEntity.findById(data.userId) ?: return null
         return {
