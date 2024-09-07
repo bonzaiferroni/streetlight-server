@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.tables
 
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity

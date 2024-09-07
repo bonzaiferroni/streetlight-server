@@ -6,6 +6,10 @@ import streetlight.model.Location
 import streetlight.model.User
 import streetlight.model.dto.EventInfo
 import streetlight.server.db.DataService
+import streetlight.server.db.tables.EventEntity
+import streetlight.server.db.tables.LocationEntity
+import streetlight.server.db.tables.RequestEntity
+import streetlight.server.db.tables.UserEntity
 
 class EventService : DataService<Event, EventEntity>(EventEntity) {
     override suspend fun createEntity(data: Event): (EventEntity.() -> Unit)? {

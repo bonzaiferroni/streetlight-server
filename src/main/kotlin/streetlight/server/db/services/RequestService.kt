@@ -2,6 +2,9 @@ package streetlight.server.db.services
 
 import streetlight.model.Request
 import streetlight.server.db.DataService
+import streetlight.server.db.tables.EventEntity
+import streetlight.server.db.tables.RequestEntity
+import streetlight.server.db.tables.SongEntity
 
 class RequestService : DataService<Request, RequestEntity>(RequestEntity) {
     override suspend fun createEntity(data: Request): (RequestEntity.() -> Unit)? {

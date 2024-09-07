@@ -5,6 +5,13 @@ import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import streetlight.server.db.services.*
+import streetlight.server.db.tables.AreaTable
+import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
+import streetlight.server.db.tables.RequestTable
+import streetlight.server.db.tables.SessionTokenTable
+import streetlight.server.db.tables.SongTable
+import streetlight.server.db.tables.UserTable
 import streetlight.server.utilities.DbBackup
 
 fun Application.configureDatabases() {

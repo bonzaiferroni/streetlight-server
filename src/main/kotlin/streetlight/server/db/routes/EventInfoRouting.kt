@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -9,6 +9,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import streetlight.model.Request
 import streetlight.server.db.getIdOrThrow
+import streetlight.server.db.services.EventInfoService
+import streetlight.server.db.services.RequestInfoService
+import streetlight.server.db.services.RequestService
 import streetlight.server.plugins.v1
 
 fun Routing.eventInfoRouting(eventInfoService: EventInfoService) {

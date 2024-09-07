@@ -6,8 +6,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
-import kotlinx.serialization.json.Json
 import streetlight.model.User
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginInfo
@@ -21,7 +19,8 @@ import kotlin.text.toCharArray
 
 suspend fun ApplicationCall.authorize() {
     val loginInfo = this.receiveNullable<LoginInfo>() ?: return
-    val user = loginInfo.getUser()
+    val userService = UserService()
+    val user = userService.findByUsernameOrEmail(loginInfo.username)
     if (user == null) {
         this.respond(HttpStatusCode.Unauthorized, "Invalid username")
         return
@@ -45,15 +44,6 @@ suspend fun ApplicationCall.authorize() {
         return
     }
     this.respond(HttpStatusCode.Unauthorized, "Missing password or token")
-}
-
-suspend fun LoginInfo.getUser(): User? {
-    val userService = UserService()
-    if (username.contains('@')) {
-        return userService.findByEmail(username)
-    } else {
-        return userService.findByUsername(username)
-    }
 }
 
 suspend fun User.testHashedPassword(password: String): AuthInfo? {

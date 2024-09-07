@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import streetlight.model.Area
 import streetlight.server.db.DataService
+import streetlight.server.db.tables.AreaEntity
 
 class AreaService : DataService<Area, AreaEntity>(AreaEntity) {
     override suspend fun createEntity(data: Area): AreaEntity.() -> Unit = {

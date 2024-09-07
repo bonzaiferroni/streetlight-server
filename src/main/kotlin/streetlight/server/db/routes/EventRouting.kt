@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -6,6 +6,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import streetlight.model.dto.ImageUploadRequest
+import streetlight.server.db.services.EventService
 import streetlight.server.plugins.v1
 import java.io.File
 import kotlin.io.encoding.Base64

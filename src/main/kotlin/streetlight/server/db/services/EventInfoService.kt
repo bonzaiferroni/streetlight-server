@@ -1,8 +1,9 @@
 package streetlight.server.db.services
 
-import io.ktor.events.Events
 import streetlight.model.EventStatus
 import streetlight.server.db.ApiService
+import streetlight.server.db.tables.EventEntity
+import streetlight.server.db.tables.EventTable
 
 class EventInfoService : ApiService() {
     suspend fun read(id: Int) = dbQuery {

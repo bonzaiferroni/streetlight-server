@@ -2,20 +2,21 @@ package streetlight.server.db.services
 
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.Random
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.or
-import streetlight.model.dto.EventInfo
 import streetlight.model.dto.RequestInfo
 import streetlight.server.db.ApiService
-import javax.management.Query.or
-import kotlin.math.min
-import kotlin.text.Typography.greater
+import streetlight.server.db.tables.EventEntity
+import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
+import streetlight.server.db.tables.RequestEntity
+import streetlight.server.db.tables.RequestTable
+import streetlight.server.db.tables.SongEntity
+import streetlight.server.db.tables.SongTable
 
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {
