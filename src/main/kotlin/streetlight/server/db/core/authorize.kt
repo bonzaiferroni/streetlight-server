@@ -6,6 +6,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
+import kotlinx.serialization.json.Json
+import streetlight.model.User
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginInfo
 import streetlight.server.db.models.SessionToken
@@ -14,10 +17,15 @@ import java.security.SecureRandom
 import java.util.*
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import kotlin.text.toCharArray
 
 suspend fun ApplicationCall.authorize() {
-    val loginInfo = this.receive<LoginInfo>()
-    val user = this.getUser(loginInfo) ?: return
+    val loginInfo = this.receiveNullable<LoginInfo>() ?: return
+    val user = loginInfo.getUser()
+    if (user == null) {
+        this.respond(HttpStatusCode.Unauthorized, "Invalid username")
+        return
+    }
     loginInfo.password?.let {
         val authInfo = user.testHashedPassword(it)
         if (authInfo == null) {
@@ -27,7 +35,7 @@ suspend fun ApplicationCall.authorize() {
         this.respond(HttpStatusCode.OK, authInfo)
         return
     }
-    loginInfo.token?.let {
+    loginInfo.session?.let {
         val authInfo = user.testSessionToken(it)
         if (authInfo == null) {
             this.respond(HttpStatusCode.Unauthorized, "Invalid token")
@@ -39,26 +47,16 @@ suspend fun ApplicationCall.authorize() {
     this.respond(HttpStatusCode.Unauthorized, "Missing password or token")
 }
 
-suspend fun ApplicationCall.getUser(loginInfo: LoginInfo): UserEntity? {
-    loginInfo.username?.let {
-        val user = UserEntity.find { UserTable.username eq it }.firstOrNull()
-        if (user == null) {
-            this.respond(HttpStatusCode.Unauthorized, "Invalid username")
-        }
-        return user
+suspend fun LoginInfo.getUser(): User? {
+    val userService = UserService()
+    if (username.contains('@')) {
+        return userService.findByEmail(username)
+    } else {
+        return userService.findByUsername(username)
     }
-    loginInfo.email?.let {
-        val user = UserEntity.find { UserTable.email eq it }.firstOrNull()
-        if (user == null) {
-            this.respond(HttpStatusCode.Unauthorized, "Invalid email")
-        }
-        return user
-    }
-    this.respond(HttpStatusCode.Unauthorized, "Missing username or email")
-    return null
 }
 
-suspend fun UserEntity.testHashedPassword(password: String): AuthInfo? {
+suspend fun User.testHashedPassword(password: String): AuthInfo? {
     val byteArray = this.salt.base64ToByteArray()
     val hashedPassword = hashPassword(password, byteArray)
     if (hashedPassword != this.hashedPassword) {
@@ -70,22 +68,22 @@ suspend fun UserEntity.testHashedPassword(password: String): AuthInfo? {
     return AuthInfo(jwt, sessionToken)
 }
 
-suspend fun UserEntity.testSessionToken(sessionToken: String): AuthInfo? {
+suspend fun User.testSessionToken(sessionToken: String): AuthInfo? {
     val service = SessionTokenService()
     val sessionTokenEntity = service.findByToken(sessionToken)
         ?: return null
-    if (sessionTokenEntity.userId != this.id.value) {
+    if (sessionTokenEntity.userId != this.id) {
         return null
     }
     val jwt = createJWT()
     return AuthInfo(jwt)
 }
 
-suspend fun UserEntity.createSessionToken(): String {
+suspend fun User.createSessionToken(): String {
     val token = UUID.randomUUID().toString()
     val service = SessionTokenService()
     service.create(SessionToken(
-        userId = this.id.value,
+        userId = this.id,
         token = token,
         createdAt = System.currentTimeMillis(),
         expiresAt = System.currentTimeMillis() + 60000,

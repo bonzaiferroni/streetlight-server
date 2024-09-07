@@ -35,7 +35,7 @@ class SessionTokenService : DataService<SessionToken, SessionTokenEntity>(Sessio
         }
     }
 
-    suspend fun findByToken(token: String): SessionToken? {
-        return SessionTokenEntity.find { SessionTokenTable.token eq token }.firstOrNull()?.toData()
+    suspend fun findByToken(token: String): SessionToken? = dbQuery {
+        SessionTokenEntity.find { SessionTokenTable.token eq token }.firstOrNull()?.toData()
     }
 }

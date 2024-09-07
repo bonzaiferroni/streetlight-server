@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import org.jetbrains.exposed.sql.lowerCase
 import streetlight.model.User
 import streetlight.server.db.DataService
 
@@ -42,6 +43,14 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         it.updatedAt = data.updatedAt
         it.avatarUrl = data.avatarUrl
         it.venmo = data.venmo
+    }
+
+    suspend fun findByUsername(username: String): User? = dbQuery {
+        UserEntity.find { UserTable.username.lowerCase() eq username.lowercase() }.firstOrNull()?.toData()
+    }
+
+    suspend fun findByEmail(email: String): User? = dbQuery {
+        UserEntity.find { UserTable.email.lowerCase() eq email.lowercase() }.firstOrNull()?.toData()
     }
 }
 
