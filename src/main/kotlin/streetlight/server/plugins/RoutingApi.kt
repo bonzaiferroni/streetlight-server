@@ -5,16 +5,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.server.db.applyServiceRouting
 import streetlight.server.db.core.authorize
-import streetlight.server.db.services.AreaService
-import streetlight.server.db.services.EventInfoService
-import streetlight.server.db.services.EventService
-import streetlight.server.db.services.RequestService
-import streetlight.server.db.routes.eventInfoRouting
-import streetlight.server.db.services.LocationService
-import streetlight.server.db.services.RequestInfoService
 import streetlight.server.db.routes.requestInfoRouting
-import streetlight.server.db.services.SongService
 import streetlight.server.db.routes.eventRouting
+import streetlight.server.db.routes.userRouting
+import streetlight.server.db.services.*
 
 fun Application.configureApiRoutes() {
     routing {
@@ -28,9 +22,9 @@ fun Application.configureApiRoutes() {
         applyServiceRouting("requests", RequestService())
         applyServiceRouting("songs", SongService())
 
-        eventInfoRouting(EventInfoService())
         requestInfoRouting(RequestInfoService())
-        eventRouting(EventService())
+        eventRouting(EventService(), EventInfoService())
+        userRouting(UserService())
 
         post("$v1/login") {
             call.authorize()
