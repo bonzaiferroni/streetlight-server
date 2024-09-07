@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.routing.*
 import streetlight.server.db.core.VariableStore
 
 fun Application.configureSecurity() {
@@ -14,7 +15,7 @@ fun Application.configureSecurity() {
     val jwtRealm = "streetlight api"
     val jwtSecret = VariableStore().appSecret
     authentication {
-        jwt("auth-jwt") {
+        jwt(TOKEN_NAME) {
             realm = jwtRealm
             verifier(
                 JWT
@@ -24,9 +25,16 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                println(credential.payload.audience)
                 if (credential.payload.audience.contains(audience)) JWTPrincipal(credential.payload) else null
             }
         }
+    }
+}
+
+const val TOKEN_NAME = "auth-jwt"
+
+fun Route.authenticateJwt(block: Route.() -> Unit) {
+    authenticate(TOKEN_NAME) {
+        block()
     }
 }

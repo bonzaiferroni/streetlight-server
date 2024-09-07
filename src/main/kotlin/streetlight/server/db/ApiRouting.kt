@@ -11,6 +11,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.jetbrains.exposed.dao.IntEntity
+import streetlight.server.plugins.authenticateJwt
 import streetlight.server.plugins.v1
 
 inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
@@ -37,7 +38,7 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
         }
     }
 
-    authenticate("auth-jwt") {
+    authenticateJwt {
         post("$v1/${endpoint}") {
             val data = call.receive<Data>()
             val id = service.create(data)
