@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import streetlight.model.Request
+import streetlight.model.core.Request
 import streetlight.server.db.DataService
 import streetlight.server.db.tables.EventEntity
 import streetlight.server.db.tables.RequestEntity

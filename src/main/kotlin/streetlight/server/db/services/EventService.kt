@@ -1,9 +1,9 @@
 package streetlight.server.db.services
 
-import streetlight.model.Area
-import streetlight.model.Event
-import streetlight.model.Location
-import streetlight.model.User
+import streetlight.model.core.Area
+import streetlight.model.core.Event
+import streetlight.model.core.Location
+import streetlight.model.core.User
 import streetlight.model.dto.EventInfo
 import streetlight.server.db.DataService
 import streetlight.server.db.tables.EventEntity

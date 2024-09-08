@@ -1,16 +1,15 @@
 package streetlight.server.db.core
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import streetlight.model.User
+import streetlight.model.core.User
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginInfo
 import streetlight.server.db.models.SessionToken
 import streetlight.server.db.services.*
+import streetlight.server.db.tables.UserTable.salt
 import streetlight.server.plugins.createJWT
 import java.security.SecureRandom
 import java.util.*

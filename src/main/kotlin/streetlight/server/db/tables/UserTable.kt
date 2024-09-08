@@ -6,11 +6,11 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 object UserTable : IntIdTable() {
-    val name = text("name")
+    val name = text("name").nullable()
     val username = text("username")
     val hashedPassword = text("hashed_password")
     val salt = text("salt")
-    val email = text("email")
+    val email = text("email").nullable()
     val roles = text("roles").default("user")
     val createdAt = long("created_at")
     val updatedAt = long("updated_at")

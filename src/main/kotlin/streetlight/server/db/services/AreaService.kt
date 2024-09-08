@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import streetlight.model.Area
+import streetlight.model.core.Area
 import streetlight.server.db.DataService
 import streetlight.server.db.tables.AreaEntity
 

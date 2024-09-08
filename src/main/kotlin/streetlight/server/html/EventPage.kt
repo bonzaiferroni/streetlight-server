@@ -2,7 +2,7 @@ package streetlight.server.html
 
 import kotlinx.html.*
 import streetlight.model.dto.EventInfo
-import streetlight.model.Song
+import streetlight.model.core.Song
 import streetlight.server.utilities.callFunction
 
 fun HTML.eventPage(

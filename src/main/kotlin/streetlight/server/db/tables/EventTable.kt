@@ -5,7 +5,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import streetlight.model.EventStatus
+import streetlight.model.core.EventStatus
 
 object EventTable : IntIdTable() {
     val user = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)

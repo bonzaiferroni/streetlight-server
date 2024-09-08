@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import streetlight.model.Location
+import streetlight.model.core.Location
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.lowerCase
 import streetlight.server.db.DataService

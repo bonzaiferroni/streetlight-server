@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import streetlight.model.Song
+import streetlight.model.core.Song
 import streetlight.server.db.DataService
 import streetlight.server.db.tables.SongEntity
 import streetlight.server.db.tables.UserEntity

@@ -1,7 +1,7 @@
 package streetlight.server.html
 
 import kotlinx.html.*
-import streetlight.model.Location
+import streetlight.model.core.Location
 import streetlight.server.models.GeoPoint
 import streetlight.server.utilities.toJsVar
 

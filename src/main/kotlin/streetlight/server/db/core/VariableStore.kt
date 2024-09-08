@@ -1,6 +1,6 @@
 package streetlight.server.db.core
 
-import streetlight.model.User
+import streetlight.model.core.User
 
 class VariableStore {
 
@@ -14,7 +14,8 @@ class VariableStore {
         roles = "admin",
         createdAt = System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis(),
-    )}
+    )
+    }
 
     private fun getEnvVariable(key: String): String {
         return System.getenv(key) ?: throw IllegalStateException("Missing environment variable: $key")
