@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.model.dto.SignUpInfo
+import streetlight.model.dto.SignUpResult
 import streetlight.server.db.services.UserService
 import streetlight.server.plugins.CLAIM_USERNAME
 import streetlight.server.plugins.authenticateJwt
@@ -19,10 +20,11 @@ fun Routing.userRouting(service: UserService = UserService()) {
         try {
             service.createUser(info)
         } catch (e: IllegalArgumentException) {
-            call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid data")
+            println("userRouting.createUser: ${e.message}")
+            call.respond(HttpStatusCode.OK, SignUpResult(false, e.message.toString()))
             return@post
         }
-        call.respond(status = HttpStatusCode.OK, "User created")
+        call.respond(status = HttpStatusCode.OK, SignUpResult(true, "User created."))
     }
 
     authenticateJwt {

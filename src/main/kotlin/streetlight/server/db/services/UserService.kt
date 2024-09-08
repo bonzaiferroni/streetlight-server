@@ -96,21 +96,21 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         create(user)
     }
 
-    private suspend fun validateUsername(info: SignUpInfo) {
+    private fun validateUsername(info: SignUpInfo) {
         if (!info.validUsernameLength) throw IllegalArgumentException("Username should be least 3 characters.")
         if (!info.validUsernameChars) throw IllegalArgumentException("Username has invalid characters.")
         val existingUsername = UserEntity.find { UserTable.username.lowerCase() eq info.username.lowercase() }.any()
         if (existingUsername) throw IllegalArgumentException("Username already exists.")
     }
 
-    private suspend fun validateEmail(info: SignUpInfo) {
+    private fun validateEmail(info: SignUpInfo) {
         val email = info.email ?: return // email is optional
         if (!info.validEmail) throw IllegalArgumentException("Invalid email.")
         val existingEmail = UserEntity.find { UserTable.email.lowerCase() eq email.lowercase() }.any()
         if (existingEmail) throw IllegalArgumentException("Email already exists.")
     }
 
-    private suspend fun validatePassword(info: SignUpInfo) {
+    private fun validatePassword(info: SignUpInfo) {
         if (!info.validPassword) throw IllegalArgumentException("Password is too weak.")
     }
 }
