@@ -9,9 +9,9 @@ import io.ktor.server.response.*
 import streetlight.model.User
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginInfo
-import streetlight.server.CLAIM_USERNAME
 import streetlight.server.db.models.SessionToken
 import streetlight.server.db.services.*
+import streetlight.server.plugins.createJWT
 import java.security.SecureRandom
 import java.util.*
 import javax.crypto.SecretKeyFactory
@@ -27,7 +27,7 @@ suspend fun ApplicationCall.authorize() {
         return
     }
     loginInfo.password?.let {
-        val authInfo = user.testHashedPassword(loginInfo.username, it)
+        val authInfo = user.testHashedPassword(loginInfo.username, it, user.roles)
         if (authInfo == null) {
             this.respond(HttpStatusCode.Unauthorized, "Invalid password")
             return
@@ -36,7 +36,7 @@ suspend fun ApplicationCall.authorize() {
         return
     }
     loginInfo.session?.let {
-        val authInfo = user.testSessionToken(loginInfo.username, it)
+        val authInfo = user.testSessionToken(loginInfo.username, it, user.roles)
         if (authInfo == null) {
             this.respond(HttpStatusCode.Unauthorized, "Invalid token")
             return
@@ -47,7 +47,7 @@ suspend fun ApplicationCall.authorize() {
     this.respond(HttpStatusCode.Unauthorized, "Missing password or token")
 }
 
-suspend fun User.testHashedPassword(username: String, password: String): AuthInfo? {
+suspend fun User.testHashedPassword(username: String, password: String, roles: String): AuthInfo? {
     val byteArray = this.salt.base64ToByteArray()
     val hashedPassword = hashPassword(password, byteArray)
     if (hashedPassword != this.hashedPassword) {
@@ -55,18 +55,18 @@ suspend fun User.testHashedPassword(username: String, password: String): AuthInf
     }
 
     val sessionToken = this.createSessionToken()
-    val jwt = createJWT(username)
+    val jwt = createJWT(username, roles)
     return AuthInfo(jwt, sessionToken)
 }
 
-suspend fun User.testSessionToken(username: String, sessionToken: String): AuthInfo? {
+suspend fun User.testSessionToken(username: String, sessionToken: String, roles: String): AuthInfo? {
     val service = SessionTokenService()
     val sessionTokenEntity = service.findByToken(sessionToken)
         ?: return null
     if (sessionTokenEntity.userId != this.id) {
         return null
     }
-    val jwt = createJWT(username)
+    val jwt = createJWT(username, roles)
     return AuthInfo(jwt)
 }
 
@@ -81,18 +81,6 @@ suspend fun User.createSessionToken(): String {
         issuer = "http://localhost:8080/"
     ))
     return token
-}
-
-fun createJWT(username: String): String {
-    val audience = "http://localhost:8080/"
-    val issuer = "http://localhost:8080/"
-    val secret = VariableStore().appSecret
-    return JWT.create()
-        .withAudience(audience)
-        .withIssuer(issuer)
-        .withExpiresAt(Date(System.currentTimeMillis() + 60000))
-        .withClaim(CLAIM_USERNAME, username)
-        .sign(Algorithm.HMAC256(secret))
 }
 
 fun hashPassword(password: String, salt: ByteArray): String {

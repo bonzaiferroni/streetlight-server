@@ -62,10 +62,11 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
             name = user.name,
             username = user.username,
             email = user.email,
+            roles = user.roles,
             avatarUrl = user.avatarUrl,
             venmo = user.venmo,
             createdAt = user.createdAt,
-            updatedAt = user.updatedAt
+            updatedAt = user.updatedAt,
         )
     }
 }
