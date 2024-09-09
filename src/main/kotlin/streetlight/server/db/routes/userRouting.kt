@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import streetlight.model.dto.SignUpInfo
+import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.SignUpResult
 import streetlight.server.db.services.UserService
 import streetlight.server.plugins.CLAIM_USERNAME
@@ -16,7 +16,7 @@ import streetlight.server.plugins.v1
 fun Routing.userRouting(service: UserService = UserService()) {
 
     post("$v1/user") {
-        val info = call.receive<SignUpInfo>()
+        val info = call.receive<SignUpRequest>()
         try {
             service.createUser(info)
         } catch (e: IllegalArgumentException) {

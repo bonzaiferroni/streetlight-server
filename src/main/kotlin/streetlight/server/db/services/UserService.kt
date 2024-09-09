@@ -3,7 +3,7 @@ package streetlight.server.db.services
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import streetlight.model.core.User
-import streetlight.model.dto.SignUpInfo
+import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.UserInfo
 import streetlight.server.db.DataService
 import streetlight.server.db.core.generateSalt
@@ -75,7 +75,7 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         )
     }
 
-    suspend fun createUser(info: SignUpInfo) = dbQuery {
+    suspend fun createUser(info: SignUpRequest) = dbQuery {
         validateUsername(info)
         validateEmail(info)
         validatePassword(info)
@@ -96,21 +96,21 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         create(user)
     }
 
-    private fun validateUsername(info: SignUpInfo) {
+    private fun validateUsername(info: SignUpRequest) {
         if (!info.validUsernameLength) throw IllegalArgumentException("Username should be least 3 characters.")
         if (!info.validUsernameChars) throw IllegalArgumentException("Username has invalid characters.")
         val existingUsername = UserEntity.find { UserTable.username.lowerCase() eq info.username.lowercase() }.any()
         if (existingUsername) throw IllegalArgumentException("Username already exists.")
     }
 
-    private fun validateEmail(info: SignUpInfo) {
+    private fun validateEmail(info: SignUpRequest) {
         val email = info.email ?: return // email is optional
         if (!info.validEmail) throw IllegalArgumentException("Invalid email.")
         val existingEmail = UserEntity.find { UserTable.email.lowerCase() eq email.lowercase() }.any()
         if (existingEmail) throw IllegalArgumentException("Email already exists.")
     }
 
-    private fun validatePassword(info: SignUpInfo) {
+    private fun validatePassword(info: SignUpRequest) {
         if (!info.validPassword) throw IllegalArgumentException("Password is too weak.")
     }
 }
