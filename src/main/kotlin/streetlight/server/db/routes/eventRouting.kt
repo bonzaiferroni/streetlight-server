@@ -7,7 +7,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import streetlight.model.core.Request
 import streetlight.model.dto.ImageUploadRequest
-import streetlight.server.db.getIdOrThrow
+import streetlight.server.getIdOrThrow
 import streetlight.server.db.services.EventInfoService
 import streetlight.server.db.services.EventService
 import streetlight.server.db.services.RequestInfoService

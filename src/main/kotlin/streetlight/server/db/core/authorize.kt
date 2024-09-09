@@ -5,11 +5,12 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import streetlight.model.core.User
+import streetlight.model.deobfuscate
 import streetlight.model.dto.AuthInfo
-import streetlight.model.dto.LoginInfo
+import streetlight.model.dto.LoginRequest
 import streetlight.server.db.models.SessionToken
 import streetlight.server.db.services.*
-import streetlight.server.db.tables.UserTable.salt
+import streetlight.server.logInfo
 import streetlight.server.plugins.createJWT
 import java.security.SecureRandom
 import java.util.*
@@ -18,28 +19,33 @@ import javax.crypto.spec.PBEKeySpec
 import kotlin.text.toCharArray
 
 suspend fun ApplicationCall.authorize() {
-    val loginInfo = this.receiveNullable<LoginInfo>() ?: return
+    val loginRequest = this.receiveNullable<LoginRequest>() ?: return
     val userService = UserService()
-    val user = userService.findByUsernameOrEmail(loginInfo.username)
+    val user = userService.findByUsernameOrEmail(loginRequest.username)
     if (user == null) {
+        this.logInfo("authorize: Invalid username from ${loginRequest.username}")
         this.respond(HttpStatusCode.Unauthorized, "Invalid username")
         return
     }
-    loginInfo.password?.let {
-        val authInfo = user.testHashedPassword(loginInfo.username, it, user.roles)
+    loginRequest.password?.let {
+        val password = it.deobfuscate()
+        val authInfo = user.testHashedPassword(loginRequest.username, password, user.roles)
         if (authInfo == null) {
-            this.respond(HttpStatusCode.Unauthorized, "Invalid password")
+            this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             return
         }
+        this.logInfo("authorize: password login by ${loginRequest.username}")
         this.respond(HttpStatusCode.OK, authInfo)
         return
     }
-    loginInfo.session?.let {
-        val authInfo = user.testSessionToken(loginInfo.username, it, user.roles)
+    loginRequest.session?.let {
+        val authInfo = user.testSessionToken(loginRequest.username, it, user.roles)
         if (authInfo == null) {
+            this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             this.respond(HttpStatusCode.Unauthorized, "Invalid token")
             return
         }
+        this.logInfo("authorize: session login by ${loginRequest.username}")
         this.respond(HttpStatusCode.OK, authInfo)
         return
     }

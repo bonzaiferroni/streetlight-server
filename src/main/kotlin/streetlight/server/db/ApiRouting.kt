@@ -10,6 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import org.jetbrains.exposed.dao.IntEntity
+import streetlight.server.getIdOrThrow
 import streetlight.server.plugins.*
 
 inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
