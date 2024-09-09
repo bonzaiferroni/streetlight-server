@@ -69,6 +69,7 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
     }
 
     suspend fun getUserInfo(username: String): UserInfo {
+        println(username)
         val user = findByUsernameOrEmail(username) ?: throw IllegalArgumentException("User not found")
         return UserInfo(
             username = user.username,

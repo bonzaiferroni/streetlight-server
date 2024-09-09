@@ -2,6 +2,8 @@ package streetlight.server.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -9,6 +11,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.server.db.core.VariableStore
+import streetlight.server.logError
+import streetlight.server.logInfo
 import java.util.*
 
 fun Application.configureSecurity() {
@@ -28,7 +32,30 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
+                println("validate: ${credential.payload}")
                 if (credential.payload.audience.contains(audience)) JWTPrincipal(credential.payload) else null
+            }
+            challenge { _, _ ->
+                // Extract token from header manually
+                val authHeader = call.request.headers["Authorization"]
+                val token = authHeader?.removePrefix("Bearer ")
+
+                if (token != null) {
+                    // Try to decode and log the token contents
+                    try {
+                        val decodedJWT: DecodedJWT = JWT.decode(token)
+                        // call.logError("Token rejected: ${decodedJWT.payload}")
+                        // call.logError("Issuer: ${decodedJWT.issuer}")
+                        // call.logError("Audience: ${decodedJWT.audience}")
+                        // call.logError("Expires At: ${decodedJWT.expiresAt}")
+                    } catch (e: JWTVerificationException) {
+                        call.logError("Security: Invalid JWT format: ${e.message}")
+                    }
+                } else {
+                    call.logError("Security: No Bearer token found in the request.")
+                }
+                call.logInfo("Security: JWT authentication failed")
+                call.respond(HttpStatusCode.Unauthorized)
             }
         }
     }
