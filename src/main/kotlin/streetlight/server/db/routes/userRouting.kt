@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.SignUpResult
 import streetlight.server.db.services.UserService
@@ -32,6 +33,19 @@ fun Routing.userRouting(service: UserService = UserService()) {
             val username = call.getClaim(CLAIM_USERNAME)
             val userInfo = service.getUserInfo(username)
             call.respond(userInfo)
+        }
+
+        get("$v1/user/private") {
+            val username = call.getClaim(CLAIM_USERNAME)
+            val privateInfo = service.getPrivateInfo(username)
+            call.respond(privateInfo)
+        }
+
+        put("$v1/user") {
+            val username = call.getClaim(CLAIM_USERNAME)
+            val info = call.receive<EditUserRequest>()
+            service.updateUser(username, info)
+            call.respond(HttpStatusCode.OK, true)
         }
     }
 }

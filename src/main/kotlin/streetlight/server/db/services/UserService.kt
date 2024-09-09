@@ -1,8 +1,11 @@
 package streetlight.server.db.services
 
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import streetlight.model.core.User
+import streetlight.model.core.toPrivateInfo
+import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.UserInfo
 import streetlight.server.db.DataService
@@ -11,6 +14,7 @@ import streetlight.server.db.core.hashPassword
 import streetlight.server.db.core.toBase64
 import streetlight.server.db.tables.UserEntity
 import streetlight.server.db.tables.UserTable
+import streetlight.server.db.tables.UserTable.username
 import streetlight.server.plugins.ROLE_USER
 
 class UserService : DataService<User, UserEntity>(UserEntity) {
@@ -54,6 +58,9 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         it.venmo = data.venmo
     }
 
+    fun findByUsername(username: String): User? =
+        UserEntity.find { UserTable.username.lowerCase() eq username.lowercase() }.firstOrNull()?.toData()
+
     suspend fun findByUsernameOrEmail(usernameOrEmail: String): User? = dbQuery {
         UserEntity.find {
             (UserTable.username.lowerCase() eq usernameOrEmail.lowercase()) or
@@ -64,9 +71,7 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
     suspend fun getUserInfo(username: String): UserInfo {
         val user = findByUsernameOrEmail(username) ?: throw IllegalArgumentException("User not found")
         return UserInfo(
-            name = user.name,
             username = user.username,
-            email = user.email,
             roles = user.roles,
             avatarUrl = user.avatarUrl,
             venmo = user.venmo,
@@ -112,6 +117,24 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
 
     private fun validatePassword(info: SignUpRequest) {
         if (!info.validPassword) throw IllegalArgumentException("Password is too weak.")
+    }
+
+    suspend fun getPrivateInfo(username: String) = dbQuery {
+        val user = findByUsername(username) ?: throw IllegalArgumentException("User not found")
+        user.toPrivateInfo()
+    }
+
+    suspend fun updateUser(username: String, info: EditUserRequest) = dbQuery {
+        UserEntity.findSingleByAndUpdate(UserTable.username.lowerCase() eq username.lowercase()) { entity ->
+            entity.name = info.name
+            if (info.deleteName) entity.name = null
+            entity.email = info.email
+            if (info.deleteEmail) entity.email = null
+            entity.venmo = info.venmo
+            entity.avatarUrl = info.avatarUrl
+            entity.updatedAt = System.currentTimeMillis()
+            // TODO validate email
+        }
     }
 }
 
