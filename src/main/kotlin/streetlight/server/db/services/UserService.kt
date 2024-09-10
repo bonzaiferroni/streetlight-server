@@ -8,13 +8,15 @@ import streetlight.model.core.toPrivateInfo
 import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.UserInfo
+import streetlight.model.utils.*
 import streetlight.server.db.DataService
 import streetlight.server.db.core.generateSalt
 import streetlight.server.db.core.hashPassword
 import streetlight.server.db.core.toBase64
+import streetlight.server.db.tables.SessionTokenEntity
+import streetlight.server.db.tables.SessionTokenTable
 import streetlight.server.db.tables.UserEntity
 import streetlight.server.db.tables.UserTable
-import streetlight.server.db.tables.UserTable.username
 import streetlight.server.logger
 import streetlight.server.plugins.ROLE_USER
 
@@ -70,7 +72,6 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
     }
 
     suspend fun getUserInfo(username: String): UserInfo {
-        println(username)
         val user = findByUsernameOrEmail(username) ?: throw IllegalArgumentException("User not found")
         return UserInfo(
             username = user.username,
@@ -104,21 +105,21 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
     }
 
     private fun validateUsername(info: SignUpRequest) {
-        if (!info.validUsernameLength) throw IllegalArgumentException("Username should be least 3 characters.")
-        if (!info.validUsernameChars) throw IllegalArgumentException("Username has invalid characters.")
+        if (!info.username.validUsernameLength) throw IllegalArgumentException("Username should be least 3 characters.")
+        if (!info.username.validUsernameChars) throw IllegalArgumentException("Username has invalid characters.")
         val existingUsername = UserEntity.find { UserTable.username.lowerCase() eq info.username.lowercase() }.any()
         if (existingUsername) throw IllegalArgumentException("Username already exists.")
     }
 
     private fun validateEmail(info: SignUpRequest) {
         val email = info.email ?: return // email is optional
-        if (!info.validEmail) throw IllegalArgumentException("Invalid email.")
+        if (!info.email.validEmail) throw IllegalArgumentException("Invalid email.")
         val existingEmail = UserEntity.find { UserTable.email.lowerCase() eq email.lowercase() }.any()
         if (existingEmail) throw IllegalArgumentException("Email already exists.")
     }
 
     private fun validatePassword(info: SignUpRequest) {
-        if (!info.validPassword) throw IllegalArgumentException("Password is too weak.")
+        if (!info.password.validPassword) throw IllegalArgumentException("Password is too weak.")
     }
 
     suspend fun getPrivateInfo(username: String) = dbQuery {
@@ -130,7 +131,7 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
         if (info.deleteUser) {
             logger.info("UserService: Deleting user $username")
             UserEntity.findSingleByAndUpdate(UserTable.username.lowerCase() eq username.lowercase()) { entity ->
-                entity.delete()
+                SessionTokenEntity.find { SessionTokenTable.user eq entity.id }.forEach { it.delete() }
             }
         } else {
             logger.info("UserService: Updating user $username")

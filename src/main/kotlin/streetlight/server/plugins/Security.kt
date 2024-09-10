@@ -32,7 +32,6 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                println("validate: ${credential.payload}")
                 if (credential.payload.audience.contains(audience)) JWTPrincipal(credential.payload) else null
             }
             challenge { _, _ ->

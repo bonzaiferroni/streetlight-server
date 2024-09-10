@@ -29,7 +29,7 @@ suspend fun ApplicationCall.authorize() {
     }
     loginRequest.password?.let {
         val password = it.deobfuscate()
-        val authInfo = user.testHashedPassword(loginRequest.username, password, user.roles)
+        val authInfo = user.testPassword(loginRequest.username, password, user.roles)
         if (authInfo == null) {
             this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             return
@@ -39,7 +39,7 @@ suspend fun ApplicationCall.authorize() {
         return
     }
     loginRequest.session?.let {
-        val authInfo = user.testSessionToken(loginRequest.username, it, user.roles)
+        val authInfo = user.testToken(loginRequest.username, it, user.roles)
         if (authInfo == null) {
             this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             this.respond(HttpStatusCode.Unauthorized, "Invalid token")
@@ -52,7 +52,7 @@ suspend fun ApplicationCall.authorize() {
     this.respond(HttpStatusCode.Unauthorized, "Missing password or token")
 }
 
-suspend fun User.testHashedPassword(username: String, password: String, roles: String): AuthInfo? {
+suspend fun User.testPassword(username: String, password: String, roles: String): AuthInfo? {
     val byteArray = this.salt.base64ToByteArray()
     val hashedPassword = hashPassword(password, byteArray)
     if (hashedPassword != this.hashedPassword) {
@@ -64,7 +64,7 @@ suspend fun User.testHashedPassword(username: String, password: String, roles: S
     return AuthInfo(jwt, sessionToken)
 }
 
-suspend fun User.testSessionToken(username: String, sessionToken: String, roles: String): AuthInfo? {
+suspend fun User.testToken(username: String, sessionToken: String, roles: String): AuthInfo? {
     val service = SessionTokenService()
     val sessionTokenEntity = service.findByToken(sessionToken)
         ?: return null

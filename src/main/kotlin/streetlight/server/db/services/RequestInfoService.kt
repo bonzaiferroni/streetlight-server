@@ -87,7 +87,6 @@ class RequestInfoService : ApiService() {
                 it[performed] = false
                 it[notes] = "auto"
             }
-            println(id.value)
 
             if (id.value == 0) return@dbQuery null
             requestInfos
