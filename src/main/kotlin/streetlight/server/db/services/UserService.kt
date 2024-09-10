@@ -15,6 +15,7 @@ import streetlight.server.db.core.toBase64
 import streetlight.server.db.tables.UserEntity
 import streetlight.server.db.tables.UserTable
 import streetlight.server.db.tables.UserTable.username
+import streetlight.server.logger
 import streetlight.server.plugins.ROLE_USER
 
 class UserService : DataService<User, UserEntity>(UserEntity) {
@@ -126,15 +127,23 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
     }
 
     suspend fun updateUser(username: String, info: EditUserRequest) = dbQuery {
-        UserEntity.findSingleByAndUpdate(UserTable.username.lowerCase() eq username.lowercase()) { entity ->
-            entity.name = info.name
-            if (info.deleteName) entity.name = null
-            entity.email = info.email
-            if (info.deleteEmail) entity.email = null
-            entity.venmo = info.venmo
-            entity.avatarUrl = info.avatarUrl
-            entity.updatedAt = System.currentTimeMillis()
-            // TODO validate email
+        if (info.deleteUser) {
+            logger.info("UserService: Deleting user $username")
+            UserEntity.findSingleByAndUpdate(UserTable.username.lowerCase() eq username.lowercase()) { entity ->
+                entity.delete()
+            }
+        } else {
+            logger.info("UserService: Updating user $username")
+            UserEntity.findSingleByAndUpdate(UserTable.username.lowerCase() eq username.lowercase()) { entity ->
+                entity.name = info.name
+                if (info.deleteName) entity.name = null
+                entity.email = info.email
+                if (info.deleteEmail) entity.email = null
+                entity.venmo = info.venmo
+                entity.avatarUrl = info.avatarUrl
+                entity.updatedAt = System.currentTimeMillis()
+                // TODO validate email
+            }
         }
     }
 }

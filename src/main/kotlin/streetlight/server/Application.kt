@@ -16,20 +16,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    install(CORS) {
-        allowMethod(HttpMethod.Options)
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Delete)
-        allowHeader(HttpHeaders.Authorization)  // Allow Authorization header
-        // anyHost()  // Don't use this in production, specify the exact domain(s)
-        allowHost("localhost:3000")
-        allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.AccessControlAllowOrigin)
-        allowCredentials = true
-        allowNonSimpleContentTypes = true
-    }
+    configureCors()
     configureSerialization()
     configureDatabases()
     configureSecurity()
