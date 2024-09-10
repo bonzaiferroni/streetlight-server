@@ -11,8 +11,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.server.db.core.VariableStore
-import streetlight.server.logError
-import streetlight.server.logInfo
+import streetlight.server.extensions.logError
+import streetlight.server.extensions.logInfo
 import java.util.*
 
 fun Application.configureSecurity() {

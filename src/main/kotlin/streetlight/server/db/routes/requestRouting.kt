@@ -1,16 +1,15 @@
 package streetlight.server.db.routes
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import streetlight.server.getIdOrThrow
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import streetlight.model.Api
 import streetlight.server.db.services.RequestInfoService
-import streetlight.server.plugins.v1
+import streetlight.server.extensions.getIdOrThrow
 
 fun Routing.requestInfoRouting(requestInfoService: RequestInfoService) {
-    get("$v1/request_info/{id}") {
+    get(Api.requestInfo.serverIdTemplate) {
         val id = call.getIdOrThrow()
         val request = requestInfoService.read(id)
         if (request != null) {
@@ -20,24 +19,24 @@ fun Routing.requestInfoRouting(requestInfoService: RequestInfoService) {
         }
     }
 
-    get("$v1/request_info") {
+    get(Api.requestInfo.path) {
         val requests = requestInfoService.readAll()
         call.respond(HttpStatusCode.OK, requests)
     }
 
-    get("$v1/request_info/event/{id}") {
+    get(Api.requestInfo.serverIdTemplate) {
         val eventId = call.getIdOrThrow()
         val requests = requestInfoService.readAllByEvent(eventId).filter { !it.performed }
         call.respond(HttpStatusCode.OK, requests)
     }
 
-    get("$v1/request_info/{id}/queue") {
+    get(Api.requestInfoQueue.serverIdTemplate) {
         val eventId = call.getIdOrThrow()
         val requests = requestInfoService.getQueue(eventId)
         call.respond(HttpStatusCode.OK, requests)
     }
 
-    get("$v1/request_info/{id}/random") {
+    get(Api.requestInfoRandom.serverIdTemplate) {
         val eventId = call.getIdOrThrow()
         val request = requestInfoService.getRandomRequest(eventId)
         if (request != null) {

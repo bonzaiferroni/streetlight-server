@@ -1,22 +1,22 @@
 package streetlight.server.db
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import org.jetbrains.exposed.dao.IntEntity
-import streetlight.server.getIdOrThrow
-import streetlight.server.plugins.*
+import streetlight.model.Endpoint
+import streetlight.model.core.IdModel
+import streetlight.server.extensions.getIdOrThrow
+import streetlight.server.plugins.ROLE_ADMIN
+import streetlight.server.plugins.authenticateJwt
+import streetlight.server.plugins.testRole
 
-inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRouting(
-    endpoint: String, service: DataService<Data, DataEntity>
+inline fun <reified Data : IdModel, DataEntity : IntEntity> Routing.applyServiceRouting(
+    endpoint: Endpoint, service: DataService<Data, DataEntity>
 ) {
-    get("$v1/${endpoint}") {
+    get(endpoint.path) {
         val search = call.parameters["search"] ?: ""
         val count = call.parameters["limit"]?.toIntOrNull() ?: 10
         val data = if (search.isBlank()) {
@@ -27,7 +27,7 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
         call.respond(HttpStatusCode.OK, data)
     }
 
-    get("$v1/${endpoint}/{id}") {
+    get(endpoint.serverIdTemplate) {
         val id = call.getIdOrThrow()
         val data = service.read(id)
         if (data != null) {
@@ -38,7 +38,7 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
     }
 
     authenticateJwt {
-        post("$v1/${endpoint}") {
+        post(endpoint.path) {
             if (!call.testRole(ROLE_ADMIN)) {
                 call.respond(HttpStatusCode.Forbidden)
                 return@post
@@ -48,18 +48,17 @@ inline fun <reified Data : Any, DataEntity : IntEntity> Routing.applyServiceRout
             call.respond(HttpStatusCode.Created, id)
         }
 
-        put("$v1/${endpoint}/{id}") {
+        put(endpoint.path) {
             if (!call.testRole(ROLE_ADMIN)) {
                 call.respond(HttpStatusCode.Forbidden)
                 return@put
             }
-            val id = call.getIdOrThrow()
             val data = call.receive<Data>()
-            service.update(id, data)
+            service.update(data)
             call.respond(HttpStatusCode.OK)
         }
 
-        delete("$v1/${endpoint}/{id}") {
+        delete(endpoint.serverIdTemplate) {
             if (!call.testRole(ROLE_ADMIN)) {
                 call.respond(HttpStatusCode.Forbidden)
                 return@delete

@@ -3,8 +3,9 @@ package streetlight.server.db
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.sql.Op
+import streetlight.model.core.IdModel
 
-abstract class DataService<Data : Any, DataEntity : IntEntity>(
+abstract class DataService<Data : IdModel, DataEntity : IntEntity>(
     protected val entity: EntityClass<Int, DataEntity>
 ) : ApiService() {
     protected abstract suspend fun createEntity(data: Data): (DataEntity.() -> Unit)?
@@ -25,9 +26,9 @@ abstract class DataService<Data : Any, DataEntity : IntEntity>(
         entity.all().map { it.toData() }
     }
 
-    suspend fun update(id: Int, data: Data): Boolean = dbQuery {
+    suspend fun update(data: Data): Boolean = dbQuery {
         val update = updateEntity(data) ?: return@dbQuery false
-        return@dbQuery entity.findByIdAndUpdate(id, update) != null
+        return@dbQuery entity.findByIdAndUpdate(data.id, update) != null
     }
 
     suspend fun delete(id: Int) = dbQuery {

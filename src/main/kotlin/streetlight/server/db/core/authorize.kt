@@ -9,14 +9,14 @@ import streetlight.model.deobfuscate
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginRequest
 import streetlight.server.db.models.SessionToken
-import streetlight.server.db.services.*
-import streetlight.server.logInfo
+import streetlight.server.db.services.SessionTokenService
+import streetlight.server.db.services.UserService
+import streetlight.server.extensions.logInfo
 import streetlight.server.plugins.createJWT
 import java.security.SecureRandom
 import java.util.*
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-import kotlin.text.toCharArray
 
 suspend fun ApplicationCall.authorize() {
     val loginRequest = this.receiveNullable<LoginRequest>() ?: return

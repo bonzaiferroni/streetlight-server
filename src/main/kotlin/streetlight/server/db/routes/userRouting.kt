@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import streetlight.model.Api
 import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.SignUpResult
@@ -12,11 +13,10 @@ import streetlight.server.db.services.UserService
 import streetlight.server.plugins.CLAIM_USERNAME
 import streetlight.server.plugins.authenticateJwt
 import streetlight.server.plugins.getClaim
-import streetlight.server.plugins.v1
 
 fun Routing.userRouting(service: UserService = UserService()) {
 
-    post("$v1/user") {
+    post(Api.user.path) {
         val info = call.receive<SignUpRequest>()
         try {
             service.createUser(info)
@@ -29,19 +29,19 @@ fun Routing.userRouting(service: UserService = UserService()) {
     }
 
     authenticateJwt {
-        get("$v1/user") {
+        get(Api.user.path) {
             val username = call.getClaim(CLAIM_USERNAME)
             val userInfo = service.getUserInfo(username)
             call.respond(userInfo)
         }
 
-        get("$v1/user/private") {
+        get(Api.privateInfo.path) {
             val username = call.getClaim(CLAIM_USERNAME)
             val privateInfo = service.getPrivateInfo(username)
             call.respond(privateInfo)
         }
 
-        put("$v1/user") {
+        put(Api.user.path) {
             val username = call.getClaim(CLAIM_USERNAME)
             val info = call.receive<EditUserRequest>()
             service.updateUser(username, info)
