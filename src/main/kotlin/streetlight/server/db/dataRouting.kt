@@ -13,7 +13,7 @@ import streetlight.server.plugins.ROLE_ADMIN
 import streetlight.server.plugins.authenticateJwt
 import streetlight.server.plugins.testRole
 
-inline fun <reified Data : IdModel, DataEntity : IntEntity> Routing.applyServiceRouting(
+inline fun <reified Data : IdModel, DataEntity : IntEntity> Routing.dataRouting(
     endpoint: Endpoint, service: DataService<Data, DataEntity>
 ) {
     get(endpoint.path) {
@@ -55,7 +55,7 @@ inline fun <reified Data : IdModel, DataEntity : IntEntity> Routing.applyService
             }
             val data = call.receive<Data>()
             service.update(data)
-            call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, true)
         }
 
         delete(endpoint.serverIdTemplate) {
@@ -65,7 +65,7 @@ inline fun <reified Data : IdModel, DataEntity : IntEntity> Routing.applyService
             }
             val id = call.getIdOrThrow()
             service.delete(id)
-            call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, true)
         }
     }
 }

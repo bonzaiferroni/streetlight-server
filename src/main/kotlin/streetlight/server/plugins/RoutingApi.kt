@@ -5,7 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.model.Api
 import streetlight.model.apiPrefix
-import streetlight.server.db.applyServiceRouting
+import streetlight.server.db.dataRouting
 import streetlight.server.db.core.authorize
 import streetlight.server.db.routes.eventRouting
 import streetlight.server.db.routes.requestInfoRouting
@@ -18,11 +18,11 @@ fun Application.configureApiRoutes() {
             call.respondText("Hello World!")
         }
 
-        applyServiceRouting(Api.area, AreaService())
-        applyServiceRouting(Api.event, EventService())
-        applyServiceRouting(Api.location, LocationService())
-        applyServiceRouting(Api.request, RequestService())
-        applyServiceRouting(Api.song, SongService())
+        dataRouting(Api.area, AreaService())
+        dataRouting(Api.event, EventService())
+        dataRouting(Api.location, LocationService())
+        dataRouting(Api.request, RequestService())
+        dataRouting(Api.song, SongService())
 
         requestInfoRouting(RequestInfoService())
         eventRouting(EventService(), EventInfoService())
