@@ -147,5 +147,7 @@ class UserService : DataService<User, UserEntity>(UserEntity) {
             }
         }
     }
+
+    // suspend fun resetPassword
 }
 
