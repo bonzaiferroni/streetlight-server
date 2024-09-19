@@ -41,7 +41,7 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
         SongEntity.find { SongTable.userId eq user.id }.map { it.toData() }
     }
 
-    suspend fun create(data: Song, username: String): Song? = dbQuery {
+    suspend fun create(data: Song, username: String): Song = dbQuery {
         val user = getUser(username)
         val entity = SongEntity.new {
             this.user = user
@@ -49,5 +49,13 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
             artist = data.artist
         }
         entity.toData()
+    }
+
+    suspend fun delete(data: Song, username: String) = dbQuery {
+        val user = getUser(username)
+        if (data.userId != user.id.value) throw IllegalArgumentException("Song does not belong to user")
+        val entity = SongEntity.find { SongTable.id eq data.id }.firstOrNull() ?:
+            throw IllegalArgumentException("No song found with id: ${data.id}")
+        entity.delete()
     }
 }
