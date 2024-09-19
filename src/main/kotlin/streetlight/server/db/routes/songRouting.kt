@@ -9,6 +9,7 @@ import streetlight.model.Endpoint
 import streetlight.model.core.Song
 import streetlight.server.db.applyPut
 import streetlight.server.db.services.SongService
+import streetlight.server.extensions.getIdOrThrow
 import streetlight.server.extensions.getUsername
 import streetlight.server.plugins.Log
 import streetlight.server.plugins.authenticateJwt
@@ -27,6 +28,14 @@ fun Routing.songRouting(endpoint: Endpoint) {
             val username = call.getUsername()
             val songs = service.readSongs(username)
             call.respond(HttpStatusCode.OK, songs)
+        }
+
+        get(endpoint.serverIdTemplate) {
+            Log.logDebug("Routing: GET ${endpoint.serverIdTemplate}")
+            val username = call.getUsername()
+            val id = call.getIdOrThrow()
+            val song = service.readSong(id, username)
+            call.respond(HttpStatusCode.OK, song)
         }
 
         post(endpoint.path) {

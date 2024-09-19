@@ -58,4 +58,12 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
             throw IllegalArgumentException("No song found with id: ${data.id}")
         entity.delete()
     }
+
+    suspend fun readSong(id: Int, username: String): Song = dbQuery {
+        val user = getUser(username)
+        val entity = SongEntity.find { SongTable.id eq id }.firstOrNull() ?:
+            throw IllegalArgumentException("No song found with id: $id")
+        if (entity.user.id != user.id) throw IllegalArgumentException("Song does not belong to user")
+        entity.toData()
+    }
 }
