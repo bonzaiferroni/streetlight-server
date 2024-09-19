@@ -66,4 +66,16 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
         if (entity.user.id != user.id) throw IllegalArgumentException("Song does not belong to user")
         entity.toData()
     }
+
+    suspend fun update(data: Song, username: String): Song = dbQuery {
+        val user = getUser(username)
+        val entity = SongEntity.find { SongTable.id eq data.id }.firstOrNull() ?:
+            throw IllegalArgumentException("No song found with id: ${data.id}")
+        if (entity.user.id != user.id) throw IllegalArgumentException("Song does not belong to user")
+        entity.apply {
+            name = data.name
+            artist = data.artist
+        }
+        entity.toData()
+    }
 }

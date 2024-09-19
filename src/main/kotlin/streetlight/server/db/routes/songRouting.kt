@@ -38,6 +38,14 @@ fun Routing.songRouting(endpoint: Endpoint) {
             call.respond(HttpStatusCode.OK, song)
         }
 
+        put(endpoint.path) {
+            Log.logDebug("Routing: PUT ${endpoint.path}")
+            val username = call.getUsername()
+            val song = call.receive<Song>()
+            val data = service.update(song, username)
+            call.respond(HttpStatusCode.OK, data)
+        }
+
         post(endpoint.path) {
             Log.logDebug("Routing: POST ${endpoint.path}")
             val username = call.getUsername()
