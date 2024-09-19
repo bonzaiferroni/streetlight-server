@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
-import streetlight.server.db.models.SessionToken
 import streetlight.server.db.DataService
+import streetlight.server.db.models.SessionToken
 import streetlight.server.db.tables.SessionTokenEntity
 import streetlight.server.db.tables.SessionTokenTable
 import streetlight.server.db.tables.UserEntity

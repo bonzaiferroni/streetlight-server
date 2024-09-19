@@ -10,9 +10,9 @@ import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.SignUpResult
 import streetlight.server.db.services.UserService
+import streetlight.server.extensions.getClaim
 import streetlight.server.plugins.CLAIM_USERNAME
 import streetlight.server.plugins.authenticateJwt
-import streetlight.server.plugins.getClaim
 
 fun Routing.userRouting(service: UserService = UserService()) {
 

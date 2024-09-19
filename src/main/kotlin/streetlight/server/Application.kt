@@ -1,12 +1,7 @@
 package streetlight.server
 
-import io.ktor.http.*
-import streetlight.server.plugins.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.routing.*
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
+import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
 val host = "http://192.168.1.122:8080"
@@ -23,4 +18,5 @@ fun Application.module() {
     configureApiRoutes()
     configureHtmlRouting(host)
     configureWebSockets()
+    configureLogging()
 }

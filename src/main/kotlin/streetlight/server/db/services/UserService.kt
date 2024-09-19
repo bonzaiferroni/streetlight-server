@@ -8,7 +8,10 @@ import streetlight.model.core.toPrivateInfo
 import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.UserInfo
-import streetlight.model.utils.*
+import streetlight.model.utils.validEmail
+import streetlight.model.utils.validPassword
+import streetlight.model.utils.validUsernameChars
+import streetlight.model.utils.validUsernameLength
 import streetlight.server.db.DataService
 import streetlight.server.db.core.generateSalt
 import streetlight.server.db.core.hashPassword

@@ -11,8 +11,6 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.server.db.core.VariableStore
-import streetlight.server.extensions.logError
-import streetlight.server.extensions.logInfo
 import java.util.*
 
 fun Application.configureSecurity() {
@@ -48,12 +46,12 @@ fun Application.configureSecurity() {
                         // call.logError("Audience: ${decodedJWT.audience}")
                         // call.logError("Expires At: ${decodedJWT.expiresAt}")
                     } catch (e: JWTVerificationException) {
-                        call.logError("Security: Invalid JWT format: ${e.message}")
+                        Log.logError("Security: Invalid JWT format: ${e.message}")
                     }
                 } else {
-                    call.logError("Security: No Bearer token found in the request.")
+                    Log.logError("Security: No Bearer token found in the request.")
                 }
-                call.logInfo("Security: JWT authentication failed")
+                Log.logInfo("Security: JWT authentication failed")
                 call.respond(HttpStatusCode.Unauthorized)
             }
         }
@@ -83,12 +81,4 @@ fun Route.authenticateJwt(block: Route.() -> Unit) {
     authenticate(TOKEN_NAME) {
         block()
     }
-}
-
-fun ApplicationCall.getClaim(name: String): String {
-    return this.principal<JWTPrincipal>()?.payload?.getClaim(name)?.asString() ?: ""
-}
-
-fun ApplicationCall.testRole(role: String): Boolean {
-    return this.getClaim(CLAIM_ROLES).contains(role)
 }

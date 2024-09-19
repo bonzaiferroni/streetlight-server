@@ -11,7 +11,7 @@ import streetlight.model.dto.LoginRequest
 import streetlight.server.db.models.SessionToken
 import streetlight.server.db.services.SessionTokenService
 import streetlight.server.db.services.UserService
-import streetlight.server.extensions.logInfo
+import streetlight.server.plugins.Log
 import streetlight.server.plugins.createJWT
 import java.security.SecureRandom
 import java.util.*
@@ -23,7 +23,7 @@ suspend fun ApplicationCall.authorize() {
     val userService = UserService()
     val user = userService.findByUsernameOrEmail(loginRequest.username)
     if (user == null) {
-        this.logInfo("authorize: Invalid username from ${loginRequest.username}")
+        Log.logInfo("authorize: Invalid username from ${loginRequest.username}")
         this.respond(HttpStatusCode.Unauthorized, "Invalid username")
         return
     }
@@ -31,21 +31,21 @@ suspend fun ApplicationCall.authorize() {
         val password = it.deobfuscate()
         val authInfo = user.testPassword(loginRequest.username, password, user.roles)
         if (authInfo == null) {
-            this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
+            Log.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             return
         }
-        this.logInfo("authorize: password login by ${loginRequest.username}")
+        Log.logInfo("authorize: password login by ${loginRequest.username}")
         this.respond(HttpStatusCode.OK, authInfo)
         return
     }
     loginRequest.session?.let {
         val authInfo = user.testToken(loginRequest.username, it, user.roles)
         if (authInfo == null) {
-            this.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
+            Log.logInfo("authorize: Invalid password attempt from ${loginRequest.username}")
             this.respond(HttpStatusCode.Unauthorized, "Invalid token")
             return
         }
-        this.logInfo("authorize: session login by ${loginRequest.username}")
+        Log.logInfo("authorize: session login by ${loginRequest.username}")
         this.respond(HttpStatusCode.OK, authInfo)
         return
     }
