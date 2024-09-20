@@ -4,7 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import streetlight.model.core.User
+import streetlight.server.models.User
 import streetlight.model.deobfuscate
 import streetlight.model.dto.AuthInfo
 import streetlight.model.dto.LoginRequest

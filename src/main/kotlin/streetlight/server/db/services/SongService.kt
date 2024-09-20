@@ -2,39 +2,13 @@ package streetlight.server.db.services
 
 import streetlight.model.core.Song
 import streetlight.server.db.DataService
-import streetlight.server.db.tables.SongEntity
-import streetlight.server.db.tables.SongTable
-import streetlight.server.db.tables.UserEntity
-import streetlight.server.db.tables.UserTable
+import streetlight.server.db.tables.*
 
-class SongService : DataService<Song, SongEntity>(SongEntity) {
-    override suspend fun createEntity(data: Song): (SongEntity.() -> Unit)? {
-        val user = UserEntity.findById(data.userId) ?: return null
-        return {
-            this.user = user
-            name = data.name
-            artist = data.artist
-            music = data.music
-        }
-    }
-
-    override fun SongEntity.toData() = Song(
-        id.value,
-        user.id.value,
-        name,
-        artist,
-        music,
-    )
-
-    override suspend fun updateEntity(data: Song): ((SongEntity) -> Unit)? {
-        val user = UserEntity.findById(data.userId) ?: return null
-        return {
-            it.user = user
-            it.name = data.name
-            it.artist = data.artist
-            it.music = data.music
-        }
-    }
+class SongService : DataService<Song, SongEntity>(
+    SongEntity,
+    SongEntity::fromData,
+    SongEntity::toData
+) {
 
     private fun getUser(username: String) = UserEntity.find { UserTable.username eq username }.firstOrNull()
         ?: throw IllegalArgumentException("No user found with username: $username")

@@ -3,8 +3,6 @@ package streetlight.server.db.services
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
-import streetlight.model.core.User
-import streetlight.model.core.toPrivateInfo
 import streetlight.model.dto.EditUserRequest
 import streetlight.model.dto.SignUpRequest
 import streetlight.model.dto.UserInfo
@@ -16,53 +14,17 @@ import streetlight.server.db.DataService
 import streetlight.server.db.core.generateSalt
 import streetlight.server.db.core.hashPassword
 import streetlight.server.db.core.toBase64
-import streetlight.server.db.tables.SessionTokenEntity
-import streetlight.server.db.tables.SessionTokenTable
-import streetlight.server.db.tables.UserEntity
-import streetlight.server.db.tables.UserTable
+import streetlight.server.db.tables.*
 import streetlight.server.logger
+import streetlight.server.models.User
+import streetlight.server.models.toPrivateInfo
 import streetlight.server.plugins.ROLE_USER
 
-class UserService : DataService<User, UserEntity>(UserEntity) {
-    override suspend fun createEntity(data: User): UserEntity.() -> Unit = {
-        name = data.name
-        username = data.username
-        hashedPassword = data.hashedPassword
-        salt = data.salt
-        email = data.email
-        roles = data.roles
-        createdAt = data.createdAt
-        updatedAt = data.updatedAt
-        avatarUrl = data.avatarUrl
-        venmo = data.venmo
-    }
-
-    override fun UserEntity.toData() = User(
-        id = this.id.value,
-        name = this.name,
-        username = this.username,
-        hashedPassword = this.hashedPassword,
-        salt = this.salt,
-        email = this.email,
-        roles = this.roles,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-        avatarUrl = this.avatarUrl,
-        venmo = this.venmo
-    )
-
-    override suspend fun updateEntity(data: User): (UserEntity) -> Unit = {
-        it.name = data.name
-        it.username = data.username
-        it.hashedPassword = data.hashedPassword
-        it.salt = data.salt
-        it.email = data.email
-        it.roles = data.roles
-        it.createdAt = data.createdAt
-        it.updatedAt = data.updatedAt
-        it.avatarUrl = data.avatarUrl
-        it.venmo = data.venmo
-    }
+class UserService : DataService<User, UserEntity>(
+    UserEntity,
+    UserEntity::fromData,
+    UserEntity::toData
+) {
 
     fun findByUsername(username: String): User? =
         UserEntity.find { UserTable.username.lowerCase() eq username.lowercase() }.firstOrNull()?.toData()

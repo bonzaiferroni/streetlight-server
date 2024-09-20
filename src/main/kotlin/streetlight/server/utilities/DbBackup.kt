@@ -3,19 +3,10 @@ package streetlight.server.utilities
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import streetlight.model.core.Area
-import streetlight.model.core.Event
-import streetlight.model.core.Location
-import streetlight.model.core.Song
-import streetlight.model.core.Request
-import streetlight.model.core.User
+import streetlight.model.core.*
 import streetlight.server.db.core.VariableStore
-import streetlight.server.db.services.AreaService
-import streetlight.server.db.services.EventService
-import streetlight.server.db.services.RequestService
-import streetlight.server.db.services.LocationService
-import streetlight.server.db.services.SongService
-import streetlight.server.db.services.UserService
+import streetlight.server.db.services.*
+import streetlight.server.models.User
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -59,9 +50,7 @@ object DbBackup {
             IdMap.setNewId(Area::class, it.id, areaId)
         }
         backup.locations.forEach {
-            val areaId = IdMap.getNewId(Area::class, it.areaId) ?: throw IllegalStateException(
-                "Area not found"
-            )
+            val areaId = it.areaId?.let { id -> IdMap.getNewId(Area::class, id) }
             val locationId = LocationService().create(it.copy(areaId = areaId))
             IdMap.setNewId(Location::class, it.id, locationId)
         }

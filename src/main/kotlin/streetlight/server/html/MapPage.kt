@@ -2,7 +2,6 @@ package streetlight.server.html
 
 import kotlinx.html.*
 import streetlight.model.core.Location
-import streetlight.server.models.GeoPoint
 import streetlight.server.utilities.toJsVar
 
 fun HTML.mapPage(locations: List<Location>) {
@@ -28,7 +27,7 @@ fun HTML.mapPage(locations: List<Location>) {
         script(type = ScriptType.textJavaScript) {
             unsafe {
                 raw(locations
-                    .map { GeoPoint(it.latitude, it.longitude).toList() }
+                    // .map { GeoPoint(it.latitude, it.longitude).toList() }
                     .toJsVar("markers")
                 )
             }

@@ -5,6 +5,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import streetlight.model.core.Request
 
 object RequestTable : IntIdTable() {
     val eventId = reference("event_id", EventTable, onDelete = ReferenceOption.CASCADE)
@@ -24,4 +25,23 @@ class RequestEntity(id: EntityID<Int>) : IntEntity(id) {
     var performed by RequestTable.performed
     var notes by RequestTable.notes
     var requesterName by RequestTable.requesterName
+}
+
+fun RequestEntity.toData() = Request(
+    this.id.value,
+    this.event.id.value,
+    this.song.id.value,
+    this.time,
+    this.performed,
+    this.notes,
+    this.requesterName,
+)
+
+fun RequestEntity.fromData(data: Request) {
+    event = EventEntity[data.eventId]
+    song = SongEntity[data.songId]
+    time = data.time
+    performed = data.performed
+    notes = data.notes
+    requesterName = data.requesterName
 }

@@ -4,6 +4,8 @@ import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import streetlight.model.dto.UserInfo
+import streetlight.server.models.User
 
 object UserTable : IntIdTable() {
     val name = text("name").nullable()
@@ -32,3 +34,39 @@ class UserEntity(id: EntityID<Int>) : IntEntity(id) {
     var avatarUrl by UserTable.avatarUrl
     var venmo by UserTable.venmo
 }
+
+fun UserEntity.toData() = User(
+    this.id.value,
+    this.name,
+    this.username,
+    this.hashedPassword,
+    this.salt,
+    this.email,
+    this.roles,
+    this.createdAt,
+    this.updatedAt,
+    this.avatarUrl,
+    this.venmo,
+)
+
+fun UserEntity.fromData(data: User) {
+    name = data.name
+    username = data.username
+    hashedPassword = data.hashedPassword
+    salt = data.salt
+    email = data.email
+    roles = data.roles
+    createdAt = data.createdAt
+    updatedAt = data.updatedAt
+    avatarUrl = data.avatarUrl
+    venmo = data.venmo
+}
+
+fun UserEntity.toInfo() = UserInfo(
+    this.username,
+    this.roles,
+    this.createdAt,
+    this.updatedAt,
+    this.avatarUrl,
+    this.venmo,
+)

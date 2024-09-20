@@ -1,22 +1,9 @@
 package streetlight.server.db.services
 
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.count
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.*
 import streetlight.model.dto.RequestInfo
 import streetlight.server.db.ApiService
-import streetlight.server.db.tables.EventEntity
-import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.RequestEntity
-import streetlight.server.db.tables.RequestTable
-import streetlight.server.db.tables.SongEntity
-import streetlight.server.db.tables.SongTable
+import streetlight.server.db.tables.*
 
 class RequestInfoService : ApiService() {
     suspend fun read(id: Int): RequestInfo? {
@@ -120,7 +107,7 @@ val requestInfos: Query
 fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
     id = this[RequestTable.id].value,
     eventId = this[EventTable.id].value,
-    locationName = this[LocationTable.name],
+    locationName = this[LocationTable.name] ?: "",
     songId = this[SongTable.id].value,
     songName = this[SongTable.name],
     requesterName = this[RequestTable.requesterName],
@@ -133,7 +120,7 @@ fun ResultRow.toRequestInfo(): RequestInfo = RequestInfo(
 fun RequestEntity.toRequestInfo(): RequestInfo = RequestInfo(
     this.id.value,
     this.event.id.value,
-    this.event.location.name,
+    this.event.location.name ?: "",
     this.song.id.value,
     this.song.name,
     this.song.artist,

@@ -1,6 +1,6 @@
 package streetlight.server.db.core
 
-import streetlight.model.core.User
+import streetlight.server.models.User
 
 class VariableStore {
 

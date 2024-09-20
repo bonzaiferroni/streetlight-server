@@ -5,7 +5,10 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import streetlight.model.core.Event
+import streetlight.model.dto.EventInfo
 import streetlight.model.enums.EventStatus
+import streetlight.server.db.services.toRequestInfo
 
 object EventTable : IntIdTable() {
     val user = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
@@ -40,4 +43,50 @@ class EventEntity(id: EntityID<Int>) : IntEntity(id) {
     var cashTips by EventTable.cashTips
     var cardTips by EventTable.cardTips
     val requests by RequestEntity referrersOn RequestTable.eventId
+}
+
+fun EventEntity.toData() = Event(
+    this.id.value,
+    this.location.id.value,
+    this.user.id.value,
+    this.timeStart,
+    this.hours,
+    this.url,
+    this.imageUrl,
+    this.streamUrl,
+    this.name,
+    this.description,
+    this.status,
+    this.currentRequest?.id?.value,
+    this.cashTips,
+    this.cardTips,
+)
+
+fun EventEntity.fromData(data: Event) {
+    user = UserEntity[data.userId]
+    location = LocationEntity[data.locationId]
+    timeStart = data.timeStart
+    hours = data.hours
+    url = data.url
+    imageUrl = data.imageUrl
+    streamUrl = data.streamUrl
+    name = data.name
+    description = data.description
+    status = data.status
+    currentRequest = data.currentRequestId?.let { RequestEntity[it] }
+    cashTips = data.cashTips
+    cardTips = data.cardTips
+}
+
+fun EventEntity.toEventInfo(): EventInfo {
+    return EventInfo(
+        event = this.toData(),
+        location = location.toData(),
+        area = location.area?.toData(),
+        user = user.toInfo(),
+        currentRequest = currentRequest?.toRequestInfo(),
+        requests = requests
+            .filter { !it.performed }
+            .map { it.toRequestInfo() }
+    )
 }

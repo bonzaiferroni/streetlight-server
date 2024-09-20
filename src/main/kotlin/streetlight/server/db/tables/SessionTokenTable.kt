@@ -5,6 +5,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import streetlight.server.db.models.SessionToken
 
 object SessionTokenTable : IntIdTable() {
     val user = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
@@ -22,4 +23,21 @@ class SessionTokenEntity(id: EntityID<Int>) : IntEntity(id) {
     var createdAt by SessionTokenTable.createdAt
     var expiresAt by SessionTokenTable.expiresAt
     var issuer by SessionTokenTable.issuer
+}
+
+fun SessionTokenEntity.toData() = SessionToken(
+    this.id.value,
+    this.user.id.value,
+    this.token,
+    this.createdAt,
+    this.expiresAt,
+    this.issuer,
+)
+
+fun SessionTokenEntity.fromData(data: SessionToken) {
+    user = UserEntity[data.userId]
+    token = data.token
+    createdAt = data.createdAt
+    expiresAt = data.expiresAt
+    issuer = data.issuer
 }

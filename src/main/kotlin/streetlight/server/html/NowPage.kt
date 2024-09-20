@@ -11,7 +11,7 @@ fun HTML.nowPage(events: List<EventInfo>) {
         }
         events.forEach {
             p {
-                +"${it.location.name}, ${it.area.name}"
+                +"${it.location.name}, ${it.area?.name}"
                 br
                 +"${it.event.timeStart.toLocalDateTime()} - ${it.event.hours} hours"
             }
