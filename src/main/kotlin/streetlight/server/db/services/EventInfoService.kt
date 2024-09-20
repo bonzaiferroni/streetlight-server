@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import streetlight.model.core.EventStatus
+import streetlight.model.enums.EventStatus
 import streetlight.server.db.ApiService
 import streetlight.server.db.tables.EventEntity
 import streetlight.server.db.tables.EventTable
