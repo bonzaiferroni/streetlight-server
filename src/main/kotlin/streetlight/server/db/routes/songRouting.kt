@@ -7,7 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import streetlight.model.Endpoint
 import streetlight.model.core.Song
-import streetlight.server.db.applyPut
 import streetlight.server.db.services.SongService
 import streetlight.server.extensions.getIdOrThrow
 import streetlight.server.extensions.getUsername
@@ -16,13 +15,7 @@ import streetlight.server.plugins.authenticateJwt
 
 fun Routing.songRouting(endpoint: Endpoint) {
     val service = SongService()
-    // applyGet(endpoint, service)
-    // applyGetAll(endpoint, service)
     authenticateJwt {
-        // applyPost(endpoint, service)
-        applyPut(endpoint, service)
-        // applyDelete(endpoint, service)
-
         get(endpoint.path) {
             Log.logDebug("Routing: GET ${endpoint.path}")
             val username = call.getUsername()

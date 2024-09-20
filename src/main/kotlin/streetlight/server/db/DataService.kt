@@ -26,9 +26,10 @@ abstract class DataService<Data : IdModel, DataEntity : IntEntity>(
         entity.all().map { it.toData() }
     }
 
-    suspend fun update(data: Data): Boolean = dbQuery {
-        val update = updateEntity(data) ?: return@dbQuery false
-        return@dbQuery entity.findByIdAndUpdate(data.id, update) != null
+    suspend fun update(data: Data): Data = dbQuery {
+        val update = updateEntity(data) ?: throw IllegalArgumentException("Update not supported")
+        val updatedData = entity.findByIdAndUpdate(data.id, update) ?: throw IllegalArgumentException("Not found")
+        updatedData.toData()
     }
 
     suspend fun delete(id: Int) = dbQuery {

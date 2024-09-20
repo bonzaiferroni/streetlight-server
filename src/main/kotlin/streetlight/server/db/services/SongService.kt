@@ -14,6 +14,7 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
             this.user = user
             name = data.name
             artist = data.artist
+            music = data.music
         }
     }
 
@@ -21,7 +22,8 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
         id.value,
         user.id.value,
         name,
-        artist
+        artist,
+        music,
     )
 
     override suspend fun updateEntity(data: Song): ((SongEntity) -> Unit)? {
@@ -30,6 +32,7 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
             it.user = user
             it.name = data.name
             it.artist = data.artist
+            it.music = data.music
         }
     }
 
@@ -47,6 +50,7 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
             this.user = user
             name = data.name
             artist = data.artist
+            music = data.music
         }
         entity.toData()
     }
@@ -69,13 +73,14 @@ class SongService : DataService<Song, SongEntity>(SongEntity) {
 
     suspend fun update(data: Song, username: String): Song = dbQuery {
         val user = getUser(username)
-        val entity = SongEntity.find { SongTable.id eq data.id }.firstOrNull() ?:
+        var entity = SongEntity.find { SongTable.id eq data.id }.firstOrNull() ?:
             throw IllegalArgumentException("No song found with id: ${data.id}")
         if (entity.user.id != user.id) throw IllegalArgumentException("Song does not belong to user")
-        entity.apply {
-            name = data.name
-            artist = data.artist
-        }
+        entity = SongEntity.findByIdAndUpdate(data.id) {
+            it.name = data.name
+            it.artist = data.artist
+            it.music = data.music
+        } ?: throw IllegalArgumentException("Not found")
         entity.toData()
     }
 }

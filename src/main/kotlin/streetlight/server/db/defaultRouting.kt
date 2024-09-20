@@ -88,9 +88,9 @@ inline fun <reified Data : IdModel, DataEntity : IntEntity> Route.applyPut(
             call.respond(HttpStatusCode.Forbidden)
             return@put
         }
-        val data = call.receive<Data>()
-        service.update(data)
-        call.respond(HttpStatusCode.OK, true)
+        var data = call.receive<Data>()
+        data = service.update(data)
+        call.respond(HttpStatusCode.OK, data)
     }
 }
 

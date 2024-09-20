@@ -11,5 +11,6 @@
     <logger name="io.netty" level="INFO"/>
     <!-- Specific logger for io.ktor.routing.Routing -->
     <logger name="io.ktor.routing.Routing" level="DEBUG"/>
+    <logger name="Application" level="DEBUG"/>
 
 </configuration>

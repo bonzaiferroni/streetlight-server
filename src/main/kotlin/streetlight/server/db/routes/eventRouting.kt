@@ -77,11 +77,7 @@ fun Routing.eventRouting(eventService: EventService, eventInfoService: EventInfo
         file.parentFile.mkdirs()
         file.writeBytes(Base64.decode(request.image))
         event = event.copy(imageUrl = "static/uploads/${request.filename}")
-        val result = eventService.update(event)
-        if (result) {
-            call.respond(HttpStatusCode.OK)
-        } else {
-            call.respond(HttpStatusCode.InternalServerError)
-        }
+        eventService.update(event)
+        call.respond(HttpStatusCode.OK)
     }
 }

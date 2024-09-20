@@ -10,6 +10,7 @@ object SongTable : IntIdTable() {
     val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
     val name = text("name")
     val artist = text("artist").nullable()
+    val music = text("music").nullable()
 }
 
 class SongEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -18,4 +19,5 @@ class SongEntity(id: EntityID<Int>) : IntEntity(id) {
     var user by UserEntity referencedOn SongTable.userId
     var name by SongTable.name
     var artist by SongTable.artist
+    var music by SongTable.music
 }
