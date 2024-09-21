@@ -1,8 +1,10 @@
 package streetlight.server.extensions
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.response.*
 import streetlight.server.plugins.CLAIM_ROLES
 import streetlight.server.plugins.CLAIM_USERNAME
 
@@ -20,4 +22,8 @@ fun ApplicationCall.testRole(role: String): Boolean {
 
 fun ApplicationCall.getUsername(): String {
     return this.getClaim(CLAIM_USERNAME)
+}
+
+suspend inline fun <reified T: Any> ApplicationCall.okData(data: T) {
+    this.respond(HttpStatusCode.OK, data)
 }

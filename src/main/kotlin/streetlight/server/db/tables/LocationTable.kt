@@ -7,16 +7,17 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.json.json
-import streetlight.model.core.*
-import streetlight.model.enums.LocationType
+import streetlight.model.core.GeoPoint
+import streetlight.model.core.Location
+import streetlight.model.enums.ResourceType
 
 object LocationTable : IntIdTable() {
-    val user = reference(
+    val userId = reference(
         name = "user_id",
         foreign = UserTable,
         onDelete = ReferenceOption.SET_NULL
     ).nullable()
-    val area = reference(
+    val areaId = reference(
         name = "area_id",
         foreign = AreaTable,
         onDelete = ReferenceOption.SET_NULL
@@ -27,7 +28,7 @@ object LocationTable : IntIdTable() {
     val notes = text("notes").nullable()
     val latitude = double("latitude")
     val longitude = double("longitude")
-    val types = json<Array<LocationType>>("type", format)
+    val types = json<Array<ResourceType>>("type", format)
 }
 
 val format = Json { prettyPrint = true }
@@ -35,8 +36,8 @@ val format = Json { prettyPrint = true }
 class LocationEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : EntityClass<Int, LocationEntity>(LocationTable)
 
-    var user by UserEntity optionalReferencedOn LocationTable.user
-    var area by AreaEntity optionalReferencedOn LocationTable.area
+    var user by UserEntity optionalReferencedOn LocationTable.userId
+    var area by AreaEntity optionalReferencedOn LocationTable.areaId
     var name by LocationTable.name
     var description by LocationTable.description
     var address by LocationTable.address
@@ -55,7 +56,7 @@ fun LocationEntity.toData() = Location(
     this.address,
     this.notes,
     GeoPoint(this.latitude, this.longitude),
-    this.types.toList(),
+    this.types.toSet(),
 )
 
 fun LocationEntity.fromData(data: Location) {

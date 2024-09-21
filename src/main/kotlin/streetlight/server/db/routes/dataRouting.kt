@@ -15,4 +15,5 @@ fun Routing.dataRouting() {
     eventRouting(EventService(), EventInfoService())
     userRouting(UserService())
     songRouting(Api.song)
+    atlasRouting(Api.atlas, LocationService())
 }
