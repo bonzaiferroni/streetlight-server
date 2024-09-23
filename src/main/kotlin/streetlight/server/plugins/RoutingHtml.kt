@@ -1,35 +1,32 @@
 package streetlight.server.plugins
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.html.respondHtml
-import io.ktor.server.http.content.staticFiles
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.html.*
+import io.ktor.server.http.content.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import streetlight.server.db.services.EventInfoService
-import streetlight.server.db.services.LocationService
 import streetlight.server.db.services.SongService
-import streetlight.server.html.*
+import streetlight.server.html.eventPage
 import java.io.File
 
 fun Application.configureHtmlRouting(host: String) {
     routing {
-        staticFiles("/static", File("www"))
-        staticFiles("/kvision", File("www/kvision"))
+//        staticFiles("/static", File("www"))
+        staticFiles("/", File("www/kvision"))
 
-        get("/") {
-            call.respondHtml(HttpStatusCode.OK) {
-                homePage()
-            }
-        }
-
-        get("/about") {
-            call.respondHtml(HttpStatusCode.OK) {
-                aboutPage()
-            }
-        }
+//        get("/") {
+//            call.respondHtml(HttpStatusCode.OK) {
+//                homePage()
+//            }
+//        }
+//
+//        get("/about") {
+//            call.respondHtml(HttpStatusCode.OK) {
+//                aboutPage()
+//            }
+//        }
 
         get("/qr") {
             val eventService = EventInfoService()
@@ -55,11 +52,11 @@ fun Application.configureHtmlRouting(host: String) {
             }
         }
 
-        get("map") {
-            val locations = LocationService().readAll()
-            call.respondHtml(HttpStatusCode.OK) {
-                mapPage(locations)
-            }
-        }
+//        get("map") {
+//            val locations = LocationService().readAll()
+//            call.respondHtml(HttpStatusCode.OK) {
+//                mapPage(locations)
+//            }
+//        }
     }
 }

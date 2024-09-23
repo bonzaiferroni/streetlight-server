@@ -17,6 +17,7 @@ fun Application.configureCors() {
         allowHost("192.168.1.122:3000")
         allowHost("localhost:8080")
         allowHost("192.168.1.122:8080")
+        allowHost("streetlight.ing")
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.AccessControlAllowOrigin)
         allowCredentials = true
