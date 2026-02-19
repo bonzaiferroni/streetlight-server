@@ -1,6 +1,5 @@
 package streetlight.server.plugins
 
-import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.db.services.UserInitService
 import klutch.db.tables.RefreshTokenTable
@@ -10,15 +9,13 @@ import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
 import streetlight.server.db.tables.AreaTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.RequestTable
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.RenditionTable
-import streetlight.server.db.tables.PersonTable
+import streetlight.server.db.tables.PerformerTable
 import streetlight.server.db.tables.TransitRouteStopTable
 import streetlight.server.db.tables.TransitRouteTable
 import streetlight.server.db.tables.TransitStopTable
@@ -55,7 +52,7 @@ val dbTables = listOf(
     RenditionTable,
     RequestTable,
     RefreshTokenTable,
-    PersonTable,
+    PerformerTable,
     TransitRouteTable,
     TransitStopTable,
     TransitRouteStopTable,
