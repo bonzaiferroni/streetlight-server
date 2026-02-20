@@ -16,6 +16,7 @@ import streetlight.server.db.services.SongTableDao
 import streetlight.server.db.services.RenditionTableDao
 import streetlight.server.db.services.SongTableService
 import streetlight.server.db.services.SparkTableDao
+import streetlight.server.db.services.TalentTableDao
 import streetlight.server.db.services.RequestTableDao
 import streetlight.server.db.services.GuestTableDao
 import streetlight.server.db.services.TransitRouteTableDao
@@ -38,6 +39,7 @@ class ServerDao(
     val rendition: RenditionTableDao = RenditionTableDao(),
     val user: UserTableDao = UserTableDao(),
     val spark: SparkTableDao = SparkTableDao(),
+    val talent: TalentTableDao = TalentTableDao(),
     val request: RequestTableDao = RequestTableDao(),
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),

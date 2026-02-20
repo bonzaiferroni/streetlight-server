@@ -1,9 +1,6 @@
 package streetlight.server.plugins
 
 import io.ktor.server.application.Application
-import io.ktor.server.http.content.staticFiles
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import klutch.gemini.serveSpeech
 import klutch.server.*
@@ -11,7 +8,6 @@ import streetlight.model.Api
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import streetlight.server.routes.*
-import java.io.File
 
 fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
     routing {
@@ -27,7 +23,7 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
         servePerformers()
         // serveGemini(Api.Gemini, app.gemini)
         serveSpeech(Api.Speech, app.speech)
-        serveUserFiles()
+        serveUserHub()
         serveStories()
         serveChat()
     }
