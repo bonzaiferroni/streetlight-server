@@ -5,12 +5,13 @@ import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
 import klutch.utils.toStringId
+import kotlinx.datetime.Clock
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
-import streetlight.model.data.NewTalent
+import streetlight.model.data.TalentEdit
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
 import streetlight.model.data.toProjectId
@@ -18,6 +19,7 @@ import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.toTalent
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.utils.toProjectId
 
 class TalentTableDao : DbService() {
 
@@ -39,19 +41,42 @@ class TalentTableDao : DbService() {
         }.value.toStringId().toProjectId()
     }
 
-    suspend fun create(talent: NewTalent, userId: UserId): Talent? = dbQuery {
-        val id = TalentId.random()
-        TalentTable.insert {
+    suspend fun create(talent: TalentEdit, userId: UserId): Talent? = dbQuery {
+        val id: TalentId = TalentTable.insertAndGetId {
             it.writeFull(Talent(
-                talentId = id,
+                talentId = TalentId.random(),
                 name = talent.name,
                 description = talent.description,
                 imageUrl = talent.imageUrl,
                 experience = 0,
-                talentType = talent.talentType
+                talentType = talent.talentType,
+                talentLevel = talent.talentLevel,
+                yearStarted = talent.yearStarted,
+                updatedAt = Clock.System.now(),
+                createdAt = Clock.System.now(),
             ), userId)
+        }.toProjectId()
+        TalentTable.read { it.id.eq(id) }.firstOrNull()?.toTalent()
+    }
+
+    suspend fun edit(talentId: TalentId, talent: TalentEdit, userId: UserId) = dbQuery {
+        val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.userId.eq(userId) }) {
+            it.writeUpdate(Talent(
+                talentId = talentId,
+                name = talent.name,
+                description = talent.description,
+                imageUrl = talent.imageUrl,
+                experience = 0,
+                talentType = talent.talentType,
+                talentLevel = talent.talentLevel,
+                yearStarted = talent.yearStarted,
+                updatedAt = Clock.System.now(),
+                createdAt = Clock.System.now(),
+            ))
         }
-        readTalent(id)
+        if (updatedRows == 1) {
+            TalentTable.read { it.id.eq(talentId) }.firstOrNull()?.toTalent()
+        } else null
     }
 
     suspend fun update(talent: Talent) = dbQuery {

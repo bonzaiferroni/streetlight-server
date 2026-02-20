@@ -22,9 +22,14 @@ fun Routing.serveUserHub(app: ServerProvider = RuntimeProvider) {
             app.dao.talent.readUserTalents(userId)
         }
 
-        postEndpoint(Api.Users.CreateTalent) {
+        postEndpoint(Api.Users.EditTalent) {
             val userId = getUserId()
-            app.dao.talent.create(it.body, userId)
+            val talentId = it.body.talentId
+            if (talentId != null) {
+                app.dao.talent.edit(talentId, it.body, userId)
+            } else {
+                app.dao.talent.create(it.body, userId)
+            }
         }
     }
 }
