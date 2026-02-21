@@ -24,7 +24,7 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
         // serveGemini(Api.Gemini, app.gemini)
         serveSpeech(Api.Speech, app.speech)
         serveUserHub()
-        serveStories()
+        servePosts()
         serveChat()
     }
 }

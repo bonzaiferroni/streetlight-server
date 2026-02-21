@@ -7,11 +7,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
+import kabinet.console.globalConsole
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import klutch.utils.getUserId
 import kotlinx.html.body
 import kotlinx.html.p
+import streetlight.agent.UrlParser
 import streetlight.model.Api
 import streetlight.model.data.EventInfo
 import streetlight.model.data.FileUse
@@ -21,8 +23,11 @@ import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.io.File
 
+private val console = globalConsole.getHandle(Routing::serveEvents.name)
+
 fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.event
+    val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
 
     getEndpoint(Api.Events) {
         dao.readActiveEvents()
@@ -47,6 +52,11 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         } else {
             call.respondRedirect("/event-portal/${event.eventId.value}")
         }
+    }
+
+    postEndpoint(Api.Events.ReadUrl) {
+        val url = it.body.removeSurrounding("\"").takeIf { url -> url.startsWith("http") } ?: return@postEndpoint null
+        agent.read(url, eventInstructions)
     }
 
     authenticateJwt {
