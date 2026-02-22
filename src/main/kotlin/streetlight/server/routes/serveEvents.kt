@@ -27,7 +27,7 @@ private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
 fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.event
-    val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
+    val agent = UrlParser(app.env.read("GEMINI_KEY_B"))
 
     getEndpoint(Api.Events) {
         dao.readActiveEvents()
