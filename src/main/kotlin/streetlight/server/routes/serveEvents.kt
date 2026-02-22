@@ -27,7 +27,7 @@ private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
 fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.event
-    val agent = UrlParser(app.env.read("GEMINI_KEY_B"))
+    val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
 
     getEndpoint(Api.Events) {
         dao.readActiveEvents()
@@ -86,3 +86,18 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     }
 }
 
+val eventInstructions = """
+        Read the following html. We believe it is information about an event or a list of events.
+        For each event, your job is to extract the following json properties, if that information can be found in the content:
+        
+        * name: Event name or title 
+        * time: Time of day of the event as 24-hour value [HH:MM]
+        * date: Date of the event as ISO local date [YYYY-MM-DD]
+        * location: The name or description of the location of the event
+        * address: The address at which the event is located
+        * imageUrl: The featured image for the event, must be a full url
+        * description: Additional details given about the event
+        * ageMin: The minimum age for attendees
+        * contact: Any name and/or contact information given for the event
+        * url: Url for more information about the event, must be a full url
+""".trimIndent()

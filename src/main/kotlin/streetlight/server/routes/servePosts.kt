@@ -32,18 +32,6 @@ const val postInstructions = "Read the following html. It is a user post or a ne
         "If the content refers to a location, provide an estimate of the location (longitude/latitude). " +
         "Provide the time that the story was posted. "
 
-val eventInstructions = """
-        Read the following html. We believe it is information about an event or a list of events.
-        For each event, your job is to extract the following json properties, if that information can be found in the content:
-        
-        * name: Event name or title 
-        * time: Time of day of the event as 24-hour value [HH:MM]
-        * date: Date of the event as ISO local date [YYYY-MM-DD]
-        * location: The name or description of the location of the event
-        * address: The address at which the event is located
-        * imageUrl: The featured image for the event
-        * description: Additional details given about the event
-""".trimIndent()
 
 //    val name: String? = null,
 //    val time: LocalTime? = null,
