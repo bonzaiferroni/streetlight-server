@@ -6,15 +6,15 @@ import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUserId
 import streetlight.model.Api
+import streetlight.model.data.FileUse
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
 fun Routing.serveUserHub(app: ServerProvider = RuntimeProvider) {
     authenticateJwt {
-        postEndpoint(Api.Users.Images) { request ->
-            val body = request.body
+        getEndpoint(Api.Users.Files) {
             val userId = getUserId()
-            app.dao.userFile.readUserFiles(userId, body.fileUse, body.count).map { it.url }
+            app.dao.userFile.readUserFiles(userId, FileUse.FullImage, 100).map { it.url }
         }
 
         getEndpoint(Api.Users.Talents) { _ ->

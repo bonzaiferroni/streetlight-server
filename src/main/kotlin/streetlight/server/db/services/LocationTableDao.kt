@@ -7,12 +7,15 @@ import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.isNearEq
 import klutch.db.read
+import klutch.db.readById
+import klutch.db.readFirst
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
 import klutch.utils.toStringId
+import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
@@ -22,6 +25,7 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
 import streetlight.model.data.CommunityId
 import streetlight.model.data.Location
+import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Place
 import streetlight.model.data.toLocation
@@ -56,6 +60,21 @@ class LocationTableDao: DbService() {
         LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.hostId.eq(userId)}) {
             it.writeUpdate(location)
         } == 1
+    }
+
+    suspend fun updateLocation(locationId: LocationId, userId: UserId, edit: LocationEdit) = dbQuery {
+        val stored = LocationTable.readFirstOrNull {
+            it.id.eq(locationId) and (it.hostId.isNull() or it.hostId.eq(userId))
+        }?.toLocation() ?: return@dbQuery null
+        val location = edit.toLocation(stored.hostId)
+        LocationTable.update(where = { LocationTable.id.eq(locationId) }) { it.writeUpdate(location) }
+        LocationTable.readById(locationId.value.toUUID()).toLocation()
+    }
+
+    suspend fun createLocation(userId: UserId, edit: LocationEdit) = dbQuery {
+        val location = edit.toLocation(if (edit.isHost) userId else null)
+        val locationId = LocationTable.insertAndGetId { it.writeFull(location) }.value
+        LocationTable.readById(locationId).toLocation()
     }
 
     suspend fun searchLocations(query: String) = dbQuery {

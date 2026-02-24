@@ -73,7 +73,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 //        }
         postEndpoint(Api.Events.Upload) { bytes, _ ->
             val userId = getUserId()
-            uploadUserImage(bytes, userId, FileUse.EventImage)
+            uploadUserImage(bytes, userId, FileUse.FullImage)
         }
 
         postEndpoint(Api.Events.ReadUrl) {

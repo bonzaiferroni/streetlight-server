@@ -50,5 +50,13 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
             }
             dao.updateLocation(userId, location)
         }
+
+        postEndpoint(Api.Locations.Edit) { request ->
+            val edit = request.body
+            val userId = getUserId()
+            edit.locationId?.let {
+                dao.updateLocation(it, userId, edit)
+            } ?: dao.createLocation(userId, edit)
+        }
     }
 }
