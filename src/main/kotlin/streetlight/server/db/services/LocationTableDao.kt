@@ -19,7 +19,7 @@ import org.jetbrains.exposed.sql.update
 import streetlight.model.data.CommunityId
 import streetlight.model.data.Location
 import streetlight.model.data.LocationId
-import streetlight.model.data.NewLocation
+import streetlight.model.data.Place
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.AreaLocationTable
 import streetlight.server.db.tables.LocationTable
@@ -38,16 +38,18 @@ class LocationTableDao: DbService() {
         AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }.map { it.toLocation() }
     }
 
-    suspend fun createLocation(userId: UserId, newLocation: NewLocation): LocationId = dbQuery {
+    suspend fun createLocation(userId: UserId, place: Place): LocationId? = dbQuery {
+        val name = place.name ?: return@dbQuery null
+        val point = place.geoPoint ?: return@dbQuery null
         LocationTable.insertAndGetId {
             it.writeFull(Location(
                 locationId = LocationId.random(),
                 hostId = userId,
-                name = newLocation.name,
+                name = name,
                 description = null,
                 address = null,
                 notes = null,
-                geoPoint = newLocation.geoPoint,
+                geoPoint = point,
                 resources = emptySet(),
                 updatedAt = Clock.System.now(),
                 createdAt = Clock.System.now(),

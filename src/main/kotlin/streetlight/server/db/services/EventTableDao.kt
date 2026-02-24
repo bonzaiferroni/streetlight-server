@@ -45,19 +45,21 @@ class EventTableDao: DbService() {
         val locationId = if (initialLocationId != null) {
             initialLocationId
         } else {
-            val newLocation = event.newLocation
-            if (newLocation == null || !newLocation.isValid) return@dbQuery null
+            val place = event.location
+            val name = place?.name
+            val geoPoint = place?.geoPoint
+            if (name == null || geoPoint == null) return@dbQuery null
             val location = LocationTable.readFirstOrNull {
-                it.name.eq(newLocation.name) and it.address.eq(newLocation.address) and it.geoPoint.isNearEq(newLocation.geoPoint)
+                it.name.eq(name) and it.address.eq(place.address) and it.geoPoint.isNearEq(geoPoint)
             }?.toLocation()
 
             if (location != null) {
                 console.log("Using stored location ${location.name}")
                 location.locationId
             } else {
-                console.log("creating new location ${newLocation.name} at ${newLocation.address}")
+                console.log("creating new location ${place.name} at ${place.address}")
                 LocationTable.insertAndGetId {
-                    it.writeFull(newLocation.toLocation())
+                    it.writeFull(place.toLocation())
                 }.toProjectId()
             }
         }

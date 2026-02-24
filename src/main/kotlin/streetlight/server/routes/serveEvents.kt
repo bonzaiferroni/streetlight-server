@@ -2,8 +2,6 @@ package streetlight.server.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
-import io.ktor.server.request.contentType
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
@@ -21,7 +19,6 @@ import streetlight.model.data.toProjectId
 import streetlight.model.mockDb
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
-import java.io.File
 
 private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
@@ -54,11 +51,6 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    postEndpoint(Api.Events.ReadUrl) {
-        val url = it.body.removeSurrounding("\"").takeIf { url -> url.startsWith("http") } ?: return@postEndpoint null
-        agent.read(url, eventInstructions)
-    }
-
     authenticateJwt {
         postEndpoint(Api.Events.Create) { newEvent, _ ->
             val userId = getUserId()
@@ -82,6 +74,15 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Events.Upload) { bytes, _ ->
             val userId = getUserId()
             uploadUserImage(bytes, userId, FileUse.EventImage)
+        }
+
+        postEndpoint(Api.Events.ReadUrl) {
+            val url = it.body.url.takeIf { url -> url.isNotEmpty() } ?: return@postEndpoint null
+            if (it.body.isImage) {
+                agent.readImage(url, eventInstructions)
+            } else {
+                agent.readHtml(url, eventInstructions)
+            }
         }
     }
 }

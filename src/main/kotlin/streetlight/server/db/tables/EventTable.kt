@@ -35,7 +35,7 @@ object EventTable : UUIDTable("event") {
     val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
     val date = date("date")
-    val startsAt = datetime("starts_at")
+    val startsAt = datetime("starts_at").nullable()
     val endsAt = datetime("ends_at").nullable()
     val updatedAt = datetime("updated_at")
     val createdAt = datetime("created_at")
@@ -60,7 +60,7 @@ fun ResultRow.toEvent() = Event(
     invitation = this[EventTable.invitation],
     ageMin = this[EventTable.ageMin],
     date = this[EventTable.date],
-    startsAt = this[EventTable.startsAt].toInstantFromUtc(),
+    startsAt = this[EventTable.startsAt]?.toInstantFromUtc(),
     endsAt = this[EventTable.endsAt]?.toInstantFromUtc(),
     updatedAt = this[EventTable.updatedAt].toInstantFromUtc(),
     createdAt = this[EventTable.createdAt].toInstantFromUtc()
@@ -90,7 +90,7 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
     this[EventTable.date] = event.date
-    this[EventTable.startsAt] = event.startsAt.toLocalDateTimeUtc()
+    this[EventTable.startsAt] = event.startsAt?.toLocalDateTimeUtc()
     this[EventTable.endsAt] = event.endsAt?.toLocalDateTimeUtc()
     this[EventTable.updatedAt] = event.updatedAt.toLocalDateTimeUtc()
 }
