@@ -26,6 +26,8 @@ object LocationTable : UUIDTable("location") {
     val notes = text("notes").nullable()
     val geoPoint = point("geo_point")
     val resources = array<Int>("resources")
+    val imageUrl = text("image_url").nullable()
+    val thumbUrl = text("thumb_url").nullable()
     val updatedAt = datetime("updated_at").defaultNow()
     val createdAt = datetime("created_at").defaultNow()
 }
@@ -39,6 +41,8 @@ fun ResultRow.toLocation() = Location(
     notes = this[LocationTable.notes],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
+    imageUrl = this[LocationTable.imageUrl],
+    thumbUrl = this[LocationTable.thumbUrl],
     updatedAt = this[LocationTable.updatedAt].toInstantFromUtc(),
     createdAt = this[LocationTable.createdAt].toInstantFromUtc(),
 )
@@ -58,6 +62,8 @@ fun UpdateBuilder<*>.writeUpdate(location: Location) {
     this[LocationTable.notes] = location.notes
     this[LocationTable.geoPoint] = location.geoPoint.toPGpoint()
     this[LocationTable.resources] = location.resources.map { it.ordinal }
+    this[LocationTable.imageUrl] = location.imageUrl
+    this[LocationTable.thumbUrl] = location.thumbUrl
     this[LocationTable.updatedAt] = location.updatedAt.toLocalDateTimeUtc()
 }
 

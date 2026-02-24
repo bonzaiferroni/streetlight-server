@@ -1,16 +1,20 @@
 package streetlight.server.db.services
 
+import kabinet.console.globalConsole
 import kampfire.model.Distance
 import kampfire.model.GeoPoint
 import kampfire.model.UserId
 import klutch.db.DbService
+import klutch.db.isNearEq
 import klutch.db.read
+import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
 import klutch.utils.toStringId
 import kotlinx.datetime.Clock
+import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.lowerCase
@@ -20,12 +24,16 @@ import streetlight.model.data.CommunityId
 import streetlight.model.data.Location
 import streetlight.model.data.LocationId
 import streetlight.model.data.Place
+import streetlight.model.data.toLocation
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.AreaLocationTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.utils.toProjectId
+
+private val console = globalConsole.getHandle(LocationTableDao::class)
 
 class LocationTableDao: DbService() {
 
@@ -41,20 +49,7 @@ class LocationTableDao: DbService() {
     suspend fun createLocation(userId: UserId, place: Place): LocationId? = dbQuery {
         val name = place.name ?: return@dbQuery null
         val point = place.geoPoint ?: return@dbQuery null
-        LocationTable.insertAndGetId {
-            it.writeFull(Location(
-                locationId = LocationId.random(),
-                hostId = userId,
-                name = name,
-                description = null,
-                address = null,
-                notes = null,
-                geoPoint = point,
-                resources = emptySet(),
-                updatedAt = Clock.System.now(),
-                createdAt = Clock.System.now(),
-            ))
-        }.value.toStringId().toProjectId()
+        findOrCreatePlace(place, userId)
     }
 
     suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
@@ -69,7 +64,6 @@ class LocationTableDao: DbService() {
     }
 
     suspend fun readTop(count: Int) = dbQuery {
-        // No createdAt column on Location, so we use id desc as a reasonable proxy for recency
         LocationTable
             .selectAll()
             .orderBy(LocationTable.createdAt, SortOrder.DESC)
@@ -80,5 +74,24 @@ class LocationTableDao: DbService() {
     suspend fun readNearbyLocations(point: GeoPoint, distance: Distance) = dbQuery {
         LocationTable.selectAll().withinRadius(LocationTable.geoPoint, point, distance)
             .map { it.toLocation() }
+    }
+}
+
+fun Transaction.findOrCreatePlace(place: Place, userId: UserId): LocationId? {
+    val name = place.name
+    val geoPoint = place.geoPoint
+    if (name == null || geoPoint == null) return null
+    val location = LocationTable.readFirstOrNull {
+        it.name.eq(name) and it.geoPoint.isNearEq(geoPoint)
+    }?.toLocation()
+
+    return if (location != null) {
+        console.log("Using stored location ${location.name}")
+        location.locationId
+    } else {
+        console.log("creating new location ${place.name} at ${place.address}")
+        LocationTable.insertAndGetId {
+            it.writeFull(place.toLocation(userId))
+        }.toProjectId()
     }
 }

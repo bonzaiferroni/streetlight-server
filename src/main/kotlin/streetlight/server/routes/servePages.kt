@@ -34,8 +34,9 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
     get("/") {
         val events = app.dao.event.readActiveEvents()
+        val locations = app.dao.location.readTop(10)
         call.respondHtml {
-            homePage(events)
+            homePage(events, locations)
         }
     }
 

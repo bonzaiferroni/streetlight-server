@@ -4,28 +4,22 @@ import kabinet.console.globalConsole
 import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.deleteSingle
-import klutch.db.isNearEq
 import klutch.db.read
-import klutch.db.readFirstOrNull
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.insertAndGetId
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toEvent
-import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
 
 private val console = globalConsole.getHandle(EventTableDao::class)
 
@@ -42,27 +36,9 @@ class EventTableDao: DbService() {
     suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
         val now = Clock.System.now()
         val initialLocationId = event.locationId
-        val locationId = if (initialLocationId != null) {
-            initialLocationId
-        } else {
-            val place = event.location
-            val name = place?.name
-            val geoPoint = place?.geoPoint
-            if (name == null || geoPoint == null) return@dbQuery null
-            val location = LocationTable.readFirstOrNull {
-                it.name.eq(name) and it.address.eq(place.address) and it.geoPoint.isNearEq(geoPoint)
-            }?.toLocation()
-
-            if (location != null) {
-                console.log("Using stored location ${location.name}")
-                location.locationId
-            } else {
-                console.log("creating new location ${place.name} at ${place.address}")
-                LocationTable.insertAndGetId {
-                    it.writeFull(place.toLocation())
-                }.toProjectId()
-            }
-        }
+        val locationId = initialLocationId ?: event.place?.let {
+            findOrCreatePlace(it, userId)
+        } ?: return@dbQuery null
         val event = event.toEvent(userId, locationId, now, now)
         EventTable.insert { it.writeFull(event) }
         event
