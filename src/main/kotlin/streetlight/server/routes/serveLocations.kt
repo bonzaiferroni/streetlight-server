@@ -52,7 +52,11 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
         }
 
         postEndpoint(Api.Locations.Edit) { request ->
-            val edit = request.body
+            val edit = request.body.let { edit ->
+                val imageUrl = downloadExternalImage(edit.imageUrl)
+                val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
+                edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
+            }
             val userId = getUserId()
             edit.locationId?.let {
                 dao.updateLocation(it, userId, edit)

@@ -9,18 +9,27 @@ import kotlinx.datetime.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
 import streetlight.model.data.FileUse
-import streetlight.model.data.UserFile
-import streetlight.model.data.UserFileId
+import streetlight.model.data.UploadFile
+import streetlight.model.data.UploadFileId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.io.File
 
-suspend fun RoutingContext.uploadUserImage(
+suspend fun downloadExternalImage(imageUrl: String?): String? {
+    if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
+    val bytes = downloadExternalImage(imageUrl)
+    val format = detectFileTypeFromImage(bytes) ?: return null
+    return uploadImageFile(bytes, null, FileUse.FullImage, format)
+}
+
+fun createThumb(imageUrl: String?, thumbUrl: String?): String? {
+    if (imageUrl == null || thumbUrl != null) return thumbUrl
+    return createThumb(imageUrl, 64)
+}
+
+suspend fun RoutingContext.validateImage(
     bytes: ByteArray,
-    userId: UserId,
-    fileUse: FileUse,
-    app: ServerProvider = RuntimeProvider
-): String? {
+): FileFormat? {
     if (bytes.isEmpty()) {
         call.respond(HttpStatusCode.BadRequest, "Empty body")
         return null
@@ -46,21 +55,32 @@ suspend fun RoutingContext.uploadUserImage(
         return null
     }
 
-    val fileId = UserFileId.random()
+    return fileFormat
+}
 
-    val name = "${fileId.value}.${fileFormat.ext}"
+suspend fun uploadImageFile(
+    bytes: ByteArray,
+    userId: UserId?,
+    fileUse: FileUse,
+    format: FileFormat,
+    app: ServerProvider = RuntimeProvider
+): String {
+
+    val fileId = UploadFileId.random()
+
+    val name = "${fileId.value}.${format.ext}"
     val file = File(uploadFolder, name)
     val url = "${uploadFolder.name}/$name"
     file.writeBytes(bytes)
 
     app.dao.userFile.create(
-        UserFile(
-            userFileId = fileId,
+        UploadFile(
+            uploadFileId = fileId,
             userId = userId,
             url = url,
             fileType = FileType.Image,
             fileUse = fileUse,
-            fileFormat = fileFormat,
+            fileFormat = format,
             createdAt = Clock.System.now()
         )
     )
@@ -68,7 +88,7 @@ suspend fun RoutingContext.uploadUserImage(
     return url
 }
 
-private fun detectFileTypeFromImage(bytes: ByteArray): FileFormat? {
+fun detectFileTypeFromImage(bytes: ByteArray): FileFormat? {
     fun has(prefix: ByteArray): Boolean =
         bytes.size >= prefix.size && prefix.indices.all { i -> bytes[i] == prefix[i] }
 

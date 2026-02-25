@@ -21,7 +21,7 @@ import streetlight.server.db.services.RequestTableDao
 import streetlight.server.db.services.GuestTableDao
 import streetlight.server.db.services.TransitRouteTableDao
 import streetlight.server.db.services.TransitStopTableDao
-import streetlight.server.db.services.UserFileTableDao
+import streetlight.server.db.services.UploadFileTableDao
 
 interface ServerProvider {
     val env: Environment
@@ -44,7 +44,7 @@ class ServerDao(
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
-    val userFile: UserFileTableDao = UserFileTableDao()
+    val userFile: UploadFileTableDao = UploadFileTableDao()
 )
 
 class ServerService(

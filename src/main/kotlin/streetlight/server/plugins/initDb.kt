@@ -19,7 +19,7 @@ import streetlight.server.db.tables.PerformerTable
 import streetlight.server.db.tables.TransitRouteStopTable
 import streetlight.server.db.tables.TransitRouteTable
 import streetlight.server.db.tables.TransitStopTable
-import streetlight.server.db.tables.UserFileTable
+import streetlight.server.db.tables.UploadFileTable
 import streetlight.server.db.tables.EventTagTable
 import streetlight.server.db.tables.TalentTable
 
@@ -58,7 +58,7 @@ val dbTables = listOf(
     TransitStopTable,
     TransitRouteStopTable,
     EventTagTable,
-    UserFileTable,
+    UploadFileTable,
     TalentTable,
 )
 

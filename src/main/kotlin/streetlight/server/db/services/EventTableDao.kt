@@ -5,8 +5,11 @@ import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.read
+import klutch.db.readById
+import klutch.db.readFirst
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
+import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.and
@@ -34,14 +37,27 @@ class EventTableDao: DbService() {
     }
 
     suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
-        val now = Clock.System.now()
         val initialLocationId = event.locationId
         val locationId = initialLocationId ?: event.place?.let {
             findOrCreatePlace(it, userId)
         } ?: return@dbQuery null
-        val event = event.toEvent(userId, locationId, now, now)
-        EventTable.insert { it.writeFull(event) }
-        event
+        val event = event.toEvent(EventId.random(), userId, locationId)
+        EventTable.insert {
+            it.writeFull(event)
+        }
+        EventTable.readById(event.eventId.toUUID()).toEvent()
+    }
+
+    suspend fun updateEvent(eventId: EventId, userId: UserId, edit: EventEdit) = dbQuery {
+        val initialLocationId = edit.locationId
+        val locationId = initialLocationId ?: edit.place?.let {
+            findOrCreatePlace(it, userId)
+        } ?: return@dbQuery null
+        val event = edit.toEvent(eventId, userId, locationId)
+        EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(eventId)}) {
+            it.writeUpdate(event)
+        }
+        EventTable.readById(event.eventId.toUUID()).toEvent()
     }
 
     suspend fun updateEvent(userId: UserId, event: Event): Boolean = dbQuery {
@@ -56,12 +72,11 @@ class EventTableDao: DbService() {
 }
 
 private fun EventEdit.toEvent(
+    eventId: EventId,
     userId: UserId,
     locationId: LocationId,
-    updatedAt: Instant,
-    createdAt: Instant
 ) = Event(
-    eventId = eventId ?: EventId.random(),
+    eventId = eventId,
     userId = userId,
     locationId = locationId,
     currentRequestId = null,
@@ -81,6 +96,6 @@ private fun EventEdit.toEvent(
     startsAt = startsAt,
     date = date,
     endsAt = null,
-    updatedAt = updatedAt,
-    createdAt = createdAt,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now(),
 )

@@ -19,6 +19,7 @@ import streetlight.model.data.toProjectId
 import streetlight.model.mockDb
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
+import streetlight.server.routes.uploadImageFile
 
 private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
@@ -52,9 +53,22 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     }
 
     authenticateJwt {
-        postEndpoint(Api.Events.Create) { newEvent, _ ->
+        postEndpoint(Api.Events.Edit) { request ->
             val userId = getUserId()
-            dao.createEvent(userId, newEvent)
+            val edit = request.body.let { edit ->
+                val imageUrl = downloadExternalImage(edit.imageUrl)
+                val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
+                edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
+            }
+
+            val eventId = edit.eventId
+            if (eventId != null) {
+                console.log("updating event: ${edit.title}")
+                dao.updateEvent(eventId, userId, edit)
+            } else {
+                console.log("creating event: ${edit.title}")
+                dao.createEvent(userId, edit)
+            }
         }
 
         updateEndpoint(Api.EventProfile.Update) { update, _ ->
@@ -73,7 +87,8 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 //        }
         postEndpoint(Api.Events.Upload) { bytes, _ ->
             val userId = getUserId()
-            uploadUserImage(bytes, userId, FileUse.FullImage)
+            val format = validateImage(bytes) ?: return@postEndpoint null
+            uploadImageFile(bytes, userId, FileUse.FullImage, format)
         }
 
         postEndpoint(Api.Events.ReadUrl) {
@@ -102,3 +117,4 @@ val eventInstructions = """
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
 """.trimIndent()
+
