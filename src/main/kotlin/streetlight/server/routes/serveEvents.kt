@@ -37,10 +37,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 
     queryEndpoint(Api.Events.QueryMap, MapQuery::fromQuery) { sent, endpoint ->
         if (sent == null) return@queryEndpoint emptyList()
-        val locations = mockDb.locations.filter { sent.bounds.contains(it.geoPoint) }
-        val locationIds = locations.map { it.locationId }.toSet()
-        val events = mockDb.events.filter { locationIds.contains(it.locationId) }
-        events.map { event -> EventInfo.from(event, locations.first { it.locationId == event.locationId }) }
+        app.dao.event.readEventsInBounds(sent.bounds).also { console.log("returned ${it.size}") }
     }
 
     get("/qr") {

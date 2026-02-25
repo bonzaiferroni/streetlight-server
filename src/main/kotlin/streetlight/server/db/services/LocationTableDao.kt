@@ -2,9 +2,11 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.model.Distance
+import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
 import kampfire.model.UserId
 import klutch.db.DbService
+import klutch.db.inBounds
 import klutch.db.isNearEq
 import klutch.db.read
 import klutch.db.readById
@@ -51,8 +53,6 @@ class LocationTableDao: DbService() {
     }
 
     suspend fun createLocation(userId: UserId, place: Place): LocationId? = dbQuery {
-        val name = place.name ?: return@dbQuery null
-        val point = place.geoPoint ?: return@dbQuery null
         findOrCreatePlace(place, userId)
     }
 
@@ -93,6 +93,10 @@ class LocationTableDao: DbService() {
     suspend fun readNearbyLocations(point: GeoPoint, distance: Distance) = dbQuery {
         LocationTable.selectAll().withinRadius(LocationTable.geoPoint, point, distance)
             .map { it.toLocation() }
+    }
+
+    suspend fun readLocationsInBounds(bounds: GeoBounds) = dbQuery {
+        LocationTable.read { it.geoPoint.inBounds(bounds) }.map { it.toLocation() }
     }
 }
 

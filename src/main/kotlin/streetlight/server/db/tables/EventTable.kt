@@ -3,6 +3,7 @@ package streetlight.server.db.tables
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.tables.UserTable
+import klutch.utils.toGeoPoint
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -11,6 +12,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
+import streetlight.model.data.EventInfo
 import streetlight.model.data.EventStatus
 import streetlight.model.data.EventType
 import streetlight.server.utils.toProjectId
@@ -21,19 +23,20 @@ object EventTable : UUIDTable("event") {
     val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequest = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
-    val url = text("url").nullable()
-    val sourceUrl = text("source_url").nullable()
-    val sourceImageUrl = text("source_image_url").nullable()
-    val imageUrl = text("image_url").nullable()
-    val thumbUrl = text("thumb_url").nullable()
-    val streamUrl = text("stream_url").nullable()
-    val name = text("name")
+    val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")
     val eventType = enumeration<EventType>("event_type")
     val contact = text("contact").nullable()
     val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
+    val visibility = integer("visibility").nullable()
+    val url = text("url").nullable()
+    val sourceUrl = text("source_url").nullable()
+    val sourceImageUrl = text("source_image_url").nullable()
+    val imageUrl = text("image_url").nullable()
+    val thumbUrl = text("thumb_url").nullable()
+    val streamUrl = text("stream_url").nullable()
     val date = date("date")
     val startsAt = datetime("starts_at").nullable()
     val endsAt = datetime("ends_at").nullable()
@@ -46,19 +49,20 @@ fun ResultRow.toEvent() = Event(
     userId = toUserId(EventTable.userId),
     locationId = toProjectId(EventTable.locationId),
     currentRequestId = toProjectIdOrNull(EventTable.currentRequest),
-    url = this[EventTable.url],
-    sourceUrl = this[EventTable.sourceUrl],
-    sourceImageUrl = this[EventTable.sourceImageUrl],
-    imageUrl = this[EventTable.imageUrl],
-    thumbUrl = this[EventTable.thumbUrl],
-    streamUrl = this[EventTable.streamUrl],
-    title = this[EventTable.name],
+    title = this[EventTable.title],
     description = this[EventTable.description],
     status = this[EventTable.status],
     eventType = this[EventTable.eventType],
     contact = this[EventTable.contact],
     invitation = this[EventTable.invitation],
     ageMin = this[EventTable.ageMin],
+    visibility = this[EventTable.visibility],
+    url = this[EventTable.url],
+    sourceUrl = this[EventTable.sourceUrl],
+    sourceImageUrl = this[EventTable.sourceImageUrl],
+    imageUrl = this[EventTable.imageUrl],
+    thumbUrl = this[EventTable.thumbUrl],
+    streamUrl = this[EventTable.streamUrl],
     date = this[EventTable.date],
     startsAt = this[EventTable.startsAt]?.toInstantFromUtc(),
     endsAt = this[EventTable.endsAt]?.toInstantFromUtc(),
@@ -82,7 +86,7 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.imageUrl] = event.imageUrl
     this[EventTable.thumbUrl] = event.thumbUrl
     this[EventTable.streamUrl] = event.streamUrl
-    this[EventTable.name] = event.title
+    this[EventTable.title] = event.title
     this[EventTable.description] = event.description
     this[EventTable.status] = event.status
     this[EventTable.eventType] = event.eventType
@@ -94,3 +98,36 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.endsAt] = event.endsAt?.toLocalDateTimeUtc()
     this[EventTable.updatedAt] = event.updatedAt.toLocalDateTimeUtc()
 }
+
+val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
+    EventTable.id,
+    EventTable.locationId,
+    EventTable.url,
+    EventTable.imageUrl,
+    LocationTable.imageUrl,
+    EventTable.thumbUrl,
+    LocationTable.thumbUrl,
+    EventTable.title,
+    EventTable.description,
+    EventTable.status,
+    EventTable.eventType,
+    EventTable.startsAt,
+    EventTable.endsAt,
+    LocationTable.geoPoint,
+))
+
+fun ResultRow.toEventInfo() = EventInfo(
+    eventId = toProjectId(EventTable.id),
+    locationId = toProjectId(EventTable.locationId),
+    url = this[EventTable.url],
+    imageUrl = this[EventTable.imageUrl] ?: this[LocationTable.imageUrl],
+    thumbUrl = this[EventTable.thumbUrl] ?: this[LocationTable.thumbUrl],
+    title = this[EventTable.title],
+    description = this[EventTable.description],
+    status = this[EventTable.status],
+    visibility = (0..20).random(),
+    eventType = this[EventTable.eventType],
+    startsAt = this[EventTable.startsAt]?.toInstantFromUtc(),
+    endsAt = this[EventTable.endsAt]?.toInstantFromUtc(),
+    geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
+)
