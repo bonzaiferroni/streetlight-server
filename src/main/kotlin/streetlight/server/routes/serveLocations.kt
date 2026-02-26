@@ -43,20 +43,6 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     }
 
     authenticateJwt {
-
-        postEndpoint(Api.Locations.Create) { newLocation, _ ->
-            val userId = getUserId()
-            dao.createLocation(userId, newLocation)
-        }
-
-        postEndpoint(Api.Locations.Update) { location, _ ->
-            val userId = getUserId()
-            if (userId != location.hostId) {
-                throw UnauthorizedUserException()
-            }
-            dao.updateLocation(userId, location)
-        }
-
         postEndpoint(Api.Locations.Edit) { request ->
             val edit = request.body.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)

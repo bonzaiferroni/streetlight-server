@@ -45,7 +45,7 @@ class EventTableDao: DbService() {
     suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
         val initialLocationId = event.locationId
         val locationId = initialLocationId ?: event.place?.let {
-            findOrCreatePlace(it, userId)
+            findOrCreatePlace(it, userId, event.isHost)
         } ?: return@dbQuery null
         val event = event.toEvent(EventId.random(), userId, locationId)
         EventTable.insert {
@@ -57,7 +57,7 @@ class EventTableDao: DbService() {
     suspend fun updateEvent(eventId: EventId, userId: UserId, edit: EventEdit) = dbQuery {
         val initialLocationId = edit.locationId
         val locationId = initialLocationId ?: edit.place?.let {
-            findOrCreatePlace(it, userId)
+            findOrCreatePlace(it, userId, edit.isHost)
         } ?: return@dbQuery null
         val event = edit.toEvent(eventId, userId, locationId)
         EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(eventId)}) {

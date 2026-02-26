@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
+import kampfire.model.UserId
 import klutch.db.defaultNow
 import klutch.db.tables.UserTable
 import klutch.utils.*
@@ -37,7 +38,6 @@ object LocationTable : UUIDTable("location") {
 
 fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
-    hostId = toUserIdOrNull(LocationTable.hostId),
     name = this[LocationTable.name],
     description = this[LocationTable.description],
     address = this[LocationTable.address],
@@ -54,9 +54,9 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location) {
+fun UpdateBuilder<*>.writeFull(location: Location, userId: UserId?) {
     this[LocationTable.id] = location.locationId.toUUID()
-    this[LocationTable.hostId] = location.hostId?.toUUID()
+    this[LocationTable.hostId] = userId?.toUUID()
     this[LocationTable.createdAt] = location.createdAt.toLocalDateTimeUtc()
     writeUpdate(location)
 }
@@ -75,6 +75,3 @@ fun UpdateBuilder<*>.writeUpdate(location: Location) {
     this[LocationTable.checkedAt] = location.checkedAt?.toLocalDateTimeUtc()
     this[LocationTable.updatedAt] = location.updatedAt.toLocalDateTimeUtc()
 }
-
-// Property helpers
-fun LocationTable.readName(locationId: LocationId) = readColumn(name) { id.eq(locationId) }.singleOrNull()

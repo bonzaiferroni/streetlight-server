@@ -52,8 +52,8 @@ class LocationTableDao: DbService() {
         AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }.map { it.toLocation() }
     }
 
-    suspend fun createLocation(userId: UserId, place: Place): LocationId? = dbQuery {
-        findOrCreatePlace(place, userId)
+    suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
+        findOrCreatePlace(place, userId, isHost)
     }
 
     suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
@@ -63,17 +63,16 @@ class LocationTableDao: DbService() {
     }
 
     suspend fun updateLocation(locationId: LocationId, userId: UserId, edit: LocationEdit) = dbQuery {
-        val stored = LocationTable.readFirstOrNull {
-            it.id.eq(locationId) and (it.hostId.isNull() or it.hostId.eq(userId))
-        }?.toLocation() ?: return@dbQuery null
-        val location = edit.toLocation(stored.hostId)
-        LocationTable.update(where = { LocationTable.id.eq(locationId) }) { it.writeUpdate(location) }
+        val location = edit.toLocation()
+        LocationTable.update(where = {
+            LocationTable.id.eq(locationId) and (LocationTable.hostId.isNull() or LocationTable.hostId.eq(userId))
+        }) { it.writeUpdate(location) }
         LocationTable.readById(locationId.value.toUUID()).toLocation()
     }
 
     suspend fun createLocation(userId: UserId, edit: LocationEdit) = dbQuery {
-        val location = edit.toLocation(if (edit.isHost) userId else null)
-        val locationId = LocationTable.insertAndGetId { it.writeFull(location) }.value
+        val location = edit.toLocation()
+        val locationId = LocationTable.insertAndGetId { it.writeFull(location, if (edit.isHost) userId else null) }.value
         LocationTable.readById(locationId).toLocation()
     }
 
@@ -100,7 +99,7 @@ class LocationTableDao: DbService() {
     }
 }
 
-fun Transaction.findOrCreatePlace(place: Place, userId: UserId): LocationId? {
+fun Transaction.findOrCreatePlace(place: Place, userId: UserId, isHost: Boolean): LocationId? {
     val name = place.name
     val geoPoint = place.geoPoint
     if (name == null || geoPoint == null) return null
@@ -114,7 +113,7 @@ fun Transaction.findOrCreatePlace(place: Place, userId: UserId): LocationId? {
     } else {
         console.log("creating new location ${place.name} at ${place.address}")
         LocationTable.insertAndGetId {
-            it.writeFull(place.toLocation(userId))
+            it.writeFull(place.toLocation(), if (isHost) userId else null)
         }.toProjectId()
     }
 }
