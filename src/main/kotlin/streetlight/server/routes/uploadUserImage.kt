@@ -70,7 +70,7 @@ suspend fun uploadImageFile(
 
     val name = "${fileId.value}.${format.ext}"
     val file = File(uploadFolder, name)
-    val url = "${uploadFolder.name}/$name"
+    val url = "/${uploadFolder.name}/$name"
     file.writeBytes(bytes)
 
     app.dao.userFile.create(

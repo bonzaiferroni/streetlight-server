@@ -8,12 +8,14 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import streetlight.model.data.EventId
+import streetlight.model.data.LocationId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import streetlight.web.pages.eventPage
 import streetlight.web.pages.eventPortal
 import streetlight.web.pages.eventSignUp
 import streetlight.web.pages.homePage
+import streetlight.web.pages.locationPage
 import java.io.File
 
 private val console = globalConsole.getHandle(Routing::servePages.name)
@@ -65,6 +67,15 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
         call.respondHtml {
             eventPage(event)
+        }
+    }
+
+    get("/location/{id}") {
+        val locationId = call.parameters["id"]?.let { LocationId(it) } ?: return@get
+        val location = app.dao.location.readLocation(locationId) ?: return@get
+
+        call.respondHtml {
+            locationPage(location)
         }
     }
 }
