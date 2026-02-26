@@ -37,7 +37,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 
     queryEndpoint(Api.Events.QueryMap, MapQuery::fromQuery) { sent, endpoint ->
         if (sent == null) return@queryEndpoint emptyList()
-        app.dao.event.readEventsInBounds(sent.bounds).also { console.log("returned ${it.size}") }
+        app.dao.event.readEventsInBounds(sent.bounds)
     }
 
     get("/qr") {
@@ -114,4 +114,3 @@ val eventInstructions = """
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
 """.trimIndent()
-

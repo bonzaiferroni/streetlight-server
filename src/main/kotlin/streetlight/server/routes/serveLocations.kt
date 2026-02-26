@@ -1,17 +1,23 @@
 package streetlight.server.routes
 
 import io.ktor.server.routing.Routing
+import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import klutch.server.*
 import klutch.utils.getUserId
+import streetlight.agent.UrlParser
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
+private val console = globalConsole.getHandle(Routing::serveLocations.name)
+
 fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.location
+    val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
+
     getEndpoint(Api.Locations.Street, { it.toProjectId() }) { id, _ ->
         dao.readLocations(id)
     }
@@ -62,5 +68,22 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
                 dao.updateLocation(it, userId, edit)
             } ?: dao.createLocation(userId, edit)
         }
+
+        postEndpoint(Api.Locations.ParseLocation) { request ->
+            val url = request.body
+            agent.readHtml(url, locationInstructions)
+        }
     }
 }
+
+val locationInstructions = """
+        Read the following html. We believe it is information about a venue that hosts events.
+        
+        Try to determine the following:
+        * name: name of the venue
+        * description: description of the venue
+        * address: street address of the venue
+        * url: web address for more information about the venue
+        * eventsUrl: web address for information about upcoming events
+        * imageUrl: featured image of the venue
+""".trimIndent()

@@ -6,11 +6,13 @@ import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
+import javax.imageio.IIOImage
 import javax.imageio.ImageIO
 import javax.imageio.ImageTypeSpecifier
 import javax.imageio.ImageWriteParam
 import javax.imageio.metadata.IIOMetadata
 import javax.imageio.metadata.IIOMetadataNode
+import javax.imageio.stream.FileImageOutputStream
 import javax.imageio.stream.ImageInputStream
 import javax.imageio.stream.ImageOutputStream
 
@@ -53,9 +55,33 @@ private fun formatFromPath(path: String): FileFormat? {
 
 private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, size: Int): Boolean {
     val src = ImageIO.read(ByteArrayInputStream(bytes)) ?: return false
-    val thumb = cropCenterSquare(src).let { scaleTo(it, size, size) }.let { ensureRgbOnWhite(it) }
+    val thumb: BufferedImage = cropCenterSquare(src)
+        .let { scaleTo(it, size, size) }
+        .let { ensureRgbOnWhite(it) }
+
     outFile.parentFile?.mkdirs()
-    return runCatching { ImageIO.write(thumb, "jpg", outFile) }.getOrDefault(false)
+
+    val writer = ImageIO.getImageWritersByFormatName("jpeg").asSequence().firstOrNull()
+        ?: return false
+
+    return runCatching {
+        FileImageOutputStream(outFile).use { ios ->
+            writer.output = ios
+            val param = writer.defaultWriteParam.apply {
+                if (canWriteCompressed()) {
+                    compressionMode = ImageWriteParam.MODE_EXPLICIT
+                    compressionQuality = 0.92f // 0.0..1.0 (higher = less artifacts, bigger file)
+                }
+                try {
+                    compressionType = compressionTypes?.firstOrNull { it.equals("JPEG", true) } ?: compressionType
+                } catch (_: Throwable) {}
+            }
+
+            writer.write(null, IIOImage(thumb, null, null), param)
+            writer.dispose()
+        }
+        true
+    }.getOrDefault(false)
 }
 
 private data class GifFrameInfo(

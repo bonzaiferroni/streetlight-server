@@ -18,7 +18,7 @@ import java.io.File
 suspend fun downloadExternalImage(imageUrl: String?): String? {
     if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
     val bytes = downloadExternalImage(imageUrl)
-    val format = detectFileTypeFromImage(bytes) ?: return null
+    val format = detectFileTypeFromImage(bytes).also { println(it) } ?: return null
     return uploadImageFile(bytes, null, FileUse.FullImage, format)
 }
 
