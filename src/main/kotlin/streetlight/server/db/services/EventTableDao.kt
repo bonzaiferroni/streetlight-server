@@ -97,6 +97,10 @@ class EventTableDao: DbService() {
         }
         false
     }
+
+    suspend fun readLocationEvents(locationId: LocationId) = dbQuery {
+        EventTable.read { it.locationId.eq(locationId) }.map { it.toEvent() }
+    }
 }
 
 private fun EventEdit.toEvent(

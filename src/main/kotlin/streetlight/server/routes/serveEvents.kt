@@ -47,6 +47,10 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         }
     }
 
+    getEndpoint(Api.Events.Location, { it.toProjectId()}) { id, _ ->
+        dao.readLocationEvents(id)
+    }
+
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
             val userId = getUserId()
