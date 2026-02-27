@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
@@ -13,13 +14,10 @@ import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.agent.UrlParser
 import streetlight.model.Api
-import streetlight.model.data.EventInfo
 import streetlight.model.data.FileUse
 import streetlight.model.data.toProjectId
-import streetlight.model.mockDb
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
-import streetlight.server.routes.uploadImageFile
 
 private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
@@ -52,7 +50,21 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
             val userId = getUserId()
-            val edit = request.body.let { edit ->
+            val locationId = dao.findOrCreateLocation(userId, request.body)
+            if (locationId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Unable to create location")
+                return@postEndpoint null
+            }
+
+            var edit = request.body.copy(
+                locationId = locationId
+            )
+            if (dao.hasConflict(request.body)) {
+                call.respond(HttpStatusCode.Conflict)
+                return@postEndpoint null
+            }
+
+            edit = edit.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)
                 val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)

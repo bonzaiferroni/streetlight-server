@@ -46,6 +46,8 @@ dependencies {
     implementation(project(":agent"))
 
     implementation("io.ktor:ktor-server-html-builder:3.3.0")
+    implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
+    implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
 }
 
 ktor {

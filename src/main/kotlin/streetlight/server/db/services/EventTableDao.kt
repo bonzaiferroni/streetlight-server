@@ -1,20 +1,19 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.GeoBounds
 import kampfire.model.UserId
 import klutch.db.DbService
+import klutch.db.count
 import klutch.db.deleteSingle
 import klutch.db.inBounds
 import klutch.db.read
 import klutch.db.readById
-import klutch.db.readFirst
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import streetlight.model.data.Event
@@ -42,11 +41,14 @@ class EventTableDao: DbService() {
         EventTable.read { it.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
-    suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
-        val initialLocationId = event.locationId
-        val locationId = initialLocationId ?: event.place?.let {
+    suspend fun findOrCreateLocation(userId: UserId, event: EventEdit) = dbQuery {
+        event.locationId ?: event.place?.let {
             findOrCreatePlace(it, userId, event.isHost)
-        } ?: return@dbQuery null
+        }
+    }
+
+    suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
+        val locationId = event.locationId ?: return@dbQuery null
         val event = event.toEvent(EventId.random(), userId, locationId)
         EventTable.insert {
             it.writeFull(event)
@@ -78,6 +80,22 @@ class EventTableDao: DbService() {
 
     suspend fun readEventsInBounds(bounds: GeoBounds) = dbQuery { // , after: LocalDate, before: LocalDate
         eventInfoQuery.where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventInfo() }
+    }
+
+    suspend fun hasConflict(edit: EventEdit) = dbQuery {
+        val locationId = edit.locationId ?: return@dbQuery false
+        val nameCollision = EventTable.count {
+            EventTable.locationId.eq(locationId) and EventTable.date.eq(edit.date) and EventTable.title.eq(edit.title)
+        } > 0
+        if (nameCollision) return@dbQuery true
+
+        edit.startsAt?.let { startsAt ->
+            val timeCollision = EventTable.count {
+                EventTable.locationId.eq(locationId) and EventTable.startsAt.eq(startsAt.toLocalDateTimeUtc())
+            } > 0
+            if (timeCollision) return@dbQuery true
+        }
+        false
     }
 }
 

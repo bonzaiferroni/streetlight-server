@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
+import kabinet.console.globalConsole
 import kampfire.model.UserId
 import kotlinx.datetime.Clock
 import streetlight.model.data.FileFormat
@@ -15,10 +16,12 @@ import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.io.File
 
+private val console = globalConsole.getHandle("uploader")
+
 suspend fun downloadExternalImage(imageUrl: String?): String? {
     if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
     val bytes = downloadExternalImage(imageUrl)
-    val format = detectFileTypeFromImage(bytes).also { println(it) } ?: return null
+    val format = detectFileTypeFromImage(bytes) ?: return null
     return uploadImageFile(bytes, null, FileUse.FullImage, format)
 }
 
