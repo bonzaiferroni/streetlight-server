@@ -29,11 +29,14 @@ import streetlight.model.data.CommunityId
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
+import streetlight.model.data.LocationInfo
 import streetlight.model.data.Place
 import streetlight.model.data.toLocation
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.AreaLocationTable
+import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
+import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
@@ -95,7 +98,10 @@ class LocationTableDao: DbService() {
     }
 
     suspend fun readLocationsInBounds(bounds: GeoBounds) = dbQuery {
-        LocationTable.read { it.geoPoint.inBounds(bounds) }.map { it.toLocation() }
+        LocationTable.read { it.geoPoint.inBounds(bounds) }.map { it.toLocation() }.map { location ->
+            val events = EventTable.read { it.locationId.eq(location.locationId) }.map { it.toEvent() }
+            LocationInfo(location, events)
+        }
     }
 }
 
