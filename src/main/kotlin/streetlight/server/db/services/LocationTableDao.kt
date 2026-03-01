@@ -44,7 +44,7 @@ import streetlight.server.utils.toProjectId
 
 private val console = globalConsole.getHandle(LocationTableDao::class)
 
-class LocationTableDao: DbService() {
+class LocationTableDao : DbService() {
 
     suspend fun readLocation(locationId: LocationId) = dbQuery {
         LocationTable.read { it.id.eq(locationId) }.firstOrNull()?.toLocation()
@@ -52,7 +52,8 @@ class LocationTableDao: DbService() {
 
     suspend fun readLocations(communityId: CommunityId) = dbQuery {
         // untested
-        AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }.map { it.toLocation() }
+        AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }
+            .map { it.toLocation() }
     }
 
     suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
@@ -60,7 +61,7 @@ class LocationTableDao: DbService() {
     }
 
     suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
-        LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.hostId.eq(userId)}) {
+        LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.hostId.eq(userId) }) {
             it.writeUpdate(location)
         } == 1
     }
@@ -75,13 +76,15 @@ class LocationTableDao: DbService() {
 
     suspend fun createLocation(userId: UserId, edit: LocationEdit) = dbQuery {
         val location = edit.toLocation()
-        val locationId = LocationTable.insertAndGetId { it.writeFull(location, if (edit.isHost) userId else null) }.value
+        val locationId =
+            LocationTable.insertAndGetId { it.writeFull(location, if (edit.isHost) userId else null) }.value
         LocationTable.readById(locationId).toLocation()
     }
 
     suspend fun searchLocations(query: String) = dbQuery {
         val query = query.lowercase()
-        LocationTable.read { it.name.lowerCase().like("%$query%") or it.description.lowerCase().like("%$query%") }.map { it.toLocation() }
+        LocationTable.read { it.name.lowerCase().like("%$query%") or it.description.lowerCase().like("%$query%") }
+            .map { it.toLocation() }
     }
 
     suspend fun readTop(count: Int) = dbQuery {
@@ -97,11 +100,14 @@ class LocationTableDao: DbService() {
             .map { it.toLocation() }
     }
 
-    suspend fun readLocationsInBounds(bounds: GeoBounds) = dbQuery {
-        LocationTable.read { it.geoPoint.inBounds(bounds) }.map { it.toLocation() }.map { location ->
-            val events = EventTable.read { it.locationId.eq(location.locationId) }.map { it.toEvent() }
-            LocationInfo(location, events)
-        }
+    suspend fun readLocationsInBounds(bounds: GeoBounds): List<LocationInfo> = dbQuery {
+        LocationTable.leftJoin(EventTable).selectAll().where { LocationTable.geoPoint.inBounds(bounds) }
+            .toList()
+            .groupBy { it[LocationTable.id].toProjectId<LocationId>() }.map { (_, rows) ->
+                val location = rows.first().toLocation()
+                val events = rows.mapNotNull { row -> row.getOrNull(EventTable.id)?.let { row.toEvent() } }
+                LocationInfo(location, events)
+            }
     }
 }
 

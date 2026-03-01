@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
+import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import klutch.server.*
@@ -40,6 +41,10 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
         sent?.let {
             dao.readNearbyLocations(sent, 1.kilometers)
         }
+    }
+
+    postEndpoint(Api.Locations.QueryBounds) { request ->
+        dao.readLocationsInBounds(request.body)
     }
 
     authenticateJwt {
