@@ -3,7 +3,7 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import streetlight.agent.UrlParser
 import streetlight.model.data.ColdParse
-import streetlight.model.data.ColdParseResult
+import streetlight.model.data.MultiEventParseResult
 import streetlight.model.data.Location
 import streetlight.model.data.ParseRequest
 import streetlight.model.data.toEdit
@@ -22,7 +22,7 @@ class ColdUrlReader(
     private val dao = app.dao.event
     private val osmClient by lazy { OSMHttpClient() }
 
-    suspend fun serve(request: ParseRequest): ColdParseResult? {
+    suspend fun serve(request: ParseRequest): MultiEventParseResult? {
         val url = request.url.takeIf { url -> url.isNotEmpty() } ?: return null
         val parse: ColdParse = if (request.isImage) {
             agent.readImage(url, ReaderText.coldInstructions)
@@ -47,7 +47,7 @@ class ColdUrlReader(
             event?.toEdit() ?: parsedEvent.toEventEdit(url, null, null)
         }
 
-        return ColdParseResult(parse.hasContent, location = location, events = events)
+        return MultiEventParseResult(parse.hasContent, location = location, events = events)
     }
 
     private suspend fun readLocationFromParse(parse: ColdParse, app: ServerProvider): Location? {

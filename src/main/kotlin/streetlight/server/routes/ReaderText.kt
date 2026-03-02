@@ -43,4 +43,11 @@ object ReaderText {
         For each event, determine the following:
         $eventProperties
 """.trimIndent()
+
+    val multiEventInstructions = """
+        Read the following html. We believe it is information about an event or a list of events. 
+        
+        For each event, determine the following:
+        $eventProperties
+    """.trimIndent()
 }

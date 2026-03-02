@@ -52,7 +52,7 @@ private fun formatFromPath(path: String): FileFormat? {
     }
 }
 
-private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, width: Int): Boolean {
+private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, size: Int): Boolean {
     return runCatching {
         outFile.parentFile?.mkdirs()
 
@@ -64,7 +64,7 @@ private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, width: Int):
             return@runCatching false
         }
 
-        val scaled = image.scaleToWidth(width)
+        val scaled = image.cover(size, size)
 
         val rgbAwt = ensureRgbOnWhite(scaled.awt())
         val rgb = ImmutableImage.fromAwt(rgbAwt, BufferedImage.TYPE_INT_RGB)
@@ -79,21 +79,13 @@ private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, width: Int):
         .getOrDefault(false)
 }
 
-private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, width: Int): Boolean {
+private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, size: Int): Boolean {
     return runCatching {
         outFile.parentFile?.mkdirs()
 
         val gif = AnimatedGifReader.read(ImageSource.of(bytes))
         val frameCount = gif.getFrameCount()
         if (frameCount <= 0) return@runCatching false
-
-        val firstFrame = gif.getFrame(0)
-
-        // Reject absurd aspect ratios
-        if (firstFrame.height > firstFrame.width * 4) {
-            console.log("Rejected GIF: extreme aspect ratio ${firstFrame.width}x${firstFrame.height}")
-            return@runCatching false
-        }
 
         val delay = runCatching { gif.getDelay(0) }
             .getOrDefault(Duration.ofMillis(200))
@@ -103,7 +95,7 @@ private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, width: Int):
 
         try {
             for (i in 0 until frameCount) {
-                val frame = gif.getFrame(i).scaleToWidth(width)
+                val frame = gif.getFrame(i).cover(size, size)
                 stream.writeFrame(frame)
             }
         } finally {
