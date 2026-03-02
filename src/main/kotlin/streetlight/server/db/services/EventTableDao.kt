@@ -10,10 +10,14 @@ import klutch.db.deleteSingle
 import klutch.db.inBounds
 import klutch.db.read
 import klutch.db.readById
+import klutch.db.readFirstOrNull
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import streetlight.model.data.Event
@@ -100,6 +104,14 @@ class EventTableDao: DbService() {
 
     suspend fun readLocationEvents(locationId: LocationId) = dbQuery {
         EventTable.read { it.locationId.eq(locationId) }.map { it.toEvent() }
+    }
+
+    suspend fun readEventAt(title: String, date: LocalDate) = dbQuery {
+        EventTable.readFirstOrNull { it.title.eq(title) and it.date.eq(date) }?.toEvent()
+    }
+
+    suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {
+        EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt.toLocalDateTimeUtc()) }?.toEvent()
     }
 }
 

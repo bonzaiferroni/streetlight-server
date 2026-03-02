@@ -14,7 +14,7 @@ import java.time.Duration
 
 private val console = globalConsole.getHandle("thumbs")
 
-fun createThumb(path: String, size: Int): String? {
+fun createThumb(path: String, width: Int): String? {
     val serverPath = "../$path"
     val src = File(serverPath)
     if (!src.exists() || !src.isFile) return null
@@ -26,13 +26,13 @@ fun createThumb(path: String, size: Int): String? {
     val format = formatFromPath(path) ?: return null
 
     val outFile = when (format) {
-        FileFormat.GIF -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.gif")
-        else -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.jpg")
+        FileFormat.GIF -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$width.gif")
+        else -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$width.jpg")
     }
 
     val ok = when (format) {
-        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, size)
-        else -> createStaticThumbAsJpg(bytes, outFile, size)
+        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, width)
+        else -> createStaticThumbAsJpg(bytes, outFile, width)
     }
 
     if (!ok) return null
@@ -52,19 +52,25 @@ private fun formatFromPath(path: String): FileFormat? {
     }
 }
 
-private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, size: Int): Boolean {
+private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, width: Int): Boolean {
     return runCatching {
         outFile.parentFile?.mkdirs()
 
         val image = ImmutableImage.loader().fromBytes(bytes)
-        val covered = image.cover(size, size)
 
-        // Flatten alpha onto white, then write JPEG
-        val rgbAwt = ensureRgbOnWhite(covered.awt())
+        // Reject absurd aspect ratios (height > 3x width)
+        if (image.height > image.width * 4) {
+            console.log("Rejected image: extreme aspect ratio ${image.width}x${image.height}")
+            return@runCatching false
+        }
+
+        val scaled = image.scaleToWidth(width)
+
+        val rgbAwt = ensureRgbOnWhite(scaled.awt())
         val rgb = ImmutableImage.fromAwt(rgbAwt, BufferedImage.TYPE_INT_RGB)
 
         val writer = JpegWriter()
-            .withCompression(92) // 0..100
+            .withCompression(92)
             .withProgressive(true)
 
         rgb.output(writer, outFile)
@@ -73,7 +79,7 @@ private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, size: Int): 
         .getOrDefault(false)
 }
 
-private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, size: Int): Boolean {
+private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, width: Int): Boolean {
     return runCatching {
         outFile.parentFile?.mkdirs()
 
@@ -81,15 +87,23 @@ private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, size: Int): 
         val frameCount = gif.getFrameCount()
         if (frameCount <= 0) return@runCatching false
 
-        // StreamingGifWriter takes one delay for the whole output; use first frame’s delay.
-        val delay: Duration = runCatching { gif.getDelay(0) }.getOrDefault(Duration.ofMillis(200))
+        val firstFrame = gif.getFrame(0)
+
+        // Reject absurd aspect ratios
+        if (firstFrame.height > firstFrame.width * 4) {
+            console.log("Rejected GIF: extreme aspect ratio ${firstFrame.width}x${firstFrame.height}")
+            return@runCatching false
+        }
+
+        val delay = runCatching { gif.getDelay(0) }
+            .getOrDefault(Duration.ofMillis(200))
 
         val writer = StreamingGifWriter(delay, true, true)
         val stream = writer.prepareStream(outFile.absolutePath, BufferedImage.TYPE_INT_ARGB)
 
         try {
             for (i in 0 until frameCount) {
-                val frame = gif.getFrame(i).cover(size, size)
+                val frame = gif.getFrame(i).scaleToWidth(width)
                 stream.writeFrame(frame)
             }
         } finally {

@@ -24,14 +24,12 @@ object LocationTable : UUIDTable("location") {
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()
-    val notes = text("notes").nullable()
     val geoPoint = point("geo_point")
     val resources = array<Int>("resources")
     val link = text("link").nullable()
     val eventsLink = text("events_link").nullable()
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()
-    val checkedAt = datetime("checked_at").nullable()
     val updatedAt = datetime("updated_at").defaultNow()
     val createdAt = datetime("created_at").defaultNow()
 }
@@ -41,14 +39,12 @@ fun ResultRow.toLocation() = Location(
     name = this[LocationTable.name],
     description = this[LocationTable.description],
     address = this[LocationTable.address],
-    notes = this[LocationTable.notes],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     link = this[LocationTable.link],
     eventsLink = this[LocationTable.eventsLink],
     imageUrl = this[LocationTable.imageUrl],
     thumbUrl = this[LocationTable.thumbUrl],
-    checkedAt = this[LocationTable.checkedAt]?.toInstantFromUtc(),
     updatedAt = this[LocationTable.updatedAt].toInstantFromUtc(),
     createdAt = this[LocationTable.createdAt].toInstantFromUtc(),
 )
@@ -65,13 +61,11 @@ fun UpdateBuilder<*>.writeUpdate(location: Location) {
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description
     this[LocationTable.address] = location.address
-    this[LocationTable.notes] = location.notes
     this[LocationTable.geoPoint] = location.geoPoint.toPGpoint()
     this[LocationTable.resources] = location.resources.map { it.ordinal }
     this[LocationTable.link] = location.link
     this[LocationTable.eventsLink] = location.eventsLink
     this[LocationTable.imageUrl] = location.imageUrl
     this[LocationTable.thumbUrl] = location.thumbUrl
-    this[LocationTable.checkedAt] = location.checkedAt?.toLocalDateTimeUtc()
     this[LocationTable.updatedAt] = location.updatedAt.toLocalDateTimeUtc()
 }

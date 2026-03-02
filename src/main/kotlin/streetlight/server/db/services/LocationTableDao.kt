@@ -10,15 +10,12 @@ import klutch.db.inBounds
 import klutch.db.isNearEq
 import klutch.db.read
 import klutch.db.readById
-import klutch.db.readFirst
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
-import klutch.utils.toStringId
 import klutch.utils.toUUID
-import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -32,7 +29,6 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
 import streetlight.model.data.Place
 import streetlight.model.data.toLocation
-import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.AreaLocationTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
@@ -54,6 +50,21 @@ class LocationTableDao : DbService() {
         // untested
         AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }
             .map { it.toLocation() }
+    }
+
+    suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
+        if (name != null && address != null) {
+            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) or it.address.lowerCase().eq(address.lowercase()) }
+                ?.toLocation()
+        } else if (name != null) {
+            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) }?.toLocation()
+        } else if (address != null) {
+            LocationTable.readFirstOrNull { it.address.lowerCase().eq(address.lowercase()) }?.toLocation()
+        } else null
+    }
+
+    suspend fun readLocationAt(point: GeoPoint) = dbQuery {
+        LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
     }
 
     suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
