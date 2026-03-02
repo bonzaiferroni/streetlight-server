@@ -22,7 +22,8 @@ private val console = globalConsole.getHandle(Routing::serveEvents.name)
 
 fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.event
-    val coldReader = ColdReader(app)
+    val coldUrlReader = ColdUrlReader(app)
+    val eventUrlReader = EventUrlReader(app)
 
     getEndpoint(Api.Events) {
         dao.readActiveEvents()
@@ -104,7 +105,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         }
 
         postEndpoint(Api.Events.ParseEvents) { request ->
-            coldReader.serve(request.body)
+            eventUrlReader.serve(request.body)
         }
     }
 }

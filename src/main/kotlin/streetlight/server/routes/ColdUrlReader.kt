@@ -13,9 +13,9 @@ import streetlight.model.external.toGeoPoint
 import streetlight.server.ServerProvider
 import streetlight.server.external.OSMHttpClient
 
-private val console = globalConsole.getHandle(ColdReader::class)
+private val console = globalConsole.getHandle(ColdUrlReader::class)
 
-class ColdReader(
+class ColdUrlReader(
     private val app: ServerProvider
 ) {
     private val agent = UrlParser(app.env.read("GEMINI_KEY_A"))

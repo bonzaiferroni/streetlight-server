@@ -29,7 +29,7 @@ object ReaderText {
     val locationInstructions = """
         Read the following html. We believe it is information about a venue or location that hosts events.
         
-        Try to determine the following:
+        Try to extract the following json properties:
         $locationProperties
     """.trimIndent()
 
@@ -37,10 +37,16 @@ object ReaderText {
         Read the following html. We believe it is information about an event or a list of events. It might also
         have information about an event location. You will parse information about the events and their location.
               
-        For the location, determine the following:
+        For the location, extract the following json properties:
         $locationProperties
         
-        For each event, determine the following:
+        For each event, extract the following json properties:
         $eventProperties
 """.trimIndent()
+    val multiEventInstructions = """
+        Read the following html. We believe it is information about an event or a list of events.
+         
+         For each event, extract the following json properties:
+        $eventProperties
+    """.trimIndent()
 }

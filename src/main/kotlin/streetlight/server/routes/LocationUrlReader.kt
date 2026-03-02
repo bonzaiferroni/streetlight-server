@@ -7,7 +7,7 @@ import streetlight.model.data.ParseRequest
 import streetlight.model.data.toEdit
 import streetlight.server.ServerProvider
 
-class LocationParser(
+class LocationUrlReader(
     private val app: ServerProvider
 ) {
     private val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
