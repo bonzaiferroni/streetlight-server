@@ -14,7 +14,7 @@ import java.time.Duration
 
 private val console = globalConsole.getHandle("thumbs")
 
-fun createThumb(path: String, width: Int): String? {
+fun createThumb(path: String, size: Int): String? {
     val serverPath = "../$path"
     val src = File(serverPath)
     if (!src.exists() || !src.isFile) return null
@@ -26,13 +26,13 @@ fun createThumb(path: String, width: Int): String? {
     val format = formatFromPath(path) ?: return null
 
     val outFile = when (format) {
-        FileFormat.GIF -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$width.gif")
-        else -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$width.jpg")
+        FileFormat.GIF -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.gif")
+        else -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.jpg")
     }
 
     val ok = when (format) {
-        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, width)
-        else -> createStaticThumbAsJpg(bytes, outFile, width)
+        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, size)
+        else -> createStaticThumbAsJpg(bytes, outFile, size)
     }
 
     if (!ok) return null
@@ -57,13 +57,6 @@ private fun createStaticThumbAsJpg(bytes: ByteArray, outFile: File, size: Int): 
         outFile.parentFile?.mkdirs()
 
         val image = ImmutableImage.loader().fromBytes(bytes)
-
-        // Reject absurd aspect ratios (height > 3x width)
-        if (image.height > image.width * 4) {
-            console.log("Rejected image: extreme aspect ratio ${image.width}x${image.height}")
-            return@runCatching false
-        }
-
         val scaled = image.cover(size, size)
 
         val rgbAwt = ensureRgbOnWhite(scaled.awt())
@@ -108,12 +101,6 @@ private fun createAnimatedGifThumb(bytes: ByteArray, outFile: File, size: Int): 
 }
 
 private fun ensureRgbOnWhite(src: BufferedImage): BufferedImage {
-    val dst = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_RGB)
-    val g = dst.createGraphics()
-    g.useQuality()
-    g.drawImage(src, 0, 0, null) // alpha gets flattened to black unless background is filled; default is black
-    g.dispose()
-
     // Proper flatten: draw onto white first
     val fixed = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_RGB)
     val gf = fixed.createGraphics()
