@@ -26,5 +26,6 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
         serveUserHub()
         servePosts()
         serveChat()
+        serveMap()
     }
 }
