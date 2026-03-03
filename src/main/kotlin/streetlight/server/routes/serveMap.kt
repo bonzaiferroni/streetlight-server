@@ -3,54 +3,85 @@ package streetlight.server.routes
 import io.ktor.server.routing.Routing
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.server.websocket.webSocket
+import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
+import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kabinet.console.globalConsole
 import kampfire.model.meters
 import kampfire.model.distanceTo
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import streetlight.model.Api
 import streetlight.model.data.Spirit
-import streetlight.model.data.SpiritDelta
-import streetlight.model.data.SpiritPointDelta
+import streetlight.model.data.SpiritFrame
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
-import java.util.Collections
 
 private val console = globalConsole.getHandle(Routing::serveMap.name)
 
 fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
-    val connections = Collections.synchronizedSet<SpiritConnection>(LinkedHashSet())
+    val json = Json
+    val connections = LinkedHashSet<SpiritConnection>()
+    val connectionsMutex = Mutex()
 
     webSocket(Api.Map.SpiritVision.path) {
-        var myConnection: SpiritConnection? = null
+        var connection: SpiritConnection? = null
+
         try {
             for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    val text = frame.readText()
-                    if (myConnection == null) {
-                        val initialSpirit = Json.decodeFromString<Spirit>(text)
-                        myConnection = SpiritConnection(this, initialSpirit)
-                        connections.add(myConnection)
-                        console.logInfo("Spirit connected: ${initialSpirit.label} (${initialSpirit.spiritId})")
-                    } else {
-                        val delta = Json.decodeFromString<SpiritDelta>(text)
-                        when (delta) {
-                            is SpiritPointDelta -> {
-                                // Update local state for the sender
-                                myConnection.spirit = myConnection.spirit.copy(geoPoint = delta.geoPoint)
-                                
-                                // Relay to others within 500m
-                                val senderPoint = delta.geoPoint
-                                val relayText = Json.encodeToString<SpiritDelta>(delta)
-                                
-                                val recipients = synchronized(connections) {
-                                    connections.filter { it != myConnection && it.spirit.geoPoint.distanceTo(senderPoint) <= 500.meters }.toList()
-                                }
-                                
-                                recipients.forEach { recipient ->
+                val text = (frame as? Frame.Text)?.readText() ?: continue
+
+                val msg = try {
+                    json.decodeFromString<SpiritFrame>(text)
+                } catch (e: Exception) {
+                    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Bad message JSON"))
+                    return@webSocket
+                }
+
+                when (msg) {
+                    is SpiritFrame.Initial -> {
+                        if (connection != null) {
+                            close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Already initialized"))
+                            return@webSocket
+                        }
+
+                        connection = SpiritConnection(this, msg.spirit)
+
+                        connectionsMutex.withLock {
+                            connections.add(connection)
+                        }
+
+                        console.logInfo("Spirit connected: ${msg.spirit.label} (${msg.spirit.spiritId})")
+                    }
+                    is SpiritFrame.PointDelta -> {
+                        val connection = connection ?: continue
+
+                        // Update sender state
+                        connection.spirit = connection.spirit.copy(geoPoint = msg.point)
+
+                        // Snapshot recipients under lock
+                        val recipients = connectionsMutex.withLock {
+                            val senderPoint = msg.point
+                            connections.asSequence()
+                                .filter { it !== connection }
+                                .filter { it.spirit.geoPoint.distanceTo(senderPoint) <= 500.meters }
+                                .toList()
+                        }
+
+
+                        val relayText = json.encodeToString(msg)
+
+                        // Fire-and-forget relays so this receive loop ain't blocked
+                        recipients.forEach { recipient ->
+                            launch {
+                                try {
                                     recipient.session.send(relayText)
+                                } catch (_: Exception) {
+                                    // If they’re already sinkin’, ignore; cleanup happens on their own finally.
                                 }
                             }
                         }
@@ -61,15 +92,19 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
             console.logThrowable(e)
             console.logError("Error in serveMap websocket")
         } finally {
-            myConnection?.let { 
-                connections.remove(it)
-                console.logInfo("Spirit disconnected: ${it.spirit.label}")
+            val conn = connection
+            if (conn != null) {
+                connectionsMutex.withLock {
+                    connections.remove(conn)
+                }
+                console.logInfo("Spirit disconnected: ${conn.spirit.label}")
             }
         }
     }
 }
 
-private data class SpiritConnection(
+private class SpiritConnection(
     val session: DefaultWebSocketServerSession,
     var spirit: Spirit
 )
+
