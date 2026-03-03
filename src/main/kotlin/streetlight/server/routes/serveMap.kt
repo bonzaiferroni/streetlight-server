@@ -18,13 +18,14 @@ import kotlinx.serialization.json.Json
 import streetlight.model.Api
 import streetlight.model.data.Spirit
 import streetlight.model.data.SpiritFrame
+import streetlight.model.data.SpiritId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
+import java.util.concurrent.ConcurrentHashMap
 
 private val console = globalConsole.getHandle(Routing::serveMap.name)
 
 fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
-    val json = Json
     val connections = LinkedHashSet<SpiritConnection>()
     val connectionsMutex = Mutex()
 
@@ -36,7 +37,7 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                 val text = (frame as? Frame.Text)?.readText() ?: continue
 
                 val msg = try {
-                    json.decodeFromString<SpiritFrame>(text)
+                    text.decode<SpiritFrame>()
                 } catch (e: Exception) {
                     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Bad message JSON"))
                     return@webSocket
@@ -59,9 +60,11 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                     }
                     is SpiritFrame.PointDelta -> {
                         val connection = connection ?: continue
-
                         // Update sender state
                         connection.spirit = connection.spirit.copy(geoPoint = msg.point)
+
+                        val spirit = connection.spirit
+                        val kindred = connection.kindred
 
                         // Snapshot recipients under lock
                         val recipients = connectionsMutex.withLock {
@@ -73,15 +76,28 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                         }
 
 
-                        val relayText = json.encodeToString(msg)
+                        val deltaText = msg.encode()
+                        var initialText: String? = null
 
-                        // Fire-and-forget relays so this receive loop ain't blocked
+                        // Fire-and-forget relays so this receiver loop ain't blocked
                         recipients.forEach { recipient ->
-                            launch {
-                                try {
-                                    recipient.session.send(relayText)
-                                } catch (_: Exception) {
-                                    // If they’re already sinkin’, ignore; cleanup happens on their own finally.
+                            val otherSpirit = recipient.spirit
+
+                            if (kindred.add(otherSpirit.spiritId)) {
+                                val payload = initialText ?: SpiritFrame.Initial(spirit).encode()
+                                    .also { initialText = it }
+
+                                recipient.kindred.add(spirit.spiritId)
+
+                                launch {
+                                    recipient.session.trySend(payload)
+                                }
+                                launch {
+                                    connection.session.trySend(SpiritFrame.Initial(otherSpirit).encode())
+                                }
+                            } else {
+                                launch {
+                                    recipient.session.send(deltaText)
                                 }
                             }
                         }
@@ -105,6 +121,17 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
 
 private class SpiritConnection(
     val session: DefaultWebSocketServerSession,
-    var spirit: Spirit
-)
+    var spirit: Spirit,
+) {
+    val kindred: MutableSet<SpiritId> = ConcurrentHashMap.newKeySet()
+}
 
+private suspend fun DefaultWebSocketServerSession.trySend(text: String) = try {
+    send(text)
+} catch (_: Exception) {
+    // nothing yet
+}
+
+private val jsonConfig = Json
+private inline fun <reified T: SpiritFrame> T.encode() = jsonConfig.encodeToString(this)
+private inline fun <reified T: SpiritFrame> String.decode() = jsonConfig.decodeFromString<T>(this)
