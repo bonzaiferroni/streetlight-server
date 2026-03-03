@@ -11,6 +11,7 @@ import io.ktor.websocket.send
 import kabinet.console.globalConsole
 import kampfire.model.meters
 import kampfire.model.distanceTo
+import kampfire.model.kilometers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,7 +38,7 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                 val text = (frame as? Frame.Text)?.readText() ?: continue
 
                 val msg = try {
-                    text.decode<SpiritFrame>()
+                    text.decode()
                 } catch (e: Exception) {
                     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Bad message JSON"))
                     return@webSocket
@@ -56,25 +57,25 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                             connections.add(connection)
                         }
 
-                        console.logInfo("Spirit connected: ${msg.spirit.label} (${msg.spirit.spiritId})")
+                        console.logInfo("Spirit connected: ${msg.spirit.name} (${msg.spirit.spiritId.value})")
                     }
-                    is SpiritFrame.PointDelta -> {
+                    is SpiritFrame.Position -> {
                         val connection = connection ?: continue
                         // Update sender state
-                        connection.spirit = connection.spirit.copy(geoPoint = msg.point)
+                        connection.spirit = connection.spirit.copy(position = msg.pos)
 
                         val spirit = connection.spirit
                         val kindred = connection.kindred
 
                         // Snapshot recipients under lock
                         val recipients = connectionsMutex.withLock {
-                            val senderPoint = msg.point
+                            val senderPoint = msg.pos
                             connections.asSequence()
                                 .filter { it !== connection }
-                                .filter { it.spirit.geoPoint.distanceTo(senderPoint) <= 500.meters }
+                                .filter { it.spirit.position.distanceTo(senderPoint) <= 5000.meters }
                                 .toList()
                         }
-
+                        console.log("r: ${recipients.size} of ${connections.size}")
 
                         val deltaText = msg.encode()
                         var initialText: String? = null
@@ -84,20 +85,23 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                             val otherSpirit = recipient.spirit
 
                             if (kindred.add(otherSpirit.spiritId)) {
+                                // introduce clients to each other
                                 val payload = initialText ?: SpiritFrame.Initial(spirit).encode()
                                     .also { initialText = it }
-
+                                val otherPayload = SpiritFrame.Initial(otherSpirit).encode()
                                 recipient.kindred.add(spirit.spiritId)
 
                                 launch {
+                                    console.log("initial send")
                                     recipient.session.trySend(payload)
                                 }
                                 launch {
-                                    connection.session.trySend(SpiritFrame.Initial(otherSpirit).encode())
+                                    connection.session.trySend(otherPayload)
                                 }
                             } else {
                                 launch {
-                                    recipient.session.send(deltaText)
+                                    console.log("delta send")
+                                    recipient.session.trySend(deltaText)
                                 }
                             }
                         }
@@ -113,7 +117,7 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                 connectionsMutex.withLock {
                     connections.remove(conn)
                 }
-                console.logInfo("Spirit disconnected: ${conn.spirit.label}")
+                console.logInfo("Spirit disconnected: ${conn.spirit.name}")
             }
         }
     }
@@ -132,6 +136,5 @@ private suspend fun DefaultWebSocketServerSession.trySend(text: String) = try {
     // nothing yet
 }
 
-private val jsonConfig = Json
-private inline fun <reified T: SpiritFrame> T.encode() = jsonConfig.encodeToString(this)
-private inline fun <reified T: SpiritFrame> String.decode() = jsonConfig.decodeFromString<T>(this)
+private fun SpiritFrame.encode() = Json.encodeToString<SpiritFrame>(this)
+private fun String.decode() = Json.decodeFromString<SpiritFrame>(this)
