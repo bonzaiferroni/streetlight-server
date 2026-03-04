@@ -46,7 +46,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    getEndpoint(Api.Events.Location, { it.toProjectId()}) { id, _ ->
+    getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) { id, _ ->
         dao.readLocationEvents(id)
     }
 

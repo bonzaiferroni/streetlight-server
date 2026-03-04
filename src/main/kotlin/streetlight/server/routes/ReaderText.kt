@@ -2,7 +2,7 @@ package streetlight.server.routes
 
 object ReaderText {
     val locationProperties = """
-        * name: name of the location
+        * name: name of the location, should be normal casing and appropriately capitalized
         * description: description of the location
         * address: house or building number and street name of the location
         * postalCode: Postal code of the location
@@ -14,7 +14,7 @@ object ReaderText {
     """.trimIndent()
 
     val eventProperties = """
-        * name: Event name or title 
+        * name: Event name or title, should be normal casing and appropriately capitalized
         * time: Time of day of the event as 24-hour value [HH:MM]
         * date: Date of the event as ISO local date [YYYY-MM-DD]
         * location: The name or description of the location of the event
