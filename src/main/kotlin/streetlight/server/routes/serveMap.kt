@@ -9,6 +9,7 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kabinet.console.globalConsole
+import kampfire.model.GeoPoint
 import kampfire.model.meters
 import kampfire.model.distanceTo
 import kampfire.model.kilometers
@@ -32,6 +33,50 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
 
     webSocket(Api.Map.SpiritVision.path) {
         var connection: SpiritConnection? = null
+
+        suspend fun gatherRecipients(pos: GeoPoint): List<SpiritConnection> {
+            return connectionsMutex.withLock {
+                connections.asSequence()
+                    .filter { it !== connection }
+                    .filter { it.spirit.position.distanceTo(pos) <= 5.kilometers }
+                    .toList()
+            }
+        }
+
+        suspend fun moveSpirit(pos: GeoPoint) {
+            val connection = connection ?: return
+            connection.spirit = connection.spirit.copy(position = pos)
+
+            val recipients = gatherRecipients(pos)
+            val kindred = connection.kindred
+            val spirit = connection.spirit
+
+            val deltaText = SpiritFrame.Position(spirit.spiritId, pos).encode()
+            var initialText: String? = null
+
+            recipients.forEach { recipient ->
+                val otherSpirit = recipient.spirit
+
+                if (kindred.add(otherSpirit.spiritId)) {
+                    // introduce clients to each other
+                    val payload = initialText ?: SpiritFrame.Initial(spirit).encode()
+                        .also { initialText = it }
+                    val otherPayload = SpiritFrame.Initial(otherSpirit).encode()
+                    recipient.kindred.add(spirit.spiritId)
+
+                    launch {
+                        recipient.session.trySend(payload)
+                    }
+                    launch {
+                        connection.session.trySend(otherPayload)
+                    }
+                } else {
+                    launch {
+                        recipient.session.trySend(deltaText)
+                    }
+                }
+            }
+        }
 
         try {
             for (frame in incoming) {
@@ -58,53 +103,10 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
                         }
 
                         console.logInfo("Spirit connected: ${msg.spirit.name} (${msg.spirit.spiritId.value})")
+                        moveSpirit(msg.spirit.position)
                     }
                     is SpiritFrame.Position -> {
-                        val connection = connection ?: continue
-                        // Update sender state
-                        connection.spirit = connection.spirit.copy(position = msg.pos)
-
-                        val spirit = connection.spirit
-                        val kindred = connection.kindred
-
-                        // Snapshot recipients under lock
-                        val recipients = connectionsMutex.withLock {
-                            val senderPoint = msg.pos
-                            connections.asSequence()
-                                .filter { it !== connection }
-                                .filter { it.spirit.position.distanceTo(senderPoint) <= 5000.meters }
-                                .toList()
-                        }
-                        console.log("r: ${recipients.size} of ${connections.size}")
-
-                        val deltaText = msg.encode()
-                        var initialText: String? = null
-
-                        // Fire-and-forget relays so this receiver loop ain't blocked
-                        recipients.forEach { recipient ->
-                            val otherSpirit = recipient.spirit
-
-                            if (kindred.add(otherSpirit.spiritId)) {
-                                // introduce clients to each other
-                                val payload = initialText ?: SpiritFrame.Initial(spirit).encode()
-                                    .also { initialText = it }
-                                val otherPayload = SpiritFrame.Initial(otherSpirit).encode()
-                                recipient.kindred.add(spirit.spiritId)
-
-                                launch {
-                                    console.log("initial send")
-                                    recipient.session.trySend(payload)
-                                }
-                                launch {
-                                    connection.session.trySend(otherPayload)
-                                }
-                            } else {
-                                launch {
-                                    console.log("delta send")
-                                    recipient.session.trySend(deltaText)
-                                }
-                            }
-                        }
+                        moveSpirit(msg.pos)
                     }
                 }
             }
