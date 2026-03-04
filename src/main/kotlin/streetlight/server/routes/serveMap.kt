@@ -38,7 +38,7 @@ fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
             return connectionsMutex.withLock {
                 connections.asSequence()
                     .filter { it !== connection }
-                    .filter { it.spirit.position.distanceTo(pos) <= 5.kilometers }
+                    .filter { it.spirit.position.distanceTo(pos) <= 50.kilometers }
                     .toList()
             }
         }
