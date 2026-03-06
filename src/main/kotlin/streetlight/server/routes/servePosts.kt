@@ -20,7 +20,7 @@ fun Routing.servePosts(app: ServerProvider = RuntimeProvider) {
 
     getEndpoint(Api.Stories.ReadUrl) { endpoint ->
         val url = readParam(endpoint.url)
-        agent.readHtml(url, postInstructions)
+        agent.readUrl(url, postInstructions)
     }
 }
 

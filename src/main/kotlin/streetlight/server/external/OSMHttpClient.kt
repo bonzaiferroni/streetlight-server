@@ -36,7 +36,8 @@ class OSMHttpClient(
             url {
                 parameters.append("lat", point.lat.toString())
                 parameters.append("lon", point.lng.toString())
-                parameters.append("format", "json")
+                parameters.append("format", "jsonv2")
+                parameters.append("addressdetails", "1")
             }
         }.body()
 
@@ -50,8 +51,8 @@ class OSMHttpClient(
                 query.state?.let { parameters.append("state", it) }
                 query.country?.let { parameters.append("country", it) }
                 query.postalcode?.let { parameters.append("postalcode", it) }
-                parameters.append("format", query.format)
-                parameters.append("addressdetails", query.addressdetails.toString())
+                parameters.append("format", "jsonv2")
+                parameters.append("addressdetails", "1")
                 parameters.append("limit", query.limit.toString())
             }
         }.body()

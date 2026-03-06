@@ -22,33 +22,33 @@ class ColdReader(
     private val dao = app.dao.event
     private val osmClient by lazy { OSMHttpClient() }
 
-    suspend fun serve(request: ParseRequest): MultiEventParseResult? {
-        val url = request.url.takeIf { url -> url.isNotEmpty() } ?: return null
-        val parse: ColdParse = if (request.isImage) {
-            agent.readImage(url, ReaderText.coldInstructions)
-        } else {
-            agent.readHtml(url, ReaderText.coldInstructions)
-        } ?: return null
-        val parsedEvents = parse.events
-
-        if (parsedEvents.isNullOrEmpty()) return null
-
-        val location = readLocationFromParse(parse, app)
-        val events = parsedEvents.mapNotNull { parsedEvent ->
-            val title = parsedEvent.name
-            val date = parsedEvent.date
-            val locationId = location?.locationId
-            val startsAt = parsedEvent.startsAt
-            val event = if (title != null && date != null)
-                dao.readEventAt(title, date)
-            else if (locationId != null && startsAt != null)
-                dao.readEventAt(locationId, startsAt)
-            else null
-            event?.toEdit() ?: parsedEvent.toEventEdit(url, null, null)
-        }
-
-        return MultiEventParseResult(parse.hasContent, location = location, events = events)
-    }
+//    suspend fun serve(request: ParseRequest): MultiEventParseResult? {
+//        val url = request.url.takeIf { url -> url.isNotEmpty() } ?: return null
+//        val parse: ColdParse = if (request.isImage) {
+//            agent.readImage(url, ReaderText.coldInstructions)
+//        } else {
+//            agent.readHtml(url, ReaderText.coldInstructions)
+//        } ?: return null
+//        val parsedEvents = parse.events
+//
+//        if (parsedEvents.isNullOrEmpty()) return null
+//
+//        val location = readLocationFromParse(parse, app)
+//        val events = parsedEvents.mapNotNull { parsedEvent ->
+//            val title = parsedEvent.name
+//            val date = parsedEvent.date
+//            val locationId = location?.locationId
+//            val startsAt = parsedEvent.startsAt
+//            val event = if (title != null && date != null)
+//                dao.readEventAt(title, date)
+//            else if (locationId != null && startsAt != null)
+//                dao.readEventAt(locationId, startsAt)
+//            else null
+//            event?.toEdit() ?: parsedEvent.toEventEdit(url, null, null)
+//        }
+//
+//        return MultiEventParseResult(parse.hasContent, location = location, events = events)
+//    }
 
     private suspend fun readLocationFromParse(parse: ColdParse, app: ServerProvider): Location? {
         val parse = parse.location ?: return null

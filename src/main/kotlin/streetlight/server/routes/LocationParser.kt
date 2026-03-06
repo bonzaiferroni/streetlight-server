@@ -14,7 +14,7 @@ class LocationParser(
 
     suspend fun serve(request: ParseRequest): LocationEdit? {
         val url = request.url
-        val parse: LocationParse? = agent.readHtml(url, ReaderText.locationInstructions)
+        val parse: LocationParse? = agent.readUrl(url, ReaderText.locationInstructions)
         return parse?.toEdit(null)
     }
 }
