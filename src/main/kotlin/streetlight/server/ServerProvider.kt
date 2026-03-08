@@ -9,6 +9,7 @@ import klutch.db.services.UserTableService
 import klutch.environment.readEnvFromPath
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
+import streetlight.agent.UrlParser
 import streetlight.server.db.services.AreaTableDao
 import streetlight.server.db.services.EventTableDao
 import streetlight.server.db.services.LocationTableDao
@@ -29,6 +30,7 @@ interface ServerProvider {
     val service: ServerService
     val gemini: GeminiService
     val speech: SpeechService
+    val parser: UrlParser
 }
 
 class ServerDao(
@@ -88,4 +90,5 @@ object RuntimeProvider: ServerProvider {
 
 //        replicate.requestFileBytes(model, request)
     }
+    override val parser = UrlParser(env.read("GEMINI_KEY_A"))
 }
