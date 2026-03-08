@@ -30,6 +30,7 @@ object EventTable : UUIDTable("event") {
     val contact = text("contact").nullable()
     val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
+    val cost = float("cost").nullable()
     val visibility = integer("visibility").nullable()
     val url = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
@@ -56,6 +57,7 @@ fun ResultRow.toEvent() = Event(
     contact = this[EventTable.contact],
     invitation = this[EventTable.invitation],
     ageMin = this[EventTable.ageMin],
+    cost = this[EventTable.cost],
     visibility = this[EventTable.visibility],
     url = this[EventTable.url],
     sourceUrl = this[EventTable.sourceUrl],
@@ -93,6 +95,7 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.contact] = event.contact
     this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
+    this[EventTable.cost] = event.cost
     this[EventTable.date] = event.date
     this[EventTable.startsAt] = event.startsAt?.toLocalDateTimeUtc()
     this[EventTable.endsAt] = event.endsAt?.toLocalDateTimeUtc()

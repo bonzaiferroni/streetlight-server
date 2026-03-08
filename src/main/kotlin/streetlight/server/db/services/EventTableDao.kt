@@ -132,6 +132,7 @@ private fun EventEdit.toEvent(
     status = EventStatus.Pending,
     eventType = eventType,
     ageMin = ageMin,
+    cost = cost,
     visibility = null,
     url = url,
     sourceUrl = sourceUrl,

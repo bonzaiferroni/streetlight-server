@@ -8,8 +8,10 @@ object ReaderText {
         * postalCode: Postal code of the location
         * state: State of the location, two letter abbreviation if relevant (e.g. CO)
         * country: Country of the location
-        * url: web address for more information about the location
+        * url: home page for the location
         * eventsUrl: web address for more information about upcoming events at the location, like a calendar
+        * aboutUrl: web address for more information about the location
+        * menuUrl: web address for a list of food/drink items available at the location
         * imageUrl: featured image of the location
     """.trimIndent()
 
@@ -22,6 +24,7 @@ object ReaderText {
         * imageUrl: The featured image for the event, must be a full url
         * description: Additional details given about the event, no more than 500 characters.
         * ageMin: The minimum age for attendees
+        * cost: The entry fee or ticket price for the event in USD
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
         
