@@ -6,9 +6,17 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.readBytes
 import io.ktor.client.statement.readRawBytes
+import kabinet.console.globalConsole
 
-suspend fun downloadExternalImage(url: String): ByteArray {
-    return httpClient.get(url).readRawBytes()
+private val console = globalConsole.getHandle(::downloadExternalImage.name)
+
+suspend fun downloadExternalImage(url: String): ByteArray? {
+    try {
+        return httpClient.get(url).readRawBytes()
+    } catch (e: Exception) {
+        console.log("unable to dl image: ${e.message}")
+        return null
+    }
 }
 
 private val httpClient = HttpClient {

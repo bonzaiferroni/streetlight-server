@@ -19,8 +19,9 @@ import java.io.File
 private val console = globalConsole.getHandle("uploader")
 
 suspend fun downloadExternalImage(imageUrl: String?): String? {
+    console.log(imageUrl)
     if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
-    val bytes = downloadExternalImage(imageUrl)
+    val bytes = downloadExternalImage(imageUrl) ?: return null
     val format = detectFileTypeFromImage(bytes) ?: return null
     return uploadImageFile(bytes, null, FileUse.FullImage, format)
 }

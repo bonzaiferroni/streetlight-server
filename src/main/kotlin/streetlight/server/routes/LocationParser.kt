@@ -10,7 +10,7 @@ import streetlight.server.ServerProvider
 class LocationParser(
     private val app: ServerProvider
 ) {
-    private val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
+    private val agent = UrlParser(app.env.read("GEMINI_KEY_B"))
 
     suspend fun serve(request: ParseRequest): LocationEdit? {
         val url = request.url
