@@ -17,7 +17,7 @@ import streetlight.server.ServerProvider
 class EventUrlReader(
     private val app: ServerProvider
 ) {
-    private val agent = UrlParser(app.env.read("GEMINI_KEY_B"))
+    private val agent = app.parser
 
     suspend fun serve(request: ParseRequest): MultiEventParseResponse {
         val parse: MultiEventParse? = when (request) {

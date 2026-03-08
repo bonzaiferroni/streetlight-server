@@ -20,10 +20,12 @@ object ReaderText {
         * location: The name or description of the location of the event
         * address: The address at which the event is located
         * imageUrl: The featured image for the event, must be a full url
-        * description: Additional details given about the event
+        * description: Additional details given about the event, no more than 500 characters.
         * ageMin: The minimum age for attendees
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
+        
+        Only provide details for the first 20 events listed.
     """.trimIndent()
 
     val locationInstructions = """

@@ -15,7 +15,7 @@ private val console = globalConsole.getHandle(Routing::serveLocations.name)
 
 fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.location
-    val reader = LocationParser(app)
+    val reader = LocationScoutParser(app)
 
     getEndpoint(Api.Locations.Street, { it.toProjectId() }) { id, _ ->
         dao.readLocations(id)
