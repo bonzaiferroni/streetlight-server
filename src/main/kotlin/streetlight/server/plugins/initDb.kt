@@ -9,7 +9,6 @@ import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
-import streetlight.server.db.tables.AreaTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.RequestTable
@@ -48,7 +47,6 @@ fun initDb(
 val dbTables = listOf(
     UserTable,
     LocationTable,
-    AreaTable,
     EventTable,
     SongTable,
     RenditionTable,

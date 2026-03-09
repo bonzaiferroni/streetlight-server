@@ -29,8 +29,8 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
 import streetlight.model.data.Place
 import streetlight.model.data.toLocation
-import streetlight.server.db.tables.AreaLocationTable
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.GalaxyLocationTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
@@ -48,7 +48,7 @@ class LocationTableDao : DbService() {
 
     suspend fun readLocations(galaxyId: GalaxyId) = dbQuery {
         // untested
-        AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(galaxyId) }
+        GalaxyLocationTable.leftJoin(LocationTable).read { GalaxyLocationTable.galaxyId.eq(galaxyId) }
             .map { it.toLocation() }
     }
 

@@ -13,7 +13,7 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
     routing {
         serveUsers()
         serveEvents()
-        serveAreas()
+        serveGalaxies()
         serveLocations()
         serveSongs()
         serveRenditions()

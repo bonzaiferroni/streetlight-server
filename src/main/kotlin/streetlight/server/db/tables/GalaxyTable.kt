@@ -5,14 +5,25 @@ import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Galaxy
+import streetlight.server.db.tables.TransitRouteStopTable.transitRouteId
+import streetlight.server.db.tables.TransitRouteStopTable.transitStopId
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
     val name = text("name")
     val center = point("center")
+}
+
+object GalaxyLocationTable: Table("galaxy_location") {
+    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
+    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE)
+
+    override val primaryKey = PrimaryKey(galaxyId, locationId)
 }
 
 fun ResultRow.toGalaxy() = Galaxy(
@@ -21,12 +32,12 @@ fun ResultRow.toGalaxy() = Galaxy(
     center = this[GalaxyTable.center].toGeoPoint(),
 )
 
-fun UpdateBuilder<*>.writeFull(galaxy: Galaxy) {
+fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy) {
     this[GalaxyTable.id] = galaxy.galaxyId.toUUID()
-    writeUpdate(galaxy)
+    writeGalaxyUpdate(galaxy)
 }
 
-fun UpdateBuilder<*>.writeUpdate(galaxy: Galaxy) {
+fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
 }
