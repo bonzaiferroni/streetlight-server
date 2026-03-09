@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.json.jsonb
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
-import streetlight.model.data.Community
+import streetlight.model.data.Galaxy
 import streetlight.model.data.CommunityType
 import streetlight.server.utils.toProjectId
 
@@ -29,22 +29,22 @@ object AreaLocationTable : Table("area_location_table") {
     override val primaryKey = PrimaryKey(areaId, locationId)
 }
 
-fun ResultRow.toArea() = Community(
-    communityId = toProjectId(AreaTable.id),
+fun ResultRow.toArea() = Galaxy(
+    galaxyId = toProjectId(AreaTable.id),
     name = this[AreaTable.name],
     points = this[AreaTable.points],
     communityType = this[AreaTable.communityType],
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(community: Community) {
-    this[AreaTable.id] = community.communityId.toUUID()
-    writeUpdate(community)
+fun UpdateBuilder<*>.writeFull(galaxy: Galaxy) {
+    this[AreaTable.id] = galaxy.galaxyId.toUUID()
+    writeUpdate(galaxy)
 }
 
-fun UpdateBuilder<*>.writeUpdate(community: Community) {
-    this[AreaTable.name] = community.name
-    this[AreaTable.points] = community.points
-    this[AreaTable.communityType] = community.communityType
+fun UpdateBuilder<*>.writeUpdate(galaxy: Galaxy) {
+    this[AreaTable.name] = galaxy.name
+    this[AreaTable.points] = galaxy.points
+    this[AreaTable.communityType] = galaxy.communityType
 }
 

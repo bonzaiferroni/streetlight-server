@@ -22,7 +22,7 @@ import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
-import streetlight.model.data.CommunityId
+import streetlight.model.data.GalaxyId
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
@@ -46,9 +46,9 @@ class LocationTableDao : DbService() {
         LocationTable.read { it.id.eq(locationId) }.firstOrNull()?.toLocation()
     }
 
-    suspend fun readLocations(communityId: CommunityId) = dbQuery {
+    suspend fun readLocations(galaxyId: GalaxyId) = dbQuery {
         // untested
-        AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(communityId) }
+        AreaLocationTable.leftJoin(LocationTable).read { AreaLocationTable.areaId.eq(galaxyId) }
             .map { it.toLocation() }
     }
 
