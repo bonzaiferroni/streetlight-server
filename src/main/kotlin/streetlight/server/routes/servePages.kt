@@ -14,6 +14,7 @@ import streetlight.server.ServerProvider
 import streetlight.web.pages.eventPage
 import streetlight.web.pages.eventPortal
 import streetlight.web.pages.eventSignUp
+import streetlight.web.pages.galaxyPage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
 import java.io.File
@@ -76,6 +77,15 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
         call.respondHtml {
             locationPage(location)
+        }
+    }
+
+    get("/g/{id}") {
+        val pathId = call.parameters["id"] ?: return@get
+        val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
+
+        call.respondHtml {
+            galaxyPage(galaxy)
         }
     }
 }
