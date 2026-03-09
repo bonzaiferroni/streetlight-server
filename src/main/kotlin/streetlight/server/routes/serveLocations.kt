@@ -42,12 +42,12 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     }
 
     postEndpoint(Api.Locations.QueryBounds) { request ->
-        dao.readLocationsInBounds(request.body)
+        dao.readLocationsInBounds(request.data)
     }
 
     authenticateJwt {
         postEndpoint(Api.Locations.Edit) { request ->
-            val edit = request.body.let { edit ->
+            val edit = request.data.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)
                 val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
@@ -59,7 +59,7 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
         }
 
         postEndpoint(Api.Locations.ParseLocation) { request ->
-            reader.serve(request.body)
+            reader.serve(request.data)
         }
     }
 }

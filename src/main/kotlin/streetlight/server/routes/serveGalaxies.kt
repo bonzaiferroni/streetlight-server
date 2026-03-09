@@ -18,10 +18,15 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
         dao.readGalaxies()
     }
 
+    getEndpoint(Api.Galaxies.Path) {
+        val pathId = it.data
+        dao.readGalaxyByPath(pathId)
+    }
+
     authenticateJwt {
         postEndpoint(Api.Galaxies.Found) { request ->
-            console.log("founding galaxy: ${request.body.name}")
-            dao.create(request.body)
+            console.log("founding galaxy: ${request.data.name}")
+            dao.create(request.data)
         }
     }
 }

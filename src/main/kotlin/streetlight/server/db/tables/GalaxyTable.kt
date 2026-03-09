@@ -15,6 +15,7 @@ import streetlight.server.db.tables.TransitRouteStopTable.transitStopId
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
+    val pathId = text("path_id").uniqueIndex()
     val name = text("name")
     val center = point("center")
 }
@@ -28,6 +29,7 @@ object GalaxyLocationTable: Table("galaxy_location") {
 
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
+    pathId = this[GalaxyTable.pathId],
     name = this[GalaxyTable.name],
     center = this[GalaxyTable.center].toGeoPoint(),
 )
@@ -39,5 +41,6 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy) {
 
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.name] = galaxy.name
+    this[GalaxyTable.pathId] = galaxy.pathId
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
 }

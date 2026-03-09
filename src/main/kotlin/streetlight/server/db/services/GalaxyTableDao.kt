@@ -3,6 +3,8 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.db.readById
+import klutch.db.readFirst
+import klutch.db.readFirstOrNull
 import klutch.utils.eq
 import klutch.utils.toUUID
 import org.jetbrains.exposed.sql.deleteWhere
@@ -11,6 +13,8 @@ import org.jetbrains.exposed.sql.update
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
+import streetlight.model.data.PathId
+import streetlight.model.data.pathIdFromName
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
@@ -21,6 +25,10 @@ class GalaxyTableDao : DbService() {
 
     suspend fun readGalaxy(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.read { it.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readGalaxyByPath(pathId: PathId) = dbQuery {
+        GalaxyTable.readFirstOrNull { it.pathId.eq(pathId) }?.toGalaxy()
     }
 
     suspend fun readGalaxies() = dbQuery {
@@ -36,6 +44,7 @@ class GalaxyTableDao : DbService() {
         val center = edit.center ?: return null
         val galaxy = Galaxy(
             galaxyId = GalaxyId.random(),
+            pathId = pathIdFromName(name),
             name = name,
             center = center,
         )

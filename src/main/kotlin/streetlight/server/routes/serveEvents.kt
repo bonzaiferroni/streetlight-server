@@ -53,16 +53,16 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
             val userId = getUserId()
-            val locationId = dao.findOrCreateLocation(userId, request.body)
+            val locationId = dao.findOrCreateLocation(userId, request.data)
             if (locationId == null) {
                 call.respond(HttpStatusCode.BadRequest, "Unable to create location")
                 return@postEndpoint null
             }
 
-            var edit = request.body.copy(
+            var edit = request.data.copy(
                 locationId = locationId
             )
-            if (dao.hasConflict(request.body)) {
+            if (dao.hasConflict(request.data)) {
                 call.respond(HttpStatusCode.Conflict)
                 return@postEndpoint null
             }
@@ -104,7 +104,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         }
 
         postEndpoint(Api.Events.ParseEvents) { request ->
-            reader.serve(request.body)
+            reader.serve(request.data)
         }
     }
 }
