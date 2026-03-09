@@ -49,7 +49,7 @@ class GalaxyTableDao : DbService() {
             name = name,
             center = center,
             imageUrl = edit.imageUrl,
-            thumbUrl = null,
+            thumbUrl = edit.thumbUrl,
             updatedAt = Clock.System.now(),
             createdAt = Clock.System.now(),
         )

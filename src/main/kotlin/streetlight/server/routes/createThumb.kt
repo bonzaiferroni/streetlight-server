@@ -14,7 +14,7 @@ import java.time.Duration
 
 private val console = globalConsole.getHandle("thumbs")
 
-fun createThumb(path: String, size: Int): String? {
+fun createThumb(path: String, size: Int = 128): String? {
     val serverPath = "../$path"
     val src = File(serverPath)
     if (!src.exists() || !src.isFile) return null
@@ -36,7 +36,7 @@ fun createThumb(path: String, size: Int): String? {
     }
 
     if (!ok) return null
-    return outFile.absolutePath.split("../")[1]
+    return outFile.absolutePath.split("..")[1]
 }
 
 @kotlinx.serialization.Serializable

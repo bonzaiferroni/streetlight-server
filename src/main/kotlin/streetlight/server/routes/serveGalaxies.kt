@@ -25,8 +25,13 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
 
     authenticateJwt {
         postEndpoint(Api.Galaxies.Found) { request ->
-            console.log("founding galaxy: ${request.data.name}")
-            dao.create(request.data)
+            val galaxy = request.data
+            console.log("founding galaxy: ${galaxy.name}")
+            val thumbUrl = galaxy.thumbUrl ?: galaxy.imageUrl?.let {
+                console.log("creating thumbnail img")
+                createThumb(it)
+            }
+            dao.create(galaxy.copy(thumbUrl = thumbUrl))
         }
     }
 }
