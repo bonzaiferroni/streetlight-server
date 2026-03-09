@@ -7,6 +7,7 @@ import klutch.db.readFirst
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
 import klutch.utils.toUUID
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.update
@@ -47,6 +48,10 @@ class GalaxyTableDao : DbService() {
             pathId = pathIdFromName(name),
             name = name,
             center = center,
+            imageUrl = edit.imageUrl,
+            thumbUrl = null,
+            updatedAt = Clock.System.now(),
+            createdAt = Clock.System.now(),
         )
         create(galaxy)
         return galaxy
