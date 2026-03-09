@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-object ReaderText {
+object ParserText {
     val locationProperties = """
         * name: name of the location, should be normal casing and appropriately capitalized
         * description: description of the location
@@ -12,7 +12,7 @@ object ReaderText {
         * eventsUrl: web address for more information about upcoming events at the location, like a calendar
         * aboutUrl: web address for more information about the location
         * menuUrl: web address for a list of food/drink items available at the location
-        * imageUrl: featured image of the location
+        * imageUrl: Featured image of the location. If the source is the home page for the location, look for a meta tag with og:image or twitter:image properties.
     """.trimIndent()
 
     val eventProperties = """
@@ -24,7 +24,7 @@ object ReaderText {
         * imageUrl: The featured image for the event, must be a full url
         * description: Additional details given about the event, no more than 500 characters.
         * ageMin: The minimum age for attendees
-        * cost: The entry fee or ticket price for the event in USD
+        * cost: The entry fee or ticket price for the event in USD. Provide the string value Free if there is no cost, Leave null if unknown.
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
         
