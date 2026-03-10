@@ -87,9 +87,11 @@ class EventTableDao: DbService() {
     }
 
     suspend fun hasConflict(edit: EventEdit) = dbQuery {
+        val title = edit.title ?: error("no title")
+        val date = edit.date ?: error("no date")
         val locationId = edit.locationId ?: return@dbQuery false
         val nameCollision = EventTable.count {
-            EventTable.locationId.eq(locationId) and EventTable.date.eq(edit.date) and EventTable.title.eq(edit.title)
+            EventTable.locationId.eq(locationId) and EventTable.date.eq(date) and EventTable.title.eq(title)
         } > 0
         if (nameCollision) return@dbQuery true
 
@@ -127,10 +129,10 @@ private fun EventEdit.toEvent(
     contact = contact,
     invitation = invitation,
     streamUrl = null,
-    title = title,
+    title = title ?: error("no title"),
     description = description,
     status = EventStatus.Pending,
-    eventType = eventType,
+    eventType = eventType ?: error("no eventType"),
     ageMin = ageMin,
     cost = cost,
     visibility = null,
@@ -140,7 +142,7 @@ private fun EventEdit.toEvent(
     imageUrl = imageUrl,
     thumbUrl = thumbUrl,
     startsAt = startsAt,
-    date = date,
+    date = date ?: error("no date"),
     endsAt = null,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),

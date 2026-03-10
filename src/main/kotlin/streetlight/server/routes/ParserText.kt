@@ -55,4 +55,11 @@ object ParserText {
         For each event, determine the following:
         $eventProperties
     """.trimIndent()
+
+    val singleEventInstructions = """
+        Read the following html. We believe it is information about an event.
+        
+        Determine the following:
+        $eventProperties
+    """.trimIndent()
 }

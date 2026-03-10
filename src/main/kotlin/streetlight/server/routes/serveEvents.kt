@@ -62,6 +62,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
             var edit = request.data.copy(
                 locationId = locationId
             )
+
             if (dao.hasConflict(request.data)) {
                 call.respond(HttpStatusCode.Conflict)
                 return@postEndpoint null
@@ -103,8 +104,12 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
             uploadImageFile(bytes, userId, FileUse.FullImage, format)
         }
 
-        postEndpoint(Api.Events.ParseEvents) { request ->
-            reader.serve(request.data)
+        postEndpoint(Api.Events.ParseMultiEvents) { request ->
+            reader.serveMulti(request.data)
+        }
+
+        postEndpoint(Api.Events.ParseSingleEvent) { request ->
+            reader.serveSingle(request.data)
         }
     }
 }

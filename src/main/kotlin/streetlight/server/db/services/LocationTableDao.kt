@@ -124,7 +124,8 @@ class LocationTableDao : DbService() {
     }
 }
 
-fun Transaction.findOrCreatePlace(place: Place, userId: UserId, isHost: Boolean): LocationId? {
+fun Transaction.findOrCreatePlace(place: Place, userId: UserId, isHost: Boolean?): LocationId? {
+    val isHost = isHost ?: false
     val name = place.name
     val geoPoint = place.geoPoint
     if (name == null || geoPoint == null) return null
