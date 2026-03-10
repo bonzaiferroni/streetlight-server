@@ -94,7 +94,9 @@ class LocationTableDao : DbService() {
 
     suspend fun searchLocations(query: String) = dbQuery {
         val query = query.lowercase()
-        LocationTable.read { it.name.lowerCase().like("%$query%") or it.description.lowerCase().like("%$query%") }
+        LocationTable.read {
+            (it.name.lowerCase().like("%$query%") or it.description.lowerCase().like("%$query%")) or it.address.lowerCase().like("%$query%")
+        }
             .map { it.toLocation() }
     }
 
