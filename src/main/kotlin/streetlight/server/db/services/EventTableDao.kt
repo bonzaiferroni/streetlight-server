@@ -88,32 +88,20 @@ class EventTableDao: DbService() {
 
     suspend fun hasConflict(edit: EventEdit) = dbQuery {
         val title = edit.title ?: error("no title")
-        val date = edit.date ?: error("no date")
+        val startsAt = edit.startsAt ?: error("no time")
         val locationId = edit.locationId ?: return@dbQuery false
-        val nameCollision = EventTable.count {
-            EventTable.locationId.eq(locationId) and EventTable.date.eq(date) and EventTable.title.eq(title)
+        // td: more precise time conflict handling
+        EventTable.count {
+            EventTable.locationId.eq(locationId) and EventTable.startsAt.eq(startsAt) and EventTable.title.eq(title)
         } > 0
-        if (nameCollision) return@dbQuery true
-
-        edit.startsAt?.let { startsAt ->
-            val timeCollision = EventTable.count {
-                EventTable.locationId.eq(locationId) and EventTable.startsAt.eq(startsAt.toLocalDateTimeUtc())
-            } > 0
-            if (timeCollision) return@dbQuery true
-        }
-        false
     }
 
     suspend fun readLocationEvents(locationId: LocationId) = dbQuery {
         EventTable.read { it.locationId.eq(locationId) }.map { it.toEvent() }
     }
 
-    suspend fun readEventAt(title: String, date: LocalDate) = dbQuery {
-        EventTable.readFirstOrNull { it.title.eq(title) and it.date.eq(date) }?.toEvent()
-    }
-
     suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {
-        EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt.toLocalDateTimeUtc()) }?.toEvent()
+        EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt) }?.toEvent()
     }
 }
 
@@ -141,9 +129,9 @@ private fun EventEdit.toEvent(
     sourceImageUrl = sourceImageUrl,
     imageUrl = imageUrl,
     thumbUrl = thumbUrl,
-    startsAt = startsAt,
-    date = date ?: error("no date"),
-    endsAt = null,
+    timeZone = timeZone ?: error("no time zone"),
+    startsAt = startsAt ?: error("no starting time"),
+    endsAt = endsAt ?: error("no ending time"),
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

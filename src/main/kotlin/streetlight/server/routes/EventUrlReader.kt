@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import streetlight.model.data.EventParse
 import streetlight.model.data.HtmlParseRequest
 import streetlight.model.data.ImageParseRequest
 import streetlight.model.data.MultiEventParse
@@ -38,7 +39,7 @@ class EventUrlReader(
 
     suspend fun serveSingle(request: ParseRequest): SingleEventParseResponse {
         val instructions = ParserText.singleEventInstructions
-        val parse: SingleEventParse? = when (request) {
+        val parse: EventParse? = when (request) {
             is UrlParseRequest -> agent.readUrl(request.url, instructions)
             is HtmlParseRequest -> agent.readHtml(request.url, request.html, instructions)
             is ImageParseRequest -> TODO()
@@ -46,9 +47,10 @@ class EventUrlReader(
         if (parse == null) {
             console.log("Parse was null")
         }
-        val event = parse?.event?.toEventEdit(request.url, null, null)
+        println(parse?.time)
+        val event = parse?.toEventEdit(request.url, null, null)
         return SingleEventParseResponse(
-            hasContent = parse?.hasContent,
+            hasContent = parse != null,
             event = event
         )
     }

@@ -5,11 +5,13 @@ import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.tables.UserTable
 import klutch.utils.toGeoPoint
 import klutch.utils.toUUID
+import kotlinx.datetime.TimeZone
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
 import streetlight.model.data.EventInfo
@@ -38,11 +40,11 @@ object EventTable : UUIDTable("event") {
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()
     val streamUrl = text("stream_url").nullable()
-    val date = date("date")
-    val startsAt = datetime("starts_at").nullable()
-    val endsAt = datetime("ends_at").nullable()
-    val updatedAt = datetime("updated_at")
-    val createdAt = datetime("created_at")
+    val timeZoneId = text("time_zone_id")
+    val startsAt = timestamp("starts_at")
+    val endsAt = timestamp("ends_at")
+    val updatedAt = timestamp("updated_at")
+    val createdAt = timestamp("created_at")
 }
 
 fun ResultRow.toEvent() = Event(
@@ -65,11 +67,11 @@ fun ResultRow.toEvent() = Event(
     imageUrl = this[EventTable.imageUrl],
     thumbUrl = this[EventTable.thumbUrl],
     streamUrl = this[EventTable.streamUrl],
-    date = this[EventTable.date],
-    startsAt = this[EventTable.startsAt]?.toInstantFromUtc(),
-    endsAt = this[EventTable.endsAt]?.toInstantFromUtc(),
-    updatedAt = this[EventTable.updatedAt].toInstantFromUtc(),
-    createdAt = this[EventTable.createdAt].toInstantFromUtc()
+    timeZone = TimeZone.of(this[EventTable.timeZoneId]),
+    startsAt = this[EventTable.startsAt],
+    endsAt = this[EventTable.endsAt],
+    updatedAt = this[EventTable.updatedAt],
+    createdAt = this[EventTable.createdAt]
 )
 
 fun UpdateBuilder<*>.writeFull(event: Event) {
@@ -77,7 +79,7 @@ fun UpdateBuilder<*>.writeFull(event: Event) {
     this[EventTable.userId] = event.userId.toUUID()
     this[EventTable.locationId] = event.locationId.toUUID()
     this[EventTable.currentRequest] = event.currentRequestId?.toUUID()
-    this[EventTable.createdAt] = event.createdAt.toLocalDateTimeUtc()
+    this[EventTable.createdAt] = event.createdAt
     writeUpdate(event)
 }
 
@@ -96,10 +98,10 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
     this[EventTable.cost] = event.cost
-    this[EventTable.date] = event.date
-    this[EventTable.startsAt] = event.startsAt?.toLocalDateTimeUtc()
-    this[EventTable.endsAt] = event.endsAt?.toLocalDateTimeUtc()
-    this[EventTable.updatedAt] = event.updatedAt.toLocalDateTimeUtc()
+    this[EventTable.timeZoneId] = event.timeZone.id
+    this[EventTable.startsAt] = event.startsAt
+    this[EventTable.endsAt] = event.endsAt
+    this[EventTable.updatedAt] = event.updatedAt
 }
 
 val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
@@ -130,7 +132,7 @@ fun ResultRow.toEventInfo() = EventInfo(
     status = this[EventTable.status],
     visibility = (0..20).random(),
     eventType = this[EventTable.eventType],
-    startsAt = this[EventTable.startsAt]?.toInstantFromUtc(),
-    endsAt = this[EventTable.endsAt]?.toInstantFromUtc(),
+    startsAt = this[EventTable.startsAt],
+    endsAt = this[EventTable.endsAt],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
 )
