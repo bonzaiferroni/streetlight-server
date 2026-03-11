@@ -16,7 +16,6 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
 import streetlight.model.data.EventInfo
 import streetlight.model.data.EventStatus
-import streetlight.model.data.EventType
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 import streetlight.server.utils.toUserId
@@ -28,7 +27,6 @@ object EventTable : UUIDTable("event") {
     val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")
-    val eventType = enumeration<EventType>("event_type")
     val contact = text("contact").nullable()
     val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
@@ -55,7 +53,6 @@ fun ResultRow.toEvent() = Event(
     title = this[EventTable.title],
     description = this[EventTable.description],
     status = this[EventTable.status],
-    eventType = this[EventTable.eventType],
     contact = this[EventTable.contact],
     invitation = this[EventTable.invitation],
     ageMin = this[EventTable.ageMin],
@@ -93,7 +90,6 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description
     this[EventTable.status] = event.status
-    this[EventTable.eventType] = event.eventType
     this[EventTable.contact] = event.contact
     this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
@@ -115,7 +111,6 @@ val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
     EventTable.title,
     EventTable.description,
     EventTable.status,
-    EventTable.eventType,
     EventTable.startsAt,
     EventTable.endsAt,
     LocationTable.geoPoint,
@@ -131,7 +126,6 @@ fun ResultRow.toEventInfo() = EventInfo(
     description = this[EventTable.description],
     status = this[EventTable.status],
     visibility = (0..20).random(),
-    eventType = this[EventTable.eventType],
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),

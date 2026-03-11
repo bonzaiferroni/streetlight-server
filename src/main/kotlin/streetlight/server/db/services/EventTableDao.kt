@@ -120,7 +120,6 @@ private fun EventEdit.toEvent(
     title = title ?: error("no title"),
     description = description,
     status = EventStatus.Pending,
-    eventType = eventType ?: error("no eventType"),
     ageMin = ageMin,
     cost = cost,
     visibility = null,
