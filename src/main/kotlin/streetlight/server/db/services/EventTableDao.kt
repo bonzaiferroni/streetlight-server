@@ -1,7 +1,6 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
-import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.GeoBounds
 import kampfire.model.UserId
 import klutch.db.DbService
@@ -16,8 +15,6 @@ import klutch.utils.eq
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import streetlight.model.data.Event
@@ -123,7 +120,7 @@ private fun EventEdit.toEvent(
     ageMin = ageMin,
     cost = cost,
     visibility = null,
-    url = url,
+    url = link,
     sourceUrl = sourceUrl,
     sourceImageUrl = sourceImageUrl,
     imageUrl = imageUrl,

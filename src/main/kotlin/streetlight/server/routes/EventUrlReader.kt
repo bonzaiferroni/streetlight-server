@@ -7,7 +7,6 @@ import streetlight.model.data.ImageParseRequest
 import streetlight.model.data.MultiEventParse
 import streetlight.model.data.MultiEventParseResponse
 import streetlight.model.data.ParseRequest
-import streetlight.model.data.SingleEventParse
 import streetlight.model.data.SingleEventParseResponse
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
@@ -47,7 +46,7 @@ class EventUrlReader(
         if (parse == null) {
             console.log("Parse was null")
         }
-        println(parse?.time)
+        println(parse?.date)
         val event = parse?.toEventEdit(request.url, null, null)
         return SingleEventParseResponse(
             hasContent = parse != null,

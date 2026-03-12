@@ -17,12 +17,13 @@ object ParserText {
 
     val eventProperties = """
         * name: Event name or title, should be normal casing and appropriately capitalized
-        * time: Time of day of the event as 24-hour value [HH:MM]
+        * startTime: Time of day of the event as 24-hour value [HH:MM]
+        * endTime: Time when the event ends as 24-hour value [HH:MM]
         * date: Date of the event as ISO local date [YYYY-MM-DD]
         * location: The name or description of the location of the event
         * address: The address at which the event is located
         * imageUrl: The featured image for the event, must be a full url
-        * description: Additional details given about the event, no more than 500 characters.
+        * description: Additional details given about the event. Provide rich formatting with markdown.
         * ageMin: The minimum age for attendees
         * cost: The entry fee or ticket price for the event in USD. Provide the string value Free if there is no cost, Leave null if unknown.
         * contact: Any name and/or contact information given for the event
