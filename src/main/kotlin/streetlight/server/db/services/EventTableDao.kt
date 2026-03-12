@@ -15,6 +15,7 @@ import klutch.utils.eq
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import streetlight.model.data.Event
@@ -42,15 +43,8 @@ class EventTableDao: DbService() {
         EventTable.read { it.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
-    suspend fun findOrCreateLocation(userId: UserId, event: EventEdit) = dbQuery {
-        event.locationId ?: event.place?.let {
-            findOrCreatePlace(it, userId, event.isHost)
-        }
-    }
-
     suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
-        val locationId = event.locationId ?: return@dbQuery null
-        val event = event.toEvent(EventId.random(), userId, locationId)
+        val event = event.toEvent(EventId.random(), userId)
         EventTable.insert {
             it.writeFull(event)
         }
@@ -58,11 +52,7 @@ class EventTableDao: DbService() {
     }
 
     suspend fun updateEvent(eventId: EventId, userId: UserId, edit: EventEdit) = dbQuery {
-        val initialLocationId = edit.locationId
-        val locationId = initialLocationId ?: edit.place?.let {
-            findOrCreatePlace(it, userId, edit.isHost)
-        } ?: return@dbQuery null
-        val event = edit.toEvent(eventId, userId, locationId)
+        val event = edit.toEvent(eventId, userId)
         EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event)
         }
@@ -105,11 +95,10 @@ class EventTableDao: DbService() {
 private fun EventEdit.toEvent(
     eventId: EventId,
     userId: UserId,
-    locationId: LocationId,
 ) = Event(
     eventId = eventId,
     userId = userId,
-    locationId = locationId,
+    locationId = locationId ?: error("no location"),
     currentRequestId = null,
     contact = contact,
     invitation = invitation,
@@ -125,7 +114,7 @@ private fun EventEdit.toEvent(
     sourceImageUrl = sourceImageUrl,
     imageUrl = imageUrl,
     thumbUrl = thumbUrl,
-    timeZone = timeZone ?: error("no time zone"),
+    timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
     endsAt = endsAt ?: error("no ending time"),
     updatedAt = Clock.System.now(),

@@ -46,7 +46,6 @@ class EventUrlReader(
         if (parse == null) {
             console.log("Parse was null")
         }
-        println(parse?.date)
         val event = parse?.toEventEdit(request.url, null, null)
         return SingleEventParseResponse(
             hasContent = parse != null,
