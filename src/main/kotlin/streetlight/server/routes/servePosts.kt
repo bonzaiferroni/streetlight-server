@@ -18,10 +18,10 @@ fun Routing.servePosts(app: ServerProvider = RuntimeProvider) {
     val apiKey = env.read("GEMINI_KEY_A")
     val agent = UrlParser(apiKey)
 
-    getEndpoint(Api.Stories.ReadUrl) { endpoint ->
-        val url = readParam(endpoint.url)
-        agent.readUrl(url, postInstructions)
-    }
+//    getEndpoint(Api.Stories.ReadUrl) { endpoint ->
+//        val url = readParam(endpoint.url)
+//        agent.readUrl(url, postInstructions)
+//    }
 }
 
 const val postInstructions = "Read the following html. It is a user post or a news article. " +

@@ -39,8 +39,9 @@ object EventTable : UUIDTable("event") {
     val thumbUrl = text("thumb_url").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
+    // val doorsAt = timestamp("doors_at").nullable()
     val startsAt = timestamp("starts_at")
-    val endsAt = timestamp("ends_at")
+    val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 }

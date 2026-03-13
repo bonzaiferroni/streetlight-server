@@ -116,7 +116,7 @@ private fun EventEdit.toEvent(
     thumbUrl = thumbUrl,
     timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
-    endsAt = endsAt ?: error("no ending time"),
+    endsAt = endsAt,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

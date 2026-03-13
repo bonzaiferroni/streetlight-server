@@ -1,6 +1,8 @@
 package streetlight.server.routes
 
+import kabinet.clients.readImageUrl
 import kabinet.console.globalConsole
+import streetlight.agent.ParserResult
 import streetlight.model.data.EventParse
 import streetlight.model.data.HtmlParseRequest
 import streetlight.model.data.ImageParseRequest
@@ -21,11 +23,12 @@ class EventUrlReader(
 
     suspend fun serveMulti(request: ParseRequest): MultiEventParseResponse {
         val instructions = ParserText.multiEventInstructions
-        val parse: MultiEventParse? = when (request) {
+        val result: ParserResult<MultiEventParse>? = when (request) {
             is UrlParseRequest -> agent.readUrl(request.url, instructions)
             is HtmlParseRequest -> agent.readHtml(request.url, request.html, instructions)
             is ImageParseRequest -> TODO()
         }
+        val parse = result?.value
         if (parse == null) {
             console.log("Parse was null")
         }
@@ -38,17 +41,20 @@ class EventUrlReader(
 
     suspend fun serveSingle(request: ParseRequest): SingleEventParseResponse {
         val instructions = ParserText.singleEventInstructions
-        val parse: EventParse? = when (request) {
+        val result: ParserResult<EventParse>? = when (request) {
             is UrlParseRequest -> agent.readUrl(request.url, instructions)
             is HtmlParseRequest -> agent.readHtml(request.url, request.html, instructions)
             is ImageParseRequest -> TODO()
         }
-        if (parse == null) {
+        if (result == null) {
             console.log("Parse was null")
         }
-        val event = parse?.toEventEdit(request.url, null, null)
+        val parse = result?.value
+        val featureImage = result?.document?.readImageUrl()
+        console.log(featureImage)
+        val event = parse?.toEventEdit(request.url, null, null)?.copy(imageUrl = featureImage)
         return SingleEventParseResponse(
-            hasContent = parse != null,
+            hasContent = result != null,
             event = event
         )
     }
