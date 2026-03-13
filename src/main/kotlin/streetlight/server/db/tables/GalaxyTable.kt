@@ -20,6 +20,7 @@ import streetlight.server.utils.toProjectId
 object GalaxyTable : UUIDTable("galaxy") {
     val pathId = text("path_id").uniqueIndex()
     val name = text("name")
+    val description = text("description")
     val center = point("center")
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()
@@ -34,10 +35,18 @@ object GalaxyLocationTable: Table("galaxy_location") {
     override val primaryKey = PrimaryKey(galaxyId, locationId)
 }
 
+object GalaxyEventTable: Table("galaxy_event") {
+    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
+    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE)
+
+    override val primaryKey = PrimaryKey(galaxyId, eventId)
+}
+
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
     pathId = this[GalaxyTable.pathId],
     name = this[GalaxyTable.name],
+    description = this[GalaxyTable.description],
     center = this[GalaxyTable.center].toGeoPoint(),
     imageUrl = this[GalaxyTable.imageUrl],
     thumbUrl = this[GalaxyTable.thumbUrl],
@@ -53,6 +62,7 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy) {
 
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.name] = galaxy.name
+    this[GalaxyTable.description] = galaxy.description
     this[GalaxyTable.pathId] = galaxy.pathId
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
     this[GalaxyTable.imageUrl] = galaxy.imageUrl

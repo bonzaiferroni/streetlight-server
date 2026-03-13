@@ -5,7 +5,10 @@ import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
+import kotlinx.datetime.Clock
 import streetlight.model.Api
+import streetlight.model.data.GalaxyPost
+import streetlight.model.data.GalaxyPostId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
@@ -32,6 +35,10 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
                 createThumb(it)
             }
             dao.create(galaxy.copy(thumbUrl = thumbUrl))
+        }
+
+        postEndpoint(Api.Galaxies.CreatePost) { request ->
+            app.dao.galaxyPost.create(request.data)
         }
     }
 }

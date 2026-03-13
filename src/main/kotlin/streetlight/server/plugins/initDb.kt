@@ -22,6 +22,7 @@ import streetlight.server.db.tables.UploadFileTable
 import streetlight.server.db.tables.EventTagTable
 import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.GalaxyPostTable
 
 fun initDb(
     // app: ServerProvider = RuntimeProvider
@@ -60,6 +61,7 @@ val dbTables = listOf(
     UploadFileTable,
     TalentTable,
     GalaxyTable,
+    GalaxyPostTable,
 )
 
 fun connectDb(env: Environment) = Database.connect(

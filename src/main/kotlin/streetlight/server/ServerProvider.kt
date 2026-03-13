@@ -12,6 +12,7 @@ import klutch.gemini.SpeechService
 import streetlight.agent.UrlParser
 import streetlight.server.db.services.EventTableDao
 import streetlight.server.db.services.GalaxyTableDao
+import streetlight.server.db.services.GalaxyPostTableDao
 import streetlight.server.db.services.LocationTableDao
 import streetlight.server.db.services.SongTableDao
 import streetlight.server.db.services.RenditionTableDao
@@ -36,6 +37,7 @@ interface ServerProvider {
 class ServerDao(
     val location: LocationTableDao = LocationTableDao(),
     val galaxy: GalaxyTableDao = GalaxyTableDao(),
+    val galaxyPost: GalaxyPostTableDao = GalaxyPostTableDao(),
     val song: SongTableDao = SongTableDao(),
     val event: EventTableDao = EventTableDao(),
     val rendition: RenditionTableDao = RenditionTableDao(),
