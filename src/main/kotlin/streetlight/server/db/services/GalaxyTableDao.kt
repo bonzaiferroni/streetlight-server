@@ -43,7 +43,7 @@ class GalaxyTableDao : DbService() {
     suspend fun create(edit: GalaxyEdit): Galaxy? {
         val name = edit.name ?: return null
         val center = edit.center ?: return null
-        val description = edit.description ?: return null
+        val description = edit.description
         val galaxy = Galaxy(
             galaxyId = GalaxyId.random(),
             pathId = pathIdFromName(name),

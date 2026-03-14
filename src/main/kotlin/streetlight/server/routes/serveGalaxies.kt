@@ -1,10 +1,13 @@
 package streetlight.server.routes
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
+import klutch.utils.getUsername
 import kotlinx.datetime.Clock
 import streetlight.model.Api
 import streetlight.model.data.GalaxyPost
@@ -34,11 +37,18 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
                 console.log("creating thumbnail img")
                 createThumb(it)
             }
-            dao.create(galaxy.copy(thumbUrl = thumbUrl))
+            dao.create(galaxy.copy(thumbUrl = thumbUrl)).also { println(it) }
         }
 
         postEndpoint(Api.Galaxies.CreatePost) { request ->
-            app.dao.galaxyPost.create(request.data)
+            val post = request.data.copy(username = getUsername())
+
+            // td: support anonymous posts
+//            if (post.username != null && post.username != getUsername()) {
+//                call.respond(HttpStatusCode.Forbidden)
+//                return@postEndpoint null
+//            }
+            app.dao.galaxyPost.create(post)
         }
     }
 }

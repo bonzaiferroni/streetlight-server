@@ -20,7 +20,7 @@ import streetlight.server.utils.toProjectId
 object GalaxyTable : UUIDTable("galaxy") {
     val pathId = text("path_id").uniqueIndex()
     val name = text("name")
-    val description = text("description")
+    val description = text("description").nullable()
     val center = point("center")
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()

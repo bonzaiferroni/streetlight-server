@@ -17,6 +17,7 @@ import streetlight.web.pages.eventSignUp
 import streetlight.web.pages.galaxyPage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
+import streetlight.web.shells.SpotlightContent
 import java.io.File
 
 private val console = globalConsole.getHandle(Routing::servePages.name)
@@ -38,8 +39,14 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     get("/") {
         val events = app.dao.event.readActiveEvents()
         val locations = app.dao.location.readTop(10)
+        val galaxies = app.dao.galaxy.readGalaxies()
+        val content = SpotlightContent(
+            galaxies = galaxies,
+            events = events,
+            locations = locations
+        )
         call.respondHtml {
-            homePage(events, locations)
+            homePage(content)
         }
     }
 
