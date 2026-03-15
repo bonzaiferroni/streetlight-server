@@ -2,9 +2,7 @@ package streetlight.server.db.services
 
 import klutch.db.DbService
 import klutch.db.inList
-import klutch.db.printQuery
 import klutch.db.read
-import klutch.db.readById
 import klutch.utils.eq
 import klutch.utils.toGeoPoint
 import kotlinx.datetime.Clock
@@ -36,7 +34,7 @@ import streetlight.server.utils.toProjectId
 
 class GalaxyPostTableDao : DbService() {
 
-    suspend fun readPost(galaxyPostId: GalaxyPostId) = dbQuery {
+    suspend fun readPostRow(galaxyPostId: GalaxyPostId) = dbQuery {
         GalaxyPostTable.read { it.id.eq(galaxyPostId) }.firstOrNull()?.toGalaxyPostRow()
     }
 
@@ -46,8 +44,7 @@ class GalaxyPostTableDao : DbService() {
 
     suspend fun create(edit: GalaxyPostEdit) = dbQuery {
         val post = edit.toGalaxyPostRow()
-        val id = GalaxyPostTable.insertAndGetId { it.writeFull(post) }.value
-        GalaxyPostTable.readById(id).toGalaxyPostRow()
+        GalaxyPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<GalaxyPostId>()
     }
 
     suspend fun update(galaxyPost: GalaxyPostRow) = dbQuery {
@@ -74,27 +71,36 @@ class GalaxyPostTableDao : DbService() {
 //    }
 
     suspend fun readPosts(galaxyIds: List<GalaxyId>, limit: Int = 100) = dbQuery {
-        queryPosts(limit) { GalaxyPostTable.galaxyId.inList(galaxyIds) }
+        queryActivePosts(limit) { GalaxyPostTable.galaxyId.inList(galaxyIds) }
     }
 
     suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
-        queryPosts(limit) { GalaxyPostTable.galaxyId.eq(galaxyId) }
+        queryActivePosts(limit) { GalaxyPostTable.galaxyId.eq(galaxyId) }
+    }
+
+    suspend fun readPost(galaxyPostId: GalaxyPostId) = dbQuery {
+        queryPosts(1) { GalaxyPostTable.id.eq(galaxyPostId) }.firstOrNull()
     }
 
     suspend fun readTopPosts(limit: Int = 100) = dbQuery {
-        queryPosts(limit)
+        queryActivePosts(limit)
+    }
+
+    fun queryActivePosts(limit: Int, query: QueryBlock? = null): List<GalaxyPost> {
+        val now = Clock.System.now()
+        val isTimelessOrUpcoming = Op.build { EventTable.startsAt.isNull() or EventTable.startsAt.greater(now) }
+        val q: QueryBlock = query?.let {
+            { isTimelessOrUpcoming and query() }
+        } ?: { isTimelessOrUpcoming }
+        return queryPosts(limit, q)
     }
 
     fun queryPosts(limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<GalaxyPost> {
-        val now = Clock.System.now()
-        val isTimelessOrUpcoming = Op.build { EventTable.startsAt.isNull() or EventTable.startsAt.greater(now) }
-        val q = query?.let {
-            Op.build { isTimelessOrUpcoming and query() }
-        } ?: isTimelessOrUpcoming
+        val query = query ?: { GalaxyPostTable.id.isNotNull() } // is there a better default query?
         return GalaxyPostTable.join(LocationTable, JoinType.LEFT, GalaxyPostTable.locationId, LocationTable.id)
             .join(EventTable, JoinType.LEFT, GalaxyPostTable.eventId, EventTable.id)
             .selectAll()
-            .where(q)
+            .where(query)
             .orderBy(EventTable.startsAt to SortOrder.ASC_NULLS_LAST, GalaxyPostTable.createdAt to SortOrder.DESC)
             .limit(limit)
             .map { it.toGalaxyPost() }
@@ -126,3 +132,5 @@ fun ResultRow.toGalaxyPost() = GalaxyPost(
     createdAt = this[GalaxyPostTable.createdAt],
     updatedAt = this[GalaxyPostTable.updatedAt]
 )
+
+typealias QueryBlock = SqlExpressionBuilder.() -> Op<Boolean>

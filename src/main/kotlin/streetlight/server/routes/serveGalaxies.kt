@@ -34,6 +34,10 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
         app.dao.galaxyPost.readPosts(galaxyId)
     }
 
+    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
+        app.dao.galaxyPost.readPost(galaxyPostId)
+    }
+
     authenticateJwt {
         postEndpoint(Api.Galaxies.Found) { request ->
             val galaxy = request.data

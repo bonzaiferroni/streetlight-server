@@ -18,7 +18,7 @@ object ParserText {
     val eventProperties = """
         * name: Event name or title, should be normal casing and appropriately capitalized
         * startTime: Time of day of the event as 24-hour value [HH:MM]
-        * endTime: Time when the event ends as 24-hour value [HH:MM]
+        * endTime: Time when the event ends as 24-hour value [HH:MM]. Must be different from startTime. 
         * date: Date of the event as ISO local date [YYYY-MM-DD]
         * location: The name or description of the location of the event
         * address: The address at which the event is located
