@@ -28,7 +28,7 @@ suspend fun downloadExternalImage(imageUrl: String?): String? {
 
 fun createThumb(imageUrl: String?, thumbUrl: String?): String? {
     if (imageUrl == null || thumbUrl != null) return thumbUrl
-    return createThumb(imageUrl, 64)
+    return createThumb(imageUrl, 128)
 }
 
 suspend fun RoutingContext.validateImage(
