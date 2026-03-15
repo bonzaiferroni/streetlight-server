@@ -1,17 +1,12 @@
 package streetlight.server.routes
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUsername
-import kotlinx.datetime.Clock
 import streetlight.model.Api
-import streetlight.model.data.GalaxyPost
-import streetlight.model.data.GalaxyPostId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
@@ -27,6 +22,11 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
     getEndpoint(Api.Galaxies.Path) {
         val pathId = it.data
         dao.readGalaxyByPath(pathId)
+    }
+
+    postEndpoint(Api.Galaxies.ReadPosts) {
+        val galaxyIds = it.data
+        app.dao.galaxyPost.readPosts(galaxyIds)
     }
 
     authenticateJwt {

@@ -37,13 +37,11 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     }
 
     get("/") {
-        val events = app.dao.event.readActiveEvents()
-        val locations = app.dao.location.readTop(10)
+        val posts = app.dao.galaxyPost.readTopPosts()
         val galaxies = app.dao.galaxy.readGalaxies()
         val content = SpotlightContent(
             galaxies = galaxies,
-            events = events,
-            locations = locations
+            posts = posts,
         )
         call.respondHtml {
             homePage(content)
