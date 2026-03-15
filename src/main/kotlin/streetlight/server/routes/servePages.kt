@@ -17,6 +17,7 @@ import streetlight.web.pages.eventSignUp
 import streetlight.web.pages.galaxyPage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
+import streetlight.web.shells.GalaxyShellContent
 import streetlight.web.shells.SpotlightContent
 import java.io.File
 
@@ -88,9 +89,15 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     get("/g/{id}") {
         val pathId = call.parameters["id"] ?: return@get
         val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
+        val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId)
+
+        val content = GalaxyShellContent(
+            galaxy = galaxy,
+            posts = posts
+        )
 
         call.respondHtml {
-            galaxyPage(galaxy)
+            galaxyPage(content)
         }
     }
 }

@@ -40,7 +40,7 @@ class GalaxyPostTableDao : DbService() {
         GalaxyPostTable.read { it.id.eq(galaxyPostId) }.firstOrNull()?.toGalaxyPostRow()
     }
 
-    suspend fun readPosts(galaxyId: GalaxyId) = dbQuery {
+    suspend fun readPostRows(galaxyId: GalaxyId) = dbQuery {
         GalaxyPostTable.read { GalaxyPostTable.galaxyId.eq(galaxyId) }.map { it.toGalaxyPostRow() }
     }
 
@@ -77,6 +77,10 @@ class GalaxyPostTableDao : DbService() {
         queryPosts(limit) { GalaxyPostTable.galaxyId.inList(galaxyIds) }
     }
 
+    suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
+        queryPosts(limit) { GalaxyPostTable.galaxyId.eq(galaxyId) }
+    }
+
     suspend fun readTopPosts(limit: Int = 100) = dbQuery {
         queryPosts(limit)
     }
@@ -103,7 +107,7 @@ fun GalaxyPostEdit.toGalaxyPostRow() = GalaxyPostRow(
     username = username,
     eventId = eventId,
     locationId = locationId,
-    title = title,
+    title = title ?: error("post title is required"),
     text = text,
     geoPoint = geoPoint,
     updatedAt = Clock.System.now(),

@@ -18,7 +18,7 @@ object GalaxyPostTable : UUIDTable("galaxy_post") {
     val username = text("username").nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val title = text("title").nullable()
+    val title = text("title")
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val updatedAt = timestamp("updated_at")
