@@ -25,7 +25,7 @@ object ParserText {
         * imageUrl: The featured image for the event, must be a full url
         * description: Additional details given about the event. Provide rich formatting with markdown.
         * ageMin: The minimum age for attendees
-        * cost: The entry fee or ticket price for the event in USD. Provide the string value Free if there is no cost, Leave null if unknown.
+        * cost: The lowest entry fee or ticket price for the event in USD. Provide the string value Free if there is no cost.
         * contact: Any name and/or contact information given for the event
         * url: Url for more information about the event, must be a full url
         

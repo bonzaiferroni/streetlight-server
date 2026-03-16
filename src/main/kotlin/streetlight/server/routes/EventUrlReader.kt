@@ -51,7 +51,7 @@ class EventUrlReader(
         }
         val parse = result?.value
         val featureImage = result?.document?.readImageUrl()
-        console.log(featureImage)
+        console.log(result?.value?.cost)
         val event = parse?.toEventEdit(request.url, null, null)?.copy(imageUrl = featureImage)
         return SingleEventParseResponse(
             hasContent = result != null,

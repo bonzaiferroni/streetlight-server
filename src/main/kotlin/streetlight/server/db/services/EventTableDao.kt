@@ -107,7 +107,7 @@ private fun EventEdit.toEvent(
     description = description,
     status = EventStatus.Pending,
     ageMin = ageMin,
-    cost = cost,
+    cost = cost ?: error("no cost provided"),
     visibility = null,
     url = link,
     sourceUrl = sourceUrl,

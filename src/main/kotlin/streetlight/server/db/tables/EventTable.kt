@@ -30,7 +30,7 @@ object EventTable : UUIDTable("event") {
     val contact = text("contact").nullable()
     val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
-    val cost = float("cost").nullable()
+    val cost = float("cost")
     val visibility = integer("visibility").nullable()
     val url = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
