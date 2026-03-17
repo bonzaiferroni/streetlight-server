@@ -109,6 +109,7 @@ private fun EventEdit.toEvent(
     ageMin = ageMin,
     cost = cost ?: error("no cost provided"),
     visibility = null,
+    links = links,
     url = link,
     sourceUrl = sourceUrl,
     sourceImageUrl = sourceImageUrl,

@@ -6,9 +6,12 @@ import klutch.db.tables.UserTable
 import klutch.utils.toGeoPoint
 import klutch.utils.toUUID
 import kotlinx.datetime.TimeZone
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.json.jsonb
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
@@ -16,6 +19,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
 import streetlight.model.data.EventInfo
 import streetlight.model.data.EventStatus
+import streetlight.model.data.ExtraLink
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 import streetlight.server.utils.toUserId
@@ -32,6 +36,7 @@ object EventTable : UUIDTable("event") {
     val ageMin = integer("age_min").nullable()
     val cost = float("cost")
     val visibility = integer("visibility").nullable()
+    val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val url = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
     val sourceImageUrl = text("source_image_url").nullable()
@@ -59,6 +64,7 @@ fun ResultRow.toEvent() = Event(
     ageMin = this[EventTable.ageMin],
     cost = this[EventTable.cost],
     visibility = this[EventTable.visibility],
+    links = this[EventTable.links],
     url = this[EventTable.url],
     sourceUrl = this[EventTable.sourceUrl],
     sourceImageUrl = this[EventTable.sourceImageUrl],
@@ -95,6 +101,8 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
     this[EventTable.cost] = event.cost
+    this[EventTable.visibility] = event.visibility
+    this[EventTable.links] = event.links
     this[EventTable.timeZoneId] = event.timeZone.id
     this[EventTable.startsAt] = event.startsAt
     this[EventTable.endsAt] = event.endsAt
