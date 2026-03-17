@@ -1,7 +1,9 @@
 package streetlight.server.db.services
 
+import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
+import klutch.db.printQuery
 import klutch.db.read
 import klutch.utils.eq
 import klutch.utils.toGeoPoint
@@ -22,6 +24,7 @@ import streetlight.model.data.GalaxyPost
 import streetlight.model.data.GalaxyPostRow
 import streetlight.model.data.GalaxyPostEdit
 import streetlight.model.data.GalaxyPostId
+import streetlight.server.db.tables.EventInterestTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyPostTable
 import streetlight.server.db.tables.LocationTable
@@ -70,39 +73,46 @@ class GalaxyPostTableDao : DbService() {
 //        )
 //    }
 
-    suspend fun readPosts(galaxyIds: List<GalaxyId>, limit: Int = 100) = dbQuery {
-        queryActivePosts(limit) { GalaxyPostTable.galaxyId.inList(galaxyIds) }
+    suspend fun readPosts(galaxyIds: List<GalaxyId>, userId: UserId?, limit: Int = 100) = dbQuery {
+        queryActivePosts(userId, limit) { GalaxyPostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
-        queryActivePosts(limit) { GalaxyPostTable.galaxyId.eq(galaxyId) }
+    suspend fun readPosts(galaxyId: GalaxyId, userId: UserId?, limit: Int = 100) = dbQuery {
+        queryActivePosts(userId, limit) { GalaxyPostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readPost(galaxyPostId: GalaxyPostId) = dbQuery {
-        queryPosts(1) { GalaxyPostTable.id.eq(galaxyPostId) }.firstOrNull()
+    suspend fun readPost(galaxyPostId: GalaxyPostId, userId: UserId?) = dbQuery {
+        queryPosts(userId, 1) { GalaxyPostTable.id.eq(galaxyPostId) }.firstOrNull()
     }
 
-    suspend fun readTopPosts(limit: Int = 100) = dbQuery {
-        queryActivePosts(limit)
+    suspend fun readTopPosts(userId: UserId?, limit: Int = 100) = dbQuery {
+        queryActivePosts(userId, limit)
     }
 
-    fun queryActivePosts(limit: Int, query: QueryBlock? = null): List<GalaxyPost> {
+    fun queryActivePosts(userId: UserId?, limit: Int, query: QueryBlock? = null): List<GalaxyPost> {
         val now = Clock.System.now()
         val isTimelessOrUpcoming = Op.build { EventTable.startsAt.isNull() or EventTable.startsAt.greater(now) }
         val q: QueryBlock = query?.let {
             { isTimelessOrUpcoming and query() }
         } ?: { isTimelessOrUpcoming }
-        return queryPosts(limit, q)
+        return queryPosts(userId, limit, q)
     }
 
-    fun queryPosts(limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<GalaxyPost> {
+    fun queryPosts(userId: UserId?, limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<GalaxyPost> {
         val query = query ?: { GalaxyPostTable.id.isNotNull() } // is there a better default query?
-        return GalaxyPostTable.join(LocationTable, JoinType.LEFT, GalaxyPostTable.locationId, LocationTable.id)
+        val baseJoin = GalaxyPostTable.join(LocationTable, JoinType.LEFT, GalaxyPostTable.locationId, LocationTable.id)
             .join(EventTable, JoinType.LEFT, GalaxyPostTable.eventId, EventTable.id)
+        val join = userId?.let { userId ->
+            baseJoin.join(EventInterestTable, JoinType.LEFT, GalaxyPostTable.eventId, EventInterestTable.eventId) {
+                EventInterestTable.userId.eq(userId)
+            }
+        } ?: baseJoin
+        return join
             .selectAll()
             .where(query)
             .orderBy(EventTable.startsAt to SortOrder.ASC_NULLS_LAST, GalaxyPostTable.createdAt to SortOrder.DESC)
             .limit(limit)
+            .printQuery()
             .map { it.toGalaxyPost() }
     }
 }
@@ -129,6 +139,7 @@ fun ResultRow.toGalaxyPost() = GalaxyPost(
     title = this[GalaxyPostTable.title],
     text = this[GalaxyPostTable.text],
     geoPoint = this[GalaxyPostTable.geoPoint]?.toGeoPoint(),
+    interest = this.getOrNull(EventInterestTable.interest),
     createdAt = this[GalaxyPostTable.createdAt],
     updatedAt = this[GalaxyPostTable.updatedAt]
 )

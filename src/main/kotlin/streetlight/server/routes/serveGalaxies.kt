@@ -1,10 +1,14 @@
 package streetlight.server.routes
 
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
+import klutch.utils.getUserId
+import klutch.utils.getUserIdOrNull
 import klutch.utils.getUsername
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
@@ -25,17 +29,23 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
         dao.readGalaxyByPath(pathId)
     }
 
-    postEndpoint(Api.Galaxies.ReadMultiPosts) {
-        val galaxyIds = it.data
-        app.dao.galaxyPost.readPosts(galaxyIds)
-    }
+    authenticateJwt(optional = true) {
+        postEndpoint(Api.Galaxies.ReadMultiPosts) {
+            val galaxyIds = it.data
+            val userId = getUserIdOrNull()
+            app.dao.galaxyPost.readPosts(galaxyIds, userId)
+        }
 
-    getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
-        app.dao.galaxyPost.readPosts(galaxyId)
-    }
+        getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
+            val userId = getUserIdOrNull()
+            app.dao.galaxyPost.readPost(galaxyPostId, userId)
+        }
 
-    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
-        app.dao.galaxyPost.readPost(galaxyPostId)
+        getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
+            val userId = getUserIdOrNull()
+//        console.log(getUserId())
+            app.dao.galaxyPost.readPosts(galaxyId, userId)
+        }
     }
 
     authenticateJwt {

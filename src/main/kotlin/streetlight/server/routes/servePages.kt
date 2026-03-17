@@ -7,6 +7,8 @@ import io.ktor.server.http.content.staticFiles
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import klutch.server.authenticateJwt
+import klutch.utils.getUserIdOrNull
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.server.RuntimeProvider
@@ -35,18 +37,6 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 //        cacheControl {
 //            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
 //        }
-    }
-
-    get("/") {
-        val posts = app.dao.galaxyPost.readTopPosts()
-        val galaxies = app.dao.galaxy.readGalaxies()
-        val content = SpotlightContent(
-            galaxies = galaxies,
-            posts = posts,
-        )
-        call.respondHtml {
-            homePage(content)
-        }
     }
 
     get("/event-portal/{id}") {
@@ -86,18 +76,34 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    get("/g/{id}") {
-        val pathId = call.parameters["id"] ?: return@get
-        val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
-        val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId)
+    authenticateJwt(optional = true) {
+        get("/") {
+            val userId = getUserIdOrNull()
+            val posts = app.dao.galaxyPost.readTopPosts(userId)
+            val galaxies = app.dao.galaxy.readGalaxies()
+            val content = SpotlightContent(
+                galaxies = galaxies,
+                posts = posts,
+            )
+            call.respondHtml {
+                homePage(content)
+            }
+        }
 
-        val content = GalaxyShellContent(
-            galaxy = galaxy,
-            posts = posts
-        )
+        get("/g/{id}") {
+            val pathId = call.parameters["id"] ?: return@get
+            val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
+            val userId = getUserIdOrNull()
+            val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId, userId)
 
-        call.respondHtml {
-            galaxyPage(content)
+            val content = GalaxyShellContent(
+                galaxy = galaxy,
+                posts = posts
+            )
+
+            call.respondHtml {
+                galaxyPage(content)
+            }
         }
     }
 }
