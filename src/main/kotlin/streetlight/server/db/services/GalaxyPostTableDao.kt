@@ -112,7 +112,6 @@ class GalaxyPostTableDao : DbService() {
             .where(query)
             .orderBy(EventTable.startsAt to SortOrder.ASC_NULLS_LAST, GalaxyPostTable.createdAt to SortOrder.DESC)
             .limit(limit)
-            .printQuery()
             .map { it.toGalaxyPost() }
     }
 }

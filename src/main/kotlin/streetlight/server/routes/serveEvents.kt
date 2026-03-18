@@ -104,6 +104,11 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Events.ParseSingleEvent) { request ->
             reader.serveSingle(request.data)
         }
+
+        postEndpoint(Api.Events.UserInterest) { request ->
+            val userId = getUserId()
+            dao.writeUserInterest(request.data.eventId, userId, request.data.value)
+        }
     }
 }
 

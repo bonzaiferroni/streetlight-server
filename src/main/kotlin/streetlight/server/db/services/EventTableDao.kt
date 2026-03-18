@@ -17,12 +17,17 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.insertIgnore
+import org.jetbrains.exposed.sql.upsert
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
+import streetlight.model.data.InterestType
 import streetlight.model.data.LocationId
+import streetlight.server.db.tables.EventInterestTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventInfoQuery
@@ -89,6 +94,22 @@ class EventTableDao: DbService() {
 
     suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {
         EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt) }?.toEvent()
+    }
+
+    suspend fun writeUserInterest(eventId: EventId, userId: UserId, interest: InterestType?) = dbQuery {
+        if (interest == null) {
+            EventInterestTable.deleteWhere {
+                EventInterestTable.userId.eq(userId) and EventInterestTable.eventId.eq(eventId)
+            } == 1
+        } else {
+            val statement = EventInterestTable.upsert {
+                it[EventInterestTable.userId] = userId.toUUID()
+                it[EventInterestTable.eventId] = eventId.toUUID()
+                it[EventInterestTable.interest] = interest
+                it[EventInterestTable.createdAt] = Clock.System.now()
+            }
+            statement.insertedCount == 1
+        }
     }
 }
 
