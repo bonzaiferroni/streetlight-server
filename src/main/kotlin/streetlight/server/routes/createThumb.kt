@@ -6,6 +6,7 @@ import com.sksamuel.scrimage.nio.ImageSource
 import com.sksamuel.scrimage.nio.JpegWriter
 import com.sksamuel.scrimage.nio.StreamingGifWriter
 import kabinet.console.globalConsole
+import streetlight.model.data.FileFormat
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
@@ -16,32 +17,39 @@ private val console = globalConsole.getHandle("thumbs")
 
 fun createThumb(path: String, size: Int = 128): String? {
     val serverPath = "../$path"
-    val src = File(serverPath)
-    if (!src.exists() || !src.isFile) return null
+    val file = File(serverPath)
+    if (!file.exists() || !file.isFile) return null
 
-    val bytes = runCatching { src.readBytes() }
+    val bytes = runCatching { file.readBytes() }
         .onFailure { console.logThrowable(it) }
         .getOrNull() ?: return null
 
     val format = formatFromPath(path) ?: return null
 
     val outFile = when (format) {
-        FileFormat.GIF -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.gif")
-        else -> File(src.parentFile, "${src.nameWithoutExtension}_thumb_$size.jpg")
+        FileFormat.GIF -> File(file.parentFile, "${file.nameWithoutExtension}_thumb_$size.gif")
+        else -> File(file.parentFile, "${file.nameWithoutExtension}_thumb_$size.jpg")
     }
 
-    val ok = when (format) {
-        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, size)
-        else -> createStaticThumbAsJpg(bytes, outFile, size)
-    }
+    val ok = createThumb(bytes, format, outFile, size)
 
     if (!ok) return null
     return outFile.absolutePath.split("..")[1]
 }
 
-@kotlinx.serialization.Serializable
-enum class FileFormat(val ext: String) {
-    JPEG("jpg"), PNG("png"), GIF("gif"), WEBP("webp"), BMP("bmp")
+fun createThumb(bytes: ByteArray, filename: String, size: Int = 128): String? {
+    val format = detectFileTypeFromImage(bytes) ?: return null
+    val path = "/upload/$filename.${format.ext}"
+    val file = File("..$path")
+    val ok = createThumb(bytes, format, file, size)
+    return if (ok) path else null
+}
+
+fun createThumb(bytes: ByteArray, format: FileFormat, outFile: File, size: Int = 128): Boolean {
+    return when (format) {
+        FileFormat.GIF -> createAnimatedGifThumb(bytes, outFile, size)
+        else -> createStaticThumbAsJpg(bytes, outFile, size)
+    }
 }
 
 private fun formatFromPath(path: String): FileFormat? {
