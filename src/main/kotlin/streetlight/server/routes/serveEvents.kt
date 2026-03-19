@@ -91,11 +91,6 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 //            val userId = call.getUserId()
 //
 //        }
-        postEndpoint(Api.Events.Upload) { bytes, _ ->
-            val userId = getUserId()
-            val format = validateImage(bytes) ?: return@postEndpoint null
-            saveImageFile(bytes, userId, FileUse.FullImage, format)
-        }
 
         postEndpoint(Api.Events.ParseMultiEvents) { request ->
             reader.serveMulti(request.data)

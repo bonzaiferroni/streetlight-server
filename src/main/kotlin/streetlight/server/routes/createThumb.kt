@@ -26,7 +26,7 @@ suspend fun createThumbFromUploadedImage(path: String, userId: UserId?, size: In
 }
 
 suspend fun saveBytesAsThumb(bytes: ByteArray, filename: String, userId: UserId, size: Int = 128): String? {
-    val format = detectFileTypeFromImage(bytes) ?: return null
+    val format = detectFormatFromImage(bytes) ?: return null
     val thumbBytes = createThumbBytes(bytes, format, size) ?: return null
     return saveImageFile(thumbBytes, userId, FileUse.ThumbImage, format, filename)
 }
@@ -37,10 +37,7 @@ suspend fun createThumbIfNull(imageUrl: String?, thumbUrl: String?, userId: User
 }
 
 private fun createThumbBytes(bytes: ByteArray, format: FileFormat, size: Int = 128): ByteArray? {
-    return when (format) {
-        FileFormat.GIF -> resizeGif(bytes, size)
-        else -> resizeJpg(bytes, size)
-    }
+    return resizeImage(bytes, format, size, 1f)
 }
 
 private fun formatFromPath(path: String): FileFormat? {

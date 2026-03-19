@@ -18,44 +18,6 @@ import java.io.File
 
 private val console = globalConsole.getHandle("uploader")
 
-suspend fun downloadExternalImage(imageUrl: String?): String? {
-    if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
-    val bytes = downloadExternalImage(imageUrl) ?: return null
-    val format = detectFileTypeFromImage(bytes) ?: return null
-    return saveImageFile(bytes, null, FileUse.FullImage, format)
-}
-
-suspend fun RoutingContext.validateImage(
-    bytes: ByteArray,
-): FileFormat? {
-    if (bytes.isEmpty()) {
-        call.respond(HttpStatusCode.BadRequest, "Empty body")
-        return null
-    }
-
-    // Size guard (example: 10 MB)
-    val maxBytes = 10 * 1024 * 1024
-    if (bytes.size > maxBytes) {
-        call.respond(HttpStatusCode.PayloadTooLarge, "Too large")
-        return null
-    }
-
-    val fileFormat = detectFileTypeFromImage(bytes)
-    if (fileFormat == null) {
-        call.respond(HttpStatusCode.UnsupportedMediaType, "Not a supported image")
-        return null
-    }
-
-    // Optional: compare with declared Content-Type (don’t trust it, just sanity check)
-    val declared = call.request.contentType()
-    if (declared.contentType.isNotBlank() && declared.contentType != "image") {
-        call.respond(HttpStatusCode.UnsupportedMediaType, "Declared Content-Type not image")
-        return null
-    }
-
-    return fileFormat
-}
-
 suspend fun saveImageFile(
     bytes: ByteArray,
     userId: UserId?,
@@ -87,7 +49,25 @@ suspend fun saveImageFile(
     return url
 }
 
-fun detectFileTypeFromImage(bytes: ByteArray): FileFormat? {
+suspend fun saveFullImage(
+    bytes: ByteArray,
+    userId: UserId?,
+    filename: String? = null,
+): String? {
+    var forceEncoding = false
+    val format = detectFormatFromImage(bytes).let {
+        // save BMP as PNG
+        if (it == FileFormat.BMP) {
+            forceEncoding = true
+            FileFormat.PNG
+        } else it
+    } ?: return null
+
+    val resizedBytes = resizeImage(bytes, format, 1024, null, forceEncoding) ?: return null
+    return saveImageFile(resizedBytes, userId, FileUse.FullImage, format, filename)
+}
+
+fun detectFormatFromImage(bytes: ByteArray): FileFormat? {
     fun has(prefix: ByteArray): Boolean =
         bytes.size >= prefix.size && prefix.indices.all { i -> bytes[i] == prefix[i] }
 
@@ -110,4 +90,41 @@ fun detectFileTypeFromImage(bytes: ByteArray): FileFormat? {
     if (bytes.size >= 2 && bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) return FileFormat.BMP
 
     return null
+}
+
+suspend fun downloadExternalImage(imageUrl: String?): String? {
+    if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
+    val bytes = downloadExternalImage(imageUrl) ?: return null
+    return saveFullImage(bytes, null, null)
+}
+
+suspend fun RoutingContext.validateImage(
+    bytes: ByteArray,
+): FileFormat? {
+    if (bytes.isEmpty()) {
+        call.respond(HttpStatusCode.BadRequest, "Empty body")
+        return null
+    }
+
+    // Size guard (example: 32 MB)
+    val maxBytes = 32 * 1024 * 1024
+    if (bytes.size > maxBytes) {
+        call.respond(HttpStatusCode.PayloadTooLarge, "Too large")
+        return null
+    }
+
+    val fileFormat = detectFormatFromImage(bytes)
+    if (fileFormat == null) {
+        call.respond(HttpStatusCode.UnsupportedMediaType, "Not a supported image")
+        return null
+    }
+
+    // Optional: compare with declared Content-Type (don’t trust it, just sanity check)
+    val declared = call.request.contentType()
+    if (declared.contentType.isNotBlank() && declared.contentType != "image") {
+        call.respond(HttpStatusCode.UnsupportedMediaType, "Declared Content-Type not image")
+        return null
+    }
+
+    return fileFormat
 }
