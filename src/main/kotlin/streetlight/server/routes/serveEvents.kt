@@ -63,7 +63,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 
             edit = edit.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)
-                val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
+                val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
             }
 
@@ -94,7 +94,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Events.Upload) { bytes, _ ->
             val userId = getUserId()
             val format = validateImage(bytes) ?: return@postEndpoint null
-            uploadImageFile(bytes, userId, FileUse.FullImage, format)
+            saveImageFile(bytes, userId, FileUse.FullImage, format)
         }
 
         postEndpoint(Api.Events.ParseMultiEvents) { request ->

@@ -49,7 +49,7 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Locations.Edit) { request ->
             val edit = request.data.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)
-                val thumbUrl = createThumb(imageUrl, edit.thumbUrl)
+                val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
             }
             val userId = getUserId()

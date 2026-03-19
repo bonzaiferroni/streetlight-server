@@ -9,8 +9,8 @@ import streetlight.model.Api
 import streetlight.model.data.FileUse
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
-import streetlight.server.routes.createThumb
-import streetlight.server.routes.validateImage
+import streetlight.server.routes.createThumbFromUploadedImage
+import streetlight.server.routes.saveBytesAsThumb
 
 fun Routing.serveUserHub(app: ServerProvider = RuntimeProvider) {
     authenticateJwt {
@@ -37,7 +37,7 @@ fun Routing.serveUserHub(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Users.UploadAvatar) {
             val bytes = it.data
             val userId = getUserId()
-            createThumb(bytes, "${userId.value}_avatar")
+            saveBytesAsThumb(bytes, "${userId.value}_avatar", userId)
         }
     }
 }

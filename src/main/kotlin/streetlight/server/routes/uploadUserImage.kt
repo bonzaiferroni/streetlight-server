@@ -19,16 +19,10 @@ import java.io.File
 private val console = globalConsole.getHandle("uploader")
 
 suspend fun downloadExternalImage(imageUrl: String?): String? {
-    console.log(imageUrl)
     if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
     val bytes = downloadExternalImage(imageUrl) ?: return null
     val format = detectFileTypeFromImage(bytes) ?: return null
-    return uploadImageFile(bytes, null, FileUse.FullImage, format)
-}
-
-fun createThumb(imageUrl: String?, thumbUrl: String?): String? {
-    if (imageUrl == null || thumbUrl != null) return thumbUrl
-    return createThumb(imageUrl, 128)
+    return saveImageFile(bytes, null, FileUse.FullImage, format)
 }
 
 suspend fun RoutingContext.validateImage(
@@ -62,17 +56,18 @@ suspend fun RoutingContext.validateImage(
     return fileFormat
 }
 
-suspend fun uploadImageFile(
+suspend fun saveImageFile(
     bytes: ByteArray,
     userId: UserId?,
     fileUse: FileUse,
     format: FileFormat,
+    filename: String? = null,
     app: ServerProvider = RuntimeProvider
 ): String {
-
     val fileId = UploadFileId.random()
+    val filename = filename ?: fileId.value
 
-    val name = "${fileId.value}.${format.ext}"
+    val name = "$filename.${format.ext}"
     val file = File(uploadFolder, name)
     val url = "/${uploadFolder.name}/$name"
     file.writeBytes(bytes)

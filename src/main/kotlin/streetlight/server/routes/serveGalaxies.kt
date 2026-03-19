@@ -1,13 +1,10 @@
 package streetlight.server.routes
 
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
-import klutch.utils.getUserId
 import klutch.utils.getUserIdOrNull
 import klutch.utils.getUsername
 import streetlight.model.Api
@@ -54,7 +51,7 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
             console.log("founding galaxy: ${galaxy.name}")
             val thumbUrl = galaxy.thumbUrl ?: galaxy.imageUrl?.let {
                 console.log("creating thumbnail img")
-                createThumb(it)
+                createThumbFromUploadedImage(it, null)
             }
             dao.create(galaxy.copy(thumbUrl = thumbUrl)).also { println(it) }
         }
