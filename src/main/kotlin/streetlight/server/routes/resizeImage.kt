@@ -4,7 +4,9 @@ import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.AnimatedGifReader
 import com.sksamuel.scrimage.nio.ImageSource
 import com.sksamuel.scrimage.nio.JpegWriter
+import com.sksamuel.scrimage.nio.PngWriter
 import com.sksamuel.scrimage.nio.StreamingGifWriter
+import com.sksamuel.scrimage.webp.WebpWriter
 import kabinet.console.globalConsole
 import streetlight.model.data.FileFormat
 import java.awt.Color
@@ -18,9 +20,9 @@ private val console = globalConsole.getHandle("resize")
 
 fun resizeImage(bytes: ByteArray, format: FileFormat, size: Int) = when (format) {
     FileFormat.JPEG -> resizeJpg(bytes, size)
-    FileFormat.PNG -> TODO()
+    FileFormat.PNG -> resizePng(bytes, size)
     FileFormat.GIF -> resizeGif(bytes, size)
-    FileFormat.WEBP -> TODO()
+    FileFormat.WEBP -> resizeWebp(bytes, size)
     FileFormat.BMP -> error("unsupported type: BMP")
 }
 
@@ -37,6 +39,37 @@ private fun resizeJpg(bytes: ByteArray, size: Int): ByteArray? {
             .withProgressive(true)
 
         rgb.bytes(writer)
+    }.onFailure { console.logThrowable(it) }
+        .getOrNull()
+}
+
+private fun resizePng(bytes: ByteArray, size: Int): ByteArray? {
+    return runCatching {
+        val image = ImmutableImage.loader().fromBytes(bytes)
+        val scaled = image.cover(size, size)
+
+        val argb = ensureArgb(scaled.awt())
+        val png = ImmutableImage.fromAwt(argb, BufferedImage.TYPE_INT_ARGB)
+
+        val writer = PngWriter()
+            .withCompression(9)
+
+        png.bytes(writer)
+    }.onFailure { console.logThrowable(it) }
+        .getOrNull()
+}
+
+private fun resizeWebp(bytes: ByteArray, size: Int): ByteArray? {
+    return runCatching {
+        val image = ImmutableImage.loader().fromBytes(bytes)
+        val scaled = image.cover(size, size)
+
+        val argb = ensureArgb(scaled.awt())
+        val webp = ImmutableImage.fromAwt(argb, BufferedImage.TYPE_INT_ARGB)
+
+        val writer = WebpWriter.DEFAULT
+
+        webp.bytes(writer)
     }.onFailure { console.logThrowable(it) }
         .getOrNull()
 }
@@ -69,7 +102,6 @@ private fun resizeGif(bytes: ByteArray, size: Int): ByteArray? {
 }
 
 private fun ensureRgbOnBackground(src: BufferedImage, background: Color = Color.BLACK): BufferedImage {
-    // Proper flatten: draw onto white first
     val fixed = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_RGB)
     val gf = fixed.createGraphics()
     gf.useQuality()
@@ -77,7 +109,15 @@ private fun ensureRgbOnBackground(src: BufferedImage, background: Color = Color.
     gf.clearRect(0, 0, fixed.width, fixed.height)
     gf.drawImage(src, 0, 0, null)
     gf.dispose()
+    return fixed
+}
 
+private fun ensureArgb(src: BufferedImage): BufferedImage {
+    val fixed = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_ARGB)
+    val gf = fixed.createGraphics()
+    gf.useQuality()
+    gf.drawImage(src, 0, 0, null)
+    gf.dispose()
     return fixed
 }
 
