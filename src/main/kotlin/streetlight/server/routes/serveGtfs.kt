@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import com.google.transit.realtime.GtfsRealtime
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
@@ -7,10 +8,15 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
+import kabinet.console.globalConsole
+import kampfire.model.GeoPoint
 import klutch.server.getEndpoint
+import klutch.server.readParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,22 +24,26 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import streetlight.model.Api
 import streetlight.model.data.AreaTransit
+import streetlight.model.data.AreaTransitState
+import streetlight.model.data.TransitVehicle
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import kotlin.time.Duration.Companion.seconds
 
 private val httpClient = HttpClient(CIO)
-private var vehiclePositionBytes: ByteArray? = null
-private var contentType: ContentType = ContentType.Application.OctetStream
-private var timestamp: Instant = Instant.DISTANT_PAST
+private val console = globalConsole.getHandle(Routing::serveGtfs.name)
 
 fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
     CoroutineScope(Dispatchers.IO).launch {
         initGtfs(app)
     }
 
+    var vehiclePositionBytes: ByteArray? = null
+    var contentType: ContentType = ContentType.Application.OctetStream
+    var lastGtfsAt: Instant = Instant.DISTANT_PAST
+
     get(Api.Gtfs.VehiclePosition.path) {
-        val bytes = if (vehiclePositionBytes != null && Clock.System.now() - timestamp < 10.seconds) {
+        val bytes = if (vehiclePositionBytes != null && Clock.System.now() - lastGtfsAt < 10.seconds) {
             vehiclePositionBytes!!
         } else {
             val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
@@ -43,7 +53,7 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
                 ?: ContentType.Application.OctetStream
             upstreamResponse.readRawBytes().also {
                 vehiclePositionBytes = it
-                timestamp = Clock.System.now()
+                lastGtfsAt = Clock.System.now()
             }
         }
 
@@ -51,6 +61,42 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
             bytes = bytes,
             contentType = contentType
         )
+    }
+
+    var cachedState: AreaTransitState? = null
+    var lastReadAt: Instant = Instant.DISTANT_PAST
+
+    getEndpoint(Api.Gtfs.TransitState) { endpoint ->
+        val requestTimestamp = readParam(endpoint.timestamp)
+        val lastState = cachedState
+
+        val now = Clock.System.now()
+        val state = if (lastState != null && now - lastReadAt < 10.seconds) {
+            lastState
+        } else {
+            val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
+            val response = httpClient.get(url)
+            val bytes = response.readRawBytes()
+            val feed = GtfsRealtime.FeedMessage.parseFrom(bytes)
+            val timestamp = feed.header.timestamp
+            if (lastState != null && timestamp == lastState.timestamp) {
+                lastState
+            } else {
+                val vehicles = feed.entityList.map { it.vehicle.toTransitVehicle() }
+                console.log(vehicles.size)
+                AreaTransitState(
+                    timestamp = timestamp,
+                    vehicles = vehicles
+                ).also { cachedState = it }
+            }
+        }
+
+        if (requestTimestamp < state.timestamp) {
+            state
+        } else {
+            call.respond(HttpStatusCode.NoContent)
+            null
+        }
     }
 
     getEndpoint(Api.Gtfs.Routes) {
@@ -63,3 +109,16 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
         )
     }
 }
+
+fun GtfsRealtime.VehiclePosition.toTransitVehicle() = TransitVehicle(
+    vehicleId = vehicle.id,
+    label = trip.routeId,
+    geoPoint = position.toGeoPoint(),
+    bearing = position.bearing,
+    timestamp = timestamp
+)
+
+fun GtfsRealtime.Position.toGeoPoint() = GeoPoint(
+    lng = longitude.toDouble(),
+    lat = latitude.toDouble(),
+)

@@ -49,6 +49,7 @@ dependencies {
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
     implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
     implementation("com.fleeksoft.ksoup:ksoup:0.2.6")
+    implementation("com.google.transit:gtfs-realtime-bindings:0.0.4")
 }
 
 ktor {
