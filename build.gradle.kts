@@ -16,6 +16,7 @@ dependencies {
 
     implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.serialization.kotlinx.json.jvm)
+    implementation(libs.ktor.serialization.kotlinx.cbor)
     implementation(libs.ktor.server.content.negotiation.jvm)
 
     implementation(libs.exposed.core)
@@ -50,6 +51,7 @@ dependencies {
     implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
     implementation("com.fleeksoft.ksoup:ksoup:0.2.6")
     implementation("com.google.transit:gtfs-realtime-bindings:0.0.4")
+    implementation(libs.ktor.serialization.kotlinx.cbor)
 }
 
 ktor {

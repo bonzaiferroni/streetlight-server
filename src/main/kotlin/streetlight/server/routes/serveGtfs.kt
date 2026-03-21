@@ -74,6 +74,7 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
         val state = if (lastState != null && now - lastReadAt < 10.seconds) {
             lastState
         } else {
+            lastReadAt = now
             val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
             val response = httpClient.get(url)
             val bytes = response.readRawBytes()
@@ -83,10 +84,9 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
                 lastState
             } else {
                 val vehicles = feed.entityList.map { it.vehicle.toTransitVehicle() }
-                console.log(vehicles.size)
                 AreaTransitState(
                     timestamp = timestamp,
-                    vehicles = vehicles
+                    vehicles = vehicles,
                 ).also { cachedState = it }
             }
         }
@@ -112,7 +112,7 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
 
 fun GtfsRealtime.VehiclePosition.toTransitVehicle() = TransitVehicle(
     vehicleId = vehicle.id,
-    label = trip.routeId,
+    routeId = trip.routeId,
     geoPoint = position.toGeoPoint(),
     bearing = position.bearing,
     timestamp = timestamp
