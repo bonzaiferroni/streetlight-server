@@ -20,7 +20,7 @@ import streetlight.web.pages.galaxyPage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
 import streetlight.web.shells.GalaxyShellContent
-import streetlight.web.shells.SpotlightContent
+import streetlight.web.shells.HomeContent
 import java.io.File
 
 private val console = globalConsole.getHandle(Routing::servePages.name)
@@ -81,7 +81,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             val userId = getUserIdOrNull()
             val posts = app.dao.galaxyPost.readTopPosts(userId)
             val galaxies = app.dao.galaxy.readGalaxies()
-            val content = SpotlightContent(
+            val content = HomeContent(
                 galaxies = galaxies,
                 posts = posts,
             )
