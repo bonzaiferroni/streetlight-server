@@ -100,7 +100,7 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
     }
 
     getEndpoint(Api.Gtfs.Routes) {
-        val routeIds = setOf("15L", "15", "121", "121L", "107R", "101H", "A")
+        val routeIds = setOf("101E", "101D", "103W", "117N", "107R", "101H", "A")
         val routes = app.dao.transitRoute.readRoutes(routeIds)
         val stops = app.dao.transitStop.readRouteStops(routeIds)
         AreaTransit(
