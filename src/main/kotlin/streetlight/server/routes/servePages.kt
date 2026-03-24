@@ -26,18 +26,7 @@ import java.io.File
 private val console = globalConsole.getHandle(Routing::servePages.name)
 
 fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
-    uploadFolder.mkdirs()
-    wwwFolder.mkdirs()
-    staticFiles("/upload", uploadFolder)
-    staticFiles("/www", wwwFolder) {
-        contentType { file ->
-            if (file.extension == "map") ContentType.Application.Json
-            else ContentType.defaultForFilePath(file.path)
-        }
-//        cacheControl {
-//            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
-//        }
-    }
+
 
     get("/event-portal/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get

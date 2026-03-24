@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":klutch"))
     implementation(project(":web"))
     implementation(project(":agent"))
+    implementation(project(":koala"))
 
     implementation("io.ktor:ktor-server-html-builder:3.3.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")

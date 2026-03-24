@@ -27,5 +27,6 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
         servePosts()
         serveChat()
         serveMap()
+        serveFiles()
     }
 }
