@@ -84,10 +84,12 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
             val userId = getUserIdOrNull()
             val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId, userId)
+            val galaxies = app.dao.galaxy.readGalaxies()
 
             val content = GalaxyShellContent(
                 galaxy = galaxy,
-                posts = posts
+                posts = posts,
+                galaxies = galaxies,
             )
 
             call.respondHtml {
