@@ -9,6 +9,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import koala.CssFile
 import koala.CssFiles
+import koala.css.kotlinElementStyles
 import koala.genPath
 import koala.html.ICON_STYLES
 import koala.html.LOGO_STYLES
@@ -30,13 +31,9 @@ fun Routing.serveFiles() {
 //        }
     }
 
-    get(CssFiles.genElements, ICON_STYLES, LOGO_STYLES, POPOVER_STYLES)
-}
-
-fun Routing.get(file: CssFile, vararg styles: String) {
-    get(file.path) {
+    get(CssFiles.genElements.path) {
         call.respondText(
-            text = styles.joinToString("\n\n"),
+            text = kotlinElementStyles.joinToString("\n"),
             contentType = ContentType.Text.CSS
         )
     }
