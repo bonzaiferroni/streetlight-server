@@ -12,6 +12,7 @@ import koala.CssFiles
 import koala.genPath
 import koala.html.ICON_STYLES
 import koala.html.LOGO_STYLES
+import koala.html.POPOVER_STYLES
 
 fun Routing.serveFiles() {
     uploadFolder.mkdirs()
@@ -29,7 +30,7 @@ fun Routing.serveFiles() {
 //        }
     }
 
-    get(CssFiles.genElements, ICON_STYLES, LOGO_STYLES)
+    get(CssFiles.genElements, ICON_STYLES, LOGO_STYLES, POPOVER_STYLES)
 }
 
 fun Routing.get(file: CssFile, vararg styles: String) {
