@@ -3,17 +3,11 @@ package streetlight.server.routes
 import io.ktor.http.ContentType
 import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import koala.CssFile
 import koala.CssFiles
 import koala.css.kotlinElementStyles
-import koala.genPath
-import koala.html.ICON_STYLES
-import koala.html.LOGO_STYLES
-import koala.html.POPOVER_STYLES
 
 fun Routing.serveFiles() {
     uploadFolder.mkdirs()
