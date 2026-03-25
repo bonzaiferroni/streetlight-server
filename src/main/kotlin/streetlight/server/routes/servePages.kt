@@ -1,9 +1,6 @@
 package streetlight.server.routes
 
-import io.ktor.http.ContentType
-import io.ktor.http.defaultForFilePath
 import io.ktor.server.html.respondHtml
-import io.ktor.server.http.content.staticFiles
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
@@ -19,7 +16,7 @@ import streetlight.web.pages.eventSignUp
 import streetlight.web.pages.galaxyPage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
-import streetlight.web.shells.GalaxyShellContent
+import streetlight.web.shells.GalaxyProfileContent
 import streetlight.web.shells.HomeContent
 import java.io.File
 
@@ -86,7 +83,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId, userId)
             val galaxies = app.dao.galaxy.readGalaxies()
 
-            val content = GalaxyShellContent(
+            val content = GalaxyProfileContent(
                 galaxy = galaxy,
                 posts = posts,
                 galaxies = galaxies,
