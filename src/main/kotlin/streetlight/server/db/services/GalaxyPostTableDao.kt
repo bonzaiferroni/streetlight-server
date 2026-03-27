@@ -100,13 +100,8 @@ class GalaxyPostTableDao : DbService() {
 
     fun queryPosts(userId: UserId?, limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<GalaxyPost> {
         val query = query ?: { GalaxyPostTable.id.isNotNull() } // is there a better default query?
-        val baseJoin = GalaxyPostTable.join(LocationTable, JoinType.LEFT, GalaxyPostTable.locationId, LocationTable.id)
+        val join = GalaxyPostTable.join(LocationTable, JoinType.LEFT, GalaxyPostTable.locationId, LocationTable.id)
             .join(EventTable, JoinType.LEFT, GalaxyPostTable.eventId, EventTable.id)
-        val join = userId?.let { userId ->
-            baseJoin.join(EventInterestTable, JoinType.LEFT, GalaxyPostTable.eventId, EventInterestTable.eventId) {
-                EventInterestTable.userId.eq(userId)
-            }
-        } ?: baseJoin
         return join
             .selectAll()
             .where(query)
@@ -138,7 +133,6 @@ fun ResultRow.toGalaxyPost() = GalaxyPost(
     title = this[GalaxyPostTable.title],
     text = this[GalaxyPostTable.text],
     geoPoint = this[GalaxyPostTable.geoPoint]?.toGeoPoint(),
-    interest = this.getOrNull(EventInterestTable.interest),
     createdAt = this[GalaxyPostTable.createdAt],
     updatedAt = this[GalaxyPostTable.updatedAt]
 )
