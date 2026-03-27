@@ -15,7 +15,8 @@ fun ResultRow.toEventLocation() = EventLocation(
     description = this[EventTable.description],
     status = this[EventTable.status],
     visibility = (0..20).random(),
+    geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
+    locationName = this[LocationTable.name],
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
-    geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
 )
