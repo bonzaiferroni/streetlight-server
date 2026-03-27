@@ -13,7 +13,7 @@ import streetlight.server.ServerProvider
 import streetlight.web.pages.eventPage
 import streetlight.web.pages.eventPortal
 import streetlight.web.pages.eventSignUp
-import streetlight.web.pages.galaxyPage
+import streetlight.web.pages.galaxyProfilePage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
 import streetlight.web.shells.GalaxyProfileContent
@@ -90,7 +90,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             )
 
             call.respondHtml {
-                galaxyPage(content)
+                galaxyProfilePage(content)
             }
         }
     }

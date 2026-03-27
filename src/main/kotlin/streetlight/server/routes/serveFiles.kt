@@ -20,9 +20,9 @@ fun Routing.serveFiles() {
             if (file.extension == "map") ContentType.Application.Json
             else ContentType.defaultForFilePath(file.path)
         }
-        cacheControl {
-            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
-        }
+//        cacheControl {
+//            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
+//        }
     }
 
 //    get(CssFiles.genElements.path) {
