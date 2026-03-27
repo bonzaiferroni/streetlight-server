@@ -6,8 +6,7 @@ import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import koala.CssFiles
-import koala.css.kotlinElementStyles
+import koala.css.CssManifest
 
 fun Routing.serveFiles() {
     uploadFolder.mkdirs()
@@ -25,10 +24,10 @@ fun Routing.serveFiles() {
 //        }
     }
 
-    get(CssFiles.genElements.path) {
-        call.respondText(
-            text = kotlinElementStyles.joinToString("\n"),
-            contentType = ContentType.Text.CSS
-        )
-    }
+//    get(CssFiles.genElements.path) {
+//        call.respondText(
+//            text = CssManifest.joinToString("\n"),
+//            contentType = ContentType.Text.CSS
+//        )
+//    }
 }
