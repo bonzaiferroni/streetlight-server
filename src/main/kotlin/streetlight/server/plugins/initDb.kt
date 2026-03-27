@@ -9,7 +9,7 @@ import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
-import streetlight.server.db.tables.EventInterestTable
+import streetlight.server.db.tables.EventStarTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.RequestTable
@@ -50,7 +50,7 @@ val dbTables = listOf(
     UserTable,
     LocationTable,
     EventTable,
-    EventInterestTable,
+    EventStarTable,
     SongTable,
     RenditionTable,
     RequestTable,

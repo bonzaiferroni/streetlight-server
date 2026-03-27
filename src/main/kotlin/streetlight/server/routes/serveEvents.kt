@@ -13,7 +13,6 @@ import klutch.utils.getUserId
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
-import streetlight.model.data.FileUse
 import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
@@ -48,6 +47,11 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
 
     getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) { id, _ ->
         dao.readLocationEvents(id)
+    }
+
+    postEndpoint(Api.Events.ReadEventLocations) {
+        val ids = it.data
+        dao.readEventLocations(ids)
     }
 
     authenticateJwt {
@@ -100,9 +104,14 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
             reader.serveSingle(request.data)
         }
 
-        postEndpoint(Api.Events.UserInterest) { request ->
+        postEndpoint(Api.Events.EditEventStar) { request ->
             val userId = getUserId()
-            dao.writeUserInterest(request.data.eventId, userId, request.data.value)
+            dao.editEventStar(request.data.eventId, userId, request.data.value)
+        }
+
+        getEndpoint(Api.Events.ReadEventStars) {
+            val userId = getUserId()
+            dao.readEventStars(userId)
         }
     }
 }

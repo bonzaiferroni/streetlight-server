@@ -1,23 +1,16 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.tables.UserTable
 import klutch.utils.toGeoPoint
 import klutch.utils.toUUID
-import kotlinx.datetime.TimeZone
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.json.jsonb
-import org.jetbrains.exposed.sql.kotlin.datetime.date
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
-import streetlight.model.data.EventInfo
+import streetlight.model.data.EventLocation
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.server.utils.toProjectId
@@ -124,18 +117,3 @@ val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
     EventTable.endsAt,
     LocationTable.geoPoint,
 ))
-
-fun ResultRow.toEventInfo() = EventInfo(
-    eventId = toProjectId(EventTable.id),
-    locationId = toProjectId(EventTable.locationId),
-    url = this[EventTable.url],
-    imageUrl = this[EventTable.imageUrl] ?: this[LocationTable.imageUrl],
-    thumbUrl = this[EventTable.thumbUrl] ?: this[LocationTable.thumbUrl],
-    title = this[EventTable.title],
-    description = this[EventTable.description],
-    status = this[EventTable.status],
-    visibility = (0..20).random(),
-    startsAt = this[EventTable.startsAt],
-    endsAt = this[EventTable.endsAt],
-    geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
-)

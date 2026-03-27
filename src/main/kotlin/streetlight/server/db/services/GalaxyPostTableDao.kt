@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
-import klutch.db.printQuery
 import klutch.db.read
 import klutch.utils.eq
 import klutch.utils.toGeoPoint
@@ -24,7 +23,6 @@ import streetlight.model.data.GalaxyPost
 import streetlight.model.data.GalaxyPostRow
 import streetlight.model.data.GalaxyPostEdit
 import streetlight.model.data.GalaxyPostId
-import streetlight.server.db.tables.EventInterestTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyPostTable
 import streetlight.server.db.tables.LocationTable
