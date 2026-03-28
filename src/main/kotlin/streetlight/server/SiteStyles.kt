@@ -1,0 +1,53 @@
+package streetlight.server
+
+import koala.CssFiles
+import koala.css.*
+import koala.html.*
+import java.io.File
+
+val SiteStyles by lazy {
+    buildString {
+        // css files located in /www/css
+        CssFiles.forEach {
+            appendLine(File("../${it.path}").readText())
+        }
+
+        // styles declared with elements in koala.html
+        Elements.forEach {
+            appendLine(it)
+        }
+
+        // utilities declared in koala.css
+        Utilities.forEach {
+            appendLine(it.toStylesheet())
+        }
+    }
+}
+
+private val Elements = listOf(
+    IconCss,
+    LogoCss,
+    ListingCss,
+    ListItemCss,
+    PopoverCss,
+    SwapBlockCss,
+    SectionCss,
+    ActionCss,
+    TextLabelCss,
+    MessageBoxCss,
+    SwitchCss,
+    FlowBlockCss,
+    ItemsBlockCss,
+    ShellBoxCss,
+    WireBlockCss,
+    FillImageCss,
+    CarouselCss,
+    HeaderImageCss,
+    FilePickerCss,
+)
+
+private val Utilities = listOf(
+    LayoutUtilityCss,
+    DisplayUtilityCss,
+    TextUtilityCss,
+)

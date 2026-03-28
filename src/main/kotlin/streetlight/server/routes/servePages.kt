@@ -10,6 +10,7 @@ import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
+import streetlight.server.SiteStyles
 import streetlight.web.pages.eventPage
 import streetlight.web.pages.eventPortal
 import streetlight.web.pages.eventSignUp
@@ -32,7 +33,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         val requestItems = app.dao.song.readRequestItems(event.userId)
         call.respondHtml {
             console.log("responding")
-            eventPortal(event, spark, requestItems)
+            eventPortal(event, spark, requestItems, SiteStyles)
         }
     }
 
@@ -40,7 +41,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
         val event = app.dao.event.readEvent(eventId) ?: return@get
         call.respondHtml {
-            eventSignUp(event)
+            eventSignUp(event, SiteStyles)
         }
     }
 
@@ -49,7 +50,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         val event = app.dao.event.readEvent(eventId) ?: return@get
 
         call.respondHtml {
-            eventPage(event)
+            eventPage(event, SiteStyles)
         }
     }
 
@@ -58,7 +59,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         val location = app.dao.location.readLocation(locationId) ?: return@get
 
         call.respondHtml {
-            locationPage(location)
+            locationPage(location, SiteStyles)
         }
     }
 
@@ -72,7 +73,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
                 posts = posts,
             )
             call.respondHtml {
-                homePage(content)
+                homePage(content, SiteStyles)
             }
         }
 
@@ -90,7 +91,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             )
 
             call.respondHtml {
-                galaxyProfilePage(content)
+                galaxyProfilePage(content, SiteStyles)
             }
         }
     }
