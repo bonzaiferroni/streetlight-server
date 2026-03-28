@@ -3,6 +3,7 @@ package streetlight.server
 import koala.CssFiles
 import koala.css.*
 import koala.html.*
+import streetlight.web.pages.AppBodyCss
 import java.io.File
 
 val SiteStyles by lazy {
@@ -13,7 +14,7 @@ val SiteStyles by lazy {
         }
 
         // styles declared with elements in koala.html
-        Elements.forEach {
+        KtStyles.forEach {
             appendLine(it)
         }
 
@@ -24,7 +25,7 @@ val SiteStyles by lazy {
     }
 }
 
-private val Elements = listOf(
+private val KtStyles = listOf(
     IconCss,
     LogoCss,
     ListingCss,
@@ -44,6 +45,8 @@ private val Elements = listOf(
     CarouselCss,
     HeaderImageCss,
     FilePickerCss,
+
+    AppBodyCss,
 )
 
 private val Utilities = listOf(
