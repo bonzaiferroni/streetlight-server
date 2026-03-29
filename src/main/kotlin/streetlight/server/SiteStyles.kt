@@ -45,6 +45,9 @@ private val KtStyles = listOf(
     CarouselCss,
     HeaderImageCss,
     FilePickerCss,
+    BlockLabelCss,
+    ImageChooserCss,
+    DialogCss,
 
     AppBodyCss,
 )
