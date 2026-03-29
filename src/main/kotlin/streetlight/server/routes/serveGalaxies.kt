@@ -5,6 +5,7 @@ import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
+import klutch.utils.getUserId
 import klutch.utils.getUserIdOrNull
 import klutch.utils.getUsername
 import streetlight.model.Api
@@ -17,13 +18,18 @@ private val console = globalConsole.getHandle(Routing::serveGalaxies.name)
 fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.galaxy
 
-    getEndpoint(Api.Galaxies.All) {
-        dao.readGalaxies()
+    getEndpoint(Api.Galaxies.Top) {
+        dao.readTopGalaxies()
     }
 
     getEndpoint(Api.Galaxies.Path) {
         val pathId = it.data
         dao.readGalaxyByPath(pathId)
+    }
+    
+    postEndpoint(Api.Galaxies.ReadGalaxies) {
+        val galaxyIds = it.data
+        dao.readGalaxies(galaxyIds)
     }
 
     authenticateJwt(optional = true) {
@@ -65,6 +71,11 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
 //                return@postEndpoint null
 //            }
             app.dao.galaxyPost.create(post)
+        }
+
+        getEndpoint(Api.Galaxies.ReadStars) {
+            val userId = getUserId()
+            dao.readGalaxyStars(userId)
         }
     }
 }

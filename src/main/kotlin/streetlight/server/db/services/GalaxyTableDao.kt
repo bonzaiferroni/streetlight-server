@@ -1,12 +1,11 @@
 package streetlight.server.db.services
 
+import kampfire.model.UserId
 import klutch.db.DbService
+import klutch.db.inList
 import klutch.db.read
-import klutch.db.readById
-import klutch.db.readFirst
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
-import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -16,6 +15,7 @@ import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.PathId
 import streetlight.model.data.pathIdFromName
+import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
@@ -32,8 +32,12 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.readFirstOrNull { it.pathId.eq(pathId) }?.toGalaxy()
     }
 
-    suspend fun readGalaxies() = dbQuery {
+    suspend fun readTopGalaxies() = dbQuery {
         GalaxyTable.read { GalaxyTable.id.isNotNull() }.map { it.toGalaxy() }
+    }
+    
+    suspend fun readGalaxies(galaxyIds: List<GalaxyId>) = dbQuery {
+        GalaxyTable.read { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
     suspend fun create(galaxy: Galaxy) = dbQuery {
@@ -67,5 +71,9 @@ class GalaxyTableDao : DbService() {
 
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
+    }
+
+    suspend fun readGalaxyStars(userId: UserId) = dbQuery {
+        GalaxyTable.read { GalaxyStarTable.UserId.eq(userId) }.map { it[GalaxyStarTable.GalaxyId].toProjectId<GalaxyId>() }
     }
 }

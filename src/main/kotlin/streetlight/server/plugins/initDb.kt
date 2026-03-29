@@ -24,6 +24,7 @@ import streetlight.server.db.tables.EventTagTable
 import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.GalaxyPostTable
+import streetlight.server.db.tables.GalaxyStarTable
 
 fun initDb(
     // app: ServerProvider = RuntimeProvider
@@ -64,6 +65,7 @@ val dbTables = listOf(
     TalentTable,
     GalaxyTable,
     GalaxyPostTable,
+    GalaxyStarTable,
 )
 
 fun connectDb(env: Environment) = Database.connect(

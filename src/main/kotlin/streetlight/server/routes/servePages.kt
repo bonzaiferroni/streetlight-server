@@ -67,7 +67,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         get("/") {
             val userId = getUserIdOrNull()
             val posts = app.dao.galaxyPost.readTopPosts(userId)
-            val galaxies = app.dao.galaxy.readGalaxies()
+            val galaxies = app.dao.galaxy.readTopGalaxies()
             val content = HomeContent(
                 galaxies = galaxies,
                 posts = posts,
@@ -82,7 +82,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
             val userId = getUserIdOrNull()
             val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId, userId)
-            val galaxies = app.dao.galaxy.readGalaxies()
+            val galaxies = app.dao.galaxy.readTopGalaxies()
 
             val content = GalaxyProfileContent(
                 galaxy = galaxy,
