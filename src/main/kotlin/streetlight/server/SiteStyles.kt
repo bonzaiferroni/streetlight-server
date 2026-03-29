@@ -8,6 +8,9 @@ import java.io.File
 
 val SiteStyles by lazy {
     buildString {
+//        println(AppBodyCss)
+        appendLine(StylesCss)// .also { println(StylesCss) }
+
         // css files located in /www/css
         CssFiles.forEach {
             appendLine(File("../${it.path}").readText())
