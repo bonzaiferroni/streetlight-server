@@ -1,6 +1,6 @@
 package streetlight.server
 
-import koala.CssFiles
+import koala.CssFile
 import koala.css.*
 import koala.html.*
 import streetlight.web.pages.AppBodyCss
@@ -12,7 +12,7 @@ val SiteStyles by lazy {
         appendLine(StylesCss)// .also { println(StylesCss) }
 
         // css files located in /www/css
-        CssFiles.forEach {
+        CssFile.forEach {
             appendLine(File("../${it.path}").readText())
         }
 
