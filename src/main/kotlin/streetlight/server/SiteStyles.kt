@@ -8,7 +8,7 @@ import java.io.File
 
 val SiteStyles by lazy {
     buildString {
-//        println(AppBodyCss)
+        // println(BlockLabelCss)
         appendLine(StylesCss)// .also { println(StylesCss) }
 
         // css files located in /www/css
@@ -51,6 +51,7 @@ private val KtStyles = listOf(
     BlockLabelCss,
     ImageChooserCss,
     DialogCss,
+    LottieCss,
 
     AppBodyCss,
 )
