@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Galaxy
+import streetlight.model.data.PostPermission
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
@@ -20,6 +21,9 @@ object GalaxyTable : UUIDTable("galaxy") {
     val name = text("name")
     val description = text("description").nullable()
     val center = point("center")
+    val zoom = float("zoom")
+    val postPermission = enumeration<PostPermission>("post-permission")
+    val postGuide = text("post_guide").nullable()
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()
     val updatedAt = datetime("updated_at")
@@ -46,6 +50,9 @@ fun ResultRow.toGalaxy() = Galaxy(
     name = this[GalaxyTable.name],
     description = this[GalaxyTable.description],
     center = this[GalaxyTable.center].toGeoPoint(),
+    zoom = this[GalaxyTable.zoom],
+    postPermission = this[GalaxyTable.postPermission],
+    postGuide = this[GalaxyTable.postGuide],
     imageUrl = this[GalaxyTable.imageUrl],
     thumbUrl = this[GalaxyTable.thumbUrl],
     updatedAt = this[GalaxyTable.updatedAt].toInstantFromUtc(),
@@ -63,6 +70,9 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.description] = galaxy.description
     this[GalaxyTable.path] = galaxy.path
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
+    this[GalaxyTable.zoom] = galaxy.zoom
+    this[GalaxyTable.postPermission] = galaxy.postPermission
+    this[GalaxyTable.postGuide] = galaxy.postGuide
     this[GalaxyTable.imageUrl] = galaxy.imageUrl
     this[GalaxyTable.thumbUrl] = galaxy.thumbUrl
     this[GalaxyTable.updatedAt] = galaxy.updatedAt.toLocalDateTimeUtc()
