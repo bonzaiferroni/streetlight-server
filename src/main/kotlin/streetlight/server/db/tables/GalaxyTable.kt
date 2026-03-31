@@ -13,12 +13,10 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Galaxy
-import streetlight.server.db.tables.TransitRouteStopTable.transitRouteId
-import streetlight.server.db.tables.TransitRouteStopTable.transitStopId
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
-    val pathId = text("path_id").uniqueIndex()
+    val path = text("path_id").uniqueIndex() // td: change to fit name
     val name = text("name")
     val description = text("description").nullable()
     val center = point("center")
@@ -44,7 +42,7 @@ object GalaxyEventTable: Table("galaxy_event") {
 
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
-    pathId = this[GalaxyTable.pathId],
+    path = this[GalaxyTable.path],
     name = this[GalaxyTable.name],
     description = this[GalaxyTable.description],
     center = this[GalaxyTable.center].toGeoPoint(),
@@ -63,7 +61,7 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy) {
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.description] = galaxy.description
-    this[GalaxyTable.pathId] = galaxy.pathId
+    this[GalaxyTable.path] = galaxy.path
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
     this[GalaxyTable.imageUrl] = galaxy.imageUrl
     this[GalaxyTable.thumbUrl] = galaxy.thumbUrl

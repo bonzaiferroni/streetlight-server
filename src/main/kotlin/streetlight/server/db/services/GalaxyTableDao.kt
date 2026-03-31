@@ -13,8 +13,6 @@ import org.jetbrains.exposed.sql.update
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
-import streetlight.model.data.PathId
-import streetlight.model.data.pathIdFromName
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.toGalaxy
@@ -28,8 +26,8 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.read { it.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
     }
 
-    suspend fun readGalaxyByPath(pathId: PathId) = dbQuery {
-        GalaxyTable.readFirstOrNull { it.pathId.eq(pathId) }?.toGalaxy()
+    suspend fun readGalaxyByPath(path: String) = dbQuery {
+        GalaxyTable.readFirstOrNull { it.path.eq(path) }?.toGalaxy()
     }
 
     suspend fun readTopGalaxies() = dbQuery {
@@ -50,7 +48,7 @@ class GalaxyTableDao : DbService() {
         val description = edit.description
         val galaxy = Galaxy(
             galaxyId = GalaxyId.random(),
-            pathId = pathIdFromName(name),
+            path = edit.path ?: GalaxyEdit.pathOf(name),
             name = name,
             description = description,
             center = center,
