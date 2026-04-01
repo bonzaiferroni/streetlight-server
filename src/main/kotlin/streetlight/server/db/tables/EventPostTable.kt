@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.point
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -12,8 +11,8 @@ import streetlight.server.utils.toProjectId
 
 object EventPostTable : UUIDTable("event_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
+    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE) // td: make nullable
     val username = text("username").nullable()
-    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.SET_NULL)
     val title = text("title")
     val text = text("text").nullable()
     val updatedAt = timestamp("updated_at")
@@ -21,7 +20,7 @@ object EventPostTable : UUIDTable("event_post") {
 }
 
 fun ResultRow.toEventPostRow() = EventPostRow(
-    eventPostId = this[EventPostTable.id].toProjectId(),
+    postId = this[EventPostTable.id].toProjectId(),
     galaxyId = this[EventPostTable.galaxyId].toProjectId(),
     username = this[EventPostTable.username],
     eventId = this[EventPostTable.eventId].toProjectId(),
@@ -31,7 +30,7 @@ fun ResultRow.toEventPostRow() = EventPostRow(
 )
 
 fun UpdateBuilder<*>.writeFull(post: EventPostRow) {
-    this[EventPostTable.id] = post.eventPostId.toUUID()
+    this[EventPostTable.id] = post.postId.toUUID()
     this[EventPostTable.galaxyId] = post.galaxyId.toUUID()
     this[EventPostTable.createdAt] = post.createdAt
     writeUpdate(post)
@@ -41,6 +40,5 @@ fun UpdateBuilder<*>.writeUpdate(post: EventPostRow) {
     this[EventPostTable.username] = post.username
     this[EventPostTable.eventId] = post.eventId.toUUID()
     this[EventPostTable.text] = post.text
-
     this[EventPostTable.updatedAt] = post.updatedAt
 }

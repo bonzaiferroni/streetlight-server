@@ -48,7 +48,7 @@ class EventPostTableDao : DbService() {
     }
 
     suspend fun update(galaxyPost: EventPostRow) = dbQuery {
-        EventPostTable.update(where = { EventPostTable.id.eq(galaxyPost.eventPostId) }) {
+        EventPostTable.update(where = { EventPostTable.id.eq(galaxyPost.postId) }) {
             it.writeUpdate(galaxyPost)
         } == 1
     }
@@ -110,7 +110,7 @@ class EventPostTableDao : DbService() {
 }
 
 fun EventPostEdit.toEventPostRow() = EventPostRow(
-    eventPostId = eventPostId ?: EventPostId.random(),
+    postId = postId ?: EventPostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
     username = username,
     eventId = eventId ?: error("eventId is required"),
