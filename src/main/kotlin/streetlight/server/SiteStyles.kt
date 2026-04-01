@@ -53,7 +53,6 @@ private val KtStyles = listOf(
     ImageChooserCss,
     DialogCss,
     LottieCss,
-    StickyBarCss,
     IconButtonCss,
 
     AppBodyCss,
