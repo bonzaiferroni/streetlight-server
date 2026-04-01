@@ -13,6 +13,7 @@ import streetlight.agent.UrlParser
 import streetlight.server.db.services.EventTableDao
 import streetlight.server.db.services.GalaxyTableDao
 import streetlight.server.db.services.EventPostTableDao
+import streetlight.server.db.services.LocationPostTableDao
 import streetlight.server.db.services.LocationTableDao
 import streetlight.server.db.services.SongTableDao
 import streetlight.server.db.services.RenditionTableDao
@@ -38,6 +39,7 @@ class ServerDao(
     val location: LocationTableDao = LocationTableDao(),
     val galaxy: GalaxyTableDao = GalaxyTableDao(),
     val eventPost: EventPostTableDao = EventPostTableDao(),
+    val locationPost: LocationPostTableDao = LocationPostTableDao(),
     val song: SongTableDao = SongTableDao(),
     val event: EventTableDao = EventTableDao(),
     val rendition: RenditionTableDao = RenditionTableDao(),

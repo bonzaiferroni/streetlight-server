@@ -6,15 +6,14 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
-import streetlight.model.data.EventPostRow
 import streetlight.model.data.LocationPostRow
 import streetlight.server.utils.toProjectId
 
 object LocationPostTable : UUIDTable("location_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE) // td: make nullable
+    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE)
     val username = text("username").nullable()
-    val title = text("title")
+    val title = text("title").nullable()
     val text = text("text").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
@@ -25,6 +24,7 @@ fun ResultRow.toLocationPostRow() = LocationPostRow(
     galaxyId = this[LocationPostTable.galaxyId].toProjectId(),
     locationId = this[LocationPostTable.locationId].toProjectId(),
     username = this[LocationPostTable.username],
+    title = this[LocationPostTable.title],
     text = this[LocationPostTable.text],
     updatedAt = this[LocationPostTable.updatedAt],
     createdAt = this[LocationPostTable.createdAt]
@@ -40,6 +40,7 @@ fun UpdateBuilder<*>.writeFull(post: LocationPostRow) {
 fun UpdateBuilder<*>.writeUpdate(post: LocationPostRow) {
     this[LocationPostTable.locationId] = post.locationId.toUUID()
     this[LocationPostTable.username] = post.username
+    this[LocationPostTable.title] = post.title
     this[LocationPostTable.text] = post.text
     this[LocationPostTable.updatedAt] = post.updatedAt
 }
