@@ -25,7 +25,6 @@ private val console = globalConsole.getHandle(Routing::servePages.name)
 
 fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
-
     get("/event-portal/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
         val event = app.dao.event.readEvent(eventId) ?: return@get
@@ -63,36 +62,32 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    authenticateJwt(optional = true) {
-        get("/") {
-            val userId = getUserIdOrNull()
-            val posts = app.dao.eventPost.readTopPosts(userId)
-            val galaxies = app.dao.galaxy.readTopGalaxies()
-            val content = HomeContent(
-                galaxies = galaxies,
-                posts = posts,
-            )
-            call.respondHtml {
-                homePage(content, SiteStyles)
-            }
+    get("/") {
+        val posts = app.dao.eventPost.readTopPosts()
+        val galaxies = app.dao.galaxy.readTopGalaxies()
+        val content = HomeContent(
+            galaxies = galaxies,
+            posts = posts,
+        )
+        call.respondHtml {
+            homePage(content, SiteStyles)
         }
+    }
 
-        get("/g/{id}") {
-            val pathId = call.parameters["id"] ?: return@get
-            val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
-            val userId = getUserIdOrNull()
-            val posts = app.dao.eventPost.readPosts(galaxy.galaxyId, userId)
-            val galaxies = app.dao.galaxy.readTopGalaxies()
+    get("/g/{id}") {
+        val pathId = call.parameters["id"] ?: return@get
+        val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
+        val posts = app.dao.eventPost.readPosts(galaxy.galaxyId)
+        val galaxies = app.dao.galaxy.readTopGalaxies()
 
-            val content = GalaxyProfileContent(
-                galaxy = galaxy,
-                posts = posts,
-                galaxies = galaxies,
-            )
+        val content = GalaxyProfileContent(
+            galaxy = galaxy,
+            posts = posts,
+            galaxies = galaxies,
+        )
 
-            call.respondHtml {
-                galaxyProfilePage(content, SiteStyles)
-            }
+        call.respondHtml {
+            galaxyProfilePage(content, SiteStyles)
         }
     }
 }

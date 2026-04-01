@@ -4,9 +4,11 @@ import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
+import klutch.utils.UserIdentity
 import klutch.utils.eq
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -37,8 +39,8 @@ class LocationPostTableDao : DbService() {
         LocationPostTable.read { LocationPostTable.galaxyId.eq(galaxyId) }.map { it.toLocationPostRow() }
     }
 
-    suspend fun create(edit: LocationPostEdit) = dbQuery {
-        val post = edit.toLocationPostRow()
+    suspend fun create(edit: LocationPostEdit, identity: UserIdentity) = dbQuery {
+        val post = edit.toLocationPostRow(identity)
         LocationPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<LocationPostId>()
     }
 
@@ -52,19 +54,22 @@ class LocationPostTableDao : DbService() {
         LocationPostTable.deleteWhere { LocationPostTable.id.eq(locationPostId) } == 1
     }
 
-    suspend fun readPosts(galaxyIds: List<GalaxyId>, userId: UserId?, limit: Int = 100) = dbQuery {
-        queryPosts(userId, limit) { LocationPostTable.galaxyId.inList(galaxyIds) }
+    suspend fun readPosts(galaxyIds: List<GalaxyId>, limit: Int = 100) = dbQuery {
+        queryPosts(limit) { LocationPostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readPosts(galaxyId: GalaxyId, userId: UserId?, limit: Int = 100) = dbQuery {
-        queryPosts(userId, limit) { LocationPostTable.galaxyId.eq(galaxyId) }
+    suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
+        queryPosts(limit) { LocationPostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readPost(locationPostId: LocationPostId, userId: UserId?) = dbQuery {
-        queryPosts(userId, 1) { LocationPostTable.id.eq(locationPostId) }.firstOrNull()
+    suspend fun readPost(locationPostId: LocationPostId) = dbQuery {
+        queryPosts(1) { LocationPostTable.id.eq(locationPostId) }.firstOrNull()
     }
 
-    fun queryPosts(userId: UserId?, limit: Int, query: (SqlExpressionBuilder.() -> org.jetbrains.exposed.sql.Op<Boolean>)? = null): List<LocationPost> {
+    fun queryPosts(
+        limit: Int,
+        query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null
+    ): List<LocationPost> {
         val query = query ?: { LocationPostTable.id.isNotNull() }
         val join = LocationPostTable.join(LocationTable, JoinType.LEFT, LocationPostTable.locationId, LocationTable.id)
 
@@ -77,11 +82,12 @@ class LocationPostTableDao : DbService() {
     }
 }
 
-fun LocationPostEdit.toLocationPostRow() = LocationPostRow(
+fun LocationPostEdit.toLocationPostRow(identity: UserIdentity) = LocationPostRow(
     postId = postId ?: LocationPostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
-    username = username,
     locationId = locationId ?: error("locationId is required"),
+    userId = identity.userId,
+    username = identity.username,
     title = title,
     text = text,
     updatedAt = Clock.System.now(),

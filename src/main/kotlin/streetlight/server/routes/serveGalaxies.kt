@@ -6,7 +6,8 @@ import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUserId
-import klutch.utils.getUserIdOrNull
+import klutch.utils.getUserIdentity
+import klutch.utils.getUserIdentityOrNull
 import klutch.utils.getUsername
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
@@ -32,23 +33,17 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
         dao.readGalaxies(galaxyIds)
     }
 
-    authenticateJwt(optional = true) {
-        postEndpoint(Api.Galaxies.ReadMultiPosts) {
-            val galaxyIds = it.data
-            val userId = getUserIdOrNull()
-            app.dao.eventPost.readPosts(galaxyIds, userId)
-        }
+    postEndpoint(Api.Galaxies.ReadMultiPosts) {
+        val galaxyIds = it.data
+        app.dao.eventPost.readPosts(galaxyIds)
+    }
 
-        getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
-            val userId = getUserIdOrNull()
-            app.dao.eventPost.readPost(galaxyPostId, userId)
-        }
+    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
+        app.dao.eventPost.readPost(galaxyPostId)
+    }
 
-        getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
-            val userId = getUserIdOrNull()
-//        console.log(getUserId())
-            app.dao.eventPost.readPosts(galaxyId, userId)
-        }
+    getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
+        app.dao.eventPost.readPosts(galaxyId)
     }
 
     authenticateJwt {
@@ -62,15 +57,16 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
             dao.create(galaxy.copy(thumbUrl = thumbUrl)).also { println(it) }
         }
 
-        postEndpoint(Api.Galaxies.CreatePost) { request ->
-            val post = request.data.copy(username = getUsername())
+        postEndpoint(Api.Galaxies.PostEvent) { request ->
+            val identity = getUserIdentity()
 
-            // td: support anonymous posts
-//            if (post.username != null && post.username != getUsername()) {
-//                call.respond(HttpStatusCode.Forbidden)
-//                return@postEndpoint null
-//            }
-            app.dao.eventPost.create(post)
+            app.dao.eventPost.create(request.data, identity)
+        }
+
+        postEndpoint(Api.Galaxies.PostLocation) { request ->
+            val identity = getUserIdentity()
+
+            app.dao.locationPost.create(request.data, identity)
         }
 
         getEndpoint(Api.Galaxies.ReadStars) {

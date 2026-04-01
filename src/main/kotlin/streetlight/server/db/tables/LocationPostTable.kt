@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.db.tables.UserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -8,10 +9,12 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.LocationPostRow
 import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toUserIdOrNull
 
 object LocationPostTable : UUIDTable("location_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE)
+    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
     val title = text("title").nullable()
     val text = text("text").nullable()
@@ -22,7 +25,8 @@ object LocationPostTable : UUIDTable("location_post") {
 fun ResultRow.toLocationPostRow() = LocationPostRow(
     postId = this[LocationPostTable.id].toProjectId(),
     galaxyId = this[LocationPostTable.galaxyId].toProjectId(),
-    locationId = this[LocationPostTable.locationId].toProjectId(),
+    locationId = this[LocationPostTable.locationId]?.toProjectId(),
+    userId = toUserIdOrNull(LocationPostTable.userId),
     username = this[LocationPostTable.username],
     title = this[LocationPostTable.title],
     text = this[LocationPostTable.text],
@@ -33,13 +37,14 @@ fun ResultRow.toLocationPostRow() = LocationPostRow(
 fun UpdateBuilder<*>.writeFull(post: LocationPostRow) {
     this[LocationPostTable.id] = post.postId.toUUID()
     this[LocationPostTable.galaxyId] = post.galaxyId.toUUID()
+    this[LocationPostTable.userId] = post.userId?.toUUID()
+    this[LocationPostTable.username] = post.username
     this[LocationPostTable.createdAt] = post.createdAt
     writeUpdate(post)
 }
 
 fun UpdateBuilder<*>.writeUpdate(post: LocationPostRow) {
-    this[LocationPostTable.locationId] = post.locationId.toUUID()
-    this[LocationPostTable.username] = post.username
+    this[LocationPostTable.locationId] = post.locationId?.toUUID()
     this[LocationPostTable.title] = post.title
     this[LocationPostTable.text] = post.text
     this[LocationPostTable.updatedAt] = post.updatedAt

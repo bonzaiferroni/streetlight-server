@@ -4,6 +4,7 @@ import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
+import klutch.utils.UserIdentity
 import klutch.utils.eq
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.JoinType
@@ -42,8 +43,8 @@ class EventPostTableDao : DbService() {
         EventPostTable.read { EventPostTable.galaxyId.eq(galaxyId) }.map { it.toEventPostRow() }
     }
 
-    suspend fun create(edit: EventPostEdit) = dbQuery {
-        val post = edit.toEventPostRow()
+    suspend fun create(edit: EventPostEdit, identity: UserIdentity) = dbQuery {
+        val post = edit.toEventPostRow(identity)
         EventPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<EventPostId>()
     }
 
@@ -70,32 +71,32 @@ class EventPostTableDao : DbService() {
 //        )
 //    }
 
-    suspend fun readPosts(galaxyIds: List<GalaxyId>, userId: UserId?, limit: Int = 100) = dbQuery {
-        queryActivePosts(userId, limit) { EventPostTable.galaxyId.inList(galaxyIds) }
+    suspend fun readPosts(galaxyIds: List<GalaxyId>, limit: Int = 100) = dbQuery {
+        queryActivePosts(limit) { EventPostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readPosts(galaxyId: GalaxyId, userId: UserId?, limit: Int = 100) = dbQuery {
-        queryActivePosts(userId, limit) { EventPostTable.galaxyId.eq(galaxyId) }
+    suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
+        queryActivePosts(limit) { EventPostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readPost(eventPostId: EventPostId, userId: UserId?) = dbQuery {
-        queryPosts(userId, 1) { EventPostTable.id.eq(eventPostId) }.firstOrNull()
+    suspend fun readPost(eventPostId: EventPostId) = dbQuery {
+        queryPosts(1) { EventPostTable.id.eq(eventPostId) }.firstOrNull()
     }
 
-    suspend fun readTopPosts(userId: UserId?, limit: Int = 100) = dbQuery {
-        queryActivePosts(userId, limit)
+    suspend fun readTopPosts(limit: Int = 100) = dbQuery {
+        queryActivePosts(limit)
     }
 
-    fun queryActivePosts(userId: UserId?, limit: Int, query: QueryBlock? = null): List<EventPost> {
+    fun queryActivePosts(limit: Int, query: QueryBlock? = null): List<EventPost> {
         val now = Clock.System.now()
         val isTimelessOrUpcoming = Op.build { EventTable.startsAt.isNull() or EventTable.startsAt.greater(now) }
         val q: QueryBlock = query?.let {
             { isTimelessOrUpcoming and query() }
         } ?: { isTimelessOrUpcoming }
-        return queryPosts(userId, limit, q)
+        return queryPosts(limit, q)
     }
 
-    fun queryPosts(userId: UserId?, limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<EventPost> {
+    fun queryPosts(limit: Int, query: (SqlExpressionBuilder.() -> Op<Boolean>)? = null): List<EventPost> {
         val query = query ?: { EventPostTable.id.isNotNull() } // is there a better default query?
         val join = EventPostTable.join(EventTable, JoinType.LEFT, EventPostTable.eventId, EventTable.id)
             .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
@@ -109,11 +110,14 @@ class EventPostTableDao : DbService() {
     }
 }
 
-fun EventPostEdit.toEventPostRow() = EventPostRow(
+fun EventPostEdit.toEventPostRow(
+    identity: UserIdentity,
+) = EventPostRow(
     postId = postId ?: EventPostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
-    username = username,
     eventId = eventId ?: error("eventId is required"),
+    userId = identity.userId,
+    username = identity.username,
     text = text,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
