@@ -23,7 +23,7 @@ import streetlight.server.db.tables.UploadFileTable
 import streetlight.server.db.tables.EventTagTable
 import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.GalaxyPostTable
+import streetlight.server.db.tables.EventPostTable
 import streetlight.server.db.tables.GalaxyStarTable
 
 fun initDb(
@@ -64,7 +64,7 @@ val dbTables = listOf(
     UploadFileTable,
     TalentTable,
     GalaxyTable,
-    GalaxyPostTable,
+    EventPostTable,
     GalaxyStarTable,
 )
 

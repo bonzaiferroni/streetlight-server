@@ -36,18 +36,18 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
         postEndpoint(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val userId = getUserIdOrNull()
-            app.dao.galaxyPost.readPosts(galaxyIds, userId)
+            app.dao.eventPost.readPosts(galaxyIds, userId)
         }
 
         getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
             val userId = getUserIdOrNull()
-            app.dao.galaxyPost.readPost(galaxyPostId, userId)
+            app.dao.eventPost.readPost(galaxyPostId, userId)
         }
 
         getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
             val userId = getUserIdOrNull()
 //        console.log(getUserId())
-            app.dao.galaxyPost.readPosts(galaxyId, userId)
+            app.dao.eventPost.readPosts(galaxyId, userId)
         }
     }
 
@@ -70,7 +70,7 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
 //                call.respond(HttpStatusCode.Forbidden)
 //                return@postEndpoint null
 //            }
-            app.dao.galaxyPost.create(post)
+            app.dao.eventPost.create(post)
         }
 
         getEndpoint(Api.Galaxies.ReadStars) {

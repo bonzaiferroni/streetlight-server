@@ -66,7 +66,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     authenticateJwt(optional = true) {
         get("/") {
             val userId = getUserIdOrNull()
-            val posts = app.dao.galaxyPost.readTopPosts(userId)
+            val posts = app.dao.eventPost.readTopPosts(userId)
             val galaxies = app.dao.galaxy.readTopGalaxies()
             val content = HomeContent(
                 galaxies = galaxies,
@@ -81,7 +81,7 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
             val pathId = call.parameters["id"] ?: return@get
             val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
             val userId = getUserIdOrNull()
-            val posts = app.dao.galaxyPost.readPosts(galaxy.galaxyId, userId)
+            val posts = app.dao.eventPost.readPosts(galaxy.galaxyId, userId)
             val galaxies = app.dao.galaxy.readTopGalaxies()
 
             val content = GalaxyProfileContent(
