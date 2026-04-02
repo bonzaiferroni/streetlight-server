@@ -3,6 +3,7 @@ package streetlight.server.db.tables
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.point
+import klutch.db.tables.UserTable
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
@@ -14,15 +15,17 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
+import streetlight.model.data.ReviewMode
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
-    val path = text("path_id").uniqueIndex() // td: change to fit name
+    val path = text("path").uniqueIndex()
     val name = text("name")
     val description = text("description").nullable()
     val center = point("center")
     val zoom = float("zoom")
-    val postPermission = enumeration<PostPermission>("post-permission")
+    val postPermission = enumeration<PostPermission>("post_permission")
+    val reviewMode = enumeration<ReviewMode>("review_mode")
     val postGuide = text("post_guide").nullable()
     val imageUrl = text("image_url").nullable()
     val thumbUrl = text("thumb_url").nullable()
@@ -52,6 +55,7 @@ fun ResultRow.toGalaxy() = Galaxy(
     center = this[GalaxyTable.center].toGeoPoint(),
     zoom = this[GalaxyTable.zoom],
     postPermission = this[GalaxyTable.postPermission],
+    reviewMode = this[GalaxyTable.reviewMode],
     postGuide = this[GalaxyTable.postGuide],
     imageUrl = this[GalaxyTable.imageUrl],
     thumbUrl = this[GalaxyTable.thumbUrl],
@@ -72,6 +76,7 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
     this[GalaxyTable.zoom] = galaxy.zoom
     this[GalaxyTable.postPermission] = galaxy.postPermission
+    this[GalaxyTable.reviewMode] = galaxy.reviewMode
     this[GalaxyTable.postGuide] = galaxy.postGuide
     this[GalaxyTable.imageUrl] = galaxy.imageUrl
     this[GalaxyTable.thumbUrl] = galaxy.thumbUrl

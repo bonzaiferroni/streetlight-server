@@ -54,6 +54,7 @@ class GalaxyTableDao : DbService() {
             center = center,
             zoom = edit.zoom ?: 10f,
             postPermission = edit.postPermission,
+            reviewMode = edit.reviewMode,
             postGuide = edit.postGuide,
             imageUrl = edit.imageUrl,
             thumbUrl = edit.thumbUrl,
