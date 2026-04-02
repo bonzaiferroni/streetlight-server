@@ -12,25 +12,25 @@ import klutch.db.read
 import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
+import klutch.utils.UserIdentity
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
 import klutch.utils.toUUID
-import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
 import streetlight.model.data.GalaxyId
-import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
-import streetlight.model.data.Place
+import streetlight.model.data.NewLocationPost
 import streetlight.model.data.toLocation
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyLocationTable
+import streetlight.server.db.tables.LocationPostTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
@@ -67,28 +67,36 @@ class LocationTableDao : DbService() {
         LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
     }
 
-    suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
-        findOrCreatePlace(place, userId, isHost)
-    }
+//    suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
+//        findOrCreatePlace(place, userId, isHost)
+//    }
 
-    suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
-        LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.hostId.eq(userId) }) {
-            it.writeUpdate(location)
-        } == 1
-    }
+//    suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
+//        LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.creatorId.eq(userId) }) {
+//            it.writeUpdate(location)
+//        } == 1
+//    }
 
-    suspend fun updateLocation(locationId: LocationId, userId: UserId, edit: LocationEdit) = dbQuery {
+    suspend fun updateLocation(locationId: LocationId, userId: UserId?, edit: LocationEdit) = dbQuery {
         val location = edit.toLocation()
+        val ownerId = when(edit.isOwner) {
+            true -> userId
+            else -> null
+        }
         LocationTable.update(where = {
-            LocationTable.id.eq(locationId) and (LocationTable.hostId.isNull() or LocationTable.hostId.eq(userId))
-        }) { it.writeUpdate(location) }
+            LocationTable.id.eq(locationId) and (LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(ownerId))
+        }) { it.writeUpdate(location, ownerId) }
         LocationTable.readById(locationId.value.toUUID()).toLocation()
     }
 
-    suspend fun createLocation(userId: UserId, edit: LocationEdit) = dbQuery {
+    suspend fun createLocation(userId: UserId?, edit: LocationEdit) = dbQuery {
         val location = edit.toLocation()
+        val ownerId = when(edit.isOwner) {
+            true -> userId
+            else -> null
+        }
         val locationId =
-            LocationTable.insertAndGetId { it.writeFull(location, if (edit.isHost) userId else null) }.value
+            LocationTable.insertAndGetId { it.writeFull(location, userId, ownerId) }.value
         LocationTable.readById(locationId).toLocation()
     }
 
@@ -124,22 +132,22 @@ class LocationTableDao : DbService() {
     }
 }
 
-fun Transaction.findOrCreatePlace(place: Place, userId: UserId, isHost: Boolean?): LocationId? {
-    val isHost = isHost ?: false
-    val name = place.name
-    val geoPoint = place.geoPoint
-    if (name == null || geoPoint == null) return null
-    val location = LocationTable.readFirstOrNull {
-        it.name.eq(name) and it.geoPoint.isNearEq(geoPoint)
-    }?.toLocation()
-
-    return if (location != null) {
-        console.log("Using stored location ${location.name}")
-        location.locationId
-    } else {
-        console.log("creating new location ${place.name} at ${place.address}")
-        LocationTable.insertAndGetId {
-            it.writeFull(place.toLocation(), if (isHost) userId else null)
-        }.toProjectId()
-    }
-}
+//fun Transaction.findOrCreatePlace(place: Place, userId: UserId?, isHost: Boolean?): LocationId? {
+//    val isHost = isHost ?: false
+//    val name = place.name
+//    val geoPoint = place.geoPoint
+//    if (name == null || geoPoint == null) return null
+//    val location = LocationTable.readFirstOrNull {
+//        it.name.eq(name) and it.geoPoint.isNearEq(geoPoint)
+//    }?.toLocation()
+//
+//    return if (location != null) {
+//        console.log("Using stored location ${location.name}")
+//        location.locationId
+//    } else {
+//        console.log("creating new location ${place.name} at ${place.address}")
+//        LocationTable.insertAndGetId {
+//            it.writeFull(place.toLocation(), userId)
+//        }.toProjectId()
+//    }
+//}

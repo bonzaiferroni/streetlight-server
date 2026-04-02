@@ -6,6 +6,8 @@ import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import klutch.server.*
 import klutch.utils.getUserId
+import klutch.utils.getUserIdOrNull
+import klutch.utils.getUserIdentityOrNull
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
@@ -45,18 +47,33 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
         dao.readLocationsInBounds(request.data)
     }
 
-    authenticateJwt {
-        postEndpoint(Api.Locations.Edit) { request ->
+    authenticateJwt(optional = true) {
+        postEndpoint(Api.Locations.PostLocation) { request ->
+            val identity = getUserIdentityOrNull()
+            app.dao.locationPost.createPost(request.data, identity)
+        }
+
+        postEndpoint(Api.Locations.PostGalaxyLocation) { request ->
+            val post = request.data.takeIf { it.isValid } ?: error("invalid request")
+            val identity = getUserIdentityOrNull()
+            app.dao.locationPost.createGalaxyPost(post, identity)
+        }
+
+        postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data.let { edit ->
                 val imageUrl = downloadExternalImage(edit.imageUrl)
                 val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
             }
-            val userId = getUserId()
+            val userId = getUserIdOrNull()
             edit.locationId?.let {
                 dao.updateLocation(it, userId, edit)
             } ?: dao.createLocation(userId, edit)
         }
+    }
+
+    authenticateJwt {
+
 
         postEndpoint(Api.Locations.ParseLocation) { request ->
             reader.serve(request.data)

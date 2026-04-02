@@ -17,7 +17,8 @@ import streetlight.model.data.ResourceType
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UUIDTable("location") {
-    val hostId = reference("host_id", UserTable, ReferenceOption.SET_NULL).nullable()
+    val creatorId = reference("creator_id", UserTable, ReferenceOption.SET_NULL).nullable()
+    val ownerId = reference("owner_id", UserTable, ReferenceOption.SET_NULL).nullable()
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -51,14 +52,14 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, userId: UserId?) {
+fun UpdateBuilder<*>.writeFull(location: Location, creatorId: UserId?, ownerId: UserId?) {
     this[LocationTable.id] = location.locationId.toUUID()
-    this[LocationTable.hostId] = userId?.toUUID()
+    this[LocationTable.creatorId] = creatorId?.toUUID()
     this[LocationTable.createdAt] = location.createdAt.toLocalDateTimeUtc()
-    writeUpdate(location)
+    writeUpdate(location, ownerId)
 }
 
-fun UpdateBuilder<*>.writeUpdate(location: Location) {
+fun UpdateBuilder<*>.writeUpdate(location: Location, ownerId: UserId?) {
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description
     this[LocationTable.address] = location.address

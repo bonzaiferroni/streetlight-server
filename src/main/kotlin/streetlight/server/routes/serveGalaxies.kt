@@ -63,12 +63,6 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
             app.dao.eventPost.create(request.data, identity)
         }
 
-        postEndpoint(Api.Galaxies.PostLocation) { request ->
-            val identity = getUserIdentity()
-
-            app.dao.locationPost.create(request.data, identity)
-        }
-
         getEndpoint(Api.Galaxies.ReadStars) {
             val userId = getUserId()
             dao.readGalaxyStars(userId)
