@@ -16,7 +16,6 @@ object EventPostTable : UUIDTable("event_post") {
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
-    val title = text("title")
     val text = text("text").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
