@@ -5,7 +5,8 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object GalaxyStarTable : Table("galaxy_star") {
+object GalaxyLightTable : Table("galaxy_light") {
+    // experimenting with pascal case columns
     val GalaxyId = reference("event_id", GalaxyTable, onDelete = ReferenceOption.CASCADE)
     val UserId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
     val CreatedAt = timestamp("created_at")

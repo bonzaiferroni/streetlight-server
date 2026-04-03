@@ -7,8 +7,6 @@ import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUserId
 import klutch.utils.getUserIdentity
-import klutch.utils.getUserIdentityOrNull
-import klutch.utils.getUsername
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
@@ -63,9 +61,14 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
             app.dao.eventPost.create(request.data, identity)
         }
 
-        getEndpoint(Api.Galaxies.ReadStars) {
+        getEndpoint(Api.Galaxies.ReadLights) {
             val userId = getUserId()
-            dao.readGalaxyStars(userId)
+            dao.readGalaxyLights(userId)
+        }
+
+        postEndpoint(Api.Galaxies.EditLight) {
+            val userId = getUserId()
+            dao.editGalaxyLight(it.data, userId)
         }
     }
 }

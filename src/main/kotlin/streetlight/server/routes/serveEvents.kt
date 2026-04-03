@@ -104,14 +104,14 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
             reader.serveSingle(request.data)
         }
 
-        postEndpoint(Api.Events.EditEventStar) { request ->
+        getEndpoint(Api.Events.ReadLights) {
             val userId = getUserId()
-            dao.editEventStar(request.data.eventId, userId, request.data.value)
+            dao.readEventLights(userId)
         }
 
-        getEndpoint(Api.Events.ReadEventStars) {
+        postEndpoint(Api.Events.EditLight) {
             val userId = getUserId()
-            dao.readEventStars(userId)
+            dao.editEventLight(it.data, userId)
         }
     }
 }

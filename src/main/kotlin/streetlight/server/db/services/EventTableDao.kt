@@ -19,23 +19,27 @@ import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.upsert
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
-import streetlight.model.data.StarType
+import streetlight.model.data.GalaxyId
+import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
-import streetlight.server.db.tables.EventStarTable
+import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.GalaxyLightTable
+import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventInfoQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
-import streetlight.server.db.tables.toEventStar
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.utils.toProjectId
 
 private val console = globalConsole.getHandle(EventTableDao::class)
 
@@ -97,31 +101,29 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt) }?.toEvent()
     }
 
-    suspend fun editEventStar(eventId: EventId, userId: UserId, star: StarType?) = dbQuery {
-        if (star == null) {
-            EventStarTable.deleteWhere {
-                EventStarTable.userId.eq(userId) and EventStarTable.eventId.eq(eventId)
-            } == 1
-        } else {
-            val statement = EventStarTable.upsert {
-                it[EventStarTable.userId] = userId.toUUID()
-                it[EventStarTable.eventId] = eventId.toUUID()
-                it[EventStarTable.starType] = star
-                it[EventStarTable.createdAt] = Clock.System.now()
-            }
-            statement.insertedCount == 1
-        }
-    }
-
-    suspend fun readEventStars(userId: UserId) = dbQuery {
-        EventStarTable.read { it.userId.eq(userId) }.map { it.toEventStar() }
-    }
-
     suspend fun readEventLocations(eventIds: List<EventId>) = dbQuery {
         EventTable.leftJoin(LocationTable)
             .selectAll() // td: select only necessary columns
             .where { EventTable.id.inList(eventIds) }
             .map { it.toEventLocation() }
+    }
+
+    suspend fun readEventLights(userId: UserId) = dbQuery {
+        EventLightTable.read { EventLightTable.UserId.eq(userId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
+    }
+
+    suspend fun editEventLight(edit: LightEdit, userId: UserId) = dbQuery {
+        when (edit.isLit) {
+            true -> EventLightTable.insertIgnore {
+                it[this.UserId] = userId.toUUID()
+                it[this.EventId] = edit.stringId.toUUID()
+                it[this.CreatedAt] = Clock.System.now()
+            }
+            else -> EventLightTable.deleteWhere {
+                this.EventId.eq(edit.stringId) and this.UserId.eq(userId)
+            }
+        }
+        true
     }
 }
 

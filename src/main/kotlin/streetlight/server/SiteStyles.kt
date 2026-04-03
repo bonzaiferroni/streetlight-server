@@ -5,6 +5,7 @@ import koala.css.*
 import koala.html.*
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.StickyBarCss
+import streetlight.web.ui.StarLightCss
 import java.io.File
 
 val SiteStyles by lazy {
@@ -54,6 +55,7 @@ private val KtStyles = listOf(
     DialogCss,
     LottieCss,
     IconButtonCss,
+    StarLightCss,
 
     AppBodyCss,
 )

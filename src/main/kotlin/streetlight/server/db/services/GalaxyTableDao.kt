@@ -6,14 +6,18 @@ import klutch.db.inList
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
+import klutch.utils.toUUID
 import kotlinx.datetime.Clock
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.update
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
-import streetlight.server.db.tables.GalaxyStarTable
+import streetlight.model.data.LightEdit
+import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
@@ -75,7 +79,21 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
-    suspend fun readGalaxyStars(userId: UserId) = dbQuery {
-        GalaxyTable.read { GalaxyStarTable.UserId.eq(userId) }.map { it[GalaxyStarTable.GalaxyId].toProjectId<GalaxyId>() }
+    suspend fun readGalaxyLights(userId: UserId) = dbQuery {
+        GalaxyLightTable.read { GalaxyLightTable.UserId.eq(userId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
+    }
+
+    suspend fun editGalaxyLight(edit: LightEdit, userId: UserId) = dbQuery {
+        when (edit.isLit) {
+            true -> GalaxyLightTable.insertIgnore {
+                it[this.UserId] = userId.toUUID()
+                it[this.GalaxyId] = edit.stringId.toUUID()
+                it[this.CreatedAt] = Clock.System.now()
+            }
+            else -> GalaxyLightTable.deleteWhere {
+                this.GalaxyId.eq(edit.stringId) and this.UserId.eq(userId)
+            }
+        }
+        true
     }
 }

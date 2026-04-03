@@ -9,7 +9,7 @@ import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
-import streetlight.server.db.tables.EventStarTable
+import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.RequestTable
@@ -26,7 +26,7 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.EventPostTable
 import streetlight.server.db.tables.GalaxyLocationPostTable
 import streetlight.server.db.tables.LocationPostTable
-import streetlight.server.db.tables.GalaxyStarTable
+import streetlight.server.db.tables.GalaxyLightTable
 
 fun initDb(
     // app: ServerProvider = RuntimeProvider
@@ -53,7 +53,6 @@ val dbTables = listOf(
     UserTable,
     LocationTable,
     EventTable,
-    EventStarTable,
     SongTable,
     RenditionTable,
     RequestTable,
@@ -69,7 +68,8 @@ val dbTables = listOf(
     EventPostTable,
     LocationPostTable,
     GalaxyLocationPostTable,
-    GalaxyStarTable,
+    GalaxyLightTable,
+    EventLightTable,
 )
 
 fun connectDb(env: Environment) = Database.connect(
