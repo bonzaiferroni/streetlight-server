@@ -4,6 +4,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.routing.Routing
+import koala.JsFile
+import java.io.File
 
 fun Routing.serveFiles() {
     uploadFolder.mkdirs()
@@ -27,4 +29,11 @@ fun Routing.serveFiles() {
 //            contentType = ContentType.Text.CSS
 //        )
 //    }
+    staticFiles("/gen/streetlight", File("../web/build/dist/wasmJs/productionExecutable")) {
+//        cacheControl {
+//            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
+//        }
+    }
 }
+
+const val GEN_PATH = "/gen/"
