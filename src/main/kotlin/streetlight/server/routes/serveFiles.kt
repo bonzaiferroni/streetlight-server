@@ -34,6 +34,8 @@ fun Routing.serveFiles() {
 //            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
 //        }
     }
+
+    staticFiles("/dev/streetlight", File("../web/build/kotlin-webpack/js/developmentExecutable"))
 }
 
 const val GEN_PATH = "/gen/"
