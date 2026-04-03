@@ -4,8 +4,6 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
-import klutch.server.authenticateJwt
-import klutch.utils.getUserIdOrNull
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.server.RuntimeProvider
@@ -77,13 +75,11 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     get("/g/{id}") {
         val pathId = call.parameters["id"] ?: return@get
         val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
-        val posts = app.dao.eventPost.readPosts(galaxy.galaxyId)
-        val galaxies = app.dao.galaxy.readTopGalaxies()
+        val listing = app.service.galaxy.readPosts(galaxy.galaxyId)
 
         val content = GalaxyProfileContent(
             galaxy = galaxy,
-            posts = posts,
-            galaxies = galaxies,
+            listing = listing,
         )
 
         call.respondHtml {

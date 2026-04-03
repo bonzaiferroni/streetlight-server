@@ -43,7 +43,7 @@ fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
     }
 
     getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
-        app.dao.eventPost.readPosts(galaxyId)
+        app.service.galaxy.readPosts(galaxyId)
     }
 
     authenticateJwt {

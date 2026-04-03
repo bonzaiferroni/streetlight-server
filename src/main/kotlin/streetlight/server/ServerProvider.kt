@@ -13,6 +13,7 @@ import streetlight.agent.UrlParser
 import streetlight.server.db.services.EventTableDao
 import streetlight.server.db.services.GalaxyTableDao
 import streetlight.server.db.services.EventPostTableDao
+import streetlight.server.db.services.GalaxyTableService
 import streetlight.server.db.services.LocationPostTableDao
 import streetlight.server.db.services.LocationTableDao
 import streetlight.server.db.services.SongTableDao
@@ -54,8 +55,10 @@ class ServerDao(
 )
 
 class ServerService(
+    app: ServerProvider,
     val song: SongTableService = SongTableService(),
     val service: UserTableService = UserTableService(),
+    val galaxy: GalaxyTableService = GalaxyTableService(app)
 )
 
 private val console = globalConsole.getHandle(RuntimeProvider::class)
@@ -70,7 +73,7 @@ object RuntimeProvider: ServerProvider {
     private val failedRequestFilter = mutableSetOf<String>()
 
     override val dao = ServerDao()
-    override val service = ServerService()
+    override val service = ServerService(this)
     override val gemini = GeminiService(env)
     override val speech = SpeechService { request ->
         val filename = request.toFilename()
@@ -82,8 +85,6 @@ object RuntimeProvider: ServerProvider {
             maxNewTokens = 2000
         )
         replicate.requestBytes(
-            // model = "lucataco/orpheus-3b-0.1-ft:79f2a473e6a9720716a473d9b2f2951437dbf91dc02ccb7079fb3d89b881207f",
-//             url = "http://localhost:5000/predictions",
             url = "http://$serverIp:$speechPort/speech",
             input = request
         ).also {
@@ -91,8 +92,6 @@ object RuntimeProvider: ServerProvider {
         } ?: replicate.requestFileBytes(model, request).also {
             if (it == null) console.log("replicate unable to generate speech").also { failedRequestFilter.add(filename)}
         }
-
-//        replicate.requestFileBytes(model, request)
     }
     override val parser = UrlParser(env.read("GEMINI_KEY_A"))
 }
