@@ -36,6 +36,8 @@ dependencies {
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.html.builder)
+    implementation(libs.ktor.server.compression)
 
     implementation(libs.logback.classic)
     testImplementation(libs.kotlin.test.junit)
@@ -47,7 +49,6 @@ dependencies {
     implementation(project(":agent"))
     implementation(project(":koala"))
 
-    implementation("io.ktor:ktor-server-html-builder:3.3.0")
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
     implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
     implementation("com.fleeksoft.ksoup:ksoup:0.2.6")

@@ -1,16 +1,31 @@
 package streetlight.server
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.*
+import io.ktor.server.plugins.compression.*
 import klutch.server.configureSecurity
 import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
 
-fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
-}
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 fun Application.module() {
+    install(Compression) {
+        gzip {
+            priority = 0.9
+            matchContentType(
+                ContentType.Application.JavaScript
+            )
+        }
+        deflate {
+            priority = 1.0
+            matchContentType(
+                ContentType.Text.Any
+            )
+        }
+    }
+
     configureCors()
     configureSerialization()
     configureDatabases()
