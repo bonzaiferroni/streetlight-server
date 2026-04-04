@@ -46,16 +46,21 @@ fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
         val bytes = if (vehiclePositionBytes != null && Clock.System.now() - lastGtfsAt < 10.seconds) {
             vehiclePositionBytes!!
         } else {
-            val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
-            val upstreamResponse: HttpResponse = httpClient.get(url)
-            contentType = upstreamResponse.headers[HttpHeaders.ContentType]
-                ?.let { ContentType.parse(it) }
-                ?: ContentType.Application.OctetStream
-            upstreamResponse.readRawBytes().also {
-                vehiclePositionBytes = it
-                lastGtfsAt = Clock.System.now()
+            try {
+                val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
+                val upstreamResponse: HttpResponse = httpClient.get(url)
+                contentType = upstreamResponse.headers[HttpHeaders.ContentType]
+                    ?.let { ContentType.parse(it) }
+                    ?: ContentType.Application.OctetStream
+                upstreamResponse.readRawBytes().also {
+                    vehiclePositionBytes = it
+                    lastGtfsAt = Clock.System.now()
+                }
+            } catch (e: Exception) {
+                console.logWarning("unable to get gtfs: ${e.message}")
+                null
             }
-        }
+        } ?: return@get
 
         call.respondBytes(
             bytes = bytes,
