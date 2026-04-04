@@ -5,7 +5,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kampfire.model.GeoPoint
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -20,7 +20,7 @@ import java.io.File
 import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.days
 
-private val console = globalConsole.getHandle("initGtfs")
+private val console = console.getHandle("initGtfs")
 private val httpClient = HttpClient(CIO)
 
 suspend fun initGtfs(app: ServerProvider = RuntimeProvider) {

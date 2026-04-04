@@ -1,19 +1,15 @@
 package streetlight.server.routes
 
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.agent.UrlParser
 import streetlight.model.data.ColdParse
-import streetlight.model.data.MultiEventParseResult
 import streetlight.model.data.Location
-import streetlight.model.data.ParseRequest
-import streetlight.model.data.toEdit
-import streetlight.model.data.toEventEdit
 import streetlight.model.external.OSMQuery
 import streetlight.model.external.toGeoPoint
 import streetlight.server.ServerProvider
 import streetlight.server.external.OSMHttpClient
 
-private val console = globalConsole.getHandle(ColdReader::class)
+private val console = console.getHandle(ColdReader::class)
 
 class ColdReader(
     private val app: ServerProvider

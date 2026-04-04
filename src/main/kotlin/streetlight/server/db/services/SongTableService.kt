@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.deleteSingle
@@ -24,7 +24,7 @@ import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toRequest
 import streetlight.server.db.tables.toSong
 
-private val console = globalConsole.getHandle(SongTableService::class)
+private val console = console.getHandle(SongTableService::class)
 
 class SongTableService(val app: ServerProvider = RuntimeProvider): DbService() {
 

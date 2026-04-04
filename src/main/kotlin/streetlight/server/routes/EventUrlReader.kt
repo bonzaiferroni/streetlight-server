@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.clients.readImageUrl
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.agent.ParserResult
 import streetlight.model.data.EventParse
 import streetlight.model.data.HtmlParseRequest
@@ -14,7 +14,7 @@ import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
 import streetlight.server.ServerProvider
 
-private val console = globalConsole.getHandle(EventUrlReader::class)
+private val console = console.getHandle(EventUrlReader::class)
 
 class EventUrlReader(
     private val app: ServerProvider

@@ -4,11 +4,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.readBytes
 import io.ktor.client.statement.readRawBytes
-import kabinet.console.globalConsole
+import kabinet.console.console
 
-private val console = globalConsole.getHandle(::downloadExternalImage.name)
+private val console = console.getHandle(::downloadExternalImage.name)
 
 suspend fun downloadExternalImage(url: String): ByteArray? {
     try {

@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kampfire.model.GeoBounds
 import kampfire.model.UserId
 import klutch.db.DbService
@@ -21,18 +21,14 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.upsert
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
-import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.GalaxyLightTable
-import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventInfoQuery
 import streetlight.server.db.tables.toEvent
@@ -41,7 +37,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 
-private val console = globalConsole.getHandle(EventTableDao::class)
+private val console = console.getHandle(EventTableDao::class)
 
 class EventTableDao: DbService() {
     suspend fun readActiveEvents() = dbQuery {

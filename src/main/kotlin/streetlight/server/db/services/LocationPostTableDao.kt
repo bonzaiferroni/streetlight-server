@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.printQuery
@@ -84,6 +85,10 @@ class LocationPostTableDao : DbService() {
 
     suspend fun readPosts(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
         queryPosts(limit) { GalaxyLocationPostTable.galaxyId.eq(galaxyId) }
+    }
+
+    suspend fun readPosts(userId: UserId, limit: Int = 100) = dbQuery {
+        queryPosts(limit) { GalaxyLocationPostTable.userId.eq(userId)}
     }
 
     suspend fun readPost(locationPostId: LocationPostId) = dbQuery {

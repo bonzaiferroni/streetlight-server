@@ -13,7 +13,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kampfire.model.GeoPoint
 import klutch.server.getEndpoint
 import klutch.server.readParam
@@ -31,7 +31,7 @@ import streetlight.server.ServerProvider
 import kotlin.time.Duration.Companion.seconds
 
 private val httpClient = HttpClient(CIO)
-private val console = globalConsole.getHandle(Routing::serveGtfs.name)
+private val console = console.getHandle(Routing::serveGtfs.name)
 
 fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
     CoroutineScope(Dispatchers.IO).launch {

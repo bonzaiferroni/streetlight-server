@@ -2,7 +2,7 @@ package streetlight.server
 
 import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kabinet.utils.Environment
 import klutch.db.services.UserTableDao
 import klutch.db.services.UserTableService
@@ -13,7 +13,6 @@ import streetlight.agent.UrlParser
 import streetlight.server.db.services.EventTableDao
 import streetlight.server.db.services.GalaxyTableDao
 import streetlight.server.db.services.EventPostTableDao
-import streetlight.server.db.services.GalaxyTableService
 import streetlight.server.db.services.LocationPostTableDao
 import streetlight.server.db.services.LocationTableDao
 import streetlight.server.db.services.SongTableDao
@@ -23,6 +22,7 @@ import streetlight.server.db.services.SparkTableDao
 import streetlight.server.db.services.TalentTableDao
 import streetlight.server.db.services.RequestTableDao
 import streetlight.server.db.services.GuestTableDao
+import streetlight.server.db.services.StarTableDao
 import streetlight.server.db.services.TransitRouteTableDao
 import streetlight.server.db.services.TransitStopTableDao
 import streetlight.server.db.services.UploadFileTableDao
@@ -39,6 +39,7 @@ interface ServerProvider {
 class ServerDao(
     val location: LocationTableDao = LocationTableDao(),
     val galaxy: GalaxyTableDao = GalaxyTableDao(),
+    val star: StarTableDao = StarTableDao(),
     val eventPost: EventPostTableDao = EventPostTableDao(),
     val locationPost: LocationPostTableDao = LocationPostTableDao(),
     val song: SongTableDao = SongTableDao(),
@@ -58,10 +59,9 @@ class ServerService(
     app: ServerProvider,
     val song: SongTableService = SongTableService(),
     val service: UserTableService = UserTableService(),
-    val galaxy: GalaxyTableService = GalaxyTableService(app)
 )
 
-private val console = globalConsole.getHandle(RuntimeProvider::class)
+private val console = console.getHandle(RuntimeProvider::class)
 
 object RuntimeProvider: ServerProvider {
     override val env = readEnvFromPath()

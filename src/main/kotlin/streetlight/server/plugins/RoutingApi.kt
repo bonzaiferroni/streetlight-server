@@ -14,6 +14,7 @@ fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
         serveUsers()
         serveEvents()
         serveGalaxies()
+        serveStars()
         serveLocations()
         serveSongs()
         serveRenditions()

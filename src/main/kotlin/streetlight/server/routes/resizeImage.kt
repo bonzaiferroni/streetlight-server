@@ -7,7 +7,7 @@ import com.sksamuel.scrimage.nio.JpegWriter
 import com.sksamuel.scrimage.nio.PngWriter
 import com.sksamuel.scrimage.nio.StreamingGifWriter
 import com.sksamuel.scrimage.webp.WebpWriter
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.model.data.FileFormat
 import java.awt.Color
 import java.awt.Graphics2D
@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream
 import java.time.Duration
 import kotlin.math.roundToInt
 
-private val console = globalConsole.getHandle("resize")
+private val console = console.getHandle("resize")
 
 fun resizeImage(
     bytes: ByteArray,

@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kabinet.console.globalConsole
+import kabinet.console.console
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
@@ -12,7 +12,6 @@ import klutch.db.read
 import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
-import klutch.utils.UserIdentity
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
@@ -26,11 +25,9 @@ import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
-import streetlight.model.data.NewLocationPost
 import streetlight.model.data.toLocation
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyLocationTable
-import streetlight.server.db.tables.LocationPostTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
@@ -38,7 +35,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 
-private val console = globalConsole.getHandle(LocationTableDao::class)
+private val console = console.getHandle(LocationTableDao::class)
 
 class LocationTableDao : DbService() {
 

@@ -3,9 +3,10 @@ package streetlight.server.routes
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
+import streetlight.model.data.PostListing
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import streetlight.server.SiteStyles
@@ -15,11 +16,13 @@ import streetlight.web.pages.eventSignUp
 import streetlight.web.pages.galaxyProfilePage
 import streetlight.web.pages.homePage
 import streetlight.web.pages.locationPage
+import streetlight.web.pages.starProfilePage
 import streetlight.web.shells.GalaxyProfileContent
 import streetlight.web.shells.HomeContent
+import streetlight.web.shells.StarProfileContent
 import java.io.File
 
-private val console = globalConsole.getHandle(Routing::servePages.name)
+private val console = console.getHandle(Routing::servePages.name)
 
 fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
@@ -75,7 +78,13 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
     get("/g/{id}") {
         val pathId = call.parameters["id"] ?: return@get
         val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
-        val listing = app.service.galaxy.readPosts(galaxy.galaxyId)
+        val galaxyId = galaxy.galaxyId
+        val events = app.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val locations = app.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val listing = PostListing(
+            events = events,
+            locations = locations
+        )
 
         val content = GalaxyProfileContent(
             galaxy = galaxy,
@@ -84,6 +93,26 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
         call.respondHtml {
             galaxyProfilePage(content, SiteStyles)
+        }
+    }
+
+    get("/s/{username}") {
+        val username = call.parameters["username"] ?: return@get
+        val userId = app.dao.user.readIdByUsername(username) ?: return@get // td: serve not found content
+        val star = app.dao.star.readByUsername(username) ?: error("star not found")
+        val events = app.dao.eventPost.readPosts(userId).takeIf { it.isNotEmpty() }
+        val locations = app.dao.locationPost.readPosts(userId).takeIf { it.isNotEmpty() }
+        val listing = PostListing(
+            events = events,
+            locations = locations
+        )
+        val content = StarProfileContent(
+            star = star,
+            listing = listing
+        )
+
+        call.respondHtml {
+            starProfilePage(content, SiteStyles)
         }
     }
 }

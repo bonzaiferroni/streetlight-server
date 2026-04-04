@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import io.ktor.server.routing.Routing
-import kabinet.console.globalConsole
+import kabinet.console.console
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
@@ -12,7 +12,7 @@ import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
-private val console = globalConsole.getHandle(Routing::serveGalaxies.name)
+private val console = console.getHandle(Routing::serveGalaxies.name)
 
 fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.galaxy

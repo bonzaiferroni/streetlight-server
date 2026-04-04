@@ -6,13 +6,13 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.model.Api
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.util.Collections
 
-private val console = globalConsole.getHandle(Routing::serveChat.name)
+private val console = console.getHandle(Routing::serveChat.name)
 
 private val history = Collections.synchronizedList(mutableListOf<String>())
 

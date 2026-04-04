@@ -79,6 +79,10 @@ class EventPostTableDao : DbService() {
         queryActivePosts(limit) { EventPostTable.galaxyId.eq(galaxyId) }
     }
 
+    suspend fun readPosts(userId: UserId, limit: Int = 100) = dbQuery {
+        queryPosts(limit) { EventPostTable.userId.eq(userId) }
+    }
+
     suspend fun readPost(eventPostId: EventPostId) = dbQuery {
         queryPosts(1) { EventPostTable.id.eq(eventPostId) }.firstOrNull()
     }

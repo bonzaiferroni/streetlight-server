@@ -6,7 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import kabinet.console.globalConsole
+import kabinet.console.console
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import klutch.utils.getUserId
@@ -17,7 +17,7 @@ import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
-private val console = globalConsole.getHandle(Routing::serveEvents.name)
+private val console = console.getHandle(Routing::serveEvents.name)
 
 fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.event
