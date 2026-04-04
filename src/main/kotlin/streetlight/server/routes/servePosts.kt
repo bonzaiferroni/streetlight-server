@@ -1,13 +1,13 @@
 package streetlight.server.routes
 
 import io.ktor.server.routing.Routing
-import kabinet.console.console
+import kabinet.console.globalConsole
 import klutch.environment.readEnvFromPath
 import streetlight.agent.UrlParser
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
-private val console = console.getHandle(Routing::servePosts.name)
+private val console = globalConsole.getHandle(Routing::servePosts.name)
 
 fun Routing.servePosts(app: ServerProvider = RuntimeProvider) {
     val env = readEnvFromPath()

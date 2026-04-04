@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-import kabinet.console.console
+import kabinet.console.globalConsole
 import streetlight.agent.UrlParser
 import streetlight.model.data.ColdParse
 import streetlight.model.data.Location
@@ -9,7 +9,7 @@ import streetlight.model.external.toGeoPoint
 import streetlight.server.ServerProvider
 import streetlight.server.external.OSMHttpClient
 
-private val console = console.getHandle(ColdReader::class)
+private val console = globalConsole.getHandle(ColdReader::class)
 
 class ColdReader(
     private val app: ServerProvider

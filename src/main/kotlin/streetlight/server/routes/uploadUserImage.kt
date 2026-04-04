@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.UserId
 import kotlinx.datetime.Clock
 import streetlight.model.data.FileFormat
@@ -16,7 +16,7 @@ import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.io.File
 
-private val console = console.getHandle("uploader")
+private val console = globalConsole.getHandle("uploader")
 
 suspend fun saveImageFile(
     bytes: ByteArray,

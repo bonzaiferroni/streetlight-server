@@ -3,7 +3,7 @@ package streetlight.server.routes
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
-import kabinet.console.console
+import kabinet.console.globalConsole
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostListing
@@ -22,7 +22,7 @@ import streetlight.web.shells.HomeContent
 import streetlight.web.shells.StarProfileContent
 import java.io.File
 
-private val console = console.getHandle(Routing::servePages.name)
+private val console = globalConsole.getHandle(Routing::servePages.name)
 
 fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 

@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.GeoBounds
 import kampfire.model.UserId
 import klutch.db.DbService
@@ -37,7 +37,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 
-private val console = console.getHandle(EventTableDao::class)
+private val console = globalConsole.getHandle(EventTableDao::class)
 
 class EventTableDao: DbService() {
     suspend fun readActiveEvents() = dbQuery {

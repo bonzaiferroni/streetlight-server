@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import io.ktor.server.routing.Routing
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import klutch.server.*
@@ -12,7 +12,7 @@ import streetlight.model.data.toProjectId
 import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 
-private val console = console.getHandle(Routing::serveLocations.name)
+private val console = globalConsole.getHandle(Routing::serveLocations.name)
 
 fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.location

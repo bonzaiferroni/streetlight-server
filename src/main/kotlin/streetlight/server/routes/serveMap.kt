@@ -8,7 +8,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.distanceTo
 import kampfire.model.kilometers
@@ -24,7 +24,7 @@ import streetlight.server.RuntimeProvider
 import streetlight.server.ServerProvider
 import java.util.concurrent.ConcurrentHashMap
 
-private val console = console.getHandle(Routing::serveMap.name)
+private val console = globalConsole.getHandle(Routing::serveMap.name)
 
 fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
     val connections = LinkedHashSet<SpiritConnection>()

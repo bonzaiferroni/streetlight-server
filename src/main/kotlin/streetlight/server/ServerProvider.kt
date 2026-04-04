@@ -2,7 +2,7 @@ package streetlight.server
 
 import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.db.services.UserTableDao
 import klutch.db.services.UserTableService
@@ -61,7 +61,7 @@ class ServerService(
     val service: UserTableService = UserTableService(),
 )
 
-private val console = console.getHandle(RuntimeProvider::class)
+private val console = globalConsole.getHandle(RuntimeProvider::class)
 
 object RuntimeProvider: ServerProvider {
     override val env = readEnvFromPath()

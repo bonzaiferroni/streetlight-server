@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
@@ -35,7 +35,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 
-private val console = console.getHandle(LocationTableDao::class)
+private val console = globalConsole.getHandle(LocationTableDao::class)
 
 class LocationTableDao : DbService() {
 

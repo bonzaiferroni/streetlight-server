@@ -1,12 +1,12 @@
 package streetlight.server.routes
 
-import kabinet.console.console
+import kabinet.console.globalConsole
 import kampfire.model.UserId
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileUse
 import java.io.File
 
-private val console = console.getHandle("thumbs")
+private val console = globalConsole.getHandle("thumbs")
 
 suspend fun createThumbFromUploadedImage(path: String, userId: UserId?, size: Int = 128): String? {
     val serverPath = "../$path"
