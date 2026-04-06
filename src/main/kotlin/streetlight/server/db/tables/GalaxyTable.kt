@@ -3,7 +3,6 @@ package streetlight.server.db.tables
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.point
-import klutch.db.tables.UserTable
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
@@ -33,23 +32,9 @@ object GalaxyTable : UUIDTable("galaxy") {
     val createdAt = datetime("created_at")
 }
 
-object GalaxyLocationTable: Table("galaxy_location") {
-    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE)
-
-    override val primaryKey = PrimaryKey(galaxyId, locationId)
-}
-
-object GalaxyEventTable: Table("galaxy_event") {
-    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE)
-
-    override val primaryKey = PrimaryKey(galaxyId, eventId)
-}
-
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
-    path = this[GalaxyTable.path],
+    slug = this[GalaxyTable.path],
     name = this[GalaxyTable.name],
     description = this[GalaxyTable.description],
     center = this[GalaxyTable.center].toGeoPoint(),
@@ -72,7 +57,7 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy) {
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy) {
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.description] = galaxy.description
-    this[GalaxyTable.path] = galaxy.path
+    this[GalaxyTable.path] = galaxy.slug
     this[GalaxyTable.center] = galaxy.center.toPGpoint()
     this[GalaxyTable.zoom] = galaxy.zoom
     this[GalaxyTable.postPermission] = galaxy.postPermission

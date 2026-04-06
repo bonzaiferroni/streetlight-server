@@ -17,6 +17,7 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
+import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.toGalaxy
@@ -52,7 +53,7 @@ class GalaxyTableDao : DbService() {
         val description = edit.description
         val galaxy = Galaxy(
             galaxyId = GalaxyId.random(),
-            path = edit.path ?: GalaxyEdit.pathOf(name),
+            slug = edit.slug ?: slugOf(name),
             name = name,
             description = description,
             center = center,

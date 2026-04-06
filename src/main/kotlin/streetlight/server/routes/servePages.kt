@@ -45,15 +45,6 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    get("/event/{id}") {
-        val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
-        val event = app.dao.event.readEvent(eventId) ?: return@get
-
-        call.respondHtml {
-            eventPage(event, SiteStyles)
-        }
-    }
-
     get("/location/{id}") {
         val locationId = call.parameters["id"]?.let { LocationId(it) } ?: return@get
         val location = app.dao.location.readLocation(locationId) ?: return@get
@@ -75,9 +66,9 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
         }
     }
 
-    get("/g/{id}") {
-        val pathId = call.parameters["id"] ?: return@get
-        val galaxy = app.dao.galaxy.readGalaxyByPath(pathId) ?: return@get
+    get("/g/{path}") {
+        val path = call.parameters["path"] ?: return@get
+        val galaxy = app.dao.galaxy.readGalaxyByPath(path) ?: return@get
         val galaxyId = galaxy.galaxyId
         val events = app.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
         val locations = app.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
@@ -113,6 +104,15 @@ fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
 
         call.respondHtml {
             starProfilePage(content, SiteStyles)
+        }
+    }
+
+    get("/e/{slug}") {
+        val slug = call.parameters["slug"] ?: return@get
+        val event = app.dao.event.readEventBySlug(slug) ?: return@get
+
+        call.respondHtml {
+            eventPage(event, SiteStyles)
         }
     }
 }

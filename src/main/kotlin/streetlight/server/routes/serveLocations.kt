@@ -18,10 +18,6 @@ fun Routing.serveLocations(app: ServerProvider = RuntimeProvider) {
     val dao = app.dao.location
     val reader = LocationScoutParser(app)
 
-    getEndpoint(Api.Locations.Street, { it.toProjectId() }) { id, _ ->
-        dao.readLocations(id)
-    }
-
     getEndpoint(Api.Locations, { it.toProjectId() }) { id, _ ->
         dao.readLocation(id)
     }

@@ -13,20 +13,28 @@ import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
+import klutch.utils.eqLowercase
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.postgresql.util.PSQLException
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
 import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
+import streetlight.model.data.Slug
+import streetlight.model.data.slugOf
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
@@ -49,9 +57,13 @@ class EventTableDao: DbService() {
         EventTable.read { it.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
+    suspend fun readEventBySlug(slug: Slug) = dbQuery {
+        EventTable.readFirstOrNull { it.slug.eqLowercase(slug) }?.toEvent()
+    }
+
     suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
         val event = event.toEvent(EventId.random(), userId)
-        EventTable.insert {
+        EventTable.insertWithSlug(event.title, EventTable.slug) {
             it.writeFull(event)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
@@ -131,11 +143,11 @@ private fun EventEdit.toEvent(
     userId = userId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
-    contact = contact,
-    invitation = invitation,
-    streamUrl = null,
+    slug = slugOf(title ?: error("no title")),
     title = title ?: error("no title"),
     description = description,
+    contact = contact,
+    invitation = invitation,
     status = EventStatus.Pending,
     ageMin = ageMin,
     cost = cost ?: error("no cost provided"),
@@ -146,6 +158,7 @@ private fun EventEdit.toEvent(
     sourceImageUrl = sourceImageUrl,
     imageUrl = imageUrl,
     thumbUrl = thumbUrl,
+    streamUrl = null,
     timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
     endsAt = endsAt,

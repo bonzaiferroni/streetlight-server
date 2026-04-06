@@ -1,7 +1,6 @@
 package streetlight.server.db.tables
 
 import klutch.db.tables.UserTable
-import klutch.utils.toGeoPoint
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -10,7 +9,6 @@ import org.jetbrains.exposed.sql.json.jsonb
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Event
-import streetlight.model.data.EventLocation
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.server.utils.toProjectId
@@ -20,7 +18,8 @@ import streetlight.server.utils.toUserId
 object EventTable : UUIDTable("event") {
     val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
-    val currentRequest = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
+    val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
+    val slug = text("slug").uniqueIndex(SLUG_INDEX)
     val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")
@@ -42,13 +41,16 @@ object EventTable : UUIDTable("event") {
     val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    const val SLUG_INDEX = "EVENT_SLUG_INDEX"
 }
 
 fun ResultRow.toEvent() = Event(
     eventId = toProjectId(EventTable.id),
     userId = toUserId(EventTable.userId),
     locationId = toProjectId(EventTable.locationId),
-    currentRequestId = toProjectIdOrNull(EventTable.currentRequest),
+    currentRequestId = toProjectIdOrNull(EventTable.currentRequestId),
+    slug = this[EventTable.slug],
     title = this[EventTable.title],
     description = this[EventTable.description],
     status = this[EventTable.status],
@@ -75,7 +77,8 @@ fun UpdateBuilder<*>.writeFull(event: Event) {
     this[EventTable.id] = event.eventId.toUUID()
     this[EventTable.userId] = event.userId.toUUID()
     this[EventTable.locationId] = event.locationId.toUUID()
-    this[EventTable.currentRequest] = event.currentRequestId?.toUUID()
+    this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
+    this[EventTable.slug] = event.slug
     this[EventTable.createdAt] = event.createdAt
     writeUpdate(event)
 }
