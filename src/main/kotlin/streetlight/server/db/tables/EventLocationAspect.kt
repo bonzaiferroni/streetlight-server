@@ -8,6 +8,7 @@ import streetlight.server.utils.toProjectId
 fun ResultRow.toEventLocation() = EventLocation(
     eventId = toProjectId(EventTable.id),
     locationId = toProjectId(EventTable.locationId),
+    slug = this[EventTable.slug],
     url = this[EventTable.url],
     imageUrl = this[EventTable.imageUrl] ?: this[LocationTable.imageUrl],
     thumbUrl = this[EventTable.thumbUrl] ?: this[LocationTable.thumbUrl],

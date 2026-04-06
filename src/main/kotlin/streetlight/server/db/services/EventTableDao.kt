@@ -17,16 +17,10 @@ import klutch.utils.eqLowercase
 import klutch.utils.toUUID
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.statements.InsertStatement
-import org.postgresql.util.PSQLException
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
