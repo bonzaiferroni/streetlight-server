@@ -1,5 +1,9 @@
 package streetlight.server.routes
 
+import aws.sdk.kotlin.services.s3.model.ObjectCannedAcl
+import aws.sdk.kotlin.services.s3.model.S3Exception
+import aws.sdk.kotlin.services.s3.putObject
+import aws.smithy.kotlin.runtime.content.ByteStream
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
@@ -23,15 +27,14 @@ suspend fun StreetlightRouting.saveImageFile(
     fileUse: FileUse,
     format: FileFormat,
     filename: String? = null,
-): String {
+): String? {
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value
 
     val name = "$filename.${format.ext}"
-    val file = File(uploadFolder, name)
-    val url = "/${uploadFolder.name}/$name"
-    file.writeBytes(bytes)
 
+    val url = app.storage.s3.upload(bytes, name, format.contentType) ?: return null
+    
     app.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,

@@ -1,8 +1,5 @@
 package streetlight.server.model
 
-import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.smithy.kotlin.runtime.net.url.Url
 import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
@@ -51,14 +48,21 @@ class ServiceFacade(
 class StorageFacade(
     env: Environment
 ) {
-    val s3 = S3Client {
-        region = env.read("S3_REGION") // e.g. "gra" or "sbg"
-        endpointUrl = Url.parse(env.read("S3_ENDPOINT_URL"))
-        credentialsProvider = StaticCredentialsProvider {
-            accessKeyId = env.read("S3_ACCESS_KEY")
-            secretAccessKey = env.read("S3_SECRET_KEY")
-        }
-    }
+    val s3 = ObjectClient(
+        bucket = env.read("S3_BUCKET"),
+        endpoint = env.read("S3_ENDPOINT"),
+        region = env.read("S3_REGION"),
+        accessKey = env.read("S3_ACCESS_KEY"),
+        secretKey = env.read("S3_SECRET_KEY"),
+    )
+//    val s3 = S3Client {
+//        region = env.read("S3_REGION") // e.g. "gra" or "sbg"
+//        endpointUrl = Url.parse(env.read("S3_ENDPOINT"))
+//        credentialsProvider = StaticCredentialsProvider {
+//            accessKeyId = env.read("S3_ACCESS_KEY")
+//            secretAccessKey = env.read("S3_SECRET_KEY")
+//        }
+//    }
 }
 
 class InferenceFacade(
