@@ -1,4 +1,4 @@
-package streetlight.server.plugins
+package streetlight.server.db
 
 import kabinet.utils.Environment
 import klutch.db.services.UserInitService

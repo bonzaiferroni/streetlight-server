@@ -11,7 +11,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
-import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
@@ -26,14 +25,13 @@ import streetlight.model.Api
 import streetlight.model.data.AreaTransit
 import streetlight.model.data.AreaTransitState
 import streetlight.model.data.TransitVehicle
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 import kotlin.time.Duration.Companion.seconds
 
 private val httpClient = HttpClient(CIO)
-private val console = globalConsole.getHandle(Routing::serveGtfs.name)
+private val console = globalConsole.getHandle(StreetlightRouting::serveGtfs.name)
 
-fun Routing.serveGtfs(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveGtfs() {
     CoroutineScope(Dispatchers.IO).launch {
         initGtfs(app)
     }

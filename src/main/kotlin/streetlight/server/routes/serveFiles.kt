@@ -5,9 +5,10 @@ import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.routing.Routing
 import koala.JsFile
+import streetlight.server.model.StreetlightRouting
 import java.io.File
 
-fun Routing.serveFiles() {
+fun StreetlightRouting.serveFiles() {
     uploadFolder.mkdirs()
     wwwFolder.mkdirs()
 

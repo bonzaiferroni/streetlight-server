@@ -12,19 +12,17 @@ import streetlight.model.data.FileType
 import streetlight.model.data.FileUse
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 import java.io.File
 
 private val console = globalConsole.getHandle("uploader")
 
-suspend fun saveImageFile(
+suspend fun StreetlightRouting.saveImageFile(
     bytes: ByteArray,
     userId: UserId?,
     fileUse: FileUse,
     format: FileFormat,
     filename: String? = null,
-    app: ServerProvider = RuntimeProvider
 ): String {
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value
@@ -49,7 +47,7 @@ suspend fun saveImageFile(
     return url
 }
 
-suspend fun saveFullImage(
+suspend fun StreetlightRouting.saveFullImage(
     bytes: ByteArray,
     userId: UserId?,
     filename: String? = null,
@@ -92,9 +90,9 @@ fun detectFormatFromImage(bytes: ByteArray): FileFormat? {
     return null
 }
 
-suspend fun downloadExternalImage(imageUrl: String?): String? {
+suspend fun StreetlightRouting.downloadAndSaveImage(imageUrl: String?): String? {
     if (imageUrl == null || !imageUrl.startsWith("http")) return imageUrl
-    val bytes = downloadExternalImage(imageUrl) ?: return null
+    val bytes = downloadImage(imageUrl) ?: return null
     return saveFullImage(bytes, null, null)
 }
 

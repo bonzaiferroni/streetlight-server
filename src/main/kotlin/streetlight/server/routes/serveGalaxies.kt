@@ -10,12 +10,11 @@ import klutch.utils.getUserIdentity
 import streetlight.model.Api
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 
-private val console = globalConsole.getHandle(Routing::serveGalaxies.name)
+private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
 
-fun Routing.serveGalaxies(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveGalaxies() {
     val dao = app.dao.galaxy
 
     getEndpoint(Api.Galaxies.Top) {

@@ -54,6 +54,9 @@ dependencies {
     implementation("com.fleeksoft.ksoup:ksoup:0.2.6")
     implementation("com.google.transit:gtfs-realtime-bindings:0.0.4")
     implementation(libs.ktor.serialization.kotlinx.cbor)
+
+    implementation(platform("aws.sdk.kotlin:bom:1.6.52"))
+    implementation("aws.sdk.kotlin:s3")
 }
 
 ktor {

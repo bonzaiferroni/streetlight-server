@@ -12,14 +12,14 @@ import streetlight.model.data.ParseRequest
 import streetlight.model.data.SingleEventParseResponse
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
-import streetlight.server.ServerProvider
+import streetlight.server.model.Streetlight
 
 private val console = globalConsole.getHandle(EventUrlReader::class)
 
 class EventUrlReader(
-    private val app: ServerProvider
+    private val app: Streetlight
 ) {
-    private val agent = app.parser
+    private val agent = app.ai.parser
 
     suspend fun serveMulti(request: ParseRequest): MultiEventParseResponse {
         val instructions = ParserText.multiEventInstructions

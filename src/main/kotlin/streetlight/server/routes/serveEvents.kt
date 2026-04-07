@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
-import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import streetlight.model.data.MapQuery
@@ -14,12 +13,11 @@ import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 
-private val console = globalConsole.getHandle(Routing::serveEvents.name)
+private val console = globalConsole.getHandle(RoutingContext<Streetlight>::serveEvents.name)
 
-fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveEvents() {
     val dao = app.dao.event
     val reader = EventUrlReader(app)
 
@@ -71,7 +69,7 @@ fun Routing.serveEvents(app: ServerProvider = RuntimeProvider) {
             }
 
             edit = edit.let { edit ->
-                val imageUrl = downloadExternalImage(edit.imageUrl)
+                val imageUrl = downloadAndSaveImage(edit.imageUrl)
                 val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
             }

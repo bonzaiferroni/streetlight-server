@@ -1,15 +1,13 @@
 package streetlight.server.routes
 
-import io.ktor.server.routing.Routing
 import klutch.server.*
 import klutch.utils.getUserId
 import kotlinx.datetime.Instant
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 
-fun Routing.serveRenditions(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveRenditions() {
     val dao = app.dao.rendition
 
     getEndpoint(Api.RenditionFeed, { it.toProjectId() }) { id, _ ->

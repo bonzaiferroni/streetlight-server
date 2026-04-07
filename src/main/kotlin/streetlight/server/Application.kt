@@ -4,6 +4,7 @@ import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import klutch.server.configureSecurity
+import streetlight.server.model.createStreetlight
 import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
@@ -11,6 +12,8 @@ import streetlight.server.plugins.*
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 fun Application.module() {
+    val app = createStreetlight()
+
     install(Compression) {
         gzip {
             priority = 0.9
@@ -31,6 +34,6 @@ fun Application.module() {
     configureDatabases()
     configureSecurity()
     configureWebSockets()
-    configureApiRoutes()
+    configureApiRoutes(app)
     configureLogging()
 }

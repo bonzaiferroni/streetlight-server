@@ -6,13 +6,13 @@ import streetlight.model.data.ColdParse
 import streetlight.model.data.Location
 import streetlight.model.external.OSMQuery
 import streetlight.model.external.toGeoPoint
-import streetlight.server.ServerProvider
+import streetlight.server.model.Streetlight
 import streetlight.server.external.OSMHttpClient
 
 private val console = globalConsole.getHandle(ColdReader::class)
 
 class ColdReader(
-    private val app: ServerProvider
+    private val app: Streetlight
 ) {
     private val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
     private val dao = app.dao.event
@@ -46,7 +46,7 @@ class ColdReader(
 //        return MultiEventParseResult(parse.hasContent, location = location, events = events)
 //    }
 
-    private suspend fun readLocationFromParse(parse: ColdParse, app: ServerProvider): Location? {
+    private suspend fun readLocationFromParse(parse: ColdParse, app: Streetlight): Location? {
         val parse = parse.location ?: return null
         val name = parse.name
         var address = parse.address

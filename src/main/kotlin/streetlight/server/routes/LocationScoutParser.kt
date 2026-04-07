@@ -5,12 +5,12 @@ import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationParse
 import streetlight.model.data.ParseRequest
 import streetlight.model.data.toEdit
-import streetlight.server.ServerProvider
+import streetlight.server.model.Streetlight
 
 class LocationScoutParser(
-    private val app: ServerProvider
+    private val app: Streetlight
 ) {
-    private val agent = app.parser
+    private val agent = app.ai.parser
 
     suspend fun serve(request: ParseRequest): LocationEdit? {
         val url = request.url

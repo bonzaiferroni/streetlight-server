@@ -1,15 +1,13 @@
 package streetlight.server.routes
 
-import io.ktor.server.routing.Routing
 import klutch.server.*
 import klutch.utils.getUserId
 import kotlinx.datetime.Instant
 import streetlight.model.Api
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
 import streetlight.model.data.toProjectId
+import streetlight.server.model.*
 
-fun Routing.serveSongs(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveSongs() {
     val dao = app.dao.song
     val service = app.service.song
 

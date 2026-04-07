@@ -15,8 +15,6 @@ import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.leftJoin
 import streetlight.model.data.EventId
 import streetlight.model.data.EventSong
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.RequestTable
@@ -26,7 +24,7 @@ import streetlight.server.db.tables.toSong
 
 private val console = globalConsole.getHandle(SongTableService::class)
 
-class SongTableService(val app: ServerProvider = RuntimeProvider): DbService() {
+class SongTableService(): DbService() {
 
     suspend fun takeNextSong(userId: UserId, eventId: EventId, since: Instant) = dbQuery {
         val nextRequest = EventTable.innerJoin(RequestTable).select(RequestTable.columns)

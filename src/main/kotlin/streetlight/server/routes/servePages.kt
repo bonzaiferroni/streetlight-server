@@ -1,30 +1,21 @@
 package streetlight.server.routes
 
 import io.ktor.server.html.respondHtml
-import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostListing
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 import streetlight.server.SiteStyles
-import streetlight.web.pages.eventPage
-import streetlight.web.pages.eventPortal
-import streetlight.web.pages.eventSignUp
-import streetlight.web.pages.galaxyProfilePage
-import streetlight.web.pages.homePage
-import streetlight.web.pages.locationPage
-import streetlight.web.pages.starProfilePage
-import streetlight.web.shells.GalaxyProfileContent
-import streetlight.web.shells.HomeContent
-import streetlight.web.shells.StarProfileContent
+import streetlight.server.model.StreetlightRouting
+import streetlight.web.pages.*
+import streetlight.web.shells.*
 import java.io.File
 
-private val console = globalConsole.getHandle(Routing::servePages.name)
+private val console = globalConsole.getHandle(StreetlightRouting::servePages.name)
 
-fun Routing.servePages(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.servePages() {
 
     get("/event-portal/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get

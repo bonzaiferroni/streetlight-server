@@ -1,19 +1,14 @@
-package streetlight.server.plugins
+package streetlight.server.routes
 
-import io.ktor.server.routing.Routing
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUserId
 import streetlight.model.Api
 import streetlight.model.data.FileUse
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
-import streetlight.server.routes.createThumbFromUploadedImage
-import streetlight.server.routes.saveBytesAsThumb
-import streetlight.server.routes.saveFullImage
+import streetlight.server.model.*
 
-fun Routing.serveUserHub(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveUserHub() {
     authenticateJwt {
         getEndpoint(Api.Users.Files) {
             val userId = getUserId()

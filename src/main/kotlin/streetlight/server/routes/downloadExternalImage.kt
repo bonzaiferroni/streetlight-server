@@ -7,9 +7,9 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.readRawBytes
 import kabinet.console.globalConsole
 
-private val console = globalConsole.getHandle(::downloadExternalImage.name)
+private val console = globalConsole.getHandle(::downloadImage.name)
 
-suspend fun downloadExternalImage(url: String): ByteArray? {
+suspend fun downloadImage(url: String): ByteArray? {
     try {
         return httpClient.get(url).readRawBytes()
     } catch (e: Exception) {

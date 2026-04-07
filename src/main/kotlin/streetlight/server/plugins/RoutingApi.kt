@@ -5,29 +5,29 @@ import io.ktor.server.routing.routing
 import klutch.gemini.serveSpeech
 import klutch.server.*
 import streetlight.model.Api
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.Streetlight
+import streetlight.server.model.routingContextOf
 import streetlight.server.routes.*
 
-fun Application.configureApiRoutes(app: ServerProvider = RuntimeProvider) {
+fun Application.configureApiRoutes(app: Streetlight) {
     routing {
-        serveUsers()
-        serveEvents()
-        serveGalaxies()
-        serveStars()
-        serveLocations()
-        serveSongs()
-        serveRenditions()
-        servePages()
-        serveGtfs()
-        serveRequests()
-        servePerformers()
-        // serveGemini(Api.Gemini, app.gemini)
-        serveSpeech(Api.Speech, app.speech)
-        serveUserHub()
-        servePosts()
-        serveChat()
-        serveMap()
-        serveFiles()
+        routingContextOf(app) {
+            serveUsers()
+            serveEvents()
+            serveGalaxies()
+            serveStars()
+            serveLocations()
+            serveSongs()
+            serveRenditions()
+            servePages()
+            serveGtfs()
+            serveRequests()
+            // serveGemini(Api.Gemini, app.gemini)
+            serveSpeech(Api.Speech, app.ai.speech)
+            serveUserHub()
+            serveChat()
+            serveMap()
+            serveFiles()
+        }
     }
 }

@@ -1,6 +1,5 @@
 package streetlight.server.routes
 
-import io.ktor.server.routing.Routing
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.CloseReason
@@ -20,13 +19,12 @@ import streetlight.model.Api
 import streetlight.model.data.Spirit
 import streetlight.model.data.SpiritFrame
 import streetlight.model.data.SpiritId
-import streetlight.server.RuntimeProvider
-import streetlight.server.ServerProvider
+import streetlight.server.model.*
 import java.util.concurrent.ConcurrentHashMap
 
-private val console = globalConsole.getHandle(Routing::serveMap.name)
+private val console = globalConsole.getHandle(StreetlightRouting::serveMap.name)
 
-fun Routing.serveMap(app: ServerProvider = RuntimeProvider) {
+fun StreetlightRouting.serveMap() {
     val connections = LinkedHashSet<SpiritConnection>()
     val connectionsMutex = Mutex()
 
