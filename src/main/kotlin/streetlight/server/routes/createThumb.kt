@@ -23,13 +23,13 @@ suspend fun StreetlightRouting.createThumbFromUploadedImage(path: String, userId
     val filename = "${file.nameWithoutExtension}_thumb_$size"
     val thumbBytes = createThumbBytes(originalBytes, format, size) ?: return null
 
-    return saveImageFile(thumbBytes, userId, FileUse.ThumbImage, format, filename)
+    return saveS3ImageFile(thumbBytes, userId, FileUse.ThumbImage, format, filename)
 }
 
 suspend fun StreetlightRouting.saveBytesAsThumb(bytes: ByteArray, filename: String, userId: UserId, size: Int = 128): String? {
     val format = detectFormatFromImage(bytes) ?: return null
     val thumbBytes = createThumbBytes(bytes, format, size) ?: return null
-    return saveImageFile(thumbBytes, userId, FileUse.ThumbImage, format, filename)
+    return saveS3ImageFile(thumbBytes, userId, FileUse.ThumbImage, format, filename)
 }
 
 suspend fun StreetlightRouting.createThumbIfNull(imageUrl: String?, thumbUrl: String?, userId: UserId?): String? {

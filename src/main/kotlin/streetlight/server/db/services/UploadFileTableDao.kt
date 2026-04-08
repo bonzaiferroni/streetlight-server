@@ -8,7 +8,6 @@ import klutch.utils.toStringId
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
-import streetlight.model.data.FileUse
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
 import streetlight.model.data.toProjectId
@@ -26,8 +25,8 @@ class UploadFileTableDao : DbService() {
         UploadFileTable.read { UploadFileTable.userId.eq(userId) }.map { it.toUploadFile() }
     }
 
-    suspend fun readUserFiles(userId: UserId, fileUse: FileUse, count: Int) = dbQuery {
-        UploadFileTable.read { (UploadFileTable.userId.eq(userId)) and (UploadFileTable.fileUse.eq(fileUse)) }
+    suspend fun readUserFiles(userId: UserId, count: Int) = dbQuery {
+        UploadFileTable.read { UploadFileTable.userId.eq(userId) }
             .orderBy(UploadFileTable.createdAt, SortOrder.DESC_NULLS_LAST)
             .limit(count)
             .map { it.toUploadFile() }

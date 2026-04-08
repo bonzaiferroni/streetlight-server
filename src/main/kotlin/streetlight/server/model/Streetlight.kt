@@ -48,7 +48,7 @@ class ServiceFacade(
 class StorageFacade(
     env: Environment
 ) {
-    val s3 = ObjectClient(
+    val s3 = ObjectStorageClient(
         bucket = env.read("S3_BUCKET"),
         endpoint = env.read("S3_ENDPOINT"),
         region = env.read("S3_REGION"),

@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import kampfire.model.ImageSize
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import klutch.utils.getUserId
@@ -13,6 +14,9 @@ import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
+import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.deleteCurrentImages
+import streetlight.server.db.tables.saveImages
 import streetlight.server.model.*
 
 private val console = globalConsole.getHandle(RoutingContext<Streetlight>::serveEvents.name)
@@ -68,25 +72,17 @@ fun StreetlightRouting.serveEvents() {
                 return@postEndpoint null
             }
 
-            edit = edit.let { edit ->
-                val imageUrl = downloadAndSaveImage(edit.imageUrl)
-                val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
-                edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
-            }
+            deleteCurrentImages(edit.eventId, edit.imageUrl, EventTable.imageConfig)
+            val imageValues = saveImages(edit.imageUrl, EventTable.imageConfig)
 
             val eventId = edit.eventId
             if (eventId != null) {
                 console.log("updating event: ${edit.title}")
-                dao.updateEvent(eventId, userId, edit)
+                dao.updateEvent(eventId, userId, edit, imageValues)
             } else {
                 console.log("creating event: ${edit.title}")
-                dao.createEvent(userId, edit)
+                dao.createEvent(userId, edit, imageValues)
             }
-        }
-
-        updateEndpoint(Api.EventProfile.Update) { update, _ ->
-            val userId = getUserId()
-            dao.updateEvent(userId, update)
         }
 
         deleteEndpoint(Api.Events.Delete) { eventId, _ ->

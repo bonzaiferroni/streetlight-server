@@ -13,7 +13,7 @@ import streetlight.server.utils.toUserIdOrNull
 
 object EventPostTable : UUIDTable("event_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE) // td: allow null for deleted events
     val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
     val text = text("text").nullable()
@@ -24,7 +24,7 @@ object EventPostTable : UUIDTable("event_post") {
 fun ResultRow.toEventPostRow() = EventPostRow(
     postId = this[EventPostTable.id].toProjectId(),
     galaxyId = this[EventPostTable.galaxyId].toProjectId(),
-    eventId = this[EventPostTable.eventId]?.toProjectId(),
+    eventId = this[EventPostTable.eventId].toProjectId(),
     userId = toUserIdOrNull(EventPostTable.userId),
     username = this[EventPostTable.username],
     text = this[EventPostTable.text],
@@ -42,7 +42,7 @@ fun UpdateBuilder<*>.writeFull(post: EventPostRow) {
 }
 
 fun UpdateBuilder<*>.writeUpdate(post: EventPostRow) {
-    this[EventPostTable.eventId] = post.eventId?.toUUID()
+    this[EventPostTable.eventId] = post.eventId.toUUID()
     this[EventPostTable.text] = post.text
     this[EventPostTable.updatedAt] = post.updatedAt
 }

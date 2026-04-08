@@ -1,6 +1,8 @@
 package streetlight.server.db.tables
 
+import kampfire.model.ImageSize
 import klutch.db.tables.UserTable
+import klutch.db.url
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
@@ -32,8 +34,9 @@ object EventTable : UUIDTable("event") {
     val url = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
     val sourceImageUrl = text("source_image_url").nullable()
-    val imageUrl = text("image_url").nullable()
-    val thumbUrl = text("thumb_url").nullable()
+    val imageUrl = url("image_url").nullable()
+    val imageMd = url("image_md").nullable()
+    val imageSm = url("image_sm").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
     // val doorsAt = timestamp("doors_at").nullable()
@@ -43,6 +46,12 @@ object EventTable : UUIDTable("event") {
     val createdAt = timestamp("created_at")
 
     const val SLUG_INDEX = "EVENT_SLUG_INDEX"
+
+    val imageConfig = TableImageConfig(
+        table = this,
+        refColumn = imageUrl,
+        sizeColumns = listOf(ImageColumnConfig(imageMd, ImageSize.Medium), ImageColumnConfig(imageSm, ImageSize.Small))
+    )
 }
 
 fun ResultRow.toEvent() = Event(
@@ -63,8 +72,8 @@ fun ResultRow.toEvent() = Event(
     url = this[EventTable.url],
     sourceUrl = this[EventTable.sourceUrl],
     sourceImageUrl = this[EventTable.sourceImageUrl],
-    imageUrl = this[EventTable.imageUrl],
-    thumbUrl = this[EventTable.thumbUrl],
+    imageMd = this[EventTable.imageMd],
+    imageSm = this[EventTable.imageSm],
     streamUrl = this[EventTable.streamUrl],
     timeZoneId = this[EventTable.timeZoneId],
     startsAt = this[EventTable.startsAt],
@@ -73,22 +82,20 @@ fun ResultRow.toEvent() = Event(
     createdAt = this[EventTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(event: Event) {
+fun UpdateBuilder<*>.writeFull(event: Event, imageValues: ImageValues?) {
     this[EventTable.id] = event.eventId.toUUID()
     this[EventTable.userId] = event.userId.toUUID()
     this[EventTable.locationId] = event.locationId.toUUID()
     this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
     this[EventTable.slug] = event.slug
     this[EventTable.createdAt] = event.createdAt
-    writeUpdate(event)
+    writeUpdate(event, imageValues)
 }
 
-fun UpdateBuilder<*>.writeUpdate(event: Event) {
+fun UpdateBuilder<*>.writeUpdate(event: Event, imageValues: ImageValues?) {
     this[EventTable.url] = event.url
     this[EventTable.sourceUrl] = event.sourceUrl
     this[EventTable.sourceImageUrl] = event.sourceImageUrl
-    this[EventTable.imageUrl] = event.imageUrl
-    this[EventTable.thumbUrl] = event.thumbUrl
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description
@@ -103,15 +110,16 @@ fun UpdateBuilder<*>.writeUpdate(event: Event) {
     this[EventTable.startsAt] = event.startsAt
     this[EventTable.endsAt] = event.endsAt
     this[EventTable.updatedAt] = event.updatedAt
+    writeImages(EventTable.imageConfig, imageValues)
 }
 
 val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
     EventTable.id,
     EventTable.locationId,
     EventTable.url,
-    EventTable.imageUrl,
+    EventTable.imageMd,
+    EventTable.imageSm,
     LocationTable.imageUrl,
-    EventTable.thumbUrl,
     LocationTable.thumbUrl,
     EventTable.title,
     EventTable.description,

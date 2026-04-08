@@ -2,6 +2,7 @@ package streetlight.server.model
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.deleteObject
 import aws.sdk.kotlin.services.s3.model.ObjectCannedAcl
 import aws.sdk.kotlin.services.s3.model.S3Exception
 import aws.sdk.kotlin.services.s3.putObject
@@ -9,7 +10,7 @@ import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.net.url.Url
 import kabinet.console.globalConsole
 
-class ObjectClient(
+class ObjectStorageClient(
     private val bucket: String,
     private val endpoint: String,
     private val region: String,
@@ -17,7 +18,7 @@ class ObjectClient(
     private val secretKey: String
 ) {
     private val client = S3Client {
-        this@S3Client.region = this@ObjectClient.region
+        this@S3Client.region = this@ObjectStorageClient.region
         endpointUrl = Url.parse("https://$endpoint")
         credentialsProvider = StaticCredentialsProvider {
             accessKeyId = accessKey
@@ -25,10 +26,10 @@ class ObjectClient(
         }
     }
 
-    suspend fun upload(bytes: ByteArray, filename: String, contentType: String): String? {
+    suspend fun put(bytes: ByteArray, filename: String, contentType: String): String? {
         return try {
             client.putObject {
-                this@putObject.bucket = this@ObjectClient.bucket
+                this@putObject.bucket = this@ObjectStorageClient.bucket
                 key = filename
                 body = ByteStream.fromBytes(bytes)
                 this.contentType = contentType
@@ -41,6 +42,19 @@ class ObjectClient(
             null
         }
     }
+
+    suspend fun delete(filename: String): Boolean {
+        return try {
+            client.deleteObject {
+                this@deleteObject.bucket = this@ObjectStorageClient.bucket
+                key = filename
+            }
+            true
+        } catch (e: S3Exception) {
+            console.logThrowable(e)
+            false
+        }
+    }
 }
 
-private val console = globalConsole.getHandle(ObjectClient::class)
+private val console = globalConsole.getHandle(ObjectStorageClient::class)

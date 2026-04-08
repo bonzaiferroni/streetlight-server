@@ -54,7 +54,7 @@ fun StreetlightRouting.serveLocations() {
 
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data.let { edit ->
-                val imageUrl = downloadAndSaveImage(edit.imageUrl)
+                val imageUrl = resizeOriginalImage(edit.imageUrl)
                 val thumbUrl = createThumbIfNull(imageUrl, edit.thumbUrl, null)
                 edit.copy(imageUrl = imageUrl, thumbUrl = thumbUrl)
             }

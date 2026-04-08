@@ -8,6 +8,8 @@ import com.sksamuel.scrimage.nio.PngWriter
 import com.sksamuel.scrimage.nio.StreamingGifWriter
 import com.sksamuel.scrimage.webp.WebpWriter
 import kabinet.console.globalConsole
+import kampfire.model.ImageSize
+import kampfire.model.LARGE_IMAGE_SIZE
 import streetlight.model.data.FileFormat
 import java.awt.Color
 import java.awt.Graphics2D
@@ -22,7 +24,7 @@ private val console = globalConsole.getHandle("resize")
 fun resizeImage(
     bytes: ByteArray,
     format: FileFormat,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean = false,
 ) = when (format) {
@@ -35,7 +37,7 @@ fun resizeImage(
 
 private fun resizeJpg(
     bytes: ByteArray,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean,
 ) = resizeStaticImage(bytes, size, aspectRatio, forceEncoding) { scaled ->
@@ -51,7 +53,7 @@ private fun resizeJpg(
 
 private fun resizePng(
     bytes: ByteArray,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean,
 ) = resizeStaticImage(bytes, size, aspectRatio, forceEncoding) { scaled ->
@@ -66,7 +68,7 @@ private fun resizePng(
 
 private fun resizeWebp(
     bytes: ByteArray,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean,
 ) = resizeStaticImage(bytes, size, aspectRatio, forceEncoding) { scaled ->
@@ -80,16 +82,17 @@ private fun resizeWebp(
 
 private inline fun resizeStaticImage(
     bytes: ByteArray,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean,
     encode: (ImmutableImage) -> ByteArray,
 ): ByteArray? = runCatching {
     val image = ImmutableImage.loader().fromBytes(bytes)
+    if (size != null && image.width < size.minWidthPx) return null
     val (targetWidth, targetHeight) = targetDimensions(
         sourceWidth = image.width,
         sourceHeight = image.height,
-        size = size,
+        size = size?.widthPx ?: LARGE_IMAGE_SIZE,
         aspectRatio = aspectRatio,
     )
 
@@ -104,7 +107,7 @@ private inline fun resizeStaticImage(
 
 private fun resizeGif(
     bytes: ByteArray,
-    size: Int,
+    size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean,
 ): ByteArray? {
@@ -114,10 +117,11 @@ private fun resizeGif(
         if (frameCount <= 0) return@runCatching null
 
         val firstFrame = gif.getFrame(0)
+        if (size != null && firstFrame.width < size.minWidthPx) return@runCatching null
         val (targetWidth, targetHeight) = targetDimensions(
             sourceWidth = firstFrame.width,
             sourceHeight = firstFrame.height,
-            size = size,
+            size = size?.widthPx ?: LARGE_IMAGE_SIZE,
             aspectRatio = aspectRatio,
         )
 

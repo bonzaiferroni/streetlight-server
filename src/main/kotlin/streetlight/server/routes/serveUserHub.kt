@@ -5,14 +5,14 @@ import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import klutch.utils.getUserId
 import streetlight.model.Api
-import streetlight.model.data.FileUse
+import streetlight.model.data.StorageType
 import streetlight.server.model.*
 
 fun StreetlightRouting.serveUserHub() {
     authenticateJwt {
         getEndpoint(Api.Users.Files) {
             val userId = getUserId()
-            app.dao.userFile.readUserFiles(userId, FileUse.FullImage, 100).map { it.url }
+            app.dao.userFile.readUserFiles(userId, 100).map { it.url }
         }
 
         getEndpoint(Api.Users.Talents) { _ ->
@@ -39,7 +39,7 @@ fun StreetlightRouting.serveUserHub() {
 
         postEndpoint(Api.Users.UploadImage) { bytes, _ ->
             val userId = getUserId()
-            saveFullImage(bytes, userId)
+            saveRemoteImage(bytes, userId, null, StorageType.Local)?.firstOrNull()?.url
         }
     }
 }

@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.model.GeoBounds
+import kampfire.model.ImageSize
 import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.count
@@ -31,12 +32,14 @@ import streetlight.model.data.Slug
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.ImageValues
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventInfoQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.routes.SaveImageResult
 import streetlight.server.utils.toProjectId
 
 private val console = globalConsole.getHandle(EventTableDao::class)
@@ -55,26 +58,29 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.slug.eqLowercase(slug) }?.toEvent()
     }
 
-    suspend fun createEvent(userId: UserId, event: EventEdit) = dbQuery {
+    suspend fun createEvent(
+        userId: UserId,
+        event: EventEdit,
+        imageValues: ImageValues?
+    ) = dbQuery {
         val event = event.toEvent(EventId.random(), userId)
         EventTable.insertWithSlug(event.title, EventTable.slug) {
-            it.writeFull(event)
+            it.writeFull(event, imageValues)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
     }
 
-    suspend fun updateEvent(eventId: EventId, userId: UserId, edit: EventEdit) = dbQuery {
+    suspend fun updateEvent(
+        eventId: EventId,
+        userId: UserId,
+        edit: EventEdit,
+        imageValues: ImageValues?
+    ) = dbQuery {
         val event = edit.toEvent(eventId, userId)
         EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(eventId)}) {
-            it.writeUpdate(event)
+            it.writeUpdate(event, imageValues)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
-    }
-
-    suspend fun updateEvent(userId: UserId, event: Event): Boolean = dbQuery {
-        EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(event.eventId) }) {
-            it.writeUpdate(event)
-        } != null
     }
 
     suspend fun deleteEvent(userId: UserId, eventId: EventId): Boolean = dbQuery {
@@ -127,6 +133,11 @@ class EventTableDao: DbService() {
         }
         true
     }
+
+    suspend fun readImageUrl(eventId: EventId) = dbQuery {
+        EventTable.select(EventTable.imageUrl).where { EventTable.id.eq(eventId) }
+            .firstOrNull()?.getOrNull(EventTable.imageUrl)
+    }
 }
 
 private fun EventEdit.toEvent(
@@ -148,10 +159,10 @@ private fun EventEdit.toEvent(
     visibility = null,
     links = links,
     url = link,
+    imageSm = null,
+    imageMd = null,
     sourceUrl = sourceUrl,
     sourceImageUrl = sourceImageUrl,
-    imageUrl = imageUrl,
-    thumbUrl = thumbUrl,
     streamUrl = null,
     timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
