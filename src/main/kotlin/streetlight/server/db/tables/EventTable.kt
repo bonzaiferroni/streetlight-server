@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
+import klutch.db.scaledImages
 import klutch.db.tables.UserTable
 import klutch.db.url
 import klutch.utils.toUUID
@@ -34,9 +35,8 @@ object EventTable : UUIDTable("event") {
     val url = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
     val sourceImageUrl = text("source_image_url").nullable()
-    val imageUrl = url("image_url").nullable()
-    val imageMd = url("image_md").nullable()
-    val imageSm = url("image_sm").nullable()
+    val imageRef = url("image_ref").nullable()
+    val images = scaledImages("image_array").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
     // val doorsAt = timestamp("doors_at").nullable()
@@ -47,11 +47,45 @@ object EventTable : UUIDTable("event") {
 
     const val SLUG_INDEX = "EVENT_SLUG_INDEX"
 
-    val imageConfig = TableImageConfig(
+    val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageUrl,
-        sizeColumns = listOf(ImageColumnConfig(imageMd, ImageSize.Medium), ImageColumnConfig(imageSm, ImageSize.Small))
+        refColumn = imageRef,
+        arrayColumn = images,
+        ImageSize.Medium,
+        ImageSize.Small,
+        ImageSize.Thumb,
     )
+}
+
+fun UpdateBuilder<*>.writeFull(event: Event, imageSet: SavedImageSet?) {
+    this[EventTable.id] = event.eventId.toUUID()
+    this[EventTable.userId] = event.userId.toUUID()
+    this[EventTable.locationId] = event.locationId.toUUID()
+    this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
+    this[EventTable.slug] = event.slug
+    this[EventTable.createdAt] = event.createdAt
+    writeUpdate(event, imageSet)
+}
+
+fun UpdateBuilder<*>.writeUpdate(event: Event, imageSet: SavedImageSet?) {
+    this[EventTable.url] = event.url
+    this[EventTable.sourceUrl] = event.sourceUrl
+    this[EventTable.sourceImageUrl] = event.sourceImageUrl
+    this[EventTable.streamUrl] = event.streamUrl
+    this[EventTable.title] = event.title
+    this[EventTable.description] = event.description
+    this[EventTable.status] = event.status
+    this[EventTable.contact] = event.contact
+    this[EventTable.invitation] = event.invitation
+    this[EventTable.ageMin] = event.ageMin
+    this[EventTable.cost] = event.cost
+    this[EventTable.visibility] = event.visibility
+    this[EventTable.links] = event.links
+    this[EventTable.timeZoneId] = event.timeZone.id
+    this[EventTable.startsAt] = event.startsAt
+    this[EventTable.endsAt] = event.endsAt
+    this[EventTable.updatedAt] = event.updatedAt
+    writeImages(EventTable.imageConfig, imageSet)
 }
 
 fun ResultRow.toEvent() = Event(
@@ -72,8 +106,8 @@ fun ResultRow.toEvent() = Event(
     url = this[EventTable.url],
     sourceUrl = this[EventTable.sourceUrl],
     sourceImageUrl = this[EventTable.sourceImageUrl],
-    imageMd = this[EventTable.imageMd],
-    imageSm = this[EventTable.imageSm],
+    imageRef = this[EventTable.imageRef],
+    images = this[EventTable.images],
     streamUrl = this[EventTable.streamUrl],
     timeZoneId = this[EventTable.timeZoneId],
     startsAt = this[EventTable.startsAt],
@@ -82,45 +116,12 @@ fun ResultRow.toEvent() = Event(
     createdAt = this[EventTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(event: Event, imageValues: ImageValues?) {
-    this[EventTable.id] = event.eventId.toUUID()
-    this[EventTable.userId] = event.userId.toUUID()
-    this[EventTable.locationId] = event.locationId.toUUID()
-    this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
-    this[EventTable.slug] = event.slug
-    this[EventTable.createdAt] = event.createdAt
-    writeUpdate(event, imageValues)
-}
-
-fun UpdateBuilder<*>.writeUpdate(event: Event, imageValues: ImageValues?) {
-    this[EventTable.url] = event.url
-    this[EventTable.sourceUrl] = event.sourceUrl
-    this[EventTable.sourceImageUrl] = event.sourceImageUrl
-    this[EventTable.streamUrl] = event.streamUrl
-    this[EventTable.title] = event.title
-    this[EventTable.description] = event.description
-    this[EventTable.status] = event.status
-    this[EventTable.contact] = event.contact
-    this[EventTable.invitation] = event.invitation
-    this[EventTable.ageMin] = event.ageMin
-    this[EventTable.cost] = event.cost
-    this[EventTable.visibility] = event.visibility
-    this[EventTable.links] = event.links
-    this[EventTable.timeZoneId] = event.timeZone.id
-    this[EventTable.startsAt] = event.startsAt
-    this[EventTable.endsAt] = event.endsAt
-    this[EventTable.updatedAt] = event.updatedAt
-    writeImages(EventTable.imageConfig, imageValues)
-}
-
 val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
     EventTable.id,
     EventTable.locationId,
     EventTable.url,
-    EventTable.imageMd,
-    EventTable.imageSm,
-    LocationTable.imageUrl,
-    LocationTable.thumbUrl,
+    EventTable.images,
+    LocationTable.images,
     EventTable.title,
     EventTable.description,
     EventTable.status,

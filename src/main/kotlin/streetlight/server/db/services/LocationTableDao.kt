@@ -16,18 +16,19 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll
 import klutch.utils.eq
 import klutch.utils.toUUID
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
-import streetlight.model.data.GalaxyId
+import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
-import streetlight.model.data.toLocation
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
+import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
@@ -67,7 +68,12 @@ class LocationTableDao : DbService() {
 //        } == 1
 //    }
 
-    suspend fun updateLocation(locationId: LocationId, userId: UserId?, edit: LocationEdit) = dbQuery {
+    suspend fun updateLocation(
+        locationId: LocationId,
+        userId: UserId?,
+        edit: LocationEdit,
+        imageSet: SavedImageSet?
+    ) = dbQuery {
         val location = edit.toLocation()
         val ownerId = when(edit.isOwner) {
             true -> userId
@@ -75,18 +81,18 @@ class LocationTableDao : DbService() {
         }
         LocationTable.update(where = {
             LocationTable.id.eq(locationId) and (LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(ownerId))
-        }) { it.writeUpdate(location, ownerId) }
+        }) { it.writeUpdate(location, ownerId, imageSet) }
         LocationTable.readById(locationId.value.toUUID()).toLocation()
     }
 
-    suspend fun createLocation(userId: UserId?, edit: LocationEdit) = dbQuery {
+    suspend fun createLocation(userId: UserId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
         val location = edit.toLocation()
         val ownerId = when(edit.isOwner) {
             true -> userId
             else -> null
         }
         val locationId =
-            LocationTable.insertAndGetId { it.writeFull(location, userId, ownerId) }.value
+            LocationTable.insertAndGetId { it.writeFull(location, userId, ownerId, imageSet) }.value
         LocationTable.readById(locationId).toLocation()
     }
 
@@ -141,3 +147,22 @@ class LocationTableDao : DbService() {
 //        }.toProjectId()
 //    }
 //}
+
+
+
+fun LocationEdit.toLocation() = Location(
+    locationId = locationId ?: LocationId.random(),
+    name = name ?: error("no location name"),
+    geoPoint = geoPoint ?: error("no location geoPoint"),
+    description = description,
+    address = address,
+    resources = resources ?: emptySet(),
+    website = website,
+    eventsUrl = eventsUrl,
+    aboutUrl = aboutUrl,
+    menuUrl = menuUrl,
+    imageRef = imageRef,
+    images = null,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now()
+)

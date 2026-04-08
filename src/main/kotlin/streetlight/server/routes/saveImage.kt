@@ -5,77 +5,103 @@ import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 import kampfire.model.ImageSize
+import kampfire.model.ScaledImage
 import kampfire.model.Url
 import kampfire.model.UserId
+import kampfire.model.appendToFilename
+import kampfire.utils.randomUuidString
 import streetlight.model.data.FileFormat
-import streetlight.model.data.StorageType
+import streetlight.model.data.ProjectId
+import streetlight.server.db.tables.SavedImageSet
+import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.StreetlightRouting
 import java.io.File
 
 suspend fun StreetlightRouting.saveLocalImage(
     bytes: ByteArray,
     userId: UserId?,
-    filename: String? = null,
+    filename: String,
     size: ImageSize = ImageSize.Large
-): String? {
-    var forceEncoding = false
-    val format = detectFormatFromImage(bytes).let {
-        // save BMP as PNG
-        if (it == FileFormat.BMP) {
-            forceEncoding = true
-            FileFormat.PNG
-        } else it
-    } ?: return null
-    val resizedBytes = resizeImage(bytes, format, size, null, forceEncoding) ?: return null
+): Url? {
+    val result = detectFormatAndEncodingMode(bytes) ?: return null
+    val format = result.format; val forceEncoding = result.forceEncoding
+
+    val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return null
     return saveLocalImageFile(resizedBytes, userId, format, filename)
 }
 
 suspend fun StreetlightRouting.saveRemoteImage(
     bytes: ByteArray,
     userId: UserId?,
-    filename: String? = null,
+    filename: String,
     sizes: List<ImageSize>,
-): List<SaveImageResult>? {
-    var forceEncoding = false
-    val format = detectFormatFromImage(bytes).let {
-        // save BMP as PNG
-        if (it == FileFormat.BMP) {
-            forceEncoding = true
-            FileFormat.PNG
-        } else it
-    } ?: return null
+): List<ScaledImage>? {
+    val result = detectFormatAndEncodingMode(bytes) ?: return null
+    val format = result.format; val forceEncoding = result.forceEncoding
 
     val results = sizes.mapNotNull { size ->
-        val resizedBytes = resizeImage(bytes, format, size, null, forceEncoding) ?: return@mapNotNull null
+        val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return@mapNotNull null
+        val filename = filename.appendToFilename(size.label)
         val url = saveS3ImageFile(resizedBytes, userId, size, format, filename) ?: return@mapNotNull null
-        SaveImageResult(size, url)
+        ScaledImage(size, url)
     }
 
     return results.takeIf { it.isNotEmpty() }
 }
 
-suspend fun StreetlightRouting.resizeOriginalImage(
+suspend fun StreetlightRouting.saveImages(
+    userId: UserId?,
+    rowId: ProjectId?,
+    imageRef: Url?,
+    config: TableImageConfig
+): SavedImageSet? {
+    if (imageRef == null) {
+        return SavedImageSet(null, null)
+    }
+    val currentRef = rowId?.let {
+        config.readImageRef(it)
+    }
+    if (currentRef == imageRef) return null
+    val results = saveImageSizes(userId, imageRef, config.sizes) ?: return null
+    return SavedImageSet(imageRef, results)
+}
+
+private data class FormatAndEncodingMode(
+    val format: FileFormat,
+    val forceEncoding: Boolean
+)
+
+private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode? {
+    var forceEncoding = false
+    val format = detectFormatFromImage(bytes).let { format ->
+        // save BMP as PNG
+        if (format == FileFormat.BMP) {
+            forceEncoding = true
+            FileFormat.PNG
+        } else format
+    } ?: return null
+    return FormatAndEncodingMode(format, forceEncoding)
+}
+
+suspend fun StreetlightRouting.saveImageSizes(
+    userId: UserId?,
     imageUrl: Url,
     sizes: List<ImageSize>,
-): List<SaveImageResult>? {
+): List<ScaledImage>? {
+    if (!sizes.isEmpty()) error("image sizes must be defined")
     return when (imageUrl.isAbsolute) {
         true -> {
-            if (!sizes.isEmpty()) {
-                val bytes = downloadImage(imageUrl) ?: return null
-                saveRemoteImage(bytes, null, null, sizes)
-            } else null
+            val bytes = downloadImage(imageUrl) ?: return null
+            val filename = randomUuidString()
+            saveRemoteImage(bytes, userId, filename, sizes)
         }
         else -> {
+            val filename = imageUrl.filename ?: error("filename not found: ${imageUrl.filename}")
             val bytes = File("../${imageUrl}").takeIf { it.isFile }?.readBytes() ?: return null
-            saveRemoteImage(bytes, null, null, sizes)
+            saveRemoteImage(bytes, userId, filename, sizes)
         }
     }
 }
-
-data class SaveImageResult(
-    val size: ImageSize?,
-    val url: Url,
-)
 
 fun detectFormatFromImage(bytes: ByteArray): FileFormat? {
     fun has(prefix: ByteArray): Boolean =

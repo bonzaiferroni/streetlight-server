@@ -20,6 +20,7 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
 import streetlight.server.db.tables.writeGalaxyUpdate
@@ -43,36 +44,14 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.read { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
-    suspend fun create(galaxy: Galaxy) = dbQuery {
-        GalaxyTable.insertAndGetId { it.writeGalaxyFull(galaxy) }.toProjectId<GalaxyId>()
+    suspend fun create(edit: GalaxyEdit, userId: UserId, imageSet: SavedImageSet?) = dbQuery {
+        val id = GalaxyTable.insertAndGetId { it.writeGalaxyFull(edit.toGalaxy(), userId, imageSet) }.toProjectId<GalaxyId>()
+        GalaxyTable.readFirstOrNull { it.id.eq(id) }?.toGalaxy()
     }
 
-    suspend fun create(edit: GalaxyEdit): Galaxy? {
-        val name = edit.name ?: return null
-        val center = edit.center ?: return null
-        val description = edit.description
-        val galaxy = Galaxy(
-            galaxyId = GalaxyId.random(),
-            slug = edit.slug ?: slugOf(name),
-            name = name,
-            description = description,
-            center = center,
-            zoom = edit.zoom ?: 10f,
-            postPermission = edit.postPermission,
-            reviewMode = edit.reviewMode,
-            postGuide = edit.postGuide,
-            imageUrl = edit.imageUrl,
-            thumbUrl = edit.thumbUrl,
-            updatedAt = Clock.System.now(),
-            createdAt = Clock.System.now(),
-        )
-        create(galaxy)
-        return galaxy
-    }
-
-    suspend fun update(galaxy: Galaxy) = dbQuery {
+    suspend fun update(galaxy: Galaxy, imageSet: SavedImageSet?) = dbQuery {
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxy.galaxyId) }) {
-            it.writeGalaxyUpdate(galaxy)
+            it.writeGalaxyUpdate(galaxy, imageSet)
         } == 1
     }
 
@@ -98,3 +77,19 @@ class GalaxyTableDao : DbService() {
         true
     }
 }
+
+fun GalaxyEdit.toGalaxy() = Galaxy(
+    galaxyId = GalaxyId.random(),
+    name = name ?: error("name not found"),
+    slug = slug ?: slugOf(name ?: error("name not found")),
+    description = description,
+    center = center ?: error("center not found"),
+    zoom = zoom ?: 10f,
+    postPermission = postPermission,
+    reviewMode = reviewMode,
+    postGuide = postGuide,
+    imageRef = imageRef,
+    images = null,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now(),
+)

@@ -5,6 +5,7 @@ import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.ImageSize
 import kampfire.model.UserId
 import klutch.db.tables.UserTable
+import klutch.db.url
 import klutch.utils.toStringId
 import klutch.utils.toUUID
 import org.jetbrains.exposed.dao.id.UUIDTable
@@ -18,10 +19,11 @@ import streetlight.server.utils.toProjectId
 
 object UploadFileTable : UUIDTable("user_file") {
     val userId = reference("user_id", UserTable, ReferenceOption.CASCADE).nullable()
-    val url = text("url")
+    val url = url("url")
     val fileType = enumeration<FileType>("file_type")
     val size = enumeration<ImageSize>("size").nullable()
     val fileFormat = enumeration<FileFormat>("file_format")
+    val storage = enumeration<StorageType>("storage")
     val createdAt = timestamp("created_at")
 }
 
@@ -32,6 +34,7 @@ fun ResultRow.toUploadFile() = UploadFile(
     fileType = this[UploadFileTable.fileType],
     size = this[UploadFileTable.size],
     fileFormat = this[UploadFileTable.fileFormat],
+    storage = this[UploadFileTable.storage],
     createdAt = this[UploadFileTable.createdAt]
 )
 
@@ -47,4 +50,5 @@ fun UpdateBuilder<*>.writeUpdate(file: UploadFile) {
     this[UploadFileTable.fileType] = file.fileType
     this[UploadFileTable.size] = file.size
     this[UploadFileTable.fileFormat] = file.fileFormat
+    this[UploadFileTable.storage] = file.storage
 }

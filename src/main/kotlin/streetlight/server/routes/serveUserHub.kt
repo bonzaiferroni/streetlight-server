@@ -11,8 +11,9 @@ import streetlight.server.model.*
 fun StreetlightRouting.serveUserHub() {
     authenticateJwt {
         getEndpoint(Api.Users.Files) {
-            val userId = getUserId()
-            app.dao.userFile.readUserFiles(userId, 100).map { it.url }
+            error("not implemented")
+//            val userId = getUserId()
+//            app.dao.userFile.readUserFiles(userId, 100).map { it.url }
         }
 
         getEndpoint(Api.Users.Talents) { _ ->
@@ -31,15 +32,17 @@ fun StreetlightRouting.serveUserHub() {
         }
 
         postEndpoint(Api.Users.UploadAvatar) {
-            val bytes = it.data
-            val userId = getUserId()
-            saveBytesAsThumb(bytes, "${userId.value}_avatar", userId)
+            error("not implemented")
+//            val bytes = it.data
+//            val userId = getUserId()
+            // saveBytesAsThumb(bytes, "${userId.value}_avatar", userId)
         }
 
 
         postEndpoint(Api.Users.UploadImage) { bytes, _ ->
-            val userId = getUserId()
-            saveRemoteImage(bytes, userId, null, StorageType.Local)?.firstOrNull()?.url
+            error("not implemented")
+//            val userId = getUserId()
+//            saveRemoteImage(bytes, userId, null, StorageType.Local)?.firstOrNull()?.url
         }
     }
 }

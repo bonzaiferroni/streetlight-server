@@ -7,8 +7,10 @@ import aws.sdk.kotlin.services.s3.model.ObjectCannedAcl
 import aws.sdk.kotlin.services.s3.model.S3Exception
 import aws.sdk.kotlin.services.s3.putObject
 import aws.smithy.kotlin.runtime.content.ByteStream
-import aws.smithy.kotlin.runtime.net.url.Url
+import aws.smithy.kotlin.runtime.net.url.Url as AwsUrl
 import kabinet.console.globalConsole
+import kampfire.model.Url
+import kampfire.model.toUrl
 
 class ObjectStorageClient(
     private val bucket: String,
@@ -17,16 +19,18 @@ class ObjectStorageClient(
     private val accessKey: String,
     private val secretKey: String
 ) {
+    private val host = "$bucket.$endpoint"
+
     private val client = S3Client {
         this@S3Client.region = this@ObjectStorageClient.region
-        endpointUrl = Url.parse("https://$endpoint")
+        endpointUrl = AwsUrl.parse("https://$endpoint")
         credentialsProvider = StaticCredentialsProvider {
             accessKeyId = accessKey
             secretAccessKey = secretKey
         }
     }
 
-    suspend fun put(bytes: ByteArray, filename: String, contentType: String): String? {
+    suspend fun put(bytes: ByteArray, filename: String, contentType: String): Url? {
         return try {
             client.putObject {
                 this@putObject.bucket = this@ObjectStorageClient.bucket
@@ -36,14 +40,16 @@ class ObjectStorageClient(
                 acl = ObjectCannedAcl.PublicRead
             }
 
-            "https://$bucket.$endpoint/$filename"
+            "https://$host/$filename".toUrl()
         } catch (e: S3Exception) {
             console.logThrowable(e)
             null
         }
     }
 
-    suspend fun delete(filename: String): Boolean {
+    suspend fun delete(url: Url): Boolean {
+        if (url.host != host) error("host does not match: ${url.host}")
+        val filename = url.filename ?: error("no filename: $url")
         return try {
             client.deleteObject {
                 this@deleteObject.bucket = this@ObjectStorageClient.bucket

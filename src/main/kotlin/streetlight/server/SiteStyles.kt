@@ -4,7 +4,6 @@ import koala.CssFile
 import koala.css.*
 import koala.html.*
 import streetlight.web.pages.AppBodyCss
-import streetlight.web.pages.StickyBarCss
 import streetlight.web.ui.StarLightCss
 import java.io.File
 
@@ -15,7 +14,7 @@ val SiteStyles by lazy {
 
         // css files located in /www/css
         CssFile.forEach {
-            appendLine(File("../${it.path}").readText())
+            appendLine(File("../${it.url}").readText())
         }
 
         // styles declared with elements in koala.html

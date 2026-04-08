@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import kabinet.clients.readImageUrl
 import kabinet.console.globalConsole
+import kampfire.model.toUrl
 import streetlight.agent.ParserResult
 import streetlight.model.data.EventParse
 import streetlight.model.data.HtmlParseRequest
@@ -50,9 +51,9 @@ class EventUrlReader(
             console.log("Parse was null")
         }
         val parse = result?.value
-        val featureImage = result?.document?.readImageUrl()
+        val featureImage = result?.document?.readImageUrl()?.toUrl()
         console.log(result?.value?.cost)
-        val event = parse?.toEventEdit(request.url, null, null)?.copy(imageUrl = featureImage)
+        val event = parse?.toEventEdit(request.url, null, null)?.copy(imageRef = featureImage)
         return SingleEventParseResponse(
             hasContent = result != null,
             event = event

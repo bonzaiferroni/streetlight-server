@@ -1,16 +1,17 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
+import kampfire.model.ImageSize
 import kampfire.model.UserId
-import klutch.db.defaultNow
 import klutch.db.tables.UserTable
 import klutch.utils.*
 import klutch.db.point
+import klutch.db.scaledImages
+import klutch.db.url
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
@@ -28,10 +29,20 @@ object LocationTable : UUIDTable("location") {
     val eventsUrl = text("events_url").nullable()
     val aboutUrl = text("about_url").nullable()
     val menuUrl = text("menu_url").nullable()
-    val imageUrl = text("image_url").nullable()
-    val thumbUrl = text("thumb_url").nullable()
-    val updatedAt = datetime("updated_at").defaultNow()
-    val createdAt = datetime("created_at").defaultNow()
+    val imageRef = url("image_ref").nullable()
+    val images = scaledImages("images").nullable()
+    val updatedAt = timestamp("updated_at")
+    val createdAt = timestamp("created_at")
+
+    val imageConfig = imageConfigOf(
+        table = this,
+        refColumn = imageRef,
+        arrayColumn = images,
+        ImageSize.Large,
+        ImageSize.Medium,
+        ImageSize.Small,
+        ImageSize.Thumb,
+    )
 }
 
 fun ResultRow.toLocation() = Location(
@@ -45,21 +56,22 @@ fun ResultRow.toLocation() = Location(
     eventsUrl = this[LocationTable.eventsUrl],
     aboutUrl = this[LocationTable.aboutUrl],
     menuUrl = this[LocationTable.menuUrl],
-    imageUrl = this[LocationTable.imageUrl],
-    thumbUrl = this[LocationTable.thumbUrl],
-    updatedAt = this[LocationTable.updatedAt].toInstantFromUtc(),
-    createdAt = this[LocationTable.createdAt].toInstantFromUtc(),
+    imageRef = this[LocationTable.imageRef],
+    images = this[LocationTable.images],
+    updatedAt = this[LocationTable.updatedAt],
+    createdAt = this[LocationTable.createdAt],
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, creatorId: UserId?, ownerId: UserId?) {
+fun UpdateBuilder<*>.writeFull(location: Location, creatorId: UserId?, ownerId: UserId?, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.toUUID()
     this[LocationTable.creatorId] = creatorId?.toUUID()
-    this[LocationTable.createdAt] = location.createdAt.toLocalDateTimeUtc()
-    writeUpdate(location, ownerId)
+    this[LocationTable.createdAt] = location.createdAt
+    writeUpdate(location, ownerId, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(location: Location, ownerId: UserId?) {
+fun UpdateBuilder<*>.writeUpdate(location: Location, ownerId: UserId?, imageSet: SavedImageSet?) {
+    this[LocationTable.ownerId] = ownerId?.toUUID()
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description
     this[LocationTable.address] = location.address
@@ -69,7 +81,6 @@ fun UpdateBuilder<*>.writeUpdate(location: Location, ownerId: UserId?) {
     this[LocationTable.eventsUrl] = location.eventsUrl
     this[LocationTable.aboutUrl] = location.aboutUrl
     this[LocationTable.menuUrl] = location.menuUrl
-    this[LocationTable.imageUrl] = location.imageUrl
-    this[LocationTable.thumbUrl] = location.thumbUrl
-    this[LocationTable.updatedAt] = location.updatedAt.toLocalDateTimeUtc()
+    this[LocationTable.updatedAt] = location.updatedAt
+    writeImages(LocationTable.imageConfig, imageSet)
 }
