@@ -5,8 +5,8 @@ import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
 import klutch.utils.toStringId
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Performer
 import streetlight.model.data.PerformerId
 import streetlight.model.data.toProjectId

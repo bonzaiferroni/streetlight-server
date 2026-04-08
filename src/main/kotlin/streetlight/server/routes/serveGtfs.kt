@@ -19,8 +19,8 @@ import klutch.server.readParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import streetlight.model.Api
 import streetlight.model.data.AreaTransit
 import streetlight.model.data.AreaTransitState

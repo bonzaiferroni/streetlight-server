@@ -5,7 +5,7 @@ import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.UserId
 import kampfire.model.toUrl
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
 import streetlight.model.data.StorageType

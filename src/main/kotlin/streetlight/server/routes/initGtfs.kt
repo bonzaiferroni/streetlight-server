@@ -7,8 +7,8 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import streetlight.model.data.TransitRoute
 import streetlight.model.data.TransitShape
 import streetlight.model.data.TransitStop

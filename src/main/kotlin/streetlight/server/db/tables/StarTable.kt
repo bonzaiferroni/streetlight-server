@@ -4,9 +4,9 @@ import kampfire.model.ImageSize
 import klutch.db.scaledImages
 import klutch.db.tables.UserTable
 import klutch.db.url
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import streetlight.model.data.Star
 
 // this provides additional properties for User, likely will become the only table for account information

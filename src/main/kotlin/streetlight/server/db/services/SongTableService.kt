@@ -8,11 +8,13 @@ import klutch.db.readById
 import klutch.utils.eq
 import klutch.utils.greaterEq
 import klutch.utils.toUUID
-import kotlinx.datetime.Instant
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.count
-import org.jetbrains.exposed.sql.leftJoin
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.leftJoin
+import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventId
 import streetlight.model.data.EventSong
 import streetlight.server.db.tables.EventTable
@@ -21,6 +23,7 @@ import streetlight.server.db.tables.RequestTable
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toRequest
 import streetlight.server.db.tables.toSong
+import kotlin.time.Instant
 
 private val console = globalConsole.getHandle(SongTableService::class)
 
@@ -45,7 +48,7 @@ class SongTableService(): DbService() {
             val leastPlayedSongId = SongTable.leftJoin(
                 otherTable = RenditionTable,
                 onColumn = { id },
-                otherColumn = { songId },
+                otherColumn = { RenditionTable.songId },
                 additionalConstraint = { RenditionTable.createdAt.greaterEq(since) }
             )
                 .select(SongTable.id)

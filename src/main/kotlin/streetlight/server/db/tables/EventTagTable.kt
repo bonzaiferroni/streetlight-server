@@ -1,8 +1,8 @@
 package streetlight.server.db.tables
 
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import streetlight.model.data.EventTag
 import streetlight.model.data.EventTagId
 

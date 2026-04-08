@@ -1,9 +1,9 @@
 package streetlight.server.db.tables
 
 import klutch.db.tables.UserTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 object GalaxyLightTable : Table("galaxy_light") {
     // experimenting with pascal case columns

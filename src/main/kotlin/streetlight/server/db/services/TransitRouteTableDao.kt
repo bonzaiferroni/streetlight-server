@@ -3,10 +3,12 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.db.readAll
-import org.jetbrains.exposed.sql.batchUpsert
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.update
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import streetlight.model.data.TransitRoute
 import streetlight.model.data.TransitRouteId
 import streetlight.model.data.TransitStopId

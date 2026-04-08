@@ -5,12 +5,12 @@ import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.tables.UserTable
 import klutch.utils.toUUID
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.json.jsonb
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Song
 import streetlight.model.data.SongNotation
 import streetlight.server.utils.toProjectId
@@ -24,8 +24,8 @@ object SongTable : UUIDTable() {
     val tempo = integer("tempo").nullable()
     val capo = integer("capo").nullable()
     val inRotation = bool("in_rotation").default(true)
-    val updatedAt = datetime("updated_at")
-    val createdAt = datetime("created_at")
+    val updatedAt = timestamp("updated_at")
+    val createdAt = timestamp("created_at")
 }
 
 fun ResultRow.toSong() = Song(
@@ -37,15 +37,15 @@ fun ResultRow.toSong() = Song(
     tempo = this[SongTable.tempo],
     capo = this[SongTable.capo],
     inRotation = this[SongTable.inRotation],
-    updatedAt = this[SongTable.updatedAt].toInstantFromUtc(),
-    createdAt = this[SongTable.createdAt].toInstantFromUtc(),
+    updatedAt = this[SongTable.updatedAt],
+    createdAt = this[SongTable.createdAt],
 )
 
 // Updaters
 fun UpdateBuilder<*>.writeFull(song: Song) {
     this[SongTable.id] = song.songId.toUUID()
     this[SongTable.userId] = song.userId.toUUID()
-    this[SongTable.createdAt] = song.createdAt.toLocalDateTimeUtc()
+    this[SongTable.createdAt] = song.createdAt
     writeUpdate(song)
 }
 
@@ -56,7 +56,7 @@ fun UpdateBuilder<*>.writeUpdate(song: Song) {
     this[SongTable.tempo] = song.tempo
     this[SongTable.capo] = song.capo
     this[SongTable.inRotation] = song.inRotation
-    this[SongTable.updatedAt] = song.updatedAt.toLocalDateTimeUtc()
+    this[SongTable.updatedAt] = song.updatedAt
 }
 
 val tableJsonDefault = Json {

@@ -2,9 +2,9 @@ package streetlight.server.utils
 
 import kampfire.model.UserId
 import klutch.utils.toStringId
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import streetlight.model.data.ProjectId
 import streetlight.model.data.toProjectId
 import java.util.UUID

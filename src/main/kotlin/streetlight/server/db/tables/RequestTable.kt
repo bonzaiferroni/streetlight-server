@@ -3,11 +3,11 @@ package streetlight.server.db.tables
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
 import klutch.utils.toUUID
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Request
 import streetlight.server.utils.toProjectId
 
@@ -17,7 +17,7 @@ object RequestTable : UUIDTable() {
     val isJoining = bool("is_joining")
     val comment = text("comment").nullable()
     val requesterName = text("requester_name").nullable()
-    val createdAt = datetime("created_at")
+    val createdAt = timestamp("created_at")
 }
 
 fun ResultRow.toRequest() = Request(
@@ -27,7 +27,7 @@ fun ResultRow.toRequest() = Request(
     isJoining = this[RequestTable.isJoining],
     comment = this[RequestTable.comment],
     requesterName = this[RequestTable.requesterName],
-    createdAt = this[RequestTable.createdAt].toInstantFromUtc(),
+    createdAt = this[RequestTable.createdAt],
 )
 
 // Updaters
@@ -42,5 +42,5 @@ fun UpdateBuilder<*>.writeUpdate(request: Request) {
     this[RequestTable.isJoining] = request.isJoining
     this[RequestTable.comment] = request.comment
     this[RequestTable.requesterName] = request.requesterName
-    this[RequestTable.createdAt] = request.createdAt.toLocalDateTimeUtc()
+    this[RequestTable.createdAt] = request.createdAt
 }

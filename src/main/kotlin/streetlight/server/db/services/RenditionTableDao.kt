@@ -7,10 +7,11 @@ import klutch.db.read
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.greaterEq
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import kotlin.time.Clock
+import kotlin.time.Instant
 import streetlight.model.data.SongId
 import streetlight.model.data.Rendition
 import streetlight.model.data.RenditionId

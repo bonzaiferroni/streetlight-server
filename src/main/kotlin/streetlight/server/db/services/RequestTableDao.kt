@@ -3,8 +3,8 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.jdbc.insert
+import kotlin.time.Clock
 import streetlight.model.data.EventId
 import streetlight.model.data.NewRequest
 import streetlight.model.data.Request

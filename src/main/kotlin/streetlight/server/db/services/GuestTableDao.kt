@@ -3,7 +3,7 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.model.data.Guest
 import streetlight.model.data.GuestId
 import streetlight.server.db.tables.GuestTable

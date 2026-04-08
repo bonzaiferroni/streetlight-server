@@ -5,9 +5,8 @@ import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
 import klutch.utils.toStringId
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
 import streetlight.model.data.toProjectId

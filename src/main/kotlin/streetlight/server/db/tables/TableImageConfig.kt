@@ -6,9 +6,10 @@ import kampfire.model.ScaledImageArray
 import kampfire.model.Url
 import klutch.db.DbService
 import klutch.utils.eq
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.ProjectId
 import streetlight.server.model.StreetlightRouting
 import streetlight.server.routes.saveImageSizes

@@ -11,11 +11,11 @@ import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
@@ -33,8 +33,8 @@ object GalaxyTable : UUIDTable("galaxy") {
     val postGuide = text("post_guide").nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
-    val updatedAt = datetime("updated_at")
-    val createdAt = datetime("created_at")
+    val updatedAt = timestamp("updated_at")
+    val createdAt = timestamp("created_at")
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -50,7 +50,7 @@ object GalaxyTable : UUIDTable("galaxy") {
 fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: UserId, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.toUUID()
     this[GalaxyTable.founderId] = founderId.toUUID()
-    this[GalaxyTable.createdAt] = galaxy.createdAt.toLocalDateTimeUtc()
+    this[GalaxyTable.createdAt] = galaxy.createdAt
     writeGalaxyUpdate(galaxy, imageSet)
 }
 
@@ -63,7 +63,7 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, imageSet: SavedImageSet?)
     this[GalaxyTable.postPermission] = galaxy.postPermission
     this[GalaxyTable.reviewMode] = galaxy.reviewMode
     this[GalaxyTable.postGuide] = galaxy.postGuide
-    this[GalaxyTable.updatedAt] = galaxy.updatedAt.toLocalDateTimeUtc()
+    this[GalaxyTable.updatedAt] = galaxy.updatedAt
     writeImages(GalaxyTable.imageConfig, imageSet)
 }
 
@@ -79,6 +79,6 @@ fun ResultRow.toGalaxy() = Galaxy(
     postGuide = this[GalaxyTable.postGuide],
     imageRef = this[GalaxyTable.imageRef],
     images = this[GalaxyTable.images],
-    updatedAt = this[GalaxyTable.updatedAt].toInstantFromUtc(),
-    createdAt = this[GalaxyTable.createdAt].toInstantFromUtc(),
+    updatedAt = this[GalaxyTable.updatedAt],
+    createdAt = this[GalaxyTable.createdAt],
 )

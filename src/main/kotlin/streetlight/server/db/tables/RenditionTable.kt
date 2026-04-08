@@ -4,11 +4,11 @@ import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
 import klutch.db.tables.UserTable
 import klutch.utils.toUUID
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.SelfRating
 import streetlight.model.data.Rendition
 import streetlight.server.utils.toProjectId
@@ -19,7 +19,7 @@ object RenditionTable : UUIDTable() {
     val userId = reference("user_Id", UserTable, onDelete = ReferenceOption.CASCADE)
     val notes = text("notes").nullable()
     val rating = enumeration<SelfRating>("rating").nullable()
-    val createdAt = datetime("created_at")
+    val createdAt = timestamp("created_at")
 }
 
 fun ResultRow.toRendition() = Rendition(
@@ -28,7 +28,7 @@ fun ResultRow.toRendition() = Rendition(
     userId = toUserId(RenditionTable.userId),
     notes = this[RenditionTable.notes],
     rating = this[RenditionTable.rating],
-    createdAt = this[RenditionTable.createdAt].toInstantFromUtc(),
+    createdAt = this[RenditionTable.createdAt],
 )
 
 // Updaters
@@ -42,5 +42,5 @@ fun UpdateBuilder<*>.writeFull(rendition: Rendition) {
 fun UpdateBuilder<*>.writeUpdate(rendition: Rendition) {
     this[RenditionTable.notes] = rendition.notes
     this[RenditionTable.rating] = rendition.rating
-    this[RenditionTable.createdAt] = rendition.createdAt.toLocalDateTimeUtc()
+    this[RenditionTable.createdAt] = rendition.createdAt
 }

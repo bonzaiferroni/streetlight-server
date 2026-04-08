@@ -3,7 +3,8 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.tables.UserTable
 import klutch.utils.eqLowercase
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.leftJoin
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
 

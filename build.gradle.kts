@@ -27,7 +27,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation("org.postgresql:postgresql:42.7.3")
-    implementation(libs.exposed.migration)
+    implementation(libs.exposed.migration.core)
+    implementation(libs.exposed.migration.jdbc)
 
     implementation(libs.ktor.server.auth.jvm)
     implementation(libs.ktor.server.auth.jwt.jvm)

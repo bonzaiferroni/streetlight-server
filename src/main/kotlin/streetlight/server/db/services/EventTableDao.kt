@@ -15,12 +15,13 @@ import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.eqLowercase
 import klutch.utils.toUUID
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
@@ -29,6 +30,7 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Slug
 import streetlight.model.data.slugOf
+import streetlight.server.db.services.insertWithSlug
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
@@ -39,6 +41,8 @@ import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val console = globalConsole.getHandle(EventTableDao::class)
 

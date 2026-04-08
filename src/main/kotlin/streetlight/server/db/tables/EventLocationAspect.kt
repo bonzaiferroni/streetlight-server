@@ -1,7 +1,7 @@
 package streetlight.server.db.tables
 
 import klutch.utils.toGeoPoint
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
 import streetlight.model.data.EventLocation
 import streetlight.server.utils.toProjectId
 

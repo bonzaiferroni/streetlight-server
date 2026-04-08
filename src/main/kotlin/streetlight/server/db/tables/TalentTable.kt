@@ -5,12 +5,12 @@ import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.UserId
 import klutch.db.tables.UserTable
 import klutch.utils.toUUID
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.timestamp
+import kotlin.time.Clock
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
 import streetlight.model.data.TalentLevel
@@ -26,8 +26,8 @@ object TalentTable : UUIDTable("talent") {
     val talentType = enumeration<TalentType>("talent_type")
     val talentLevel = enumeration<TalentLevel>("talent_level")
     val yearStarted = integer("year_started")
-    val updatedAt = datetime("updated_at")
-    val createdAt = datetime("created_at")
+    val updatedAt = timestamp("updated_at")
+    val createdAt = timestamp("created_at")
 }
 
 fun ResultRow.toTalent() = Talent(
@@ -39,15 +39,15 @@ fun ResultRow.toTalent() = Talent(
     talentType = this[TalentTable.talentType],
     talentLevel = this[TalentTable.talentLevel],
     yearStarted = this[TalentTable.yearStarted],
-    updatedAt = this[TalentTable.updatedAt].toInstantFromUtc(),
-    createdAt = this[TalentTable.createdAt].toInstantFromUtc(),
+    updatedAt = this[TalentTable.updatedAt],
+    createdAt = this[TalentTable.createdAt],
 )
 
 // Updaters
 fun UpdateBuilder<*>.writeFull(talent: Talent, userId: UserId) {
     this[TalentTable.id] = talent.talentId.value.toUUID()
     this[TalentTable.userId] = userId.value.toUUID()
-    this[TalentTable.createdAt] = talent.createdAt.toLocalDateTimeUtc()
+    this[TalentTable.createdAt] = talent.createdAt
     writeUpdate(talent)
 }
 
@@ -59,5 +59,5 @@ fun UpdateBuilder<*>.writeUpdate(talent: Talent) {
     this[TalentTable.talentType] = talent.talentType
     this[TalentTable.talentLevel] = talent.talentLevel
     this[TalentTable.yearStarted] = talent.yearStarted
-    this[TalentTable.updatedAt] = Clock.System.now().toLocalDateTimeUtc()
+    this[TalentTable.updatedAt] = Clock.System.now()
 }

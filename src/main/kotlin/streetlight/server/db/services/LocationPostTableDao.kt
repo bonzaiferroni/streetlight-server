@@ -8,18 +8,16 @@ import klutch.db.read
 import klutch.utils.UserIdentity
 import klutch.utils.eq
 import klutch.utils.toUUID
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.insertReturning
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.insertReturning
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
+import kotlin.time.Clock
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.GalaxyPostResult
 import streetlight.model.data.LocationPost
@@ -97,7 +95,7 @@ class LocationPostTableDao : DbService() {
 
     fun queryPosts(
         limit: Int,
-        query: (SqlExpressionBuilder.() -> Op<Boolean>)
+        query: (() -> Op<Boolean>)
     ): List<LocationPost> {
         val query = query // ?: { LocationPostTable.id.isNotNull() }
         val join = GalaxyLocationPostTable
