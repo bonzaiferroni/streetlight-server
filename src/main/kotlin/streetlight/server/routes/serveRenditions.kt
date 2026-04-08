@@ -19,9 +19,9 @@ fun StreetlightRouting.serveRenditions() {
     }
 
     authenticateJwt {
-        postEndpoint(Api.RenditionFeed.Create) { newPlay, _ ->
+        postEndpoint(Api.RenditionFeed.Create) {
             val userId = getUserId()
-            dao.create(userId, newPlay)
+            dao.create(userId, it.data)
         }
 
         getEndpoint(Api.RenditionFeed.ReadAllSince) { endpoint ->
@@ -30,8 +30,8 @@ fun StreetlightRouting.serveRenditions() {
             dao.readAllSince(userId, since)
         }
 
-        postEndpoint(Api.RenditionFeed.Update) { play, _ ->
-            dao.update(play)
+        postEndpoint(Api.RenditionFeed.Update) {
+            dao.update(it.data)
         }
 
         deleteEndpoint(Api.RenditionFeed.Delete) { songPlayId, _ ->
