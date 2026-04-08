@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -14,7 +14,7 @@ import streetlight.server.utils.toUserIdOrNull
 object EventPostTable : UUIDTable("event_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE) // td: allow null for deleted events
-    val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val userId = reference("user_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
     val text = text("text").nullable()
     val updatedAt = timestamp("updated_at")

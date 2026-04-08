@@ -1,10 +1,8 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.ImageSize
 import kampfire.model.UserId
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toStringId
 import klutch.utils.toUUID
@@ -17,7 +15,7 @@ import streetlight.model.data.*
 import streetlight.server.utils.toProjectId
 
 object UploadFileTable : UUIDTable("user_file") {
-    val userId = reference("user_id", UserTable, ReferenceOption.CASCADE).nullable()
+    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE).nullable()
     val url = url("url")
     val fileType = enumeration<FileType>("file_type")
     val size = enumeration<ImageSize>("size").nullable()

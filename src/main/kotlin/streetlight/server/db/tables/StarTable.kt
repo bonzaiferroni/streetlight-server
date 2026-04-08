@@ -2,7 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.scaledImages
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -11,7 +11,7 @@ import streetlight.model.data.Star
 
 // this provides additional properties for User, likely will become the only table for account information
 object StarTable: UUIDTable("star") {
-    val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
+    val userId = reference("user_id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
     val description = text("description").nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
@@ -26,10 +26,10 @@ object StarTable: UUIDTable("star") {
 }
 
 fun ResultRow.toStar() = Star(
-    name = this[UserTable.username],
+    name = this[BasicUserTable.username],
     description = this[StarTable.description],
     imageRef = this[StarTable.imageRef],
     images = this[StarTable.images],
-    updatedAt = this[UserTable.updatedAt],
-    createdAt = this[UserTable.createdAt],
+    updatedAt = this[BasicUserTable.updatedAt],
+    createdAt = this[BasicUserTable.createdAt],
 )

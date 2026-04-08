@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -14,7 +14,7 @@ import streetlight.server.utils.toUserIdOrNull
 
 object LocationPostTable : UUIDTable("location_post") {
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val userId = reference("user_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
     val title = text("title").nullable()
     val text = text("text").nullable()
@@ -23,7 +23,7 @@ object LocationPostTable : UUIDTable("location_post") {
 }
 
 object GalaxyLocationPostTable: Table("galaxy_location_post") {
-    val userId = reference("user_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val userId = reference("user_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
     val postId = reference("post_id", LocationPostTable.id, onDelete = ReferenceOption.CASCADE)
 

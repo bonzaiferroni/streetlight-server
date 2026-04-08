@@ -2,8 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.scaledImages
-import klutch.db.tables.RefreshTokenTable.nullable
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -21,7 +20,7 @@ import streetlight.server.utils.toProjectIdOrNull
 import streetlight.server.utils.toUserId
 
 object EventTable : UUIDTable("event") {
-    val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
+    val userId = reference("user_id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val slug = text("slug").uniqueIndex(SLUG_INDEX)
@@ -47,7 +46,7 @@ object EventTable : UUIDTable("event") {
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
-    const val SLUG_INDEX = "EVENT_SLUG_INDEX"
+    const val SLUG_INDEX = "event_slug_index"
 
     val imageConfig = imageConfigOf(
         table = this,

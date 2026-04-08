@@ -1,8 +1,6 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -17,7 +15,7 @@ import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toUserId
 
 object SongTable : UUIDTable() {
-    val userId = reference("user_id", UserTable, onDelete = ReferenceOption.CASCADE)
+    val userId = reference("user_id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
     val name = text("title")
     val artist = text("artist")
     val notation = jsonb<SongNotation>("notation", tableJsonDefault).nullable()

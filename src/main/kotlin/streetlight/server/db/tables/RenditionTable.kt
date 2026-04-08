@@ -1,8 +1,6 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -16,7 +14,7 @@ import streetlight.server.utils.toUserId
 
 object RenditionTable : UUIDTable() {
     val songId = reference("song_id", SongTable, onDelete = ReferenceOption.CASCADE)
-    val userId = reference("user_Id", UserTable, onDelete = ReferenceOption.CASCADE)
+    val userId = reference("user_Id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
     val notes = text("notes").nullable()
     val rating = enumeration<SelfRating>("rating").nullable()
     val createdAt = timestamp("created_at")

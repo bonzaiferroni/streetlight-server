@@ -1,13 +1,11 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.ImageSize
 import kampfire.model.UserId
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.*
 import klutch.db.point
 import klutch.db.scaledImages
-import klutch.db.tables.RefreshTokenTable.nullable
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -19,8 +17,8 @@ import streetlight.model.data.ResourceType
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UUIDTable("location") {
-    val creatorId = reference("creator_id", UserTable, ReferenceOption.SET_NULL).nullable()
-    val ownerId = reference("owner_id", UserTable, ReferenceOption.SET_NULL).nullable()
+    val creatorId = reference("creator_id", BasicUserTable, ReferenceOption.SET_NULL).nullable()
+    val ownerId = reference("owner_id", BasicUserTable, ReferenceOption.SET_NULL).nullable()
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()

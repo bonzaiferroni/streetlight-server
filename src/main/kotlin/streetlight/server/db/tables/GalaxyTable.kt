@@ -1,12 +1,10 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.ImageSize
 import kampfire.model.UserId
 import klutch.db.point
 import klutch.db.scaledImages
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
@@ -22,7 +20,7 @@ import streetlight.model.data.ReviewMode
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
-    val founderId = reference("founder_id", UserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val founderId = reference("founder_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val path = text("path").uniqueIndex()
     val name = text("name")
     val description = text("description").nullable()

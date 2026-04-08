@@ -1,9 +1,7 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
 import kampfire.model.UserId
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -18,7 +16,7 @@ import streetlight.model.data.TalentType
 import streetlight.server.utils.toProjectId
 
 object TalentTable : UUIDTable("talent") {
-    val userId = reference("user_id", UserTable, ReferenceOption.CASCADE)
+    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE)
     val name = text("name")
     val description = text("description").nullable()
     val imageUrl = text("image_url").nullable()

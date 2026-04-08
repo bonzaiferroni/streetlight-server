@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.UserTable
+import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -12,7 +12,7 @@ import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toUserId
 
 object PerformerTable : UUIDTable("performer") {
-    val userId = reference("user_id", UserTable, ReferenceOption.CASCADE)
+    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE)
     val venmo = text("venmo")
     val stageName = text("stage_name")
 }
