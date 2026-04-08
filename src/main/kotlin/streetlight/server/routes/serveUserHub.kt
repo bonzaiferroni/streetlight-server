@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.utils.randomUuidString
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
@@ -40,9 +41,8 @@ fun StreetlightRouting.serveUserHub() {
 
 
         postEndpoint(Api.Users.UploadImage) { bytes, _ ->
-            error("not implemented")
-//            val userId = getUserId()
-//            saveRemoteImage(bytes, userId, null, StorageType.Local)?.firstOrNull()?.url
+            val userId = getUserId()
+            saveLocalImageFile(bytes, userId, randomUuidString())
         }
     }
 }

@@ -9,6 +9,7 @@ import klutch.utils.getUserIdentityOrNull
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveLocations.name)
@@ -58,7 +59,7 @@ fun StreetlightRouting.serveLocations() {
             val userId = getUserIdOrNull()
 
             val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
+            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, LocationTable.imageConfig)
 
             edit.locationId?.let {
                 dao.updateLocation(it, userId, edit, imageSet)

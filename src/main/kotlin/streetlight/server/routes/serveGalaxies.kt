@@ -10,6 +10,7 @@ import streetlight.model.Api
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
@@ -54,7 +55,7 @@ fun StreetlightRouting.serveGalaxies() {
             val edit = request.data
             val userId = getUserId()
             val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, EventTable.imageConfig)
+            val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             dao.create(edit, userId, imageSet)
         }
 

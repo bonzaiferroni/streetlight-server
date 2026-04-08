@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
+import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImage
 import kampfire.model.Url
@@ -17,6 +18,8 @@ import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.StreetlightRouting
 import java.io.File
 
+private val console = globalConsole.getHandle("saveImage")
+
 suspend fun StreetlightRouting.saveLocalImage(
     bytes: ByteArray,
     userId: UserId?,
@@ -27,22 +30,25 @@ suspend fun StreetlightRouting.saveLocalImage(
     val format = result.format; val forceEncoding = result.forceEncoding
 
     val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return null
-    return saveLocalImageFile(resizedBytes, userId, format, filename)
+    return saveLocalImageFile(resizedBytes, userId, filename, format)
 }
 
 suspend fun StreetlightRouting.saveRemoteImage(
     bytes: ByteArray,
     userId: UserId?,
-    filename: String,
+    filenameRoot: String,
     sizes: List<ImageSize>,
 ): List<ScaledImage>? {
     val result = detectFormatAndEncodingMode(bytes) ?: return null
     val format = result.format; val forceEncoding = result.forceEncoding
+    val filename = "$filenameRoot.${format.ext}"
 
     val results = sizes.mapNotNull { size ->
         val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return@mapNotNull null
         val filename = filename.appendToFilename(size.label)
-        val url = saveS3ImageFile(resizedBytes, userId, size, format, filename) ?: return@mapNotNull null
+        val url = saveS3ImageFile(resizedBytes, userId, size, format, filename)
+            ?: error("unable to save image: $filename")
+        console.log("saved remote image: $filename")
         ScaledImage(size, url)
     }
 
@@ -88,7 +94,7 @@ suspend fun StreetlightRouting.saveImageSizes(
     imageUrl: Url,
     sizes: List<ImageSize>,
 ): List<ScaledImage>? {
-    if (!sizes.isEmpty()) error("image sizes must be defined")
+    if (sizes.isEmpty()) error("image sizes must be defined")
     return when (imageUrl.isAbsolute) {
         true -> {
             val bytes = downloadImage(imageUrl) ?: return null
@@ -97,7 +103,7 @@ suspend fun StreetlightRouting.saveImageSizes(
         }
         else -> {
             val filename = imageUrl.filename ?: error("filename not found: ${imageUrl.filename}")
-            val bytes = File("../${imageUrl}").takeIf { it.isFile }?.readBytes() ?: return null
+            val bytes = File("..${imageUrl}").takeIf { it.isFile }?.readBytes() ?: error("file not found: $imageUrl")
             saveRemoteImage(bytes, userId, filename, sizes)
         }
     }

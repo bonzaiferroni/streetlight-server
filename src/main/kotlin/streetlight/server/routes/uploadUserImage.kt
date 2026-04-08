@@ -19,10 +19,11 @@ private val console = globalConsole.getHandle("uploader")
 suspend fun StreetlightRouting.saveLocalImageFile(
     bytes: ByteArray,
     userId: UserId?,
-    format: FileFormat,
     filename: String? = null,
-): Url {
+    format: FileFormat? = null,
+): Url? {
     val fileId = UploadFileId.random()
+    val format = format ?: detectFormatFromImage(bytes) ?: return null
     val filename = filename ?: fileId.value
 
     val name = "$filename.${format.ext}"
@@ -57,9 +58,7 @@ suspend fun StreetlightRouting.saveS3ImageFile(
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value
 
-    val name = "$filename.${format.ext}"
-
-    val url = app.storage.s3.put(bytes, name, format.contentType) ?: return null
+    val url = app.storage.s3.put(bytes, filename, format.contentType) ?: return null
     
     app.dao.userFile.create(
         UploadFile(
