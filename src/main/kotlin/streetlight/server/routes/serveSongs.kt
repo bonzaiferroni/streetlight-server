@@ -21,9 +21,9 @@ fun StreetlightRouting.serveSongs() {
             dao.readAllByUserId(userId)
         }
 
-        postEndpoint(Api.Songs.Create) { newSong, endpoint ->
+        postEndpoint(Api.Songs.Create) {
             val userId = getUserId()
-            dao.createSong(userId, newSong)
+            dao.createSong(userId, it.data)
         }
 
         getEndpoint(Api.Songs.TakeNextSong, { it.toProjectId() }) { eventId, endpoint ->
@@ -32,9 +32,9 @@ fun StreetlightRouting.serveSongs() {
             service.takeNextSong(userId, eventId, since)
         }
 
-        postEndpoint(Api.SongProfile.Update) { song, endpoint ->
+        postEndpoint(Api.SongProfile.Update) {
             val userId = getUserId()
-            dao.updateSong(userId, song)
+            dao.updateSong(userId, it.data)
         }
     }
 }
