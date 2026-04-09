@@ -32,7 +32,7 @@ class TalentTableDao : DbService() {
     }
 
     suspend fun readUserTalents(userId: UserId) = dbQuery {
-        TalentTable.read { it.userId.eq(userId) }.map { it.toTalent() }
+        TalentTable.read { it.starId.eq(userId) }.map { it.toTalent() }
     }
 
     suspend fun create(talent: Talent, userId: UserId): TalentId = dbQuery {
@@ -60,7 +60,7 @@ class TalentTableDao : DbService() {
     }
 
     suspend fun edit(talentId: TalentId, talent: TalentEdit, userId: UserId) = dbQuery {
-        val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.userId.eq(userId) }) {
+        val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.starId.eq(userId) }) {
             it.writeUpdate(Talent(
                 talentId = talentId,
                 name = talent.name,

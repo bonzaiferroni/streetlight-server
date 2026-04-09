@@ -6,7 +6,6 @@ import klutch.db.inList
 import klutch.db.read
 import klutch.utils.UserIdentity
 import klutch.utils.eq
-import klutch.utils.greater
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -83,7 +82,7 @@ class EventPostTableDao : DbService() {
     }
 
     suspend fun readPosts(userId: UserId, limit: Int = 100) = dbQuery {
-        queryPosts(limit) { EventPostTable.userId.eq(userId) }
+        queryPosts(limit) { EventPostTable.starId.eq(userId) }
     }
 
     suspend fun readPost(eventPostId: EventPostId) = dbQuery {
@@ -123,7 +122,7 @@ fun EventPostEdit.toEventPostRow(
     postId = postId ?: EventPostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
     eventId = eventId ?: error("eventId is required"),
-    userId = identity.userId,
+    starId = identity.userId,
     username = identity.username,
     text = text,
     updatedAt = Clock.System.now(),

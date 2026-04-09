@@ -19,7 +19,6 @@ import streetlight.model.data.Song
 import streetlight.model.data.SongId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.RenditionTable
-import streetlight.server.db.tables.RenditionTable.songId
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toSong
 import streetlight.server.db.tables.writeFull
@@ -31,7 +30,7 @@ class SongTableDao: DbService() {
     }
 
     suspend fun readAllByUserId(userId: UserId) = dbQuery {
-        SongTable.read { it.userId.eq(userId) }
+        SongTable.read { it.starId.eq(userId) }
             .map { it.toSong() }
     }
 
@@ -40,7 +39,7 @@ class SongTableDao: DbService() {
         SongTable.insertAndGetId {
             it.writeFull(Song(
                 songId = SongId.random(),
-                userId = userId,
+                starId = userId,
                 title = newSong.title,
                 artist = newSong.artist,
                 tempo = null,
@@ -54,7 +53,7 @@ class SongTableDao: DbService() {
     }
 
     suspend fun updateSong(userId: UserId, song: Song): Boolean = dbQuery {
-        SongTable.update({ SongTable.userId.eq(userId) and SongTable.id.eq(song.songId) }) {
+        SongTable.update({ SongTable.starId.eq(userId) and SongTable.id.eq(song.songId) }) {
             it.writeUpdate(song)
         } > 0
     }
@@ -62,7 +61,7 @@ class SongTableDao: DbService() {
     suspend fun readRequestItems(userId: UserId) = dbQuery {
         SongTable.leftJoin(RenditionTable, { id }, { songId })
             .select(SongTable.columns + RenditionTable.songId.count())
-            .where { SongTable.userId.eq(userId) }
+            .where { SongTable.starId.eq(userId) }
             .groupBy(SongTable.id)
             .orderBy(RenditionTable.songId.count(), SortOrder.DESC_NULLS_LAST)
             .map {

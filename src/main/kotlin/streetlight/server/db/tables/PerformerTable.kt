@@ -12,14 +12,14 @@ import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toUserId
 
 object PerformerTable : UUIDTable("performer") {
-    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     val venmo = text("venmo")
     val stageName = text("stage_name")
 }
 
 fun ResultRow.toSpark() = Performer(
     performerId = toProjectId<PerformerId>(PerformerTable.id),
-    userId = toUserId(PerformerTable.userId),
+    userId = toUserId(PerformerTable.starId),
     venmo = this[PerformerTable.venmo],
     stageName = this[PerformerTable.stageName],
 )
@@ -27,7 +27,7 @@ fun ResultRow.toSpark() = Performer(
 // Updaters
 fun UpdateBuilder<*>.writeFull(performer: Performer) {
     this[PerformerTable.id] = performer.performerId.value.toUUID()
-    this[PerformerTable.userId] = performer.userId.value.toUUID()
+    this[PerformerTable.starId] = performer.userId.value.toUUID()
     writeUpdate(performer)
 }
 

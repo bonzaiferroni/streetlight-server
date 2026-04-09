@@ -21,11 +21,11 @@ class UploadFileTableDao : DbService() {
     }
 
     suspend fun readUserFiles(userId: UserId) = dbQuery {
-        UploadFileTable.read { UploadFileTable.userId.eq(userId) }.map { it.toUploadFile() }
+        UploadFileTable.read { UploadFileTable.starId.eq(userId) }.map { it.toUploadFile() }
     }
 
     suspend fun readUserFiles(userId: UserId, count: Int) = dbQuery {
-        UploadFileTable.read { UploadFileTable.userId.eq(userId) }
+        UploadFileTable.read { UploadFileTable.starId.eq(userId) }
             .orderBy(UploadFileTable.createdAt, SortOrder.DESC_NULLS_LAST)
             .limit(count)
             .map { it.toUploadFile() }

@@ -35,7 +35,7 @@ suspend fun StreetlightRouting.saveLocalImageFile(
     app.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
-            userId = userId,
+            starId = userId,
             url = url,
             fileType = FileType.Image,
             size = null,
@@ -63,7 +63,7 @@ suspend fun StreetlightRouting.saveS3ImageFile(
     app.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
-            userId = userId,
+            starId = userId,
             url = url,
             fileType = FileType.Image,
             size = size,

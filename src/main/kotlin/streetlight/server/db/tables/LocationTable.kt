@@ -18,7 +18,7 @@ import streetlight.server.utils.toProjectId
 
 object LocationTable : UUIDTable("location") {
     val creatorId = reference("creator_id", BasicUserTable, ReferenceOption.SET_NULL).nullable()
-    val ownerId = reference("owner_id", BasicUserTable, ReferenceOption.SET_NULL).nullable()
+    val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()

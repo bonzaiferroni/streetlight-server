@@ -5,7 +5,6 @@ import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.db.services.UserTableDao
-import klutch.db.services.CreateUserService
 import klutch.environment.readEnvFromPath
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService

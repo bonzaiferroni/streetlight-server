@@ -14,7 +14,7 @@ import streetlight.server.utils.toUserIdOrNull
 
 object LocationPostTable : UUIDTable("location_post") {
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val userId = reference("user_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val starId = reference("star_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").nullable()
     val title = text("title").nullable()
     val text = text("text").nullable()
@@ -33,7 +33,7 @@ object GalaxyLocationPostTable: Table("galaxy_location_post") {
 fun ResultRow.toLocationPostRow() = LocationPostRow(
     postId = this[LocationPostTable.id].toProjectId(),
     locationId = this[LocationPostTable.locationId]?.toProjectId(),
-    userId = toUserIdOrNull(LocationPostTable.userId),
+    starId = toUserIdOrNull(LocationPostTable.starId),
     username = this[LocationPostTable.username],
     title = this[LocationPostTable.title],
     text = this[LocationPostTable.text],
@@ -43,7 +43,7 @@ fun ResultRow.toLocationPostRow() = LocationPostRow(
 
 fun UpdateBuilder<*>.writeFull(post: LocationPostRow) {
     this[LocationPostTable.id] = post.postId.toUUID()
-    this[LocationPostTable.userId] = post.userId?.toUUID()
+    this[LocationPostTable.starId] = post.starId?.toUUID()
     this[LocationPostTable.username] = post.username
     this[LocationPostTable.createdAt] = post.createdAt
     writeUpdate(post)

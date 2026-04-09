@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inList
-import klutch.db.printQuery
 import klutch.db.read
 import klutch.utils.UserIdentity
 import klutch.utils.eq
@@ -114,7 +113,7 @@ class LocationPostTableDao : DbService() {
 fun NewLocationPost.toLocationPostRow(identity: UserIdentity?) = LocationPostRow(
     postId = LocationPostId.random(),
     locationId = locationId,
-    userId = identity?.userId,
+    starId = identity?.userId,
     username = identity?.username,
     title = title,
     text = text,

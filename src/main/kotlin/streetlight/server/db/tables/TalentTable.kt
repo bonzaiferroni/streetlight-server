@@ -16,7 +16,7 @@ import streetlight.model.data.TalentType
 import streetlight.server.utils.toProjectId
 
 object TalentTable : UUIDTable("talent") {
-    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     val name = text("name")
     val description = text("description").nullable()
     val imageUrl = text("image_url").nullable()
@@ -44,7 +44,7 @@ fun ResultRow.toTalent() = Talent(
 // Updaters
 fun UpdateBuilder<*>.writeFull(talent: Talent, userId: UserId) {
     this[TalentTable.id] = talent.talentId.value.toUUID()
-    this[TalentTable.userId] = userId.value.toUUID()
+    this[TalentTable.starId] = userId.value.toUUID()
     this[TalentTable.createdAt] = talent.createdAt
     writeUpdate(talent)
 }

@@ -20,7 +20,7 @@ import streetlight.model.data.ReviewMode
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
-    val founderId = reference("founder_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val path = text("path").uniqueIndex()
     val name = text("name")
     val description = text("description").nullable()

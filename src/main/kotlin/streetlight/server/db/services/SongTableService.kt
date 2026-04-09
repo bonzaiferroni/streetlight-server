@@ -6,7 +6,6 @@ import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.readById
 import klutch.utils.eq
-import klutch.utils.greaterEq
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -31,7 +30,7 @@ class SongTableService(): DbService() {
 
     suspend fun takeNextSong(userId: UserId, eventId: EventId, since: Instant) = dbQuery {
         val nextRequest = EventTable.innerJoin(RequestTable).select(RequestTable.columns)
-            .where { EventTable.userId.eq(userId) and RequestTable.eventId.eq(eventId) }
+            .where { EventTable.starId.eq(userId) and RequestTable.eventId.eq(eventId) }
             .orderBy(RequestTable.createdAt)
             .limit(1)
             .firstOrNull()?.toRequest()
@@ -52,7 +51,7 @@ class SongTableService(): DbService() {
                 additionalConstraint = { RenditionTable.createdAt.greaterEq(since) }
             )
                 .select(SongTable.id)
-                .where { SongTable.userId.eq(userId) and SongTable.inRotation.eq(true) }
+                .where { SongTable.starId.eq(userId) and SongTable.inRotation.eq(true) }
                 .groupBy(SongTable.id)
                 .orderBy(RenditionTable.id.count(), SortOrder.ASC_NULLS_FIRST)
                 .limit(1)

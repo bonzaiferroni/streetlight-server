@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -14,7 +13,7 @@ import streetlight.server.utils.toUserId
 
 object RenditionTable : UUIDTable() {
     val songId = reference("song_id", SongTable, onDelete = ReferenceOption.CASCADE)
-    val userId = reference("user_Id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val notes = text("notes").nullable()
     val rating = enumeration<SelfRating>("rating").nullable()
     val createdAt = timestamp("created_at")
@@ -23,7 +22,7 @@ object RenditionTable : UUIDTable() {
 fun ResultRow.toRendition() = Rendition(
     renditionId = toProjectId(RenditionTable.id),
     songId = toProjectId(RenditionTable.songId),
-    userId = toUserId(RenditionTable.userId),
+    starId = toUserId(RenditionTable.starId),
     notes = this[RenditionTable.notes],
     rating = this[RenditionTable.rating],
     createdAt = this[RenditionTable.createdAt],
@@ -33,7 +32,7 @@ fun ResultRow.toRendition() = Rendition(
 fun UpdateBuilder<*>.writeFull(rendition: Rendition) {
     this[RenditionTable.id] = rendition.renditionId.toUUID()
     this[RenditionTable.songId] = rendition.songId.toUUID()
-    this[RenditionTable.userId] = rendition.userId.toUUID()
+    this[RenditionTable.starId] = rendition.starId.toUUID()
     writeUpdate(rendition)
 }
 

@@ -2,7 +2,6 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import kampfire.model.UserId
-import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toStringId
 import klutch.utils.toUUID
@@ -15,7 +14,7 @@ import streetlight.model.data.*
 import streetlight.server.utils.toProjectId
 
 object UploadFileTable : UUIDTable("user_file") {
-    val userId = reference("user_id", BasicUserTable, ReferenceOption.CASCADE).nullable()
+    val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).nullable()
     val url = url("url")
     val fileType = enumeration<FileType>("file_type")
     val size = enumeration<ImageSize>("size").nullable()
@@ -26,7 +25,7 @@ object UploadFileTable : UUIDTable("user_file") {
 
 fun ResultRow.toUploadFile() = UploadFile(
     uploadFileId = toProjectId(UploadFileTable.id),
-    userId = this[UploadFileTable.userId]?.value?.let { UserId(it.toStringId()) },
+    starId = this[UploadFileTable.starId]?.value?.let { UserId(it.toStringId()) },
     url = this[UploadFileTable.url],
     fileType = this[UploadFileTable.fileType],
     size = this[UploadFileTable.size],
@@ -37,7 +36,7 @@ fun ResultRow.toUploadFile() = UploadFile(
 
 fun UpdateBuilder<*>.writeFull(file: UploadFile) {
     this[UploadFileTable.id] = file.uploadFileId.toUUID()
-    this[UploadFileTable.userId] = file.userId?.toUUID()
+    this[UploadFileTable.starId] = file.starId?.toUUID()
     this[UploadFileTable.createdAt] = file.createdAt
     writeUpdate(file)
 }

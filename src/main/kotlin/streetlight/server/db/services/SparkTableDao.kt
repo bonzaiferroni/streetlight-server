@@ -23,7 +23,7 @@ class SparkTableDao: DbService() {
     }
 
     suspend fun readByUserId(userId: UserId) = dbQuery {
-        PerformerTable.read { it.userId.eq(userId) }.firstOrNull()?.toSpark()
+        PerformerTable.read { it.starId.eq(userId) }.firstOrNull()?.toSpark()
     }
 
     suspend fun createSpark(performer: Performer): PerformerId = dbQuery {

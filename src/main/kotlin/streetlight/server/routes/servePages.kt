@@ -20,8 +20,8 @@ fun StreetlightRouting.servePages() {
     get("/event-portal/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
         val event = app.dao.event.readEvent(eventId) ?: return@get
-        val spark = app.dao.spark.readByUserId(event.userId)
-        val requestItems = app.dao.song.readRequestItems(event.userId)
+        val spark = app.dao.spark.readByUserId(event.starId)
+        val requestItems = app.dao.song.readRequestItems(event.starId)
         call.respondHtml {
             console.log("responding")
             eventPortal(event, spark, requestItems, SiteStyles)

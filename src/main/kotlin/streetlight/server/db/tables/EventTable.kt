@@ -2,7 +2,6 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.scaledImages
-import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -20,7 +19,7 @@ import streetlight.server.utils.toProjectIdOrNull
 import streetlight.server.utils.toUserId
 
 object EventTable : UUIDTable("event") {
-    val userId = reference("user_id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val slug = text("slug").uniqueIndex(SLUG_INDEX)
@@ -60,7 +59,7 @@ object EventTable : UUIDTable("event") {
 
 fun UpdateBuilder<*>.writeFull(event: Event, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.toUUID()
-    this[EventTable.userId] = event.userId.toUUID()
+    this[EventTable.starId] = event.starId.toUUID()
     this[EventTable.locationId] = event.locationId.toUUID()
     this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
     this[EventTable.slug] = event.slug
@@ -91,7 +90,7 @@ fun UpdateBuilder<*>.writeUpdate(event: Event, imageSet: SavedImageSet?) {
 
 fun ResultRow.toEvent() = Event(
     eventId = toProjectId(EventTable.id),
-    userId = toUserId(EventTable.userId),
+    starId = toUserId(EventTable.starId),
     locationId = toProjectId(EventTable.locationId),
     currentRequestId = toProjectIdOrNull(EventTable.currentRequestId),
     slug = this[EventTable.slug],

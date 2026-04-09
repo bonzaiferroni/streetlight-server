@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -15,7 +14,7 @@ import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toUserId
 
 object SongTable : UUIDTable() {
-    val userId = reference("user_id", BasicUserTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val name = text("title")
     val artist = text("artist")
     val notation = jsonb<SongNotation>("notation", tableJsonDefault).nullable()
@@ -28,7 +27,7 @@ object SongTable : UUIDTable() {
 
 fun ResultRow.toSong() = Song(
     songId = toProjectId(SongTable.id),
-    userId = toUserId(SongTable.userId),
+    starId = toUserId(SongTable.starId),
     title = this[SongTable.name],
     artist = this[SongTable.artist],
     notation = this[SongTable.notation],
@@ -42,7 +41,7 @@ fun ResultRow.toSong() = Song(
 // Updaters
 fun UpdateBuilder<*>.writeFull(song: Song) {
     this[SongTable.id] = song.songId.toUUID()
-    this[SongTable.userId] = song.userId.toUUID()
+    this[SongTable.starId] = song.starId.toUUID()
     this[SongTable.createdAt] = song.createdAt
     writeUpdate(song)
 }

@@ -10,6 +10,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
+import streetlight.server.db.services.StarAuthDao
+import streetlight.server.db.services.provideStarUser
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
@@ -46,7 +48,7 @@ fun initDb(
     }
 
     runBlocking {
-        UserInitService(env).initUsers()
+        UserInitService(env, StarAuthDao(), ::provideStarUser).initUsers()
     }
 }
 

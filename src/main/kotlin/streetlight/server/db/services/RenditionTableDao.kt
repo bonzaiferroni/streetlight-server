@@ -6,7 +6,6 @@ import klutch.db.deleteSingle
 import klutch.db.read
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.greaterEq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
@@ -34,7 +33,7 @@ class RenditionTableDao: DbService() {
 
     suspend fun readAllSince(userId: UserId, since: Instant) = dbQuery {
         RenditionTable.read {
-            (it.userId.eq(userId)) and (it.createdAt.greaterEq(since))
+            (it.starId.eq(userId)) and (it.createdAt.greaterEq(since))
         }.map { it.toRendition() }
     }
 
@@ -44,7 +43,7 @@ class RenditionTableDao: DbService() {
                 Rendition(
                     renditionId = RenditionId.random(),
                     songId = songPlay.songId,
-                    userId = userId,
+                    starId = userId,
                     notes = songPlay.notes,
                     rating = songPlay.rating,
                     createdAt = Clock.System.now(),

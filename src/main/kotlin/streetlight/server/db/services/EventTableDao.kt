@@ -30,7 +30,6 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Slug
 import streetlight.model.data.slugOf
-import streetlight.server.db.services.insertWithSlug
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
@@ -79,14 +78,14 @@ class EventTableDao: DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         val event = edit.toEvent(eventId, userId)
-        EventTable.updateSingleWhere({ EventTable.userId.eq(userId) and EventTable.id.eq(eventId)}) {
+        EventTable.updateSingleWhere({ EventTable.starId.eq(userId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event, imageSet)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
     }
 
     suspend fun deleteEvent(userId: UserId, eventId: EventId): Boolean = dbQuery {
-        EventTable.deleteSingle { EventTable.userId.eq(userId) and EventTable.id.eq(eventId) }
+        EventTable.deleteSingle { EventTable.starId.eq(userId) and EventTable.id.eq(eventId) }
     }
 
     suspend fun readEventsInBounds(bounds: GeoBounds) = dbQuery { // , after: LocalDate, before: LocalDate
@@ -119,18 +118,18 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventLights(userId: UserId) = dbQuery {
-        EventLightTable.read { EventLightTable.UserId.eq(userId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
+        EventLightTable.read { EventLightTable.StarId.eq(userId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
     }
 
     suspend fun editEventLight(edit: LightEdit, userId: UserId) = dbQuery {
         when (edit.isLit) {
             true -> EventLightTable.insertIgnore {
-                it[this.UserId] = userId.toUUID()
+                it[this.StarId] = userId.toUUID()
                 it[this.EventId] = edit.stringId.toUUID()
                 it[this.CreatedAt] = Clock.System.now()
             }
             else -> EventLightTable.deleteWhere {
-                this.EventId.eq(edit.stringId) and this.UserId.eq(userId)
+                this.EventId.eq(edit.stringId) and this.StarId.eq(userId)
             }
         }
         true
@@ -147,7 +146,7 @@ private fun EventEdit.toEvent(
     userId: UserId,
 ) = Event(
     eventId = eventId,
-    userId = userId,
+    starId = userId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
     slug = slugOf(title ?: error("no title")),

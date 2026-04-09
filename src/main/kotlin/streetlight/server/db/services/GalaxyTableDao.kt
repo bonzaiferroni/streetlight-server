@@ -62,18 +62,18 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readGalaxyLights(userId: UserId) = dbQuery {
-        GalaxyLightTable.read { GalaxyLightTable.UserId.eq(userId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
+        GalaxyLightTable.read { GalaxyLightTable.StarId.eq(userId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
     }
 
     suspend fun editGalaxyLight(edit: LightEdit, userId: UserId) = dbQuery {
         when (edit.isLit) {
             true -> GalaxyLightTable.insertIgnore {
-                it[this.UserId] = userId.toUUID()
+                it[this.StarId] = userId.toUUID()
                 it[this.GalaxyId] = edit.stringId.toUUID()
                 it[this.CreatedAt] = Clock.System.now()
             }
             else -> GalaxyLightTable.deleteWhere {
-                this.GalaxyId.eq(edit.stringId) and this.UserId.eq(userId)
+                this.GalaxyId.eq(edit.stringId) and this.StarId.eq(userId)
             }
         }
         true
