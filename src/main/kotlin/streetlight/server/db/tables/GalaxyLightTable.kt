@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp

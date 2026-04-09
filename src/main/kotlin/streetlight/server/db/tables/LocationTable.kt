@@ -2,7 +2,6 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import kampfire.model.UserId
-import klutch.db.tables.BasicUserTable
 import klutch.utils.*
 import klutch.db.point
 import klutch.db.scaledImages
@@ -14,10 +13,11 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
+import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UUIDTable("location") {
-    val creatorId = reference("creator_id", BasicUserTable, ReferenceOption.SET_NULL).nullable()
+    val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val name = text("name")
     val description = text("description").nullable()
@@ -62,15 +62,15 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, creatorId: UserId?, ownerId: UserId?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(location: Location, creatorId: StarId?, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.toUUID()
     this[LocationTable.creatorId] = creatorId?.toUUID()
     this[LocationTable.createdAt] = location.createdAt
-    writeUpdate(location, ownerId, imageSet)
+    writeUpdate(location, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(location: Location, ownerId: UserId?, imageSet: SavedImageSet?) {
-    this[LocationTable.ownerId] = ownerId?.toUUID()
+fun UpdateBuilder<*>.writeUpdate(location: Location, imageSet: SavedImageSet?) {
+    // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description
     this[LocationTable.address] = location.address

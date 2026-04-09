@@ -3,11 +3,11 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.Url
-import kampfire.model.UserId
 import kampfire.model.toUrl
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
+import streetlight.model.data.StarId
 import streetlight.model.data.StorageType
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
@@ -18,7 +18,7 @@ private val console = globalConsole.getHandle("uploader")
 
 suspend fun StreetlightRouting.saveLocalImageFile(
     bytes: ByteArray,
-    userId: UserId?,
+    starId: StarId?,
     filename: String? = null,
     format: FileFormat? = null,
 ): Url? {
@@ -35,7 +35,7 @@ suspend fun StreetlightRouting.saveLocalImageFile(
     app.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
-            starId = userId,
+            starId = starId,
             url = url,
             fileType = FileType.Image,
             size = null,
@@ -50,7 +50,7 @@ suspend fun StreetlightRouting.saveLocalImageFile(
 
 suspend fun StreetlightRouting.saveS3ImageFile(
     bytes: ByteArray,
-    userId: UserId?,
+    userId: StarId?,
     size: ImageSize,
     format: FileFormat,
     filename: String? = null,

@@ -5,7 +5,6 @@ import kampfire.model.ImageSize
 import kampfire.model.UserId
 import kampfire.model.UserRole
 import klutch.db.scaledImages
-import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toStringId
 import klutch.utils.toUUID
@@ -44,6 +43,7 @@ object StarTable: UUIDTable("star") {
 
 fun ResultRow.toStar() = Star(
     username = this[StarTable.username],
+    roles = this[StarTable.roles].map { UserRole.valueOf(it) }.toSet(),
     name = null, // td: allow user control over publishing name
     description = this[StarTable.description],
     imageRef = this[StarTable.imageRef],

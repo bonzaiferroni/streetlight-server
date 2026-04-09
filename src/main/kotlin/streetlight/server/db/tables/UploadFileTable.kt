@@ -25,7 +25,7 @@ object UploadFileTable : UUIDTable("user_file") {
 
 fun ResultRow.toUploadFile() = UploadFile(
     uploadFileId = toProjectId(UploadFileTable.id),
-    starId = this[UploadFileTable.starId]?.value?.let { UserId(it.toStringId()) },
+    starId = this[UploadFileTable.starId]?.toProjectId(),
     url = this[UploadFileTable.url],
     fileType = this[UploadFileTable.fileType],
     size = this[UploadFileTable.size],

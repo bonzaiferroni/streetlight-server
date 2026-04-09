@@ -4,11 +4,8 @@ import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import klutch.server.*
-import klutch.utils.getUserIdOrNull
-import klutch.utils.getUserIdentityOrNull
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
-import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
 
@@ -44,26 +41,26 @@ fun StreetlightRouting.serveLocations() {
 
     authenticateJwt(optional = true) {
         postEndpoint(Api.Locations.PostLocation) { request ->
-            val identity = getUserIdentityOrNull()
+            val identity = identity.getUserIdentityOrNull(call)
             app.dao.locationPost.createPost(request.data, identity)
         }
 
         postEndpoint(Api.Locations.PostGalaxyLocation) { request ->
             val post = request.data.takeIf { it.isValid } ?: error("invalid request")
-            val identity = getUserIdentityOrNull()
+            val identity = identity.getUserIdentityOrNull(call)
             app.dao.locationPost.createGalaxyPost(post, identity)
         }
 
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data
-            val userId = getUserIdOrNull()
+            val starId = identity.getUserIdOrNull(call)
 
-            val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
+            val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, LocationTable.imageConfig)
 
             edit.locationId?.let {
-                dao.updateLocation(it, userId, edit, imageSet)
-            } ?: dao.createLocation(userId, edit, imageSet)
+                dao.updateLocation(it, starId, edit, imageSet)
+            } ?: dao.createLocation(starId, edit, imageSet)
         }
     }
 

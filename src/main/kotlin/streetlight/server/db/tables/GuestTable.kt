@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Guest
 import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toUserIdOrNull
+import streetlight.server.utils.toProjectIdOrNull
 
 object GuestTable : UUIDTable("guest") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -20,7 +20,7 @@ object GuestTable : UUIDTable("guest") {
 
 fun ResultRow.toGuest() = Guest(
     guestId = toProjectId(GuestTable.id),
-    starId = toUserIdOrNull(GuestTable.starId),
+    starId = toProjectIdOrNull(GuestTable.starId),
     name = this[GuestTable.name],
     songs = this[GuestTable.songs],
     createdAt = this[GuestTable.createdAt],

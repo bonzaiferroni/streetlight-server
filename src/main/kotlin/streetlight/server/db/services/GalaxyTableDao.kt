@@ -19,6 +19,7 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
+import streetlight.model.data.StarId
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
@@ -46,8 +47,8 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.read { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
-    suspend fun create(edit: GalaxyEdit, userId: UserId, imageSet: SavedImageSet?) = dbQuery {
-        val id = GalaxyTable.insertAndGetId { it.writeGalaxyFull(edit.toGalaxy(), userId, imageSet) }.toProjectId<GalaxyId>()
+    suspend fun create(edit: GalaxyEdit, starId: StarId, imageSet: SavedImageSet?) = dbQuery {
+        val id = GalaxyTable.insertAndGetId { it.writeGalaxyFull(edit.toGalaxy(), starId, imageSet) }.toProjectId<GalaxyId>()
         GalaxyTable.readFirstOrNull { it.id.eq(id) }?.toGalaxy()
     }
 
@@ -61,19 +62,19 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
-    suspend fun readGalaxyLights(userId: UserId) = dbQuery {
-        GalaxyLightTable.read { GalaxyLightTable.StarId.eq(userId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
+    suspend fun readGalaxyLights(starId: StarId) = dbQuery {
+        GalaxyLightTable.read { GalaxyLightTable.StarId.eq(starId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
     }
 
-    suspend fun editGalaxyLight(edit: LightEdit, userId: UserId) = dbQuery {
+    suspend fun editGalaxyLight(edit: LightEdit, starId: StarId) = dbQuery {
         when (edit.isLit) {
             true -> GalaxyLightTable.insertIgnore {
-                it[this.StarId] = userId.toUUID()
+                it[this.StarId] = starId.toUUID()
                 it[this.GalaxyId] = edit.stringId.toUUID()
                 it[this.CreatedAt] = Clock.System.now()
             }
             else -> GalaxyLightTable.deleteWhere {
-                this.GalaxyId.eq(edit.stringId) and this.StarId.eq(userId)
+                this.GalaxyId.eq(edit.stringId) and this.StarId.eq(starId)
             }
         }
         true

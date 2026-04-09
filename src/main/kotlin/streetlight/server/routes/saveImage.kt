@@ -13,6 +13,7 @@ import kampfire.model.appendToFilename
 import kampfire.utils.randomUuidString
 import streetlight.model.data.FileFormat
 import streetlight.model.data.ProjectId
+import streetlight.model.data.StarId
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.StreetlightRouting
@@ -22,7 +23,7 @@ private val console = globalConsole.getHandle("saveImage")
 
 suspend fun StreetlightRouting.saveLocalImage(
     bytes: ByteArray,
-    userId: UserId?,
+    starId: StarId?,
     filename: String,
     size: ImageSize = ImageSize.Large
 ): Url? {
@@ -30,12 +31,12 @@ suspend fun StreetlightRouting.saveLocalImage(
     val format = result.format; val forceEncoding = result.forceEncoding
 
     val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return null
-    return saveLocalImageFile(resizedBytes, userId, filename, format)
+    return saveLocalImageFile(resizedBytes, starId, filename, format)
 }
 
 suspend fun StreetlightRouting.saveRemoteImage(
     bytes: ByteArray,
-    userId: UserId?,
+    userId: StarId?,
     filenameRoot: String,
     sizes: List<ImageSize>,
 ): List<ScaledImage>? {
@@ -56,7 +57,7 @@ suspend fun StreetlightRouting.saveRemoteImage(
 }
 
 suspend fun StreetlightRouting.saveImages(
-    userId: UserId?,
+    userId: StarId?,
     rowId: ProjectId?,
     imageRef: Url?,
     config: TableImageConfig
@@ -90,7 +91,7 @@ private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode
 }
 
 suspend fun StreetlightRouting.saveImageSizes(
-    userId: UserId?,
+    userId: StarId?,
     imageUrl: Url,
     sizes: List<ImageSize>,
 ): List<ScaledImage>? {

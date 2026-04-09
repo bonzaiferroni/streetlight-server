@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -9,7 +8,6 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.EventPostRow
 import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toUserIdOrNull
 
 object EventPostTable : UUIDTable("event_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
@@ -25,7 +23,7 @@ fun ResultRow.toEventPostRow() = EventPostRow(
     postId = this[EventPostTable.id].toProjectId(),
     galaxyId = this[EventPostTable.galaxyId].toProjectId(),
     eventId = this[EventPostTable.eventId].toProjectId(),
-    starId = toUserIdOrNull(EventPostTable.starId),
+    starId = this[EventPostTable.starId]?.toProjectId(),
     username = this[EventPostTable.username],
     text = this[EventPostTable.text],
     updatedAt = this[EventPostTable.updatedAt],

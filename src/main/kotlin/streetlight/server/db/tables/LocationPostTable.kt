@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -10,7 +9,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.LocationPostRow
 import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toUserIdOrNull
+import streetlight.server.utils.toProjectIdOrNull
 
 object LocationPostTable : UUIDTable("location_post") {
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -23,7 +22,7 @@ object LocationPostTable : UUIDTable("location_post") {
 }
 
 object GalaxyLocationPostTable: Table("galaxy_location_post") {
-    val userId = reference("user_id", BasicUserTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val starId = reference("star_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
     val postId = reference("post_id", LocationPostTable.id, onDelete = ReferenceOption.CASCADE)
 
@@ -33,7 +32,7 @@ object GalaxyLocationPostTable: Table("galaxy_location_post") {
 fun ResultRow.toLocationPostRow() = LocationPostRow(
     postId = this[LocationPostTable.id].toProjectId(),
     locationId = this[LocationPostTable.locationId]?.toProjectId(),
-    starId = toUserIdOrNull(LocationPostTable.starId),
+    starId = toProjectIdOrNull(LocationPostTable.starId),
     username = this[LocationPostTable.username],
     title = this[LocationPostTable.title],
     text = this[LocationPostTable.text],

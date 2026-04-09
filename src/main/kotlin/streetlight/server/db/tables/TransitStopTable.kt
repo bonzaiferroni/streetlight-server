@@ -1,9 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.RefreshTokenTable.double
-import klutch.db.tables.RefreshTokenTable.nullable
-import klutch.db.tables.RefreshTokenTable.text
-import klutch.utils.*
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder

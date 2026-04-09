@@ -11,7 +11,6 @@ import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Song
 import streetlight.model.data.SongNotation
 import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toUserId
 
 object SongTable : UUIDTable() {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
@@ -27,7 +26,7 @@ object SongTable : UUIDTable() {
 
 fun ResultRow.toSong() = Song(
     songId = toProjectId(SongTable.id),
-    starId = toUserId(SongTable.starId),
+    starId = toProjectId(SongTable.starId),
     title = this[SongTable.name],
     artist = this[SongTable.artist],
     notation = this[SongTable.notation],

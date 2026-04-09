@@ -4,7 +4,6 @@ import kabinet.console.globalConsole
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
-import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.inBounds
 import klutch.db.isNearEq
@@ -29,6 +28,7 @@ import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
+import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
@@ -73,29 +73,22 @@ class LocationTableDao : DbService() {
 
     suspend fun updateLocation(
         locationId: LocationId,
-        userId: UserId?,
+        starId: StarId?,
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
         val location = edit.toLocation()
-        val ownerId = when(edit.isOwner) {
-            true -> userId
-            else -> null
+        val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId)
+        LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
+            it.writeUpdate(location, imageSet)
         }
-        LocationTable.update(where = {
-            LocationTable.id.eq(locationId) and (LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(ownerId))
-        }) { it.writeUpdate(location, ownerId, imageSet) }
         LocationTable.readById(locationId.value.toUUID()).toLocation()
     }
 
-    suspend fun createLocation(userId: UserId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createLocation(starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
         val location = edit.toLocation()
-        val ownerId = when(edit.isOwner) {
-            true -> userId
-            else -> null
-        }
         val locationId =
-            LocationTable.insertAndGetId { it.writeFull(location, userId, ownerId, imageSet) }.value
+            LocationTable.insertAndGetId { it.writeFull(location, starId, imageSet) }.value
         LocationTable.readById(locationId).toLocation()
     }
 

@@ -4,7 +4,6 @@ import kampfire.utils.randomUuidString
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
-import klutch.utils.getUserId
 import streetlight.model.Api
 import streetlight.model.data.StorageType
 import streetlight.server.model.*
@@ -18,12 +17,12 @@ fun StreetlightRouting.serveUserHub() {
         }
 
         getEndpoint(Api.Users.Talents) { _ ->
-            val userId = getUserId()
+            val userId = identity.getUserId(call)
             app.dao.talent.readUserTalents(userId)
         }
 
         postEndpoint(Api.Users.EditTalent) {
-            val userId = getUserId()
+            val userId = identity.getUserId(call)
             val talentId = it.data.talentId
             if (talentId != null) {
                 app.dao.talent.edit(talentId, it.data, userId)
@@ -41,7 +40,7 @@ fun StreetlightRouting.serveUserHub() {
 
 
         postEndpoint(Api.Users.UploadImage) {
-            val userId = getUserId()
+            val userId = identity.getUserId(call)
             saveLocalImageFile(it.data, userId, randomUuidString())
         }
     }

@@ -14,9 +14,9 @@ import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
+import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
-import streetlight.server.utils.toUserId
 
 object EventTable : UUIDTable("event") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
@@ -57,9 +57,9 @@ object EventTable : UUIDTable("event") {
     )
 }
 
-fun UpdateBuilder<*>.writeFull(event: Event, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.toUUID()
-    this[EventTable.starId] = event.starId.toUUID()
+    this[EventTable.starId] = starId.toUUID()
     this[EventTable.locationId] = event.locationId.toUUID()
     this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
     this[EventTable.slug] = event.slug
@@ -90,7 +90,6 @@ fun UpdateBuilder<*>.writeUpdate(event: Event, imageSet: SavedImageSet?) {
 
 fun ResultRow.toEvent() = Event(
     eventId = toProjectId(EventTable.id),
-    starId = toUserId(EventTable.starId),
     locationId = toProjectId(EventTable.locationId),
     currentRequestId = toProjectIdOrNull(EventTable.currentRequestId),
     slug = this[EventTable.slug],

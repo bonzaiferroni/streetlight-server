@@ -17,6 +17,6 @@ inline fun <reified T: ProjectId> ResultRow.toProjectIdOrNull(column: Column<Ent
 
 inline fun <reified T: ProjectId> EntityID<UUID>.toProjectId(): T = value.toStringId().toProjectId()
 
-fun ResultRow.toUserId(column: Column<EntityID<UUID>>) = UserId(this[column].value.toStringId())
+// fun ResultRow.toUserId(column: Column<EntityID<UUID>>) = UserId(this[column].value.toStringId())
 
-fun ResultRow.toUserIdOrNull(column: Column<EntityID<UUID>?>) = this[column]?.value?.toStringId()?.let { UserId(it) }
+// fun ResultRow.toUserIdOrNull(column: Column<EntityID<UUID>?>) = this[column]?.value?.toStringId()?.let { UserId(it) }

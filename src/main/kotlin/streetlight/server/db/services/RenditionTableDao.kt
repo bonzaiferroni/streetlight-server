@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.read
@@ -17,6 +16,7 @@ import streetlight.model.data.RenditionId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.toRendition
 import streetlight.model.data.NewRendition
+import streetlight.model.data.StarId
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
@@ -31,19 +31,19 @@ class RenditionTableDao: DbService() {
         RenditionTable.read { it.songId.eq(songId) }.map { it.toRendition() }
     }
 
-    suspend fun readAllSince(userId: UserId, since: Instant) = dbQuery {
+    suspend fun readAllSince(starId: StarId, since: Instant) = dbQuery {
         RenditionTable.read {
-            (it.starId.eq(userId)) and (it.createdAt.greaterEq(since))
+            (it.starId.eq(starId)) and (it.createdAt.greaterEq(since))
         }.map { it.toRendition() }
     }
 
-    suspend fun create(userId: UserId, songPlay: NewRendition): RenditionId = dbQuery {
+    suspend fun create(starId: StarId, songPlay: NewRendition): RenditionId = dbQuery {
         RenditionTable.insertAndGetId {
             it.writeFull(
                 Rendition(
                     renditionId = RenditionId.random(),
                     songId = songPlay.songId,
-                    starId = userId,
+                    starId = starId,
                     notes = songPlay.notes,
                     rating = songPlay.rating,
                     createdAt = Clock.System.now(),

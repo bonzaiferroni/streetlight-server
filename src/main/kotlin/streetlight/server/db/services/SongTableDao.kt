@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -17,6 +16,7 @@ import streetlight.model.data.NewSong
 import streetlight.model.data.RequestItem
 import streetlight.model.data.Song
 import streetlight.model.data.SongId
+import streetlight.model.data.StarId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.SongTable
@@ -29,17 +29,17 @@ class SongTableDao: DbService() {
         SongTable.read { it.id.eq(songId) }.firstOrNull()?.toSong()
     }
 
-    suspend fun readAllByUserId(userId: UserId) = dbQuery {
-        SongTable.read { it.starId.eq(userId) }
+    suspend fun readAllByUserId(starId: StarId) = dbQuery {
+        SongTable.read { it.starId.eq(starId) }
             .map { it.toSong() }
     }
 
-    suspend fun createSong(userId: UserId, newSong: NewSong): SongId = dbQuery {
+    suspend fun createSong(starId: StarId, newSong: NewSong): SongId = dbQuery {
         val now = Clock.System.now()
         SongTable.insertAndGetId {
             it.writeFull(Song(
                 songId = SongId.random(),
-                starId = userId,
+                starId = starId,
                 title = newSong.title,
                 artist = newSong.artist,
                 tempo = null,
@@ -52,16 +52,16 @@ class SongTableDao: DbService() {
         }.value.toStringId().toProjectId()
     }
 
-    suspend fun updateSong(userId: UserId, song: Song): Boolean = dbQuery {
-        SongTable.update({ SongTable.starId.eq(userId) and SongTable.id.eq(song.songId) }) {
+    suspend fun updateSong(starId: StarId, song: Song): Boolean = dbQuery {
+        SongTable.update({ SongTable.starId.eq(starId) and SongTable.id.eq(song.songId) }) {
             it.writeUpdate(song)
         } > 0
     }
 
-    suspend fun readRequestItems(userId: UserId) = dbQuery {
+    suspend fun readRequestItems(starId: StarId) = dbQuery {
         SongTable.leftJoin(RenditionTable, { id }, { songId })
             .select(SongTable.columns + RenditionTable.songId.count())
-            .where { SongTable.starId.eq(userId) }
+            .where { SongTable.starId.eq(starId) }
             .groupBy(SongTable.id)
             .orderBy(RenditionTable.songId.count(), SortOrder.DESC_NULLS_LAST)
             .map {

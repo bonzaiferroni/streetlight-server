@@ -4,12 +4,9 @@ import kabinet.console.globalConsole
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
-import klutch.utils.getUserId
-import klutch.utils.getUserIdentity
 import streetlight.model.Api
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
-import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
 
@@ -53,26 +50,26 @@ fun StreetlightRouting.serveGalaxies() {
     authenticateJwt {
         postEndpoint(Api.Galaxies.Found) { request ->
             val edit = request.data
-            val userId = getUserId()
-            val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
+            val starId = identity.getUserId(call)
+            val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-            dao.create(edit, userId, imageSet)
+            dao.create(edit, starId, imageSet)
         }
 
         postEndpoint(Api.Galaxies.PostEvent) { request ->
-            val identity = getUserIdentity()
+            val identity = identity.getUserIdentity(call)
 
             app.dao.eventPost.create(request.data, identity)
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {
-            val userId = getUserId()
+            val userId = identity.getUserId(call)
             dao.readGalaxyLights(userId)
         }
 
         postEndpoint(Api.Galaxies.EditLight) {
-            val userId = getUserId()
-            dao.editGalaxyLight(it.data, userId)
+            val starId = identity.getUserId(call)
+            dao.editGalaxyLight(it.data, starId)
         }
     }
 }

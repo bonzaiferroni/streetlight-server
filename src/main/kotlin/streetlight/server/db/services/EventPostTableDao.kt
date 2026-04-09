@@ -32,6 +32,7 @@ import streetlight.server.db.tables.toEventPostRow
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 
@@ -45,7 +46,7 @@ class EventPostTableDao : DbService() {
         EventPostTable.read { EventPostTable.galaxyId.eq(galaxyId) }.map { it.toEventPostRow() }
     }
 
-    suspend fun create(edit: EventPostEdit, identity: UserIdentity) = dbQuery {
+    suspend fun create(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
         val post = edit.toEventPostRow(identity)
         EventPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<EventPostId>()
     }
@@ -117,7 +118,7 @@ class EventPostTableDao : DbService() {
 }
 
 fun EventPostEdit.toEventPostRow(
-    identity: UserIdentity,
+    identity: StarIdentity,
 ) = EventPostRow(
     postId = postId ?: EventPostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),

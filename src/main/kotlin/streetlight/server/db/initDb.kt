@@ -3,7 +3,6 @@ package streetlight.server.db
 import kabinet.utils.Environment
 import klutch.db.services.UserInitService
 import klutch.db.tables.RefreshTokenTable
-import klutch.db.tables.BasicUserTable
 import klutch.environment.readEnvFromPath
 import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
@@ -12,34 +11,18 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import streetlight.server.db.services.StarAuthDao
 import streetlight.server.db.services.provideStarUser
-import streetlight.server.db.tables.EventLightTable
-import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.RequestTable
-import streetlight.server.db.tables.SongTable
-import streetlight.server.db.tables.RenditionTable
-import streetlight.server.db.tables.PerformerTable
-import streetlight.server.db.tables.TransitRouteStopTable
-import streetlight.server.db.tables.TransitRouteTable
-import streetlight.server.db.tables.TransitStopTable
-import streetlight.server.db.tables.UploadFileTable
-import streetlight.server.db.tables.EventTagTable
-import streetlight.server.db.tables.TalentTable
-import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.EventPostTable
-import streetlight.server.db.tables.GalaxyLocationPostTable
-import streetlight.server.db.tables.LocationPostTable
-import streetlight.server.db.tables.GalaxyLightTable
+import streetlight.server.db.tables.*
 
 fun initDb(
     // app: ServerProvider = RuntimeProvider
+    refreshTokenTable: RefreshTokenTable
 ) {
     dbLog.logInfo("initializing db")
     val env = readEnvFromPath()
     val db = connectDb(env)
 
     transaction(db) {
-        val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray())
+        val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables(refreshTokenTable).toTypedArray())
         statements.forEach { statement ->
             exec(statement)
         }
@@ -52,14 +35,13 @@ fun initDb(
     }
 }
 
-val dbTables = listOf(
-    BasicUserTable,
+fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     LocationTable,
     EventTable,
     SongTable,
     RenditionTable,
     RequestTable,
-    RefreshTokenTable,
+    refreshTokenTable,
     PerformerTable,
     TransitRouteTable,
     TransitStopTable,

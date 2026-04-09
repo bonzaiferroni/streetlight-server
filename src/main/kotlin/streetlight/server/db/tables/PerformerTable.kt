@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -9,7 +8,6 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import streetlight.model.data.Performer
 import streetlight.model.data.PerformerId
 import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toUserId
 
 object PerformerTable : UUIDTable("performer") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
@@ -19,7 +17,7 @@ object PerformerTable : UUIDTable("performer") {
 
 fun ResultRow.toSpark() = Performer(
     performerId = toProjectId<PerformerId>(PerformerTable.id),
-    userId = toUserId(PerformerTable.starId),
+    starId = toProjectId(PerformerTable.starId),
     venmo = this[PerformerTable.venmo],
     stageName = this[PerformerTable.stageName],
 )
@@ -27,7 +25,7 @@ fun ResultRow.toSpark() = Performer(
 // Updaters
 fun UpdateBuilder<*>.writeFull(performer: Performer) {
     this[PerformerTable.id] = performer.performerId.value.toUUID()
-    this[PerformerTable.starId] = performer.userId.value.toUUID()
+    this[PerformerTable.starId] = performer.starId.value.toUUID()
     writeUpdate(performer)
 }
 

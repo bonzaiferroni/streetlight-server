@@ -32,6 +32,7 @@ import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.toLocationPostRow
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toProjectId
 
 class LocationPostTableDao : DbService() {
@@ -44,18 +45,18 @@ class LocationPostTableDao : DbService() {
 //        LocationPostTable.read { LocationPostTable.galaxyId.eq(galaxyId) }.map { it.toLocationPostRow() }
 //    }
 
-    suspend fun createPost(post: NewLocationPost, identity: UserIdentity?) = dbQuery {
+    suspend fun createPost(post: NewLocationPost, identity: StarIdentity?) = dbQuery {
         val post = post.toLocationPostRow(identity)
         LocationPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<LocationPostId>()
     }
 
-    suspend fun createGalaxyPost(post: NewGalaxyLocationPost, identity: UserIdentity?) = dbQuery {
+    suspend fun createGalaxyPost(post: NewGalaxyLocationPost, identity: StarIdentity?) = dbQuery {
         val galaxyIds = post.galaxyIds.takeIf { it.isNotEmpty() } ?: return@dbQuery null
         val results = galaxyIds.associateWith { galaxyId ->
             val result = GalaxyLocationPostTable.insertReturning {
                 it[this.galaxyId] = galaxyId.toUUID()
                 it[this.postId] = post.postId.toUUID()
-                it[this.userId] = identity?.userId?.toUUID()
+                it[this.starId] = identity?.userId?.toUUID()
             }
 
             when (result.count() > 0) {
@@ -85,7 +86,7 @@ class LocationPostTableDao : DbService() {
     }
 
     suspend fun readPosts(userId: UserId, limit: Int = 100) = dbQuery {
-        queryPosts(limit) { GalaxyLocationPostTable.userId.eq(userId)}
+        queryPosts(limit) { GalaxyLocationPostTable.starId.eq(userId)}
     }
 
     suspend fun readPost(locationPostId: LocationPostId) = dbQuery {
@@ -110,7 +111,7 @@ class LocationPostTableDao : DbService() {
     }
 }
 
-fun NewLocationPost.toLocationPostRow(identity: UserIdentity?) = LocationPostRow(
+fun NewLocationPost.toLocationPostRow(identity: StarIdentity?) = LocationPostRow(
     postId = LocationPostId.random(),
     locationId = locationId,
     starId = identity?.userId,

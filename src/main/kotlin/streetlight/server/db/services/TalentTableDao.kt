@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -10,6 +9,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import streetlight.model.data.StarId
 import kotlin.time.Clock
 import streetlight.model.data.TalentEdit
 import streetlight.model.data.Talent
@@ -31,17 +31,17 @@ class TalentTableDao : DbService() {
         TalentTable.selectAll().map { it.toTalent() }
     }
 
-    suspend fun readUserTalents(userId: UserId) = dbQuery {
-        TalentTable.read { it.starId.eq(userId) }.map { it.toTalent() }
+    suspend fun readUserTalents(starId: StarId) = dbQuery {
+        TalentTable.read { it.starId.eq(starId) }.map { it.toTalent() }
     }
 
-    suspend fun create(talent: Talent, userId: UserId): TalentId = dbQuery {
+    suspend fun create(talent: Talent, starId: StarId): TalentId = dbQuery {
         TalentTable.insertAndGetId {
-            it.writeFull(talent, userId)
+            it.writeFull(talent, starId)
         }.value.toStringId().toProjectId()
     }
 
-    suspend fun create(talent: TalentEdit, userId: UserId): Talent? = dbQuery {
+    suspend fun create(talent: TalentEdit, userId: StarId): Talent? = dbQuery {
         val id: TalentId = TalentTable.insertAndGetId {
             it.writeFull(Talent(
                 talentId = TalentId.random(),
@@ -59,7 +59,7 @@ class TalentTableDao : DbService() {
         TalentTable.read { it.id.eq(id) }.firstOrNull()?.toTalent()
     }
 
-    suspend fun edit(talentId: TalentId, talent: TalentEdit, userId: UserId) = dbQuery {
+    suspend fun edit(talentId: TalentId, talent: TalentEdit, userId: StarId) = dbQuery {
         val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.starId.eq(userId) }) {
             it.writeUpdate(Talent(
                 talentId = talentId,

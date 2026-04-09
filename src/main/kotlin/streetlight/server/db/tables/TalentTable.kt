@@ -1,13 +1,13 @@
 package streetlight.server.db.tables
 
 import kampfire.model.UserId
-import klutch.db.tables.BasicUserTable
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.StarId
 import kotlin.time.Clock
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
@@ -42,9 +42,9 @@ fun ResultRow.toTalent() = Talent(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(talent: Talent, userId: UserId) {
+fun UpdateBuilder<*>.writeFull(talent: Talent, starId: StarId) {
     this[TalentTable.id] = talent.talentId.value.toUUID()
-    this[TalentTable.starId] = userId.value.toUUID()
+    this[TalentTable.starId] = starId.value.toUUID()
     this[TalentTable.createdAt] = talent.createdAt
     writeUpdate(talent)
 }

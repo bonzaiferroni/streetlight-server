@@ -4,7 +4,6 @@ import kampfire.model.ImageSize
 import kampfire.model.UserId
 import klutch.db.point
 import klutch.db.scaledImages
-import klutch.db.tables.BasicUserTable
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
@@ -17,6 +16,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
+import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
@@ -45,7 +45,7 @@ object GalaxyTable : UUIDTable("galaxy") {
     )
 }
 
-fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: UserId, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.toUUID()
     this[GalaxyTable.founderId] = founderId.toUUID()
     this[GalaxyTable.createdAt] = galaxy.createdAt

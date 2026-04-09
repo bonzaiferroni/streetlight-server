@@ -8,7 +8,6 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import streetlight.model.data.MapQuery
 import klutch.server.*
-import klutch.utils.getUserId
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
@@ -16,9 +15,8 @@ import streetlight.model.data.EventId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
-import streetlight.server.routes.saveImages
 
-private val console = globalConsole.getHandle(RoutingContext<Streetlight>::serveEvents.name)
+private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.name)
 
 fun StreetlightRouting.serveEvents() {
     val dao = app.dao.event
@@ -62,7 +60,7 @@ fun StreetlightRouting.serveEvents() {
 
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
-            val userId = getUserId()
+            val userId = identity.getUserId(call)
 
             val edit = request.data
 
@@ -85,8 +83,8 @@ fun StreetlightRouting.serveEvents() {
         }
 
         deleteEndpoint(Api.Events.Delete) { eventId, _ ->
-            val userId = getUserId()
-            dao.deleteEvent(userId, eventId)
+            val starId = identity.getUserId(call)
+            dao.deleteEvent(starId, eventId)
         }
 
 //        webSocket(Api.Events.UserEvents.path) {
@@ -103,13 +101,13 @@ fun StreetlightRouting.serveEvents() {
         }
 
         getEndpoint(Api.Events.ReadLights) {
-            val userId = getUserId()
-            dao.readEventLights(userId)
+            val starId = identity.getUserId(call)
+            dao.readEventLights(starId)
         }
 
         postEndpoint(Api.Events.EditLight) {
-            val userId = getUserId()
-            dao.editEventLight(it.data, userId)
+            val starId = identity.getUserId(call)
+            dao.editEventLight(it.data, starId)
         }
     }
 }

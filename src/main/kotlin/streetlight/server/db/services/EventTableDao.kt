@@ -29,6 +29,7 @@ import streetlight.model.data.EventStatus
 import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Slug
+import streetlight.model.data.StarId
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
@@ -60,32 +61,32 @@ class EventTableDao: DbService() {
     }
 
     suspend fun createEvent(
-        userId: UserId,
+        starId: StarId,
         event: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val event = event.toEvent(EventId.random(), userId)
+        val event = event.toEvent(EventId.random())
         EventTable.insertWithSlug(event.title, EventTable.slug) {
-            it.writeFull(event, imageSet)
+            it.writeFull(event, starId, imageSet)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
     }
 
     suspend fun updateEvent(
         eventId: EventId,
-        userId: UserId,
+        starId: StarId,
         edit: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val event = edit.toEvent(eventId, userId)
-        EventTable.updateSingleWhere({ EventTable.starId.eq(userId) and EventTable.id.eq(eventId)}) {
+        val event = edit.toEvent(eventId)
+        EventTable.updateSingleWhere({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event, imageSet)
         }
         EventTable.readById(event.eventId.toUUID()).toEvent()
     }
 
-    suspend fun deleteEvent(userId: UserId, eventId: EventId): Boolean = dbQuery {
-        EventTable.deleteSingle { EventTable.starId.eq(userId) and EventTable.id.eq(eventId) }
+    suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
+        EventTable.deleteSingle { EventTable.starId.eq(starId) and EventTable.id.eq(eventId) }
     }
 
     suspend fun readEventsInBounds(bounds: GeoBounds) = dbQuery { // , after: LocalDate, before: LocalDate
@@ -117,19 +118,19 @@ class EventTableDao: DbService() {
             .map { it.toEventLocation() }
     }
 
-    suspend fun readEventLights(userId: UserId) = dbQuery {
-        EventLightTable.read { EventLightTable.StarId.eq(userId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
+    suspend fun readEventLights(starId: StarId) = dbQuery {
+        EventLightTable.read { EventLightTable.StarId.eq(starId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
     }
 
-    suspend fun editEventLight(edit: LightEdit, userId: UserId) = dbQuery {
+    suspend fun editEventLight(edit: LightEdit, starId: StarId) = dbQuery {
         when (edit.isLit) {
             true -> EventLightTable.insertIgnore {
-                it[this.StarId] = userId.toUUID()
+                it[this.StarId] = starId.toUUID()
                 it[this.EventId] = edit.stringId.toUUID()
                 it[this.CreatedAt] = Clock.System.now()
             }
             else -> EventLightTable.deleteWhere {
-                this.EventId.eq(edit.stringId) and this.StarId.eq(userId)
+                this.EventId.eq(edit.stringId) and this.StarId.eq(starId)
             }
         }
         true
@@ -143,10 +144,8 @@ class EventTableDao: DbService() {
 
 private fun EventEdit.toEvent(
     eventId: EventId,
-    userId: UserId,
 ) = Event(
     eventId = eventId,
-    starId = userId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
     slug = slugOf(title ?: error("no title")),
