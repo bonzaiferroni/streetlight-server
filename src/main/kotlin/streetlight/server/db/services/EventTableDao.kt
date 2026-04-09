@@ -34,7 +34,7 @@ import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.eventInfoQuery
+import streetlight.server.db.tables.EventLocationQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
@@ -57,6 +57,10 @@ class EventTableDao: DbService() {
 
     suspend fun readEventBySlug(slug: Slug) = dbQuery {
         EventTable.readFirstOrNull { it.slug.eqLowercase(slug) }?.toEvent()
+    }
+
+    suspend fun readEventLocationBySlug(slug: Slug) = dbQuery {
+        EventLocationQuery.where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
     }
 
     suspend fun createEvent(
@@ -89,7 +93,7 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventsInBounds(bounds: GeoBounds) = dbQuery { // , after: LocalDate, before: LocalDate
-        eventInfoQuery.where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
+        EventLocationQuery.where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
     }
 
     suspend fun hasConflict(edit: EventEdit) = dbQuery {

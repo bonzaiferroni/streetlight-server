@@ -100,7 +100,7 @@ fun StreetlightRouting.servePages() {
 
     get("/e/{slug}") {
         val slug = call.parameters["slug"] ?: return@get
-        val event = app.dao.event.readEventBySlug(slug) ?: return@get
+        val event = app.dao.event.readEventLocationBySlug(slug) ?: return@get
 
         call.respondHtml {
             eventPage(event, SiteStyles)

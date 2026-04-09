@@ -23,7 +23,7 @@ object ParserText {
         * location: The name or description of the location of the event
         * address: The address at which the event is located
         * imageUrl: The featured image for the event, must be a full url
-        * description: Additional details given about the event. Provide rich formatting with markdown.
+        * description: Additional details given about the event. Provide rich formatting with markdown. Preserve paragraphs.
         * ageMin: The minimum age for attendees
         * cost: The lowest entry fee or ticket price for the event in USD. Provide the string value Free if there is no cost.
         * contact: Any name and/or contact information given for the event

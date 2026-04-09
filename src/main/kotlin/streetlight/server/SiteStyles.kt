@@ -55,6 +55,7 @@ private val KtStyles = listOf(
     LottieCss,
     IconButtonCss,
     StarLightCss,
+    FeatureImageCss,
 
     AppBodyCss,
 )

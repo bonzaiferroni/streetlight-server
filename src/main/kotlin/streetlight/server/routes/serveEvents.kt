@@ -54,6 +54,11 @@ fun StreetlightRouting.serveEvents() {
         dao.readEventBySlug(slug)
     }
 
+    getEndpoint(Api.Events.ReadEventLocationBySlug) {
+        val slug = it.data
+        dao.readEventLocationBySlug(slug)
+    }
+
     getEndpoint(Api.Events.ReadById, { EventId(it) }) {
         dao.readEvent(it.data)
     }

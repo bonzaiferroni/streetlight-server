@@ -115,12 +115,14 @@ fun ResultRow.toEvent() = Event(
     createdAt = this[EventTable.createdAt]
 )
 
-val eventInfoQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
+val EventLocationQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
     EventTable.id,
     EventTable.locationId,
+    EventTable.slug,
     EventTable.url,
     EventTable.images,
     LocationTable.images,
+    LocationTable.name,
     EventTable.title,
     EventTable.description,
     EventTable.status,
