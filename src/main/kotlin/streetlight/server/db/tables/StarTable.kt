@@ -14,6 +14,7 @@ import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Star
+import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.StarUser
 
@@ -65,6 +66,7 @@ fun ResultRow.toStarUser() = StarUser(
 
 fun UpdateBuilder<*>.writeFull(user: StarUser) {
     this[StarTable.id] = user.userId.value.toUUID()
+    this[StarTable.createdAt] = user.createdAt
     writeUpdate(user)
 }
 
@@ -74,6 +76,11 @@ fun UpdateBuilder<*>.writeUpdate(user: StarUser) {
     this[StarTable.salt] = user.salt
     this[StarTable.email] = user.email
     this[StarTable.roles] = user.roles.map { it.name }
-    this[StarTable.createdAt] = user.createdAt
     this[StarTable.updatedAt] = user.updatedAt
+}
+
+fun UpdateBuilder<*>.writeUpdate(edit: StarEdit, images: SavedImageSet?) {
+    this[StarTable.name] = edit.name
+    this[StarTable.description] = edit.description
+    writeImages(StarTable.imageConfig, images)
 }
