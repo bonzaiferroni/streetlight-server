@@ -1,7 +1,6 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
-import kampfire.model.UserId
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.url

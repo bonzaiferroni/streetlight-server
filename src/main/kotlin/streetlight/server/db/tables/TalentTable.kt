@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import kampfire.model.UserId
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow

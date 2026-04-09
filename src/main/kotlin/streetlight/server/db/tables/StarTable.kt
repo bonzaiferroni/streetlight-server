@@ -1,14 +1,11 @@
 package streetlight.server.db.tables
 
-import kampfire.model.BasicUser
 import kampfire.model.ImageSize
-import kampfire.model.UserId
 import kampfire.model.UserRole
 import klutch.db.scaledImages
 import klutch.db.url
 import klutch.utils.toStringId
 import klutch.utils.toUUID
-import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder

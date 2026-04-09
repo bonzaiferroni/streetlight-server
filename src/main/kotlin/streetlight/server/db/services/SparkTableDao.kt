@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
+import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -22,7 +22,7 @@ class SparkTableDao: DbService() {
         PerformerTable.read { it.id.eq(performerId) }.firstOrNull()?.toSpark()
     }
 
-    suspend fun readByUserId(userId: UserId) = dbQuery {
+    suspend fun readByUserId(userId: BasicUserId) = dbQuery {
         PerformerTable.read { it.starId.eq(userId) }.firstOrNull()?.toSpark()
     }
 

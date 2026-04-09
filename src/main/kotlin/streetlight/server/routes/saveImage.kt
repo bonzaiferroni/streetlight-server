@@ -8,7 +8,6 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImage
 import kampfire.model.Url
-import kampfire.model.UserId
 import kampfire.model.appendToFilename
 import kampfire.utils.randomUuidString
 import streetlight.model.data.FileFormat

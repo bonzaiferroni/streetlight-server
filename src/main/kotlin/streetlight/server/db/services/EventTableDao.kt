@@ -2,7 +2,6 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.model.GeoBounds
-import kampfire.model.UserId
 import klutch.db.DbService
 import klutch.db.count
 import klutch.db.deleteSingle

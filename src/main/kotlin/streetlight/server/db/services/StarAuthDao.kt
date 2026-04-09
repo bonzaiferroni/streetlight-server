@@ -1,8 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.model.BasicUser
 import kampfire.model.PrivateInfo
-import kampfire.model.UserId
 import kampfire.model.UserSeed
 import klutch.db.DbService
 import klutch.db.readFirstOrNull

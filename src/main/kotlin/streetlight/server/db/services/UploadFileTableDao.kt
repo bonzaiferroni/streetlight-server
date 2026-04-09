@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
+import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -20,11 +20,11 @@ class UploadFileTableDao : DbService() {
         UploadFileTable.read { it.id.eq(uploadFileId) }.firstOrNull()?.toUploadFile()
     }
 
-    suspend fun readUserFiles(userId: UserId) = dbQuery {
+    suspend fun readUserFiles(userId: BasicUserId) = dbQuery {
         UploadFileTable.read { UploadFileTable.starId.eq(userId) }.map { it.toUploadFile() }
     }
 
-    suspend fun readUserFiles(userId: UserId, count: Int) = dbQuery {
+    suspend fun readUserFiles(userId: BasicUserId, count: Int) = dbQuery {
         UploadFileTable.read { UploadFileTable.starId.eq(userId) }
             .orderBy(UploadFileTable.createdAt, SortOrder.DESC_NULLS_LAST)
             .limit(count)

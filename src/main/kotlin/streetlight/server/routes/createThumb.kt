@@ -1,10 +1,6 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import kampfire.model.UserId
-import streetlight.model.data.FileFormat
-import streetlight.server.model.StreetlightRouting
-import java.io.File
 
 private val console = globalConsole.getHandle("thumbs")
 

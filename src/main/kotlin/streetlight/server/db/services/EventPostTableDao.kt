@@ -1,10 +1,9 @@
 package streetlight.server.db.services
 
-import kampfire.model.UserId
+import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
-import klutch.utils.UserIdentity
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
@@ -82,7 +81,7 @@ class EventPostTableDao : DbService() {
         queryActivePosts(limit) { EventPostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readPosts(userId: UserId, limit: Int = 100) = dbQuery {
+    suspend fun readPosts(userId: BasicUserId, limit: Int = 100) = dbQuery {
         queryPosts(limit) { EventPostTable.starId.eq(userId) }
     }
 
