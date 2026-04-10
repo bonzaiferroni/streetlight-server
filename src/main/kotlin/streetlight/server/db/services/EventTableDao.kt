@@ -115,10 +115,7 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventLocations(eventIds: List<EventId>) = dbQuery {
-        EventTable.leftJoin(LocationTable)
-            .selectAll() // td: select only necessary columns
-            .where { EventTable.id.inList(eventIds) }
-            .map { it.toEventLocation() }
+        EventLocationQuery.where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
     }
 
     suspend fun readEventLights(starId: StarId) = dbQuery {
