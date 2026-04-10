@@ -77,24 +77,29 @@ fun StreetlightRouting.serveGtfs() {
         val state = if (lastState != null && now - lastReadAt < 10.seconds) {
             lastState
         } else {
-            lastReadAt = now
-            val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
-            val response = httpClient.get(url)
-            val bytes = response.readRawBytes()
-            val feed = GtfsRealtime.FeedMessage.parseFrom(bytes)
-            val timestamp = feed.header.timestamp
-            if (lastState != null && timestamp == lastState.timestamp) {
-                lastState
-            } else {
-                val vehicles = feed.entityList.map { it.vehicle.toTransitVehicle() }
-                AreaTransitState(
-                    timestamp = timestamp,
-                    vehicles = vehicles,
-                ).also { cachedState = it }
+            try {
+                lastReadAt = now
+                val url = "https://open-data.rtd-denver.com/files/gtfs-rt/rtd/VehiclePosition.pb"
+                val response = httpClient.get(url)
+                val bytes = response.readRawBytes()
+                val feed = GtfsRealtime.FeedMessage.parseFrom(bytes)
+                val timestamp = feed.header.timestamp
+                if (lastState != null && timestamp == lastState.timestamp) {
+                    lastState
+                } else {
+                    val vehicles = feed.entityList.map { it.vehicle.toTransitVehicle() }
+                    AreaTransitState(
+                        timestamp = timestamp,
+                        vehicles = vehicles,
+                    ).also { cachedState = it }
+                }
+            } catch (e: Exception) {
+                console.logWarning("unable to get gtfs: ${e.message}")
+                null
             }
         }
 
-        if (requestTimestamp < state.timestamp) {
+        if (state != null && requestTimestamp < state.timestamp) {
             state
         } else {
             call.respond(HttpStatusCode.NoContent)
