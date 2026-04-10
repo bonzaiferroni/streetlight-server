@@ -9,7 +9,6 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
@@ -32,7 +31,7 @@ object EventTable : UUIDTable("event") {
     val cost = float("cost")
     val visibility = integer("visibility").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
-    val url = text("url").nullable()
+    val website = text("url").nullable()
     val sourceUrl = text("source_url").nullable()
     val sourceImageUrl = text("source_image_url").nullable()
     val imageRef = url("image_ref").nullable()
@@ -68,7 +67,7 @@ fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, imageSet: SavedImag
 }
 
 fun UpdateBuilder<*>.writeUpdate(event: Event, imageSet: SavedImageSet?) {
-    this[EventTable.url] = event.url
+    this[EventTable.website] = event.url
     this[EventTable.sourceUrl] = event.sourceUrl
     this[EventTable.sourceImageUrl] = event.sourceImageUrl
     this[EventTable.streamUrl] = event.streamUrl
@@ -102,7 +101,7 @@ fun ResultRow.toEvent() = Event(
     cost = this[EventTable.cost],
     visibility = this[EventTable.visibility],
     links = this[EventTable.links],
-    url = this[EventTable.url],
+    url = this[EventTable.website],
     sourceUrl = this[EventTable.sourceUrl],
     sourceImageUrl = this[EventTable.sourceImageUrl],
     imageRef = this[EventTable.imageRef],
@@ -114,19 +113,3 @@ fun ResultRow.toEvent() = Event(
     updatedAt = this[EventTable.updatedAt],
     createdAt = this[EventTable.createdAt]
 )
-
-val EventLocationQuery get() = EventTable.leftJoin(LocationTable).select(listOf(
-    EventTable.id,
-    EventTable.locationId,
-    EventTable.slug,
-    EventTable.url,
-    EventTable.images,
-    LocationTable.images,
-    LocationTable.name,
-    EventTable.title,
-    EventTable.description,
-    EventTable.status,
-    EventTable.startsAt,
-    EventTable.endsAt,
-    LocationTable.geoPoint,
-))

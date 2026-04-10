@@ -152,6 +152,7 @@ fun LocationEdit.toLocation() = Location(
     geoPoint = geoPoint ?: error("no location geoPoint"),
     description = description,
     address = address,
+    city = city,
     resources = resources ?: emptySet(),
     website = website,
     eventsUrl = eventsUrl,
