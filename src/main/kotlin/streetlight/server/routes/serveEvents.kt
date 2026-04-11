@@ -69,7 +69,7 @@ fun StreetlightRouting.serveEvents() {
 
             val edit = request.data
 
-            if (dao.hasConflict(request.data)) {
+            if (edit.eventId == null && dao.hasConflict(request.data)) {
                 call.respond(HttpStatusCode.Conflict)
                 return@postEndpoint null
             }

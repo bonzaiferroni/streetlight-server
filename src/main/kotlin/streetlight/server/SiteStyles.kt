@@ -9,8 +9,9 @@ import java.io.File
 
 val SiteStyles by lazy {
     buildString {
+        // debug at runtime like this:
         // println(BlockLabelCss)
-        appendLine(StylesCss)// .also { println(StylesCss) }
+        appendLine(StylesCss)
 
         // css files located in /www/css
         CssFile.forEach {
