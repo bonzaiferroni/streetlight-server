@@ -17,16 +17,16 @@ fun Application.module() {
     install(Compression) {
         gzip {
             priority = 0.9
-            matchContentType(
-                ContentType.Application.JavaScript
-            )
+//            matchContentType(
+//                ContentType.Application.JavaScript
+//            )
         }
-        deflate {
-            priority = 1.0
-            matchContentType(
-                ContentType.Text.Any
-            )
-        }
+//        deflate {
+//            priority = 1.0
+//            matchContentType(
+//                ContentType.Text.Any
+//            )
+//        }
     }
 
     configureCors()
