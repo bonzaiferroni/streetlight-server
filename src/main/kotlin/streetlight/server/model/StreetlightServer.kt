@@ -11,7 +11,7 @@ import klutch.gemini.SpeechService
 import streetlight.agent.UrlParser
 import streetlight.server.db.services.*
 
-interface Streetlight {
+interface StreetlightServer {
     val env: Environment
     val dao: DaoFacade
     val service: ServiceFacade
@@ -39,8 +39,9 @@ class DaoFacade(
 )
 
 class ServiceFacade(
-    app: Streetlight,
+    app: StreetlightServer,
     val song: SongTableService = SongTableService(),
+    val omni: OmniService = OmniService()
     // val service: CreateUserService = CreateUserService(),
 )
 
@@ -97,8 +98,8 @@ class InferenceFacade(
     }
 }
 
-fun createStreetlight(): Streetlight {
-    return object: Streetlight {
+fun createStreetlight(): StreetlightServer {
+    return object: StreetlightServer {
         override val env = readEnvFromPath()
         override val dao = DaoFacade()
         override val ai = InferenceFacade(env)
@@ -107,4 +108,4 @@ fun createStreetlight(): Streetlight {
     }
 }
 
-private val console = globalConsole.getHandle(Streetlight::class)
+private val console = globalConsole.getHandle(StreetlightServer::class)

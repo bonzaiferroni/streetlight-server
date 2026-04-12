@@ -5,10 +5,10 @@ import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationParse
 import streetlight.model.data.ParseRequest
 import streetlight.model.data.toEdit
-import streetlight.server.model.Streetlight
+import streetlight.server.model.StreetlightServer
 
 class LocationScoutParser(
-    private val app: Streetlight
+    private val app: StreetlightServer
 ) {
     private val agent = app.ai.parser
 

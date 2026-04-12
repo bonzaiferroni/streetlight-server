@@ -14,7 +14,7 @@ import streetlight.model.data.TransitShape
 import streetlight.model.data.TransitStop
 import streetlight.model.data.TransitStopTime
 import streetlight.model.data.TransitTrip
-import streetlight.server.model.Streetlight
+import streetlight.server.model.StreetlightServer
 import java.io.File
 import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.days
@@ -22,7 +22,7 @@ import kotlin.time.Duration.Companion.days
 private val console = globalConsole.getHandle("initGtfs")
 private val httpClient = HttpClient(CIO)
 
-suspend fun initGtfs(app: Streetlight) {
+suspend fun initGtfs(app: StreetlightServer) {
     if (app.dao.transitRoute.readAllRoutes().isNotEmpty()) return
     console.log("initializin' gtfs")
     val cacheDir = File("gtfs")

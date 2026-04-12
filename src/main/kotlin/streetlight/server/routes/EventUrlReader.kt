@@ -13,12 +13,12 @@ import streetlight.model.data.ParseRequest
 import streetlight.model.data.SingleEventParseResponse
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
-import streetlight.server.model.Streetlight
+import streetlight.server.model.StreetlightServer
 
 private val console = globalConsole.getHandle(EventUrlReader::class)
 
 class EventUrlReader(
-    private val app: Streetlight
+    private val app: StreetlightServer
 ) {
     private val agent = app.ai.parser
 

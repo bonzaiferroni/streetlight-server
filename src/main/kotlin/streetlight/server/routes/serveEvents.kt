@@ -11,14 +11,19 @@ import klutch.server.*
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
+import streetlight.model.data.EventEdited
+import streetlight.model.data.Event
+import streetlight.model.data.EventCreated
 import streetlight.model.data.EventId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
+import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.name)
 
 fun StreetlightRouting.serveEvents() {
+    val app = model
     val dao = app.dao.event
     val reader = EventUrlReader(app)
 
@@ -65,7 +70,8 @@ fun StreetlightRouting.serveEvents() {
 
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
-            val userId = identity.getUserId(call)
+            val identity = identity.getUserIdentity(call)
+            val userId = identity.userId
 
             val edit = request.data
 
@@ -80,10 +86,14 @@ fun StreetlightRouting.serveEvents() {
             val eventId = edit.eventId
             if (eventId != null) {
                 console.log("updating event: ${edit.title}")
-                dao.updateEvent(eventId, userId, edit, imageSet)
+                val event = dao.updateEvent(eventId, userId, edit, imageSet)
+                app.service.omni.send(event.toEventEdited(identity.username))
+                event
             } else {
                 console.log("creating event: ${edit.title}")
-                dao.createEvent(userId, edit, imageSet)
+                val event = dao.createEvent(userId, edit, imageSet)
+                app.service.omni.send(event.toEventCreated(identity.username))
+                event
             }
         }
 
@@ -117,3 +127,5 @@ fun StreetlightRouting.serveEvents() {
     }
 }
 
+private fun Event.toEventEdited(username: String) = EventEdited(eventId, title, username, Clock.System.now())
+private fun Event.toEventCreated(username: String) = EventCreated(eventId, title, username, Clock.System.now())

@@ -23,6 +23,8 @@ val EventLocationQuery
                 EventTable.startsAt,
                 EventTable.endsAt,
                 EventTable.links,
+                EventTable.createdAt,
+                EventTable.updatedAt,
                 StarTable.username,
                 LocationTable.images,
                 LocationTable.name,
@@ -55,4 +57,6 @@ fun ResultRow.toEventLocation() = EventLocation(
     locationImages = this[LocationTable.images],
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
+    updatedAt = this[EventTable.updatedAt],
+    createdAt = this[EventTable.createdAt],
 )
