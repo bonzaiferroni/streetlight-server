@@ -13,7 +13,7 @@ private val console = globalConsole.getHandle(StreetlightRouting::serveLocations
 
 fun StreetlightRouting.serveLocations() {
     val dao = app.dao.location
-    val reader = LocationScoutParser(app)
+    val reader = LocationParser(app)
 
     getEndpoint(Api.Locations, { it.toProjectId() }) { id, _ ->
         dao.readLocation(id)
@@ -66,7 +66,7 @@ fun StreetlightRouting.serveLocations() {
 
     authenticateJwt {
         postEndpoint(Api.Locations.ParseLocation) { request ->
-            reader.serve(request.data)
+            reader.parseLocation(request.data)
         }
     }
 }

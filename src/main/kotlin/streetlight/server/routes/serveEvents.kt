@@ -25,7 +25,7 @@ private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.na
 fun StreetlightRouting.serveEvents() {
     val app = model
     val dao = app.dao.event
-    val reader = EventUrlReader(app)
+    val reader = EventParser(app)
 
     getEndpoint(Api.Events) {
         dao.readActiveEvents()
@@ -107,13 +107,23 @@ fun StreetlightRouting.serveEvents() {
 //
 //        }
 
-        postEndpoint(Api.Events.ParseMultiEvents) { request ->
-            reader.serveMulti(request.data)
-        }
+//        postEndpoint(Api.Events.ParseMultiEvents) { request ->
+//            val identity = identity.getUserIdentity(call)
+//            if (!identity.isAdmin) return@postEndpoint null
+//
+//            reader.readEvents(request.data)
+//        }
 
         postEndpoint(Api.Events.ParseSingleEvent) { request ->
-            reader.serveSingle(request.data)
+            val request = request.data
+
+            reader.parseEvent(request)
         }
+
+        postEndpoint(Api.Events.ParseEvent) {
+            error("not implemented")
+        }
+
 
         getEndpoint(Api.Events.ReadLights) {
             val starId = identity.getUserId(call)
