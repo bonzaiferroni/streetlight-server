@@ -14,6 +14,7 @@ import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -33,6 +34,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toProjectId
+import java.sql.SQLIntegrityConstraintViolationException
 import kotlin.time.Clock
 
 class EventPostTableDao : DbService() {
@@ -45,9 +47,13 @@ class EventPostTableDao : DbService() {
         EventPostTable.read { EventPostTable.galaxyId.eq(galaxyId) }.map { it.toEventPostRow() }
     }
 
-    suspend fun create(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
+    suspend fun create(edit: EventPostEdit, identity: StarIdentity): EventPostId? = dbQuery {
         val post = edit.toEventPostRow(identity)
-        EventPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<EventPostId>()
+        try {
+            EventPostTable.insertAndGetId { it.writeFull(post) }.toProjectId<EventPostId>()
+        } catch (e: ExposedSQLException) {
+            if (e.cause is SQLIntegrityConstraintViolationException) null else throw e
+        }
     }
 
     suspend fun update(galaxyPost: EventPostRow) = dbQuery {

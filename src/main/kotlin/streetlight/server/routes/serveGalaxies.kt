@@ -5,10 +5,13 @@ import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
+import streetlight.model.data.Event
+import streetlight.model.data.EventPosted
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
+import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
 
@@ -56,10 +59,18 @@ fun StreetlightRouting.serveGalaxies() {
             dao.create(edit, starId, imageSet)
         }
 
-        postEndpoint(Api.Galaxies.PostEvent) { request ->
+        postEndpoint(Api.Galaxies.PostEvent) {
+            val request = it.data
             val identity = identity.getUserIdentity(call)
+            val postId = app.dao.eventPost.create(request, identity) ?: return@postEndpoint null
 
-            app.dao.eventPost.create(request.data, identity)
+            val eventId = request.eventId
+            val galaxyId = request.galaxyId
+            if (eventId != null && galaxyId != null) {
+                app.service.omni.sendEventPosted(identity.username, eventId, galaxyId)
+            }
+
+            postId
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {

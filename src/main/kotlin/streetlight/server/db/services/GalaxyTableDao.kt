@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
 import streetlight.model.data.Galaxy
@@ -32,6 +33,10 @@ class GalaxyTableDao : DbService() {
 
     suspend fun readGalaxy(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.read { it.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {
+        GalaxyTable.select(GalaxyTable.name).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.getOrNull(GalaxyTable.name)
     }
 
     suspend fun readGalaxyByPath(path: String) = dbQuery {

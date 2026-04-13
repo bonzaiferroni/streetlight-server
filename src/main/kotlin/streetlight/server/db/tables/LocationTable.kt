@@ -21,7 +21,7 @@ object LocationTable : UUIDTable("location") {
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()
-    val city = text("city").nullable()
+    val city = text("city")
     val geoPoint = point("geo_point")
     val resources = array<Int>("resources")
     val website = text("link").nullable()

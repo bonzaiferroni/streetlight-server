@@ -13,7 +13,7 @@ import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
-import streetlight.model.data.EventCreated
+import streetlight.model.data.EventPosted
 import streetlight.model.data.EventId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
@@ -91,9 +91,7 @@ fun StreetlightRouting.serveEvents() {
                 event
             } else {
                 console.log("creating event: ${edit.title}")
-                val event = dao.createEvent(userId, edit, imageSet)
-                app.service.omni.send(event.toEventCreated(identity.username))
-                event
+                dao.createEvent(userId, edit, imageSet)
             }
         }
 
@@ -138,4 +136,3 @@ fun StreetlightRouting.serveEvents() {
 }
 
 private fun Event.toEventEdited(username: String) = EventEdited(eventId, title, username, Clock.System.now())
-private fun Event.toEventCreated(username: String) = EventCreated(eventId, title, username, Clock.System.now())

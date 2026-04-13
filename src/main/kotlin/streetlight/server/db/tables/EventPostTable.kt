@@ -11,12 +11,16 @@ import streetlight.server.utils.toProjectId
 
 object EventPostTable : UUIDTable("event_post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
-    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE) // td: allow null for deleted events
-    val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val username = text("username").nullable()
+    val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index() // td: allow null for deleted events
+    val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
+    val username = text("username").index().nullable()
     val text = text("text").nullable()
-    val updatedAt = timestamp("updated_at")
-    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at").index()
+    val createdAt = timestamp("created_at").index()
+
+    init {
+        uniqueIndex("galaxy_event_index", galaxyId, eventId)
+    }
 }
 
 fun ResultRow.toEventPostRow() = EventPostRow(

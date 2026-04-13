@@ -41,7 +41,7 @@ class DaoFacade(
 class ServiceFacade(
     app: StreetlightServer,
     val song: SongTableService = SongTableService(),
-    val omni: OmniService = OmniService(),
+    val omni: OmniService = OmniService(app.dao),
     // val service: CreateUserService = CreateUserService(),
 )
 
