@@ -28,6 +28,24 @@ fun StreetlightRouting.servePages() {
 //        }
 //    }
 
+    get("/") {
+        val posts = app.dao.eventPost.readTopPosts()
+        val galaxies = app.dao.galaxy.readTopGalaxies()
+        val content = HomeContent(
+            galaxies = galaxies,
+            posts = posts,
+        )
+        call.respondHtml {
+            homePage(content, SiteStyles)
+        }
+    }
+
+    get("/about") {
+        call.respondHtml {
+            aboutAppPage(SiteStyles)
+        }
+    }
+
     get("/event-signup/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
         val event = app.dao.event.readEvent(eventId) ?: return@get
@@ -42,18 +60,6 @@ fun StreetlightRouting.servePages() {
 
         call.respondHtml {
             locationPage(location, SiteStyles)
-        }
-    }
-
-    get("/") {
-        val posts = app.dao.eventPost.readTopPosts()
-        val galaxies = app.dao.galaxy.readTopGalaxies()
-        val content = HomeContent(
-            galaxies = galaxies,
-            posts = posts,
-        )
-        call.respondHtml {
-            homePage(content, SiteStyles)
         }
     }
 
