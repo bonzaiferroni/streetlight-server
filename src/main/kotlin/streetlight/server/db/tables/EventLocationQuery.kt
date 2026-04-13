@@ -7,34 +7,33 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventLocation
 import streetlight.server.utils.toProjectId
 
-val EventLocationQuery
-    get() = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
-        .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id).select(
-            listOf(
-                EventTable.id,
-                EventTable.locationId,
-                EventTable.slug,
-                EventTable.website,
-                EventTable.images,
-                EventTable.title,
-                EventTable.description,
-                EventTable.cost,
-                EventTable.status,
-                EventTable.startsAt,
-                EventTable.endsAt,
-                EventTable.links,
-                EventTable.createdAt,
-                EventTable.updatedAt,
-                StarTable.username,
-                LocationTable.images,
-                LocationTable.name,
-                LocationTable.description,
-                LocationTable.address,
-                LocationTable.city,
-                LocationTable.website,
-                LocationTable.geoPoint,
-            )
-        )
+val EventLocationQuery get() = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
+        .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id).select(EventLocationColumns)
+
+val EventLocationColumns = listOf(
+    EventTable.id,
+    EventTable.locationId,
+    EventTable.slug,
+    EventTable.website,
+    EventTable.images,
+    EventTable.title,
+    EventTable.description,
+    EventTable.cost,
+    EventTable.status,
+    EventTable.startsAt,
+    EventTable.endsAt,
+    EventTable.links,
+    EventTable.createdAt,
+    EventTable.updatedAt,
+    StarTable.username,
+    LocationTable.images,
+    LocationTable.name,
+    LocationTable.description,
+    LocationTable.address,
+    LocationTable.city,
+    LocationTable.website,
+    LocationTable.geoPoint,
+)
 
 fun ResultRow.toEventLocation() = EventLocation(
     eventId = toProjectId(EventTable.id),

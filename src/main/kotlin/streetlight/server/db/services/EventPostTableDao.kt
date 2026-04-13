@@ -24,10 +24,13 @@ import streetlight.model.data.EventPost
 import streetlight.model.data.EventPostRow
 import streetlight.model.data.EventPostEdit
 import streetlight.model.data.EventPostId
+import streetlight.server.db.tables.EventPostQuery
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.EventPostTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.toEvent
+import streetlight.server.db.tables.toEventLocation
+import streetlight.server.db.tables.toEventPost
 import streetlight.server.db.tables.toEventPostRow
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
@@ -110,11 +113,8 @@ class EventPostTableDao : DbService() {
 
     fun queryPosts(limit: Int, query: (() -> Op<Boolean>)? = null): List<EventPost> {
         val query = query ?: { EventPostTable.id.isNotNull() } // is there a better default query?
-        val join = EventPostTable.join(EventTable, JoinType.LEFT, EventPostTable.eventId, EventTable.id)
-            .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
 
-        return join
-            .selectAll()
+        return EventPostQuery
             .where(query)
             .orderBy(EventTable.startsAt to SortOrder.ASC_NULLS_LAST, EventPostTable.createdAt to SortOrder.DESC)
             .limit(limit)
@@ -129,21 +129,9 @@ fun EventPostEdit.toEventPostRow(
     galaxyId = galaxyId ?: error("galaxyId is required"),
     eventId = eventId ?: error("eventId is required"),
     starId = identity.userId,
-    username = identity.username,
     text = text,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
-)
-
-fun ResultRow.toEventPost() = EventPost(
-    postId = this[EventPostTable.id].toProjectId(),
-    galaxyId = this[EventPostTable.galaxyId].toProjectId(),
-    username = this[EventPostTable.username],
-    event = this.toEvent(),
-    location = this.toLocation(),
-    text = this[EventPostTable.text],
-    createdAt = this[EventPostTable.createdAt],
-    updatedAt = this[EventPostTable.updatedAt]
 )
 
 typealias QueryBlock = () -> Op<Boolean>
