@@ -42,7 +42,7 @@ fun StreetlightRouting.servePages() {
 
     get("/about") {
         call.respondHtml {
-            aboutAppPage(SiteStyles)
+            aboutPage(SiteStyles)
         }
     }
 
