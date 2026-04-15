@@ -34,6 +34,7 @@ val SiteStyles by lazy {
 private val KtStyles = listOf(
     IconCss,
     LogoCss,
+    MarkdownCss,
     ListingCss,
     TableCss,
     ListItemCss,
@@ -59,7 +60,6 @@ private val KtStyles = listOf(
     IconButtonCss,
     StarLightCss,
     FeatureImageCss,
-    MarkdownContentCss,
 
     AppBodyCss,
     AppOverlayCss,
