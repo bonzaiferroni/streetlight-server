@@ -9,6 +9,7 @@ import streetlight.model.data.PostListing
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.server.model.StreetlightRouting
+import streetlight.web.doc.SiteDocTree
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -110,6 +111,15 @@ fun StreetlightRouting.servePages() {
 
         call.respondHtml {
             eventPage(event, SiteStyles)
+        }
+    }
+
+    get("/docs/{docId}") {
+        val docId = call.parameters["docId"] ?: return@get
+        val node = SiteDocTree.nodes[docId] ?: return@get
+
+        call.respondHtml {
+            siteDocPage(node, SiteStyles)
         }
     }
 }
