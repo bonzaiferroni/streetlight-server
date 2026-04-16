@@ -34,6 +34,7 @@ fun Application.configureApiRoutes(app: StreetlightServer) {
             serveMap()
             serveFiles()
             serveOmni()
+            serveSiteDocs()
         }
     }
 }
