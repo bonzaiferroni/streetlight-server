@@ -78,7 +78,7 @@ class LocationTableDao : DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         val location = edit.toLocation()
-        val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId)
+        val isOwnerOrNull = LocationTable.starId.isNull() or LocationTable.starId.eq(starId)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.writeUpdate(location, imageSet)
         }
@@ -160,6 +160,8 @@ fun LocationEdit.toLocation() = Location(
     menuUrl = menuUrl,
     imageRef = imageRef,
     images = null,
+    extraLinks = null,
+    username = null,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now()
 )

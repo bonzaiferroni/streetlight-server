@@ -5,19 +5,24 @@ import klutch.utils.*
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.url
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.json.jsonb
+import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UUIDTable("location") {
-    val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
-    val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    val starId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    // td: update column name in database
+    val scoutId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val name = text("name")
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -25,6 +30,7 @@ object LocationTable : UUIDTable("location") {
     val geoPoint = point("geo_point")
     val resources = array<Int>("resources")
     val website = text("link").nullable()
+    val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val eventsUrl = text("events_url").nullable()
     val aboutUrl = text("about_url").nullable()
     val menuUrl = text("menu_url").nullable()
@@ -44,15 +50,20 @@ object LocationTable : UUIDTable("location") {
     )
 }
 
+val LocationQuery = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.starId, StarTable.id)
+    .select(LocationTable.columns + StarTable.username)
+
 fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
     name = this[LocationTable.name],
+    username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],
     address = this[LocationTable.address],
     city = this[LocationTable.city],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     website = this[LocationTable.website],
+    extraLinks = this[LocationTable.links],
     eventsUrl = this[LocationTable.eventsUrl],
     aboutUrl = this[LocationTable.aboutUrl],
     menuUrl = this[LocationTable.menuUrl],
@@ -63,9 +74,10 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, creatorId: StarId?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(location: Location, scoutId: StarId?, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.toUUID()
-    this[LocationTable.creatorId] = creatorId?.toUUID()
+    this[LocationTable.starId] = scoutId?.toUUID()
+    this[LocationTable.scoutId] = scoutId?.toUUID()
     this[LocationTable.createdAt] = location.createdAt
     writeUpdate(location, imageSet)
 }
