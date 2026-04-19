@@ -5,6 +5,7 @@ import koala.css.*
 import koala.html.*
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
+import streetlight.web.ui.EarthCss
 import streetlight.web.ui.StarLightCss
 import java.io.File
 
@@ -63,6 +64,7 @@ private val KtStyles = listOf(
 
     AppBodyCss,
     AppOverlayCss,
+    EarthCss,
 )
 
 private val Utilities = listOf(
