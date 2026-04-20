@@ -112,7 +112,7 @@ fun StreetlightRouting.serveEvents() {
 //            reader.readEvents(request.data)
 //        }
 
-        postEndpoint(Api.Events.ParseSingleEvent) { request ->
+        postApi(Api.Events.ParseSingleEvent) { request ->
             val request = request.data
 
             reader.parseEvent(request)
