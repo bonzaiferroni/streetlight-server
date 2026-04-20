@@ -2,6 +2,9 @@ package streetlight.server.routes
 
 import kabinet.clients.readImageUrl
 import kabinet.console.globalConsole
+import kampfire.model.ApiResponse
+import kampfire.model.Ok
+import kampfire.model.Problem
 import kampfire.model.toUrl
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
@@ -23,60 +26,38 @@ class EventParser(
 ) {
     private val agent = app.ai.parser
 
-//    suspend fun readEvents(request: ParseRequest): MultiEventParseResponse {
-//        val instructions = ParserText.multiEventInstructions
-//        val result: ParserResult<MultiEventParse>? = when (request) {
-//            is UrlParseRequest -> agent.readUrl(request.url, instructions)
-//            is HtmlParseRequest -> agent.readHtml(request.url, request.html, instructions)
-//            is ImageParseRequest -> TODO()
-//        }
-//        val parse = result?.value
-//        if (parse == null) {
-//            console.log("Parse was null")
-//        }
-//        val events = parse?.events?.map { it.toEventEdit(request.url, null, null) }
-//        return MultiEventParseResponse(
-//            hasContent = parse?.hasContent,
-//            events = events
-//        )
-//    }
-
-    suspend fun parseEvent(request: ParseRequest): EventParseResult {
-        val instructions = ParserText.singleEventInstructions
-
+    suspend fun parseEvent(request: ParseRequest): ApiResponse<EventEdit> {
         val html = when (request) {
             is UrlParseRequest -> fetchHtml(request.url)
             is HtmlParseRequest -> request.html
-            is ImageParseRequest -> TODO()
-        } ?: return EventParseResult(false)
+            is ImageParseRequest -> return Problem("Parsing images is not yet supported.")
+        } ?: return Problem("Unable to access the website.")
 
-        val doc = parseDocument(html, request.url) ?: return EventParseResult(false)
+        val url = request.url
 
-        val parse: EventParse? = agent.readHtml(request.url, doc, instructions)
+        val doc = parseDocument(html, request.url) ?: return Problem("Address did not serve HTML.")
 
         val meta = doc.readHtmlMetaInfo()
 
-        if (parse == null) {
-            return EventParseResult(
-                hasContent = true,
-                event = EventEdit(
-                    title = meta.title,
-                    description = meta.description,
-                    imageRef = meta.image
+        return when (val response = agent.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
+            is Ok -> {
+                val parse = response.data
+                Ok(parse.toEventEdit(url, null, null).copy(
+                    imageRef = meta.image ?: parse.imageUrl?.toUrl(),
+                    description = parse.description ?: meta.description,
+                    title = parse.name ?: meta.title
+                ))
+            }
+            is Problem -> {
+                Ok(
+                    data = EventEdit(
+                        title = meta.title,
+                        description = meta.description,
+                        imageRef = meta.image
+                    ),
+                    message = "${response.message} Returning only document meta information."
                 )
-            )
+            }
         }
-
-        val featureImage = doc.readImageUrl()?.toUrl()
-        val event = parse.toEventEdit(request.url, null, null).copy(
-            imageRef = featureImage,
-            description = parse.description ?: meta.description,
-            title = parse.name ?: meta.title
-        )
-
-        return EventParseResult(
-            hasContent = true,
-            event = event
-        )
     }
 }

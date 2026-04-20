@@ -1,10 +1,17 @@
 package streetlight.server.routes
 
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respondText
 import kabinet.console.globalConsole
+import kampfire.model.ApiResponseSerializer
 import kampfire.model.GeoPoint
+import kampfire.model.Ok
 import kampfire.model.kilometers
 import klutch.server.*
+import kotlinx.serialization.json.Json
 import streetlight.model.Api
+import streetlight.model.data.LocationEdit
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
@@ -62,10 +69,8 @@ fun StreetlightRouting.serveLocations() {
                 dao.updateLocation(it, starId, edit, imageSet)
             } ?: dao.createLocation(starId, edit, imageSet)
         }
-    }
 
-    authenticateJwt {
-        postEndpoint(Api.Locations.ParseLocation) { request ->
+        postApi(Api.Locations.ParseLocation) { request ->
             reader.parseLocation(request.data)
         }
     }
