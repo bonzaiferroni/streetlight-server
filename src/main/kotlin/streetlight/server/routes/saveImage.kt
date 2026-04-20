@@ -8,7 +8,6 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImage
 import kampfire.model.Url
-import kampfire.model.appendToFilename
 import kampfire.utils.randomUuidString
 import streetlight.model.data.FileFormat
 import streetlight.model.data.ProjectId
@@ -36,17 +35,16 @@ suspend fun StreetlightRouting.saveLocalImage(
 suspend fun StreetlightRouting.saveRemoteImage(
     bytes: ByteArray,
     userId: StarId?,
-    filenameRoot: String,
+    filename: String,
     sizes: List<ImageSize>,
 ): List<ScaledImage>? {
-    val result = detectFormatAndEncodingMode(bytes) ?: return null
-    val format = result.format; val forceEncoding = result.forceEncoding
-    val filename = "$filenameRoot.${format.ext}"
+    val filenameRoot = filename.takeIf { !it.contains('.') } ?: filename.split('.').dropLast(1).joinToString(".")
 
-    val results = sizes.mapNotNull { size ->
-        val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return@mapNotNull null
-        val filename = filename.appendToFilename(size.label)
-        val url = saveS3ImageFile(resizedBytes, userId, size, format, filename)
+    val encodings = encodeImage(bytes, sizes)
+    val results = encodings.map {
+        val encodedBytes = it.bytes; val format = it.format; val size = it.size
+        val filename = "$filenameRoot-${size.label}.${format.ext}"
+        val url = saveS3ImageFile(encodedBytes, userId, size, format, filename)
             ?: error("unable to save image: $filename")
         console.log("saved remote image: $filename")
         ScaledImage(size, url)
@@ -83,7 +81,7 @@ private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode
         // save BMP as PNG
         if (format == FileFormat.BMP) {
             forceEncoding = true
-            FileFormat.PNG
+            FileFormat.JPEG
         } else format
     } ?: return null
     return FormatAndEncodingMode(format, forceEncoding)
