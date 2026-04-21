@@ -20,7 +20,6 @@ import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
@@ -123,18 +122,18 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventLights(starId: StarId) = dbQuery {
-        EventLightTable.read { EventLightTable.StarId.eq(starId) }.map { it[EventLightTable.EventId].toProjectId<EventId>() }
+        EventLightTable.read { EventLightTable.starId.eq(starId) }.map { it[EventLightTable.eventId].toProjectId<EventId>() }
     }
 
     suspend fun editEventLight(edit: LightEdit, starId: StarId) = dbQuery {
         when (edit.isLit) {
             true -> EventLightTable.insertIgnore {
-                it[this.StarId] = starId.toUUID()
-                it[this.EventId] = edit.stringId.toUUID()
-                it[this.CreatedAt] = Clock.System.now()
+                it[this.starId] = starId.toUUID()
+                it[this.eventId] = edit.stringId.toUUID()
+                it[this.createdAt] = Clock.System.now()
             }
             else -> EventLightTable.deleteWhere {
-                this.EventId.eq(edit.stringId) and this.StarId.eq(starId)
+                this.eventId.eq(edit.stringId) and this.starId.eq(starId)
             }
         }
         true

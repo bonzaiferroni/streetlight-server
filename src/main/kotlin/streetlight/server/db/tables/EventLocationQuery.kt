@@ -54,6 +54,7 @@ fun ResultRow.toEventLocation() = EventLocation(
     address = this[LocationTable.address],
     city = this[LocationTable.city],
     locationImages = this[LocationTable.images],
+    lightCount = this.getOrNull(EventTable.lightCount)?.toInt(),
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
     updatedAt = this[EventTable.updatedAt],

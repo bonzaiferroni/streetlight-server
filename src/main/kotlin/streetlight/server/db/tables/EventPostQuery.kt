@@ -9,7 +9,9 @@ import streetlight.server.utils.toProjectId
 val EventPostQuery get() = EventPostTable.join(EventTable, JoinType.LEFT, EventPostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
     .join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
-    .select(EventPostColumns)
+    .join(EventLightTable, JoinType.LEFT, EventTable.id, EventLightTable.eventId)
+    .select(EventPostColumns + EventTable.lightCount)
+    .groupBy(EventPostTable.id, EventTable.id, LocationTable.id, StarTable.id)
 
 val EventPostColumns = listOf(
     EventPostTable.id,

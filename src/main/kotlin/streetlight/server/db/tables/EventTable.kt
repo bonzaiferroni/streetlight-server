@@ -6,6 +6,7 @@ import klutch.db.url
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -43,6 +44,8 @@ object EventTable : UUIDTable("event") {
     val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    val lightCount = EventLightTable.starId.count()
 
     const val SLUG_INDEX = "event_slug_index"
 

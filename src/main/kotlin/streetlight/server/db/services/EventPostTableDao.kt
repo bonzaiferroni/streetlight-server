@@ -5,19 +5,14 @@ import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
 import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.isNull
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.EventPost
@@ -27,12 +22,8 @@ import streetlight.model.data.EventPostId
 import streetlight.server.db.tables.EventPostQuery
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.EventPostTable
-import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.toEvent
-import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.toEventPost
 import streetlight.server.db.tables.toEventPostRow
-import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
@@ -104,10 +95,10 @@ class EventPostTableDao : DbService() {
 
     fun queryActivePosts(limit: Int, query: QueryBlock? = null): List<EventPost> {
         val now = Clock.System.now()
-        val isTimelessOrUpcoming = EventTable.startsAt.isNull() or EventTable.startsAt.greater(now)
+        val isUpcoming = EventTable.startsAt.greater(now)
         val q: QueryBlock = query?.let {
-            { isTimelessOrUpcoming and query() }
-        } ?: { isTimelessOrUpcoming }
+            { isUpcoming and query() }
+        } ?: { isUpcoming }
         return queryPosts(limit, q)
     }
 
