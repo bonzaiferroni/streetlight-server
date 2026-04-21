@@ -17,6 +17,8 @@ import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
@@ -136,6 +138,30 @@ class EventTableDao: DbService() {
                 this.eventId.eq(edit.stringId) and this.starId.eq(starId)
             }
         }
+        true
+    }
+
+    suspend fun editEventLights(edits: List<LightEdit>, starId: StarId) = dbQuery {
+        val (toLight, toUnlight) = edits.partition { it.isLit }
+
+        val existingIds = EventTable
+            .select(EventTable.id)
+            .where { EventTable.id inList toLight.map { it.stringId.toUUID() } }
+            .map { it[EventTable.id].value }
+            .toSet()
+
+        EventLightTable.batchInsert(toLight.filter { it.stringId.toUUID() in existingIds }, ignore = true) {
+            this[EventLightTable.starId] = starId.toUUID()
+            this[EventLightTable.eventId] = it.stringId.toUUID()
+            this[EventLightTable.createdAt] = Clock.System.now()
+        }
+
+        toUnlight.forEach { edit ->
+            EventLightTable.deleteWhere {
+                this.eventId.eq(edit.stringId) and this.starId.eq(starId)
+            }
+        }
+
         true
     }
 

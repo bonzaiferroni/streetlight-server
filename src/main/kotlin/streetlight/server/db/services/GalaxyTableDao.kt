@@ -9,6 +9,8 @@ import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
@@ -67,20 +69,44 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readGalaxyLights(starId: StarId) = dbQuery {
-        GalaxyLightTable.read { GalaxyLightTable.StarId.eq(starId) }.map { it[GalaxyLightTable.GalaxyId].toProjectId<GalaxyId>() }
+        GalaxyLightTable.read { GalaxyLightTable.starId.eq(starId) }.map { it[GalaxyLightTable.galaxyId].toProjectId<GalaxyId>() }
     }
 
     suspend fun editGalaxyLight(edit: LightEdit, starId: StarId) = dbQuery {
         when (edit.isLit) {
             true -> GalaxyLightTable.insertIgnore {
-                it[this.StarId] = starId.toUUID()
-                it[this.GalaxyId] = edit.stringId.toUUID()
-                it[this.CreatedAt] = Clock.System.now()
+                it[this.starId] = starId.toUUID()
+                it[this.galaxyId] = edit.stringId.toUUID()
+                it[this.createdAt] = Clock.System.now()
             }
             else -> GalaxyLightTable.deleteWhere {
-                this.GalaxyId.eq(edit.stringId) and this.StarId.eq(starId)
+                this.galaxyId.eq(edit.stringId) and this.starId.eq(starId)
             }
         }
+        true
+    }
+
+    suspend fun editGalaxyLights(edits: List<LightEdit>, starId: StarId) = dbQuery {
+        val (toLight, toUnlight) = edits.partition { it.isLit }
+
+        val existingIds = GalaxyTable
+            .select(GalaxyTable.id)
+            .where { GalaxyTable.id inList toLight.map { it.stringId.toUUID() } }
+            .map { it[GalaxyTable.id].value }
+            .toSet()
+
+        GalaxyLightTable.batchInsert(toLight.filter { it.stringId.toUUID() in existingIds }, ignore = true) {
+            this[GalaxyLightTable.starId] = starId.toUUID()
+            this[GalaxyLightTable.galaxyId] = it.stringId.toUUID()
+            this[GalaxyLightTable.createdAt] = Clock.System.now()
+        }
+
+        toUnlight.forEach { edit ->
+            GalaxyLightTable.deleteWhere {
+                this.galaxyId.eq(edit.stringId) and this.starId.eq(starId)
+            }
+        }
+
         true
     }
 }

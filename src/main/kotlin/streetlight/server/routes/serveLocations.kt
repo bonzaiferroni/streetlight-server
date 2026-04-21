@@ -64,7 +64,7 @@ fun StreetlightRouting.serveLocations() {
 
             edit.locationId?.let {
                 val location = dao.updateLocation(it, starId, edit, imageSet)
-                server.service.omni.send(LocationEdited(
+                server.service.omni.sendMessage(LocationEdited(
                     locationId = location.locationId,
                     name = location.name,
                     username = identity?.username,
@@ -72,7 +72,7 @@ fun StreetlightRouting.serveLocations() {
                 ))
                 location
             } ?: dao.createLocation(starId, edit, imageSet).also {
-                server.service.omni.send(LocationCreated(
+                server.service.omni.sendMessage(LocationCreated(
                     locationId = it.locationId,
                     name = it.name,
                     username = identity?.username,

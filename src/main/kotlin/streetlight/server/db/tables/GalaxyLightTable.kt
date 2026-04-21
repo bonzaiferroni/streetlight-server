@@ -6,9 +6,9 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 
 object GalaxyLightTable : Table("galaxy_light") {
     // experimenting with pascal case columns
-    val GalaxyId = reference("event_id", GalaxyTable, onDelete = ReferenceOption.CASCADE)
-    val StarId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
-    val CreatedAt = timestamp("created_at")
+    val galaxyId = reference("galaxy_id", GalaxyTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
+    val createdAt = timestamp("created_at")
 
-    override val primaryKey = PrimaryKey(GalaxyId, StarId)
+    override val primaryKey = PrimaryKey(galaxyId, starId)
 }

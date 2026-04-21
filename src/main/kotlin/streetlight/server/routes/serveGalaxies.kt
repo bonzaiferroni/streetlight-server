@@ -6,6 +6,8 @@ import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
+import streetlight.model.data.LightEdit
+import streetlight.model.data.MultiLightEdit
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
@@ -57,7 +59,7 @@ fun StreetlightRouting.serveGalaxies() {
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             val galaxy = dao.create(edit, starId, imageSet)
             if (galaxy != null) {
-                server.service.omni.send(GalaxyFounded(
+                server.service.omni.sendMessage(GalaxyFounded(
                     galaxyId = galaxy.galaxyId,
                     name = galaxy.name,
                     username = identity.username,
@@ -88,7 +90,14 @@ fun StreetlightRouting.serveGalaxies() {
 
         postEndpoint(Api.Galaxies.EditLight) {
             val starId = identity.getUserId(call)
-            dao.editGalaxyLight(it.data, starId)
+            when (val request = it.data) {
+                is LightEdit -> {
+                    dao.editGalaxyLight(request, starId)
+                }
+                is MultiLightEdit -> {
+                    dao.editGalaxyLights(request.edits, starId)
+                }
+            }
         }
     }
 }

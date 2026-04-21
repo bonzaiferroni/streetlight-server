@@ -26,7 +26,7 @@ fun StreetlightRouting.serveOmni() {
         LinkedHashSet()
     )
 
-    fun sendStatus() = omni.send(OmniStatus(clients.size))
+    fun sendStatus() = omni.sendMessage(OmniStatus(clients.size))
 
     webSocket(Api.Omni.Log.path) {
         clients += this

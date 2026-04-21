@@ -14,6 +14,8 @@ import streetlight.model.Api
 import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
+import streetlight.model.data.LightEdit
+import streetlight.model.data.MultiLightEdit
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
@@ -86,7 +88,7 @@ fun StreetlightRouting.serveEvents() {
             if (eventId != null) {
                 console.log("updating event: ${edit.title}")
                 val event = dao.updateEvent(eventId, userId, edit, imageSet)
-                app.service.omni.send(event.toEventEdited(identity.username))
+                app.service.omni.sendMessage(event.toEventEdited(identity.username))
                 event
             } else {
                 console.log("creating event: ${edit.title}")
@@ -129,7 +131,18 @@ fun StreetlightRouting.serveEvents() {
 
         postEndpoint(Api.Events.EditLight) {
             val starId = identity.getUserId(call)
-            dao.editEventLight(it.data, starId)
+            when (val request = it.data) {
+                is LightEdit -> {
+                    val isSuccess = dao.editEventLight(request, starId)
+                    if (isSuccess && request.isLit) {
+                        app.service.omni.sendEventLighted(starId, request.getEventId())
+                    }
+                    isSuccess
+                }
+                is MultiLightEdit -> {
+                    dao.editEventLights(request.edits, starId)
+                }
+            }
         }
     }
 }
