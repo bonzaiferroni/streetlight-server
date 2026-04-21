@@ -9,7 +9,7 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 
 fun StreetlightRouting.serveStars() {
-    val dao = app.dao.star
+    val dao = server.dao.star
 
     getEndpoint(Api.Stars.ReadByUsername) { endpoint ->
         val username = readParamOrNull(endpoint.username) ?: return@getEndpoint null

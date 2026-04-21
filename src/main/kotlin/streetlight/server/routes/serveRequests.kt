@@ -7,6 +7,6 @@ import streetlight.server.model.*
 fun StreetlightRouting.serveRequests() {
 
     postEndpoint(Api.RequestBox) {
-        app.dao.request.createRequest(it.data)?.requestId
+        server.dao.request.createRequest(it.data)?.requestId
     }
 }

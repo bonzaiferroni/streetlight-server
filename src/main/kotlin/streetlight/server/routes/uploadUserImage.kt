@@ -32,7 +32,7 @@ suspend fun StreetlightRouting.saveLocalImageFile(
     val url = "/${uploadFolder.name}/$name".toUrl()
     file.writeBytes(bytes)
 
-    app.dao.userFile.create(
+    server.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
             starId = starId,
@@ -58,9 +58,9 @@ suspend fun StreetlightRouting.saveS3ImageFile(
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value
 
-    val url = app.storage.s3.put(bytes, filename, format.contentType) ?: return null
+    val url = server.storage.s3.put(bytes, filename, format.contentType) ?: return null
     
-    app.dao.userFile.create(
+    server.dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
             starId = userId,

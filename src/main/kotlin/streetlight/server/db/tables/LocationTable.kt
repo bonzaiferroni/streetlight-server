@@ -50,7 +50,7 @@ object LocationTable : UUIDTable("location") {
     )
 }
 
-val LocationQuery = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.starId, StarTable.id)
+val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.starId, StarTable.id)
     .select(LocationTable.columns + StarTable.username)
 
 fun ResultRow.toLocation() = Location(

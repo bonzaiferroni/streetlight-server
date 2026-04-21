@@ -5,18 +5,16 @@ import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
-import streetlight.model.data.Event
-import streetlight.model.data.EventPosted
+import streetlight.model.data.GalaxyFounded
 import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
-import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
 
 fun StreetlightRouting.serveGalaxies() {
-    val dao = app.dao.galaxy
+    val dao = server.dao.galaxy
 
     getEndpoint(Api.Galaxies.Top) {
         dao.readTopGalaxies()
@@ -34,16 +32,16 @@ fun StreetlightRouting.serveGalaxies() {
 
     postEndpoint(Api.Galaxies.ReadMultiPosts) {
         val galaxyIds = it.data
-        app.dao.eventPost.readPosts(galaxyIds)
+        server.dao.eventPost.readPosts(galaxyIds)
     }
 
     getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
-        app.dao.eventPost.readPost(galaxyPostId)
+        server.dao.eventPost.readPost(galaxyPostId)
     }
 
     getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
-        val events = app.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
-        val locations = app.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val events = server.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val locations = server.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
         PostListing(
             events = events,
             locations = locations
@@ -53,21 +51,31 @@ fun StreetlightRouting.serveGalaxies() {
     authenticateJwt {
         postEndpoint(Api.Galaxies.Found) { request ->
             val edit = request.data
-            val starId = identity.getUserId(call)
+            val identity = identity.getIdentity(call)
+            val starId = identity.userId
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-            dao.create(edit, starId, imageSet)
+            val galaxy = dao.create(edit, starId, imageSet)
+            if (galaxy != null) {
+                server.service.omni.send(GalaxyFounded(
+                    galaxyId = galaxy.galaxyId,
+                    name = galaxy.name,
+                    username = identity.username,
+                    recordAt = galaxy.createdAt
+                ))
+            }
+            galaxy
         }
 
         postEndpoint(Api.Galaxies.PostEvent) {
             val request = it.data
-            val identity = identity.getUserIdentity(call)
-            val postId = app.dao.eventPost.create(request, identity) ?: return@postEndpoint null
+            val identity = identity.getIdentity(call)
+            val postId = server.dao.eventPost.create(request, identity) ?: return@postEndpoint null
 
             val eventId = request.eventId
             val galaxyId = request.galaxyId
             if (eventId != null && galaxyId != null) {
-                app.service.omni.sendEventPosted(identity.username, eventId, galaxyId)
+                server.service.omni.sendEventPosted(identity.username, eventId, galaxyId)
             }
 
             postId

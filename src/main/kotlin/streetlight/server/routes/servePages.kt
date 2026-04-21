@@ -31,8 +31,8 @@ fun StreetlightRouting.servePages() {
 //    }
 
     get("/") {
-        val posts = app.dao.eventPost.readTopPosts()
-        val galaxies = app.dao.galaxy.readTopGalaxies()
+        val posts = server.dao.eventPost.readTopPosts()
+        val galaxies = server.dao.galaxy.readTopGalaxies()
         val content = HomeContent(
             galaxies = galaxies,
             posts = posts,
@@ -50,7 +50,7 @@ fun StreetlightRouting.servePages() {
 
     get("/event-signup/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
-        val event = app.dao.event.readEvent(eventId) ?: return@get
+        val event = server.dao.event.readEvent(eventId) ?: return@get
         call.respondHtml {
             eventSignUp(event, SiteStyles)
         }
@@ -58,7 +58,7 @@ fun StreetlightRouting.servePages() {
 
     get("/location/{id}") {
         val locationId = call.parameters["id"]?.let { LocationId(it) } ?: return@get
-        val location = app.dao.location.readLocation(locationId) ?: return@get
+        val location = server.dao.location.readLocation(locationId) ?: return@get
 
         call.respondHtml {
             locationPage(location, SiteStyles)
@@ -67,10 +67,10 @@ fun StreetlightRouting.servePages() {
 
     get("/g/{path}") {
         val path = call.parameters["path"] ?: return@get
-        val galaxy = app.dao.galaxy.readGalaxyByPath(path) ?: return@get
+        val galaxy = server.dao.galaxy.readGalaxyByPath(path) ?: return@get
         val galaxyId = galaxy.galaxyId
-        val events = app.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
-        val locations = app.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val events = server.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val locations = server.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
         val listing = PostListing(
             events = events,
             locations = locations
@@ -88,10 +88,10 @@ fun StreetlightRouting.servePages() {
 
     get("/s/{username}") {
         val username = call.parameters["username"] ?: return@get
-        val userId = app.dao.user.readIdByUsername(username) ?: return@get // td: serve not found content
-        val star = app.dao.star.readByUsername(username) ?: error("star not found")
-        val events = app.dao.eventPost.readPosts(userId).takeIf { it.isNotEmpty() }
-        val locations = app.dao.locationPost.readPosts(userId).takeIf { it.isNotEmpty() }
+        val userId = server.dao.user.readIdByUsername(username) ?: return@get // td: serve not found content
+        val star = server.dao.star.readByUsername(username) ?: error("star not found")
+        val events = server.dao.eventPost.readPosts(userId).takeIf { it.isNotEmpty() }
+        val locations = server.dao.locationPost.readPosts(userId).takeIf { it.isNotEmpty() }
         val listing = PostListing(
             events = events,
             locations = locations
@@ -108,7 +108,7 @@ fun StreetlightRouting.servePages() {
 
     get("/e/{slug}") {
         val slug = call.parameters["slug"] ?: return@get
-        val event = app.dao.event.readEventLocationBySlug(slug) ?: return@get
+        val event = server.dao.event.readEventLocationBySlug(slug) ?: return@get
 
         call.respondHtml {
             eventPage(event, SiteStyles)

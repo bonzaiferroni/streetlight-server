@@ -30,6 +30,7 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toEvent
@@ -43,7 +44,7 @@ private val console = globalConsole.getHandle(LocationTableDao::class)
 class LocationTableDao : DbService() {
 
     suspend fun readLocation(locationId: LocationId) = dbQuery {
-        LocationTable.read { it.id.eq(locationId) }.firstOrNull()?.toLocation()
+        LocationQuery.where { LocationTable.id.eq(locationId) }.firstOrNull()?.toLocation()
     }
 
     suspend fun readLocationAt(name: String?, address: String?) = dbQuery {

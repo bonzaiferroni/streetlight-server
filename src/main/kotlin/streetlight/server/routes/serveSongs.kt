@@ -4,11 +4,10 @@ import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.model.*
-import kotlin.time.Instant
 
 fun StreetlightRouting.serveSongs() {
-    val dao = app.dao.song
-    val service = app.service.song
+    val dao = server.dao.song
+    val service = server.service.song
 
     getEndpoint(Api.SongProfile, { it.toProjectId() }) { songId, _ ->
         dao.readById(songId)

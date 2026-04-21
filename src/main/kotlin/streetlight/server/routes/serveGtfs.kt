@@ -33,7 +33,7 @@ private val console = globalConsole.getHandle(StreetlightRouting::serveGtfs.name
 
 fun StreetlightRouting.serveGtfs() {
     CoroutineScope(Dispatchers.IO).launch {
-        initGtfs(app)
+        initGtfs(server)
     }
 
     var vehiclePositionBytes: ByteArray? = null
@@ -109,8 +109,8 @@ fun StreetlightRouting.serveGtfs() {
 
     getEndpoint(Api.Gtfs.Routes) {
         val routeIds = setOf("101E", "101D", "103W", "117N", "107R", "101H", "A")
-        val routes = app.dao.transitRoute.readRoutes(routeIds)
-        val stops = app.dao.transitStop.readRouteStops(routeIds)
+        val routes = server.dao.transitRoute.readRoutes(routeIds)
+        val stops = server.dao.transitStop.readRouteStops(routeIds)
         AreaTransit(
             routes = routes,
             stops = stops

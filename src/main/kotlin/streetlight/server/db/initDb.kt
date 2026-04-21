@@ -55,6 +55,7 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     GalaxyLocationPostTable,
     GalaxyLightTable,
     EventLightTable,
+    OmniTable,
 )
 
 fun connectDb(env: Environment) = Database.connect(

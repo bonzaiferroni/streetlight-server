@@ -8,4 +8,4 @@ import streetlight.model.data.StarUser
 typealias StreetlightRouting = ApiContext<StreetlightServer, StarUser, StarId>
 typealias StarIdentity = UserIdentity<StarId>
 
-val StreetlightRouting.app get() = model
+val StreetlightRouting.server get() = model

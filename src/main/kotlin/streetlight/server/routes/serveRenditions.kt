@@ -4,10 +4,9 @@ import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.model.*
-import kotlin.time.Instant
 
 fun StreetlightRouting.serveRenditions() {
-    val dao = app.dao.rendition
+    val dao = server.dao.rendition
 
     getEndpoint(Api.RenditionFeed, { it.toProjectId() }) { id, _ ->
         dao.readById(id)

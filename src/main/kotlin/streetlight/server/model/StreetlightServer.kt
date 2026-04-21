@@ -35,7 +35,8 @@ class DaoFacade(
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
-    val userFile: UploadFileTableDao = UploadFileTableDao()
+    val userFile: UploadFileTableDao = UploadFileTableDao(),
+    val omni: OmniTableDao = OmniTableDao()
 )
 
 class ServiceFacade(

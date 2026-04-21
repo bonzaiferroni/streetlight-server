@@ -5,7 +5,6 @@ import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
-import streetlight.model.data.StorageType
 import streetlight.server.model.*
 
 fun StreetlightRouting.serveUserHub() {
@@ -18,16 +17,16 @@ fun StreetlightRouting.serveUserHub() {
 
         getEndpoint(Api.Users.Talents) { _ ->
             val userId = identity.getUserId(call)
-            app.dao.talent.readUserTalents(userId)
+            server.dao.talent.readUserTalents(userId)
         }
 
         postEndpoint(Api.Users.EditTalent) {
             val userId = identity.getUserId(call)
             val talentId = it.data.talentId
             if (talentId != null) {
-                app.dao.talent.edit(talentId, it.data, userId)
+                server.dao.talent.edit(talentId, it.data, userId)
             } else {
-                app.dao.talent.create(it.data, userId)
+                server.dao.talent.create(it.data, userId)
             }
         }
 

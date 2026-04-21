@@ -13,7 +13,6 @@ import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
-import streetlight.model.data.EventPosted
 import streetlight.model.data.EventId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
@@ -70,7 +69,7 @@ fun StreetlightRouting.serveEvents() {
 
     authenticateJwt {
         postEndpoint(Api.Events.Edit) { request ->
-            val identity = identity.getUserIdentity(call)
+            val identity = identity.getIdentity(call)
             val userId = identity.userId
 
             val edit = request.data
