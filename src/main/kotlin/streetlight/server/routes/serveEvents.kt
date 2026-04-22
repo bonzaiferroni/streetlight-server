@@ -47,8 +47,8 @@ fun StreetlightRouting.serveEvents() {
         }
     }
 
-    getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) { id, _ ->
-        dao.readLocationEvents(id)
+    getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) {
+        dao.readLocationEvents(it.data)
     }
 
     postEndpoint(Api.Events.ReadEventLocations) {

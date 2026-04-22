@@ -14,12 +14,12 @@ import streetlight.model.data.OmniHistory
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniStatus
 import streetlight.server.model.StreetlightRouting
+import streetlight.server.model.server
 import java.util.Collections
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveOmni.name)
 
 fun StreetlightRouting.serveOmni() {
-    val server = model
     val omni = server.service.omni
 
     val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(

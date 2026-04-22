@@ -12,7 +12,7 @@ import klutch.server.routingContextOf
 import klutch.utils.Identity
 import streetlight.server.routes.*
 
-fun Application.configureApiRoutes(app: StreetlightServer) {
+fun Application.serveApi(app: StreetlightServer) {
     val authDao = StarAuthDao()
     val identity = Identity(authDao)
     routing {
@@ -35,6 +35,7 @@ fun Application.configureApiRoutes(app: StreetlightServer) {
             serveFiles()
             serveOmni()
             serveSiteDocs()
+            serveComments()
         }
     }
 }

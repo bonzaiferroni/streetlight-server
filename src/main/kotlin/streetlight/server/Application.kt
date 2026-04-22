@@ -1,6 +1,5 @@
 package streetlight.server
 
-import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import klutch.server.configureSecurity
@@ -34,6 +33,6 @@ fun Application.module() {
     configureDatabases()
     configureSecurity()
     configureWebSockets()
-    configureApiRoutes(app)
+    serveApi(app)
     configureLogging()
 }
