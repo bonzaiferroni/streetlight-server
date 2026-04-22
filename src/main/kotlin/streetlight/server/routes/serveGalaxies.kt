@@ -37,16 +37,20 @@ fun StreetlightRouting.serveGalaxies() {
         server.dao.eventPost.readPosts(galaxyIds)
     }
 
-    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) { galaxyPostId, _ ->
+    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) {
+        val galaxyPostId = it.data
         server.dao.eventPost.readPost(galaxyPostId)
     }
 
-    getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) { galaxyId, _ ->
-        val events = server.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
-        val locations = server.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+    getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) {
+        val galaxyId = it.data
+        val events = server.dao.eventPost.readPosts(galaxyId)
+        val locations = server.dao.locationPost.readPosts(galaxyId)
+        val comments = server.dao.comment.readGalaxyComments(galaxyId)
         PostListing(
             events = events,
-            locations = locations
+            locations = locations,
+            comments = comments,
         )
     }
 

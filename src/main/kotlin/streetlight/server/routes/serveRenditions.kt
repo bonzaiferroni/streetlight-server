@@ -8,11 +8,13 @@ import streetlight.server.model.*
 fun StreetlightRouting.serveRenditions() {
     val dao = server.dao.rendition
 
-    getEndpoint(Api.RenditionFeed, { it.toProjectId() }) { id, _ ->
+    getEndpoint(Api.RenditionFeed, { it.toProjectId() }) {
+        val id = it.data
         dao.readById(id)
     }
 
-    getEndpoint(Api.RenditionFeed.BySong, { it.toProjectId() }) { songId, _ ->
+    getEndpoint(Api.RenditionFeed.BySong, { it.toProjectId() }) {
+        val songId = it.data
         dao.readAllBySongId(songId)
     }
 

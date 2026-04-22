@@ -18,7 +18,8 @@ fun StreetlightRouting.serveLocations() {
     val dao = server.dao.location
     val reader = LocationParser(server)
 
-    getEndpoint(Api.Locations, { it.toProjectId() }) { id, _ ->
+    getEndpoint(Api.Locations, { it.toProjectId() }) {
+        val id = it.data
         dao.readLocation(id)
     }
 

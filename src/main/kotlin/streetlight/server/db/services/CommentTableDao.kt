@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
 import klutch.utils.eq
@@ -23,7 +24,6 @@ import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
 import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.toComment
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
@@ -63,31 +63,33 @@ class CommentTableDao : DbService() {
     }
 }
 
+private val GalaxyCommentQuery get() = GalaxyCommentTable
+    .join(CommentTable, JoinType.LEFT, GalaxyCommentTable.commentId, CommentTable.id)
+    .toCommentQuery()
+
+private fun Join.toCommentQuery() = join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)
+    .select(CommentColumns)
+
+private fun ResultRow.toComment() = Comment(
+    commentId = toProjectId(CommentTable.id),
+    parentId = toProjectIdOrNull(CommentTable.parentId),
+    username = this[StarTable.username],
+    thumb = this[StarTable.images].thumb,
+    text = this[CommentTable.text],
+    lightCount = this[CommentTable.lightCount],
+    replyCount = this[CommentTable.replyCount],
+    updatedAt = this[CommentTable.updatedAt],
+    createdAt = this[CommentTable.createdAt],
+)
+
 private val CommentColumns = listOf(
     CommentTable.id,
     CommentTable.parentId,
     CommentTable.text,
     CommentTable.updatedAt,
     CommentTable.createdAt,
+    CommentTable.replyCount,
+    CommentTable.lightCount,
     StarTable.username,
-)
-
-private val GalaxyCommentQuery get() = GalaxyCommentTable
-    .join(CommentTable, JoinType.LEFT, GalaxyCommentTable.commentId, CommentTable.id)
-    .toCommentQuery()
-
-private fun Join.toCommentQuery() = join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)
-    .join(CommentTable.reply, JoinType.LEFT, CommentTable.id, CommentTable.reply[CommentTable.parentId])
-    .select(CommentColumns + CommentTable.lightCount + CommentTable.replyCount)
-    .groupBy(CommentTable.id, StarTable.username)
-
-private fun ResultRow.toComment() = Comment(
-    commentId = toProjectId(CommentTable.id),
-    parentId = toProjectIdOrNull(CommentTable.parentId),
-    username = this[StarTable.username],
-    text = this[CommentTable.text],
-    lightCount = this[CommentTable.lightCount].toInt(),
-    replyCount = this[CommentTable.replyCount].toInt(),
-    updatedAt = this[CommentTable.updatedAt],
-    createdAt = this[CommentTable.createdAt],
+    StarTable.images,
 )

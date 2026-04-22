@@ -53,6 +53,8 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     EventPostTable,
     LocationPostTable,
     CommentTable,
+    CommentLightTable,
+    GalaxyCommentTable,
     GalaxyLightTable,
     EventLightTable,
     LocationLightTable,

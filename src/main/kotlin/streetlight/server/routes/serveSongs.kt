@@ -9,7 +9,8 @@ fun StreetlightRouting.serveSongs() {
     val dao = server.dao.song
     val service = server.service.song
 
-    getEndpoint(Api.SongProfile, { it.toProjectId() }) { songId, _ ->
+    getEndpoint(Api.SongProfile, { it.toProjectId() }) {
+        val songId = it.data
         dao.readById(songId)
     }
 

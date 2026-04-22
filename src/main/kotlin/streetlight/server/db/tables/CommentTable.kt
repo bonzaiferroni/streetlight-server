@@ -4,10 +4,8 @@ import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.alias
-import org.jetbrains.exposed.v1.core.count
-import org.jetbrains.exposed.v1.core.countDistinct
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
+import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CommentId
@@ -19,12 +17,11 @@ object CommentTable: UUIDTable("comment") {
     val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
     val text = text("text")
+    val lightCount = integer("light_count").default(0)
+    val replyCount = integer("reply_count").default(0)
+    val visibility = lightCount + replyCount
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at").index()
-
-    val lightCount = CommentLightTable.starId.countDistinct()
-    val reply = CommentTable.alias("reply_comment")
-    val replyCount = reply[CommentTable.id].countDistinct()
 }
 
 object CommentLightTable: Table("comment_light") {
@@ -41,7 +38,7 @@ object GalaxyCommentTable: Table("galaxy_comment") {
     override val primaryKey = PrimaryKey(galaxyId, commentId)
 }
 
-fun ResultRow.toComment() = CommentRow(
+fun ResultRow.toCommentRow() = CommentRow(
     commentId = toProjectId(CommentTable.id),
     parentId = toProjectIdOrNull(CommentTable.parentId),
     starId = toProjectId(CommentTable.starId),

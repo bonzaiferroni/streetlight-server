@@ -69,11 +69,13 @@ fun StreetlightRouting.servePages() {
         val path = call.parameters["path"] ?: return@get
         val galaxy = server.dao.galaxy.readGalaxyByPath(path) ?: return@get
         val galaxyId = galaxy.galaxyId
-        val events = server.dao.eventPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
-        val locations = server.dao.locationPost.readPosts(galaxyId).takeIf { it.isNotEmpty() }
+        val events = server.dao.eventPost.readPosts(galaxyId)
+        val locations = server.dao.locationPost.readPosts(galaxyId, 10)
+        val comments = server.dao.comment.readGalaxyComments(galaxyId)
         val listing = PostListing(
             events = events,
-            locations = locations
+            locations = locations,
+            comments = comments,
         )
 
         val content = GalaxyProfileContent(
@@ -90,11 +92,12 @@ fun StreetlightRouting.servePages() {
         val username = call.parameters["username"] ?: return@get
         val userId = server.dao.user.readIdByUsername(username) ?: return@get // td: serve not found content
         val star = server.dao.star.readByUsername(username) ?: error("star not found")
-        val events = server.dao.eventPost.readPosts(userId).takeIf { it.isNotEmpty() }
-        val locations = server.dao.locationPost.readPosts(userId).takeIf { it.isNotEmpty() }
+        val events = server.dao.eventPost.readPosts(userId)
+        val locations = server.dao.locationPost.readPosts(userId)
         val listing = PostListing(
             events = events,
-            locations = locations
+            locations = locations,
+            comments = emptyList(),
         )
         val content = StarProfileContent(
             star = star,
