@@ -48,12 +48,6 @@ fun StreetlightRouting.serveLocations() {
             server.dao.locationPost.createPost(request.data, identity)
         }
 
-        postEndpoint(Api.Locations.PostGalaxyLocation) { request ->
-            val post = request.data.takeIf { it.isValid } ?: error("invalid request")
-            val identity = identity.getIdentityOrNull(call)
-            server.dao.locationPost.createGalaxyPost(post, identity)
-        }
-
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data
             val identity = identity.getIdentityOrNull(call)

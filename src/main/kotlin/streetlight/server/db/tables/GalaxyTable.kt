@@ -7,11 +7,14 @@ import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
@@ -32,6 +35,9 @@ object GalaxyTable : UUIDTable("galaxy") {
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    val lightCount = GalaxyLightTable.starId.count()
+    val eventCount = EventPostTable.eventId.count()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -76,6 +82,16 @@ fun ResultRow.toGalaxy() = Galaxy(
     postGuide = this[GalaxyTable.postGuide],
     imageRef = this[GalaxyTable.imageRef],
     images = this[GalaxyTable.images],
+    lightCount = this.getOrNull(GalaxyTable.lightCount)?.toInt(),
+    eventCount = this.getOrNull(GalaxyTable.eventCount)?.toInt(),
+    locationCount = this.getOrNull(GalaxyTable.eventCount)?.toInt(),
     updatedAt = this[GalaxyTable.updatedAt],
     createdAt = this[GalaxyTable.createdAt],
 )
+
+val GalaxyQuery get() = GalaxyTable
+    .join(GalaxyLightTable, JoinType.LEFT, GalaxyTable.id, GalaxyLightTable.galaxyId)
+    .join(EventPostTable, JoinType.LEFT, GalaxyTable.id, EventPostTable.galaxyId)
+    .join(LocationPostTable, JoinType.LEFT, GalaxyTable.id, LocationPostTable.galaxyId)
+    .select(GalaxyTable.columns + GalaxyTable.lightCount + GalaxyTable.eventCount)
+    .groupBy(GalaxyTable.id)

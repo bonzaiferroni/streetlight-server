@@ -6,9 +6,9 @@ import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
 import klutch.utils.toUUID
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -24,6 +24,7 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyLightTable
+import streetlight.server.db.tables.GalaxyQuery
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toGalaxy
@@ -42,15 +43,15 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readGalaxyByPath(path: String) = dbQuery {
-        GalaxyTable.readFirstOrNull { it.path.eq(path) }?.toGalaxy()
+        GalaxyQuery.where { GalaxyTable.path.eq(path) }.firstOrNull()?.toGalaxy()
     }
 
-    suspend fun readTopGalaxies() = dbQuery {
-        GalaxyTable.read { GalaxyTable.id.isNotNull() }.map { it.toGalaxy() }
+    suspend fun readTopGalaxies(limit: Int = 10) = dbQuery {
+        GalaxyQuery.orderBy(GalaxyTable.lightCount, SortOrder.DESC).limit(limit).map { it.toGalaxy() }
     }
     
     suspend fun readGalaxies(galaxyIds: List<GalaxyId>) = dbQuery {
-        GalaxyTable.read { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
+        GalaxyQuery.where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
     suspend fun create(edit: GalaxyEdit, starId: StarId, imageSet: SavedImageSet?) = dbQuery {
@@ -123,6 +124,9 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     postGuide = postGuide,
     imageRef = imageRef,
     images = null,
+    lightCount = null,
+    eventCount = null,
+    locationCount = null,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

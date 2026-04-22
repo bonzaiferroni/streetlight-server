@@ -60,19 +60,6 @@ class EventPostTableDao : DbService() {
         EventPostTable.deleteWhere { EventPostTable.id.eq(eventPostId) } == 1
     }
 
-//    suspend fun postEvent(galaxyId: GalaxyId, username: String, eventId: EventId) = dbQuery {
-//        val post = GalaxyPost(
-//            galaxyPostId = GalaxyPostId.random(),
-//            galaxyId = galaxyId,
-//            username = username,
-//            eventId = eventId,
-//            locationId = null,
-//            text = null,
-//            createdAt = Clock.System.now(),
-//            updatedAt = Clock.System.now(),
-//        )
-//    }
-
     suspend fun readPosts(galaxyIds: List<GalaxyId>, limit: Int = 100) = dbQuery {
         queryActivePosts(limit) { EventPostTable.galaxyId.inList(galaxyIds) }
     }

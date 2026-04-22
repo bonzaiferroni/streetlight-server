@@ -14,6 +14,7 @@ import streetlight.model.Api
 import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
+import streetlight.model.data.EventCreated
 import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
 import streetlight.model.data.toProjectId
@@ -92,7 +93,9 @@ fun StreetlightRouting.serveEvents() {
                 event
             } else {
                 console.log("creating event: ${edit.title}")
-                dao.createEvent(userId, edit, imageSet)
+                val event = dao.createEvent(userId, edit, imageSet)
+                app.service.omni.sendMessage(event.toEventCreated(identity.username))
+                event
             }
         }
 
@@ -135,7 +138,7 @@ fun StreetlightRouting.serveEvents() {
                 is LightEdit -> {
                     val isSuccess = dao.editEventLight(request, starId)
                     if (isSuccess && request.isLit) {
-                        app.service.omni.sendEventLighted(starId, request.getEventId())
+                        app.service.omni.sendBeacon(starId, request.stringId)
                     }
                     isSuccess
                 }
@@ -148,3 +151,4 @@ fun StreetlightRouting.serveEvents() {
 }
 
 private fun Event.toEventEdited(username: String) = EventEdited(eventId, title, username, Clock.System.now())
+private fun Event.toEventCreated(username: String) = EventCreated(eventId, title, username, Clock.System.now())

@@ -6,9 +6,10 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventPost
 import streetlight.server.utils.toProjectId
 
-val EventPostQuery get() = EventPostTable.join(EventTable, JoinType.LEFT, EventPostTable.eventId, EventTable.id)
+val EventPostQuery get() = EventPostTable
+    .join(EventTable, JoinType.LEFT, EventPostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
-    .join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
+    .join(StarTable, JoinType.LEFT, EventPostTable.starId, StarTable.id)
     .join(EventLightTable, JoinType.LEFT, EventTable.id, EventLightTable.eventId)
     .select(EventPostColumns + EventTable.lightCount)
     .groupBy(EventPostTable.id, EventTable.id, LocationTable.id, StarTable.id)
@@ -24,6 +25,7 @@ val EventPostColumns = listOf(
 fun ResultRow.toEventPost() = EventPost(
     postId = this[EventPostTable.id].toProjectId(),
     galaxyId = this[EventPostTable.galaxyId].toProjectId(),
+    username = this[StarTable.username],
     event = this.toEventLocation(),
     text = this[EventPostTable.text],
     createdAt = this[EventPostTable.createdAt],

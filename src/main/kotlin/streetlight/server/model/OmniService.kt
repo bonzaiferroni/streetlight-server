@@ -1,5 +1,6 @@
 package streetlight.server.model
 
+import kampfire.api.StringId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -7,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import streetlight.model.data.EventId
-import streetlight.model.data.EventLighted
-import streetlight.model.data.EventPosted
+import streetlight.model.data.Beacon
+import streetlight.model.data.EventCreated
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniRecord
@@ -33,33 +34,15 @@ class OmniService(private val dao: DaoFacade) {
         }
     }
 
-    suspend fun sendEventPosted(username: String, eventId: EventId, galaxyId: GalaxyId) {
-        val title = dao.event.readEventTitle(eventId) ?: return
-        val galaxyName = dao.galaxy.readGalaxyName(galaxyId) ?: return
-        sendMessage(EventPosted(
-            eventId = eventId,
-            galaxyId = galaxyId,
-            title = title,
-            galaxy = galaxyName,
-            username = username,
-            recordAt = Clock.System.now()
-        ))
-    }
+    private val eventLights = linkedSetOf<Pair<StarId, StringId>>()
 
-    private val eventLights = linkedSetOf<Pair<StarId, EventId>>()
-
-    suspend fun sendEventLighted(starId: StarId, eventId: EventId) {
-        val pair = starId to eventId
+    fun sendBeacon(starId: StarId, itemId: StringId) {
+        val pair = starId to itemId
         if (!eventLights.add(pair)) return // avoids resending if user has recently lit the event
-        if (eventLights.size > 1000) { // not ideal
+        if (eventLights.size > 1000) {     // not ideal
             eventLights.iterator().next().also { eventLights.remove(it) }
         }
 
-        val title = dao.event.readEventTitle(eventId) ?: return
-        sendMessage(EventLighted(
-            eventId = eventId,
-            title = title,
-            recordAt = Clock.System.now()
-        ))
+        sendMessage(Beacon(itemId))
     }
 }

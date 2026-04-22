@@ -18,6 +18,6 @@ class OmniTableDao: DbService() {
 
     suspend fun readHistory(count: Int) = dbQuery {
         OmniTable.select(OmniTable.record).orderBy(OmniTable.recordAt, SortOrder.DESC).limit(count)
-            .map { it[OmniTable.record] }
+            .map { it[OmniTable.record] }.sortedBy { it.recordAt }
     }
 }
