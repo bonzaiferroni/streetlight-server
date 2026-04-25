@@ -7,7 +7,7 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import streetlight.web.ui.StarLightCss
-import streetlight.web.ui.TalkLogCSS
+import streetlight.web.ui.TalkLogCss
 import java.io.File
 
 val SiteStyles by lazy {
@@ -68,7 +68,7 @@ private val KtStyles = listOf(
     AppBodyCss,
     AppOverlayCss,
     EarthCss,
-    TalkLogCSS,
+    TalkLogCss,
 )
 
 private val Utilities = listOf(
