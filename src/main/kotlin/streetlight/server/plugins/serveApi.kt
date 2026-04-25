@@ -35,7 +35,7 @@ fun Application.serveApi(app: StreetlightServer) {
             serveFiles()
             serveOmni()
             serveSiteDocs()
-            serveComments()
+            serveTalk()
         }
     }
 }

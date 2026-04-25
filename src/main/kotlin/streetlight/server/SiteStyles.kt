@@ -7,12 +7,13 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import streetlight.web.ui.StarLightCss
+import streetlight.web.ui.TalkLogCSS
 import java.io.File
 
 val SiteStyles by lazy {
     buildString {
         // debug at runtime like this:
-        // println(BlockLabelCss)
+//         println(DisplayUtilityCss.toStylesheet())
         appendLine(StylesCss)
 
         // css files located in /www/css
@@ -33,6 +34,7 @@ val SiteStyles by lazy {
 }
 
 private val KtStyles = listOf(
+    // koala module
     IconCss,
     LogoCss,
     MarkdownCss,
@@ -62,9 +64,11 @@ private val KtStyles = listOf(
     StarLightCss,
     FeatureImageCss,
 
+    // web module
     AppBodyCss,
     AppOverlayCss,
     EarthCss,
+    TalkLogCSS,
 )
 
 private val Utilities = listOf(

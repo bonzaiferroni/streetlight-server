@@ -9,13 +9,14 @@ import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CommentId
+import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 import kotlin.time.Instant
 
 object CommentTable: UUIDTable("comment") {
     val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
-    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).nullable().index()
     val text = text("text")
     val lightCount = integer("light_count").default(0)
     val replyCount = integer("reply_count").default(0)
@@ -41,7 +42,7 @@ object GalaxyCommentTable: Table("galaxy_comment") {
 fun ResultRow.toCommentRow() = CommentRow(
     commentId = toProjectId(CommentTable.id),
     parentId = toProjectIdOrNull(CommentTable.parentId),
-    starId = toProjectId(CommentTable.starId),
+    starId = toProjectIdOrNull(CommentTable.starId),
     text = this[CommentTable.text],
     updatedAt = this[CommentTable.updatedAt],
     createdAt = this[CommentTable.createdAt],
@@ -50,7 +51,7 @@ fun ResultRow.toCommentRow() = CommentRow(
 fun UpdateBuilder<*>.writeFull(comment: CommentRow) {
     this[CommentTable.id] = comment.commentId.toUUID()
     this[CommentTable.parentId] = comment.parentId?.toUUID()
-    this[CommentTable.starId] = comment.starId.toUUID()
+    this[CommentTable.starId] = comment.starId?.toUUID()
     this[CommentTable.createdAt] = comment.createdAt
     writeUpdate(comment)
 }
@@ -63,7 +64,7 @@ fun UpdateBuilder<*>.writeUpdate(comment: CommentRow) {
 data class CommentRow(
     val commentId: CommentId,
     val parentId: CommentId?,
-    val starId: CommentId,
+    val starId: StarId?,
     val text: String,
     val updatedAt: Instant,
     val createdAt: Instant,

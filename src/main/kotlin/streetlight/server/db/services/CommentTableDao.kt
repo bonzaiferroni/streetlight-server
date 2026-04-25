@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.api.StringId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
@@ -10,16 +11,18 @@ import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Comment
 import streetlight.model.data.CommentId
 import streetlight.model.data.GalaxyId
+import streetlight.model.data.NewComment
+import streetlight.model.data.StarId
+import streetlight.model.data.SpaceType
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
@@ -28,6 +31,7 @@ import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
+import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(CommentTableDao::class)
 
@@ -41,10 +45,42 @@ class CommentTableDao : DbService() {
     }
 
     suspend fun readComment(commentId: CommentId) = dbQuery {
-        CommentTable.readById(commentId.toUUID()).toComment()
+        CommentQuery.where { CommentTable.id.eq(commentId) }.firstOrNull()?.toComment()
     }
 
-    suspend fun readGalaxyComments(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
+    suspend fun readComments(stringId: StringId, space: SpaceType, limit: Int = 100) = when (space) {
+        SpaceType.Galaxy -> readGalaxyTalk(GalaxyId(stringId), limit)
+    }
+
+    suspend fun writeComment(comment: NewComment, starId: StarId?) = when (comment.spaceType) {
+        SpaceType.Galaxy -> writeGalaxyComment(comment, starId)
+    }
+
+    suspend fun writeGalaxyComment(comment: NewComment, starId: StarId?) = dbQuery {
+        val commentId = insertComment(comment, starId)
+        GalaxyCommentTable.insert {
+            it[GalaxyCommentTable.galaxyId] = comment.galaxyId.toUUID()
+            it[GalaxyCommentTable.commentId] = commentId.toUUID()
+        }
+        commentId
+    }
+
+    private fun insertComment(comment: NewComment, starId: StarId?): CommentId {
+        val commentId = CommentId.random()
+        CommentTable.insert {
+            it.writeFull(CommentRow(
+                commentId = commentId,
+                parentId = comment.parentId,
+                starId = starId,
+                text = comment.text,
+                updatedAt = Clock.System.now(),
+                createdAt = Clock.System.now()
+            ))
+        }
+        return commentId
+    }
+
+    suspend fun readGalaxyTalk(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {
         GalaxyCommentQuery.where { GalaxyCommentTable.galaxyId.eq(galaxyId) }
             .orderBy(CommentTable.createdAt, SortOrder.DESC)
             .limit(limit)
@@ -66,6 +102,9 @@ class CommentTableDao : DbService() {
 private val GalaxyCommentQuery get() = GalaxyCommentTable
     .join(CommentTable, JoinType.LEFT, GalaxyCommentTable.commentId, CommentTable.id)
     .toCommentQuery()
+
+private val CommentQuery get() = CommentTable.join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)
+    .select(CommentColumns)
 
 private fun Join.toCommentQuery() = join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)
     .select(CommentColumns)

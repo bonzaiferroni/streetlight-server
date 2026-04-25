@@ -71,7 +71,7 @@ fun StreetlightRouting.servePages() {
         val galaxyId = galaxy.galaxyId
         val events = server.dao.eventPost.readPosts(galaxyId)
         val locations = server.dao.locationPost.readPosts(galaxyId, 10)
-        val comments = server.dao.comment.readGalaxyComments(galaxyId)
+        val comments = server.dao.talk.readGalaxyTalk(galaxyId)
         val listing = PostListing(
             events = events,
             locations = locations,
