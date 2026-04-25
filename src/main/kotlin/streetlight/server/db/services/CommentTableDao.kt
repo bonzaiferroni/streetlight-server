@@ -5,12 +5,14 @@ import kampfire.api.StringId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
+import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -23,6 +25,7 @@ import streetlight.model.data.GalaxyId
 import streetlight.model.data.NewComment
 import streetlight.model.data.StarId
 import streetlight.model.data.SpaceType
+import streetlight.model.data.UpdatedComment
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
@@ -78,6 +81,12 @@ class CommentTableDao : DbService() {
             ))
         }
         return commentId
+    }
+
+    suspend fun updateComment(comment: UpdatedComment, starId: StarId?) = dbQuery {
+        CommentTable.update({ CommentTable.id.eq(comment.commentId) and CommentTable.starId.eq(starId) }) {
+            it[CommentTable.text] = comment.text
+        } == 1
     }
 
     suspend fun readGalaxyTalk(galaxyId: GalaxyId, limit: Int = 100) = dbQuery {

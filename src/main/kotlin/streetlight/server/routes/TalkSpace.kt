@@ -11,12 +11,14 @@ import kotlinx.serialization.serializer
 import streetlight.model.data.Comment
 import streetlight.model.data.CommentId
 import streetlight.model.data.NewComment
-import streetlight.model.data.TalkComment
+import streetlight.model.data.CommentCreated
 import streetlight.model.data.TalkHistory
 import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
 import streetlight.model.data.SpaceType
 import streetlight.model.data.StarId
+import streetlight.model.data.CommentUpdated
+import streetlight.model.data.UpdatedComment
 import streetlight.server.model.StarIdentity
 import streetlight.server.model.StreetlightServer
 import java.util.Collections
@@ -60,7 +62,7 @@ class TalkSpace(
         // }
     }
 
-    suspend fun takeComment(commentId: CommentId, comment: NewComment, identity: StarIdentity?) {
+    suspend fun sendNewComment(commentId: CommentId, comment: NewComment, identity: StarIdentity?) {
         val comment = Comment(
             commentId = commentId,
             parentId = comment.parentId,
@@ -72,7 +74,14 @@ class TalkSpace(
             updatedAt = Clock.System.now(),
             createdAt = Clock.System.now()
         )
-        val message = TalkComment(comment)
+        sendToClients(CommentCreated(comment))
+    }
+
+    suspend fun sendUpdatedComment(comment: UpdatedComment) {
+        sendToClients(CommentUpdated(comment.commentId, comment.text))
+    }
+
+    private suspend fun sendToClients(message: TalkMessage) {
         clients.forEach { client ->
             client.send(message.encode())
         }

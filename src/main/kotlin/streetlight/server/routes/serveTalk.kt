@@ -12,12 +12,8 @@ import klutch.server.getEndpoint
 import klutch.server.postApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.serializer
 import streetlight.model.Api
 import streetlight.model.data.GalaxyId
-import streetlight.model.data.TalkMessage
-import streetlight.model.data.TalkRequest
 import streetlight.model.data.SpaceType
 import streetlight.server.model.StreetlightRouting
 import streetlight.server.model.server
@@ -71,11 +67,27 @@ fun StreetlightRouting.serveTalk() {
             val identity = identity.getIdentityOrNull(call)
             val comment = it.data
             val commentId = dao.writeComment(comment, identity?.userId)
+            // td: move off thread
             spaceLocks.withLock {
                 val space = clientSpaces[comment.spaceId] ?: return@withLock
-                space.takeComment(commentId, comment, identity)
+                space.sendNewComment(commentId, comment, identity)
             }
             Ok(commentId)
+        }
+    }
+
+    authenticateJwt {
+        postApi(Api.Talk.UpdateComment) {
+            val identity = identity.getIdentity(call)
+            val comment = it.data
+            val result = dao.updateComment(comment, identity.userId)
+            // td: move off thread
+            spaceLocks.withLock {
+                val space = clientSpaces[comment.spaceId] ?: return@withLock
+                space.sendUpdatedComment(comment)
+            }
+
+            Ok(result)
         }
     }
 }
