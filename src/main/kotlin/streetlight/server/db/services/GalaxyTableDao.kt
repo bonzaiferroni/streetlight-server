@@ -15,6 +15,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
 import streetlight.model.data.Galaxy
@@ -24,7 +25,6 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyLightTable
-import streetlight.server.db.tables.GalaxyQuery
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toGalaxy
@@ -43,15 +43,16 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readGalaxyByPath(path: String) = dbQuery {
-        GalaxyQuery.where { GalaxyTable.path.eq(path) }.firstOrNull()?.toGalaxy()
+        GalaxyTable.selectAll().where { GalaxyTable.path.eq(path) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readTopGalaxies(limit: Int = 10) = dbQuery {
-        GalaxyQuery.orderBy(GalaxyTable.lightCount, SortOrder.DESC).limit(limit).map { it.toGalaxy() }
+        // .orderBy(GalaxyTable.lightCount, SortOrder.DESC)
+        GalaxyTable.selectAll().limit(limit).map { it.toGalaxy() }
     }
     
     suspend fun readGalaxies(galaxyIds: List<GalaxyId>) = dbQuery {
-        GalaxyQuery.where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
+        GalaxyTable.selectAll().where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
     suspend fun create(edit: GalaxyEdit, starId: StarId, imageSet: SavedImageSet?) = dbQuery {

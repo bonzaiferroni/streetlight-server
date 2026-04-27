@@ -5,7 +5,6 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
-import streetlight.model.data.PostListing
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.server.model.StreetlightRouting
@@ -31,7 +30,7 @@ fun StreetlightRouting.servePages() {
 //    }
 
     get("/") {
-        val posts = server.dao.eventPost.readTopPosts()
+        val posts = server.dao.post.readActivePosts()
         val galaxies = server.dao.galaxy.readTopGalaxies()
         val content = HomeContent(
             galaxies = galaxies,
@@ -69,18 +68,11 @@ fun StreetlightRouting.servePages() {
         val path = call.parameters["path"] ?: return@get
         val galaxy = server.dao.galaxy.readGalaxyByPath(path) ?: return@get
         val galaxyId = galaxy.galaxyId
-        val events = server.dao.eventPost.readPosts(galaxyId)
-        val locations = server.dao.locationPost.readPosts(galaxyId, 10)
-        val comments = server.dao.talk.readGalaxyTalk(galaxyId)
-        val listing = PostListing(
-            events = events,
-            locations = locations,
-            comments = comments,
-        )
+        val posts = server.dao.post.readActivePosts(galaxyId)
 
         val content = GalaxyProfileContent(
             galaxy = galaxy,
-            listing = listing,
+            posts = posts,
         )
 
         call.respondHtml {
@@ -90,18 +82,12 @@ fun StreetlightRouting.servePages() {
 
     get("/s/{username}") {
         val username = call.parameters["username"] ?: return@get
-        val userId = server.dao.user.readIdByUsername(username) ?: return@get // td: serve not found content
+        val userId = server.dao.star.readIdByUsername(username) ?: return@get // td: serve not found content
         val star = server.dao.star.readByUsername(username) ?: error("star not found")
-        val events = server.dao.eventPost.readPosts(userId)
-        val locations = server.dao.locationPost.readPosts(userId)
-        val listing = PostListing(
-            events = events,
-            locations = locations,
-            comments = emptyList(),
-        )
+        val posts = server.dao.post.readStarPosts(userId)
         val content = StarProfileContent(
             star = star,
-            listing = listing
+            posts = posts
         )
 
         call.respondHtml {

@@ -8,7 +8,6 @@ import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
 import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
-import streetlight.model.data.PostListing
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
@@ -34,24 +33,17 @@ fun StreetlightRouting.serveGalaxies() {
 
     postEndpoint(Api.Galaxies.ReadMultiPosts) {
         val galaxyIds = it.data
-        server.dao.eventPost.readPosts(galaxyIds)
+        server.dao.post.readActivePosts(galaxyIds)
     }
 
     getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) {
-        val galaxyPostId = it.data
-        server.dao.eventPost.readPost(galaxyPostId)
+        val postId = it.data
+        server.dao.post.readPost(postId)
     }
 
     getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) {
         val galaxyId = it.data
-        val events = server.dao.eventPost.readPosts(galaxyId)
-        val locations = server.dao.locationPost.readPosts(galaxyId)
-        val comments = server.dao.talk.readGalaxyTalk(galaxyId)
-        PostListing(
-            events = events,
-            locations = locations,
-            comments = comments,
-        )
+        server.dao.post.readActivePosts(galaxyId)
     }
 
     authenticateJwt {
@@ -76,13 +68,13 @@ fun StreetlightRouting.serveGalaxies() {
         postEndpoint(Api.Galaxies.PostEvent) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            server.dao.eventPost.create(request, identity)
+            server.dao.post.create(request, identity)
         }
 
         postEndpoint(Api.Galaxies.PostLocation) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            server.dao.locationPost.createPost(request, identity)
+            server.dao.post.createPost(request, identity)
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {

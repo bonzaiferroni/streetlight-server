@@ -37,7 +37,7 @@ object GalaxyTable : UUIDTable("galaxy") {
     val createdAt = timestamp("created_at")
 
     val lightCount = GalaxyLightTable.starId.count()
-    val eventCount = EventPostTable.eventId.count()
+    val eventCount = PostTable.eventId.count()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -88,10 +88,3 @@ fun ResultRow.toGalaxy() = Galaxy(
     updatedAt = this[GalaxyTable.updatedAt],
     createdAt = this[GalaxyTable.createdAt],
 )
-
-val GalaxyQuery get() = GalaxyTable
-    .join(GalaxyLightTable, JoinType.LEFT, GalaxyTable.id, GalaxyLightTable.galaxyId)
-    .join(EventPostTable, JoinType.LEFT, GalaxyTable.id, EventPostTable.galaxyId)
-    .join(LocationPostTable, JoinType.LEFT, GalaxyTable.id, LocationPostTable.galaxyId)
-    .select(GalaxyTable.columns + GalaxyTable.lightCount + GalaxyTable.eventCount)
-    .groupBy(GalaxyTable.id)

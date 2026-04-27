@@ -44,10 +44,6 @@ fun StreetlightRouting.serveLocations() {
     }
 
     authenticateJwt(optional = true) {
-        postEndpoint(Api.Locations.PostLocation) { request ->
-            val identity = identity.getIdentityOrNull(call)
-            server.dao.locationPost.createPost(request.data, identity)
-        }
 
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data

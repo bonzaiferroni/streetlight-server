@@ -15,6 +15,8 @@ import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.utils.toProjectId
+import kotlin.let
 
 class StarTableDao: DbService() {
 
@@ -23,6 +25,12 @@ class StarTableDao: DbService() {
             .where { StarTable.username.eqLowercase(username) }
             .map { it.toStar() }
             .firstOrNull()
+    }
+
+    suspend fun readIdByUsername(username: String): StarId? = dbQuery {
+        StarTable.select(StarTable.id)
+            .where { StarTable.username.eqLowercase(username) }
+            .firstOrNull()?.let { it[StarTable.id].toProjectId() }
     }
 
     suspend fun readThumb(starId: StarId) = dbQuery {
