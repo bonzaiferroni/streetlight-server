@@ -2,10 +2,8 @@ package streetlight.server.db.tables
 
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventPost
-import streetlight.model.data.PostOrder
 import streetlight.model.data.PostType
 import streetlight.server.utils.toProjectId
 
@@ -29,7 +27,7 @@ val PostColumns = (EventPostColumns + LocationPostColumns).distinct()
 fun ResultRow.toPost() = when (this[PostTable.postType]) {
     PostType.Event -> toEventPost()
     PostType.Location -> toLocationPost()
-    PostType.Content -> TODO() // toContentPost()
+    PostType.Media -> TODO() // toContentPost()
 }
 
 fun ResultRow.toEventPost() = EventPost(
