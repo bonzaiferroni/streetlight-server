@@ -25,4 +25,6 @@ fun Document.readMetaContent(vararg propertyValues: String) = propertyValues.fir
 
 fun Document.readTitle() = this.readMetaContent("title", "og:title", "twitter:title")
 fun Document.readDescription() = this.readMetaContent("description", "og:description", "twitter:description")
-fun Document.readImageUrl() = this.readMetaContent("image", "og:image", "twitter:image")?.toUrl()
+fun Document.readImageUrl() = this.readMetaContent("image", "og:image", "twitter:image")?.let {
+    if (it.startsWith("//")) "https:$it" else it
+}?.toUrl()

@@ -129,8 +129,7 @@ class PostTableDao : DbService() {
             .limit(limit)
 
         eventQuery.unionAll(generalQuery)
-            // .orderBy(orderColumn, sort)
-            .map { it.toPost() }
+            .map { it.toPost() }.sortedByDescending { it.createdAt }
     }
 
     suspend fun readPosts(
@@ -197,7 +196,7 @@ typealias WhereBlock = () -> Op<Boolean>
 
 private fun eventJoin() = PostTable
     .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
-    .join(EventTable, JoinType.INNER, PostTable.eventId, EventTable.id)
+    .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
 
 private fun generalJoin() = PostTable

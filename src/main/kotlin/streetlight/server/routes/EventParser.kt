@@ -38,6 +38,7 @@ class EventParser(
         val doc = parseDocument(html, request.url) ?: return Problem("Address did not serve HTML.")
 
         val meta = doc.readHtmlMetaInfo()
+        console.log(meta.image)
 
         return when (val response = agent.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
             is Ok -> {

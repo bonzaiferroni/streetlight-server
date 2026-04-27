@@ -19,6 +19,7 @@ val EventPostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
     PostTable.text,
+    PostTable.postType,
     PostTable.createdAt,
     PostTable.updatedAt,
 ) + EventLocationColumns
