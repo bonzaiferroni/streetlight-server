@@ -3,6 +3,9 @@ package streetlight.server.routes
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import koala.html.IdOrNullParse
+import koala.html.IdParse
+import koala.html.StaticParse
 import kotlinx.html.HTML
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
@@ -48,10 +51,19 @@ fun StreetlightRouting.servePages() {
 
     StreetlightScreen.entries.forEach { screen ->
 
-        val path = screen.parameter?.let { "/${screen.pathRoot}/{${it.label}}" } ?: "/${screen.pathRoot}"
+        val path = when (val parse = screen.routeParse) {
+            is IdOrNullParse -> "/${screen.pathRoot}/{${parse.label}}"
+            is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
+            is StaticParse -> screen.pathRoot
+        }
 
         get(path) {
-            val arg = screen.parameter?.let { call.parameters[it.label] }
+            val arg = when (val parse = screen.routeParse) {
+                is IdOrNullParse -> call.parameters[parse.label]
+                is IdParse -> call.parameters[parse.label]
+                is StaticParse -> null
+            }
+
             when (val render = renderScreen(screen, arg)) {
                 null -> {
                     call.respondHtml {
