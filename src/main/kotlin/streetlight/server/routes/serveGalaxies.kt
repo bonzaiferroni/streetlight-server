@@ -6,6 +6,7 @@ import kampfire.model.Problem
 import klutch.server.authenticateJwt
 import klutch.server.getApi
 import klutch.server.getEndpoint
+import klutch.server.postApi
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
@@ -34,9 +35,9 @@ fun StreetlightRouting.serveGalaxies() {
         dao.readGalaxies(galaxyIds)
     }
 
-    postEndpoint(Api.Galaxies.ReadMultiPosts) {
+    postApi(Api.Galaxies.ReadMultiPosts) {
         val galaxyIds = it.data
-        server.dao.post.readActivePosts(galaxyIds)
+        Ok(server.dao.post.readActivePosts(galaxyIds))
     }
 
     getApi(Api.Galaxies.ReadPost, { it.toProjectId() }) { request ->
