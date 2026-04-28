@@ -31,7 +31,7 @@ fun StreetlightRouting.servePages() {
 
     get("/") {
         val posts = server.dao.post.readActivePosts()
-        val galaxies = server.dao.galaxy.readTopGalaxies()
+        val galaxies = server.dao.galaxy.readTopGalaxies(3)
         val content = HomeContent(
             galaxies = galaxies,
             posts = posts,
@@ -70,7 +70,7 @@ fun StreetlightRouting.servePages() {
         val galaxyId = galaxy.galaxyId
         val posts = server.dao.post.readActivePosts(galaxyId)
 
-        val content = GalaxyProfileContent(
+        val content = GalaxyContent(
             galaxy = galaxy,
             posts = posts,
         )

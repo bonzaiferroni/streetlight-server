@@ -1,7 +1,10 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import kampfire.model.Ok
+import kampfire.model.Problem
 import klutch.server.authenticateJwt
+import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
@@ -36,14 +39,15 @@ fun StreetlightRouting.serveGalaxies() {
         server.dao.post.readActivePosts(galaxyIds)
     }
 
-    getEndpoint(Api.Galaxies.ReadPost, { it.toProjectId() }) {
-        val postId = it.data
-        server.dao.post.readPost(postId)
+    getApi(Api.Galaxies.ReadPost, { it.toProjectId() }) { request ->
+        val postId = request.data
+        val post = server.dao.post.readPost(postId)
+        post?.let { Ok(it) } ?: Problem("Post not found: $postId")
     }
 
-    getEndpoint(Api.Galaxies.ReadPosts, { it.toProjectId()}) {
+    getApi(Api.Galaxies.ReadPosts, { it.toProjectId()}) {
         val galaxyId = it.data
-        server.dao.post.readActivePosts(galaxyId)
+        Ok(server.dao.post.readActivePosts(galaxyId))
     }
 
     authenticateJwt {
