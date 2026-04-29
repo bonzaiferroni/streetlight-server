@@ -34,6 +34,8 @@ import streetlight.server.db.tables.PostColumns
 import streetlight.server.db.tables.PostRow
 import streetlight.server.db.tables.PostTable
 import streetlight.server.db.tables.StarTable
+import streetlight.server.db.tables.eventJoin
+import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPostRow
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.writeFull
@@ -193,16 +195,6 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
 )
 
 typealias WhereBlock = () -> Op<Boolean>
-
-private fun eventJoin() = PostTable
-    .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
-    .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
-    .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
-
-private fun generalJoin() = PostTable
-    .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
-    .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
-    .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
 
 private fun orderOf(order: PostOrder) = when (order) {
     PostOrder.NewFirst -> PostTable.createdAt to SortOrder.DESC

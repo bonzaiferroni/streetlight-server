@@ -54,6 +54,7 @@ fun UpdateBuilder<*>.writeFull(post: PostRow) {
     this[PostTable.galaxyId] = post.galaxyId.toUUID()
     this[PostTable.starId] = post.starId?.toUUID()
     this[PostTable.eventId] = post.eventId?.toUUID()
+    this[PostTable.locationId] = post.locationId?.toUUID()
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt
     writeUpdate(post)
