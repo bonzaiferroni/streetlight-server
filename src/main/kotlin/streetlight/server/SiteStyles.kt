@@ -13,7 +13,7 @@ import java.io.File
 val SiteStyles by lazy {
     buildString {
         // debug at runtime like this:
-//         println(DisplayUtilityCss.toStylesheet())
+        // println(TextUtilityCss.toStylesheet())
         appendLine(StylesCss)
 
         // css files located in /www/css
