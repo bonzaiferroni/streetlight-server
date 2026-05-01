@@ -97,12 +97,7 @@ data class HtmlRender(
 )
 
 suspend fun StreetlightRouting.renderHome(): HtmlRender {
-    val posts = server.dao.post.readActivePosts()
-    val galaxies = server.dao.galaxy.readTopGalaxies(3)
-    val content = HomeContent(
-        galaxies = galaxies,
-        posts = posts,
-    )
+    val content = server.service.content.readHomeContent()
 
     return HtmlRender {
         homePage(content, SiteStyles)
