@@ -73,7 +73,13 @@ fun StreetlightRouting.serveGalaxies() {
         postEndpoint(Api.Galaxies.PostEvent) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            server.dao.post.create(request, identity)
+            server.dao.post.createPost(request, identity)
+        }
+
+        postApi(Api.Galaxies.PostContent) {
+            val request = it.data
+            val identity = identity.getIdentity(call)
+            Ok(server.dao.post.createPost(request, identity))
         }
 
         postEndpoint(Api.Galaxies.PostLocation) {

@@ -4,11 +4,8 @@ import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
 import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.QueryBuilder
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
@@ -18,9 +15,9 @@ import org.jetbrains.exposed.v1.jdbc.UnionAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import org.jetbrains.exposed.v1.jdbc.update
+import streetlight.model.data.ContentEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.EventPostEdit
 import streetlight.model.data.LocationPostEdit
@@ -29,11 +26,9 @@ import streetlight.model.data.PostOrder
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.PostColumns
 import streetlight.server.db.tables.PostRow
 import streetlight.server.db.tables.PostTable
-import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPostRow
@@ -55,7 +50,7 @@ class PostTableDao : DbService() {
         PostTable.read { PostTable.galaxyId.eq(galaxyId) }.map { it.toPostRow() }
     }
 
-    suspend fun create(edit: EventPostEdit, identity: StarIdentity): PostId? = dbQuery {
+    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity): PostId? = dbQuery {
         val post = edit.toPostRow(identity)
         try {
             PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
@@ -65,6 +60,11 @@ class PostTableDao : DbService() {
     }
 
     suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
+        val post = post.toPostRow(identity)
+        PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
+    }
+
+    suspend fun createPost(post: ContentEdit, identity: StarIdentity) = dbQuery {
         val post = post.toPostRow(identity)
         PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
     }
@@ -192,6 +192,19 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     postType = PostType.Location,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
+)
+
+fun ContentEdit.toPostRow(identity: StarIdentity?) = PostRow(
+    postId = PostId.random(),
+    galaxyId = galaxyId,
+    starId = identity?.userId,
+    eventId = null,
+    locationId = null,
+    title = title ?: error("title is required"),
+    text = text ?: error("text is required"),
+    postType = PostType.Content,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now()
 )
 
 typealias WhereBlock = () -> Op<Boolean>

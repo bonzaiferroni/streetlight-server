@@ -1,5 +1,8 @@
 package streetlight.server.db.tables
 
+import klutch.db.point
+import klutch.db.scaledImages
+import klutch.db.url
 import klutch.utils.toUUID
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -7,7 +10,9 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.EventId
+import streetlight.model.data.ExtraLink
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostId
@@ -23,7 +28,11 @@ object PostTable : UUIDTable("post") {
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val title = text("title").nullable()
     val text = text("text").nullable()
+    val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
+    val imageRef = url("image_ref").nullable()
+    val images = scaledImages("images").nullable()
+    val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val updatedAt = timestamp("updated_at").index()
     val createdAt = timestamp("created_at").index()
 
@@ -63,6 +72,7 @@ fun UpdateBuilder<*>.writeFull(post: PostRow) {
 fun UpdateBuilder<*>.writeUpdate(post: PostRow) {
     this[PostTable.title] = post.title
     this[PostTable.text] = post.text
+    // this[PostTable.geoPoint] =
     this[PostTable.updatedAt] = post.updatedAt
 }
 
