@@ -75,16 +75,18 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun editGalaxyLight(edit: LightEdit, starId: StarId) = dbQuery {
+        val galaxyId = GalaxyId(edit.stringId)
         when (edit.isLit) {
             true -> GalaxyLightTable.insertIgnore {
                 it[this.starId] = starId.toUUID()
-                it[this.galaxyId] = edit.stringId.toUUID()
+                it[this.galaxyId] = galaxyId.toUUID()
                 it[this.createdAt] = Clock.System.now()
             }
             else -> GalaxyLightTable.deleteWhere {
                 this.galaxyId.eq(edit.stringId) and this.starId.eq(starId)
             }
         }
+        refreshGalaxyLightCount(galaxyId)
         true
     }
 
@@ -110,6 +112,15 @@ class GalaxyTableDao : DbService() {
         }
 
         true
+    }
+
+    private fun refreshGalaxyLightCount(galaxyId: GalaxyId) {
+        val count = GalaxyLightTable.selectAll()
+            .where { GalaxyLightTable.galaxyId.eq(galaxyId) }
+            .count().toInt()
+        GalaxyTable.update({ GalaxyTable.id.eq(galaxyId) }) {
+            it[this.lightCount] = count
+        }
     }
 }
 

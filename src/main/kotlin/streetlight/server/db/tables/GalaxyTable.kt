@@ -7,14 +7,12 @@ import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import klutch.utils.toUUID
-import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
@@ -31,13 +29,14 @@ object GalaxyTable : UUIDTable("galaxy") {
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewMode = enumeration<ReviewMode>("review_mode")
     val postGuide = text("post_guide").nullable()
+    val lightCount = integer("light_count").default(0)
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
-    val lightCount = GalaxyLightTable.starId.count()
-    val eventCount = PostTable.eventId.count()
+    val lightCountSource = GalaxyLightTable.starId.count()
+    val eventCountSource = PostTable.eventId.count()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -82,9 +81,9 @@ fun ResultRow.toGalaxy() = Galaxy(
     postGuide = this[GalaxyTable.postGuide],
     imageRef = this[GalaxyTable.imageRef],
     images = this[GalaxyTable.images],
-    lightCount = this.getOrNull(GalaxyTable.lightCount)?.toInt(),
-    eventCount = this.getOrNull(GalaxyTable.eventCount)?.toInt(),
-    locationCount = this.getOrNull(GalaxyTable.eventCount)?.toInt(),
+    lightCount = this[GalaxyTable.lightCount],
+    eventCount = this.getOrNull(GalaxyTable.eventCountSource)?.toInt(),
+    locationCount = this.getOrNull(GalaxyTable.eventCountSource)?.toInt(),
     updatedAt = this[GalaxyTable.updatedAt],
     createdAt = this[GalaxyTable.createdAt],
 )

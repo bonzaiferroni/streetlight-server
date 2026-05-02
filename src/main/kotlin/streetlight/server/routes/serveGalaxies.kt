@@ -12,6 +12,7 @@ import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
 import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
+import streetlight.model.data.Post
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
@@ -28,7 +29,7 @@ fun StreetlightRouting.serveGalaxies() {
         val pathId = it.data
         dao.galaxy.readGalaxyByPath(pathId)
     }
-    
+
     postEndpoint(Api.Galaxies.ReadGalaxies) {
         val galaxyIds = it.data
         dao.galaxy.readGalaxies(galaxyIds)
@@ -45,7 +46,7 @@ fun StreetlightRouting.serveGalaxies() {
         post?.let { Ok(it) } ?: Problem("Post not found: $postId")
     }
 
-    getApi(Api.Galaxies.ReadPosts, { it.toProjectId()}) {
+    getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {
         val galaxyId = it.data
         Ok(server.dao.post.readActivePosts(galaxyId))
     }
@@ -59,20 +60,30 @@ fun StreetlightRouting.serveGalaxies() {
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             val galaxy = dao.galaxy.create(edit, starId, imageSet)
             if (galaxy != null) {
-                server.service.omni.sendMessage(GalaxyFounded(
-                    galaxyId = galaxy.galaxyId,
-                    name = galaxy.name,
-                    username = identity.username,
-                    recordAt = galaxy.createdAt
-                ))
+                server.service.omni.sendMessage(
+                    GalaxyFounded(
+                        galaxyId = galaxy.galaxyId,
+                        name = galaxy.name,
+                        username = identity.username,
+                        recordAt = galaxy.createdAt
+                    )
+                )
             }
             galaxy
         }
 
-        postEndpoint(Api.Galaxies.PostEvent) {
+        postApi(Api.Galaxies.PostEvent) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            server.dao.post.createPost(request, identity)
+            when (val postId = dao.post.createPost(request, identity)) {
+                null -> Problem("Something went wrong.")
+                else -> {
+                    when (val post = dao.post.readPost(postId)) {
+                        null -> Problem("Something went wrong.")
+                        else -> Ok(post)
+                    }
+                }
+            }
         }
 
         postApi(Api.Galaxies.PostContent) {
@@ -107,6 +118,7 @@ fun StreetlightRouting.serveGalaxies() {
                     }
                     isSuccess
                 }
+
                 is MultiLightEdit -> {
                     dao.galaxy.editGalaxyLights(request.edits, starId)
                 }

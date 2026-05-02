@@ -22,6 +22,8 @@ import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
@@ -128,16 +130,18 @@ class EventTableDao: DbService() {
     }
 
     suspend fun editEventLight(edit: LightEdit, starId: StarId) = dbQuery {
+        val eventId = EventId(edit.stringId)
         when (edit.isLit) {
             true -> EventLightTable.insertIgnore {
                 it[this.starId] = starId.toUUID()
-                it[this.eventId] = edit.stringId.toUUID()
+                it[this.eventId] = eventId.toUUID()
                 it[this.createdAt] = Clock.System.now()
             }
             else -> EventLightTable.deleteWhere {
                 this.eventId.eq(edit.stringId) and this.starId.eq(starId)
             }
         }
+        refreshEventLightCount(eventId)
         true
     }
 
@@ -169,6 +173,15 @@ class EventTableDao: DbService() {
         EventTable.select(EventTable.imageRef).where { EventTable.id.eq(eventId) }
             .firstOrNull()?.getOrNull(EventTable.imageRef)
     }
+
+    private fun refreshEventLightCount(eventId: EventId) {
+        val count = EventLightTable.selectAll()
+            .where { EventLightTable.eventId.eq(eventId) }
+            .count().toInt()
+        EventTable.update({ EventTable.id.eq(eventId) }) {
+            it[this.lightCount] = count
+        }
+    }
 }
 
 private fun EventEdit.toEvent(
@@ -196,6 +209,7 @@ private fun EventEdit.toEvent(
     timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
     endsAt = endsAt,
+    lightCount = 0,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

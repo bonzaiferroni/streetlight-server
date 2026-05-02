@@ -39,13 +39,14 @@ object EventTable : UUIDTable("event") {
     val images = scaledImages("image_array").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
+    val lightCount = integer("light_count").default(0)
     // val doorsAt = timestamp("doors_at").nullable()
     val startsAt = timestamp("starts_at")
     val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
-    val lightCount = EventLightTable.starId.count()
+    val lightCountSource = EventLightTable.starId.count()
 
     const val SLUG_INDEX = "event_slug_index"
 
@@ -111,6 +112,7 @@ fun ResultRow.toEvent() = Event(
     images = this[EventTable.images],
     streamUrl = this[EventTable.streamUrl],
     timeZoneId = this[EventTable.timeZoneId],
+    lightCount = this[EventTable.lightCount],
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
     updatedAt = this[EventTable.updatedAt],
