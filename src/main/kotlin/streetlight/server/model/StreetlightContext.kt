@@ -9,4 +9,5 @@ typealias StreetlightRouting = ApiContext<StreetlightServer, StarUser, StarId>
 typealias StarIdentity = UserIdentity<StarId>
 
 val StreetlightRouting.server get() = model
-val StreetlightRouting.contentService get() = model.service.content
+val StreetlightRouting.dao get() = model.dao
+val StreetlightRouting.service get() = model.service

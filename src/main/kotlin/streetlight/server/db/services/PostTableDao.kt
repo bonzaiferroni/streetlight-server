@@ -3,6 +3,7 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
+import klutch.utils.UserIdentity
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -105,6 +106,10 @@ class PostTableDao : DbService() {
 
     suspend fun readPost(postId: PostId) = dbQuery {
         queryPosts { PostTable.id.eq(postId) }.firstOrNull()?.toPost()
+    }
+
+    suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
+        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.userId) } == 1 // td: or admin, or moderator
     }
 
     suspend fun readActivePosts(

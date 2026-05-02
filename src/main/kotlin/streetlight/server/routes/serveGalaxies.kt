@@ -19,20 +19,19 @@ import streetlight.server.model.*
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
 
 fun StreetlightRouting.serveGalaxies() {
-    val dao = server.dao.galaxy
 
     getEndpoint(Api.Galaxies.Top) {
-        dao.readTopGalaxies()
+        dao.galaxy.readTopGalaxies()
     }
 
     getEndpoint(Api.Galaxies.Path) {
         val pathId = it.data
-        dao.readGalaxyByPath(pathId)
+        dao.galaxy.readGalaxyByPath(pathId)
     }
     
     postEndpoint(Api.Galaxies.ReadGalaxies) {
         val galaxyIds = it.data
-        dao.readGalaxies(galaxyIds)
+        dao.galaxy.readGalaxies(galaxyIds)
     }
 
     postApi(Api.Galaxies.ReadMultiPosts) {
@@ -58,7 +57,7 @@ fun StreetlightRouting.serveGalaxies() {
             val starId = identity.userId
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-            val galaxy = dao.create(edit, starId, imageSet)
+            val galaxy = dao.galaxy.create(edit, starId, imageSet)
             if (galaxy != null) {
                 server.service.omni.sendMessage(GalaxyFounded(
                     galaxyId = galaxy.galaxyId,
@@ -85,28 +84,34 @@ fun StreetlightRouting.serveGalaxies() {
         postEndpoint(Api.Galaxies.PostLocation) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            server.dao.post.createPost(request, identity)
+            dao.post.createPost(request, identity)
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {
             val userId = identity.getUserId(call)
-            dao.readGalaxyLights(userId)
+            dao.galaxy.readGalaxyLights(userId)
         }
 
         postEndpoint(Api.Galaxies.EditLight) {
             val starId = identity.getUserId(call)
             when (val request = it.data) {
                 is LightEdit -> {
-                    val isSuccess = dao.editGalaxyLight(request, starId)
+                    val isSuccess = dao.galaxy.editGalaxyLight(request, starId)
                     if (isSuccess && request.isLit) {
-                        server.service.omni.sendBeacon(starId, request.stringId)
+                        service.omni.sendBeacon(starId, request.stringId)
                     }
                     isSuccess
                 }
                 is MultiLightEdit -> {
-                    dao.editGalaxyLights(request.edits, starId)
+                    dao.galaxy.editGalaxyLights(request.edits, starId)
                 }
             }
+        }
+
+        postApi(Api.Galaxies.RemovePost) {
+            val postId = it.data
+            val identity = identity.getIdentity(call)
+            Ok(dao.post.removePost(postId, identity))
         }
     }
 }
