@@ -80,9 +80,9 @@ class LightTableDao : DbService() {
 
     // -- generic engine --
     private suspend fun <T> readLights(config: LightConfig, starId: StarId, toId: (String) -> T) = dbQuery {
-        config.lightTable
-            .read { config.lightStarId.eq(starId) }
-            .map { toId(it[EventLightTable.eventId].value.toStringId()) }
+        config.lightTable.select(config.lightForeignId)
+            .where { config.lightStarId.eq(starId) }
+            .map { toId(it[config.lightForeignId].value.toStringId()) }
     }
 
     private suspend fun editLight(
