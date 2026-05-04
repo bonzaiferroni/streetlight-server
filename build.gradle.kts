@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
@@ -64,4 +66,9 @@ ktor {
     fatJar {
         archiveFileName.set("streetlight-server.jar")
     }
+}
+
+tasks.withType<ShadowJar> {
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

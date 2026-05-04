@@ -31,6 +31,7 @@ fun encodeImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
 ): List<ImageEncoding> {
+    println("Received ${bytes.size} bytes, first 8: ${bytes.take(8).map { it.toUByte() }}")
     val format = FormatDetector.detect(bytes.inputStream()).orElse(null)
 
     return if (format == Format.GIF) {
