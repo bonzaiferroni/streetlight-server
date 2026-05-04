@@ -89,7 +89,7 @@ fun StreetlightRouting.serveGalaxies() {
         postApi(Api.Galaxies.PostContent) {
             val request = it.data
             val identity = identity.getIdentity(call)
-            Ok(server.dao.post.createPost(request, identity))
+            Ok(dao.post.createPost(request, identity))
         }
 
         postApi(Api.Galaxies.PostLocation) {
@@ -105,24 +105,7 @@ fun StreetlightRouting.serveGalaxies() {
 
         getEndpoint(Api.Galaxies.ReadLights) {
             val userId = identity.getUserId(call)
-            dao.galaxy.readGalaxyLights(userId)
-        }
-
-        postEndpoint(Api.Galaxies.EditLight) {
-            val starId = identity.getUserId(call)
-            when (val request = it.data) {
-                is LightEdit -> {
-                    val isSuccess = dao.galaxy.editGalaxyLight(request, starId)
-                    if (isSuccess && request.isLit) {
-                        service.omni.sendBeacon(starId, request.stringId)
-                    }
-                    isSuccess
-                }
-
-                is MultiLightEdit -> {
-                    dao.galaxy.editGalaxyLights(request.edits, starId)
-                }
-            }
+            dao.light.readGalaxyLights(userId)
         }
 
         postApi(Api.Galaxies.RemovePost) {

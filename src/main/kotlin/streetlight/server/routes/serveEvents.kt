@@ -26,20 +26,19 @@ private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.na
 
 fun StreetlightRouting.serveEvents() {
     val app = model
-    val dao = app.dao.event
     val reader = EventParser(app)
 
     getEndpoint(Api.Events) {
-        dao.readActiveEvents()
+        dao.event.readActiveEvents()
     }
 
     queryEndpoint(Api.Events.QueryMap, MapQuery::fromQuery) { sent, endpoint ->
         if (sent == null) return@queryEndpoint emptyList()
-        app.dao.event.readEventsInBounds(sent.bounds)
+        dao.event.readEventsInBounds(sent.bounds)
     }
 
     get("/qr") {
-        val event = dao.readActiveEvents().firstOrNull()
+        val event = dao.event.readActiveEvents().firstOrNull()
         if (event == null) {
             call.respondHtml(HttpStatusCode.NotFound) { body { p { +"Arr, no active events!" } } }
         } else {
@@ -48,26 +47,26 @@ fun StreetlightRouting.serveEvents() {
     }
 
     getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) {
-        dao.readLocationEvents(it.data)
+        dao.event.readLocationEvents(it.data)
     }
 
     postEndpoint(Api.Events.ReadEventLocations) {
         val ids = it.data
-        dao.readEventLocations(ids)
+        dao.event.readEventLocations(ids)
     }
 
     getEndpoint(Api.Events.ReadBySlug) {
         val slug = it.data
-        dao.readEventBySlug(slug)
+        dao.event.readEventBySlug(slug)
     }
 
     getEndpoint(Api.Events.ReadEventLocationBySlug) {
         val slug = it.data
-        dao.readEventLocationBySlug(slug)
+        dao.event.readEventLocationBySlug(slug)
     }
 
     getEndpoint(Api.Events.ReadById, { EventId(it) }) {
-        dao.readEvent(it.data)
+        dao.event.readEvent(it.data)
     }
 
     authenticateJwt {
@@ -77,7 +76,7 @@ fun StreetlightRouting.serveEvents() {
 
             val edit = request.data
 
-            if (edit.eventId == null && dao.hasConflict(request.data)) {
+            if (edit.eventId == null && dao.event.hasConflict(request.data)) {
                 call.respond(HttpStatusCode.Conflict)
                 return@postEndpoint null
             }
@@ -88,12 +87,12 @@ fun StreetlightRouting.serveEvents() {
             val eventId = edit.eventId
             if (eventId != null) {
                 console.log("updating event: ${edit.title}")
-                val event = dao.updateEvent(eventId, userId, edit, imageSet)
+                val event = dao.event.updateEvent(eventId, userId, edit, imageSet)
                 app.service.omni.sendMessage(event.toEventEdited(identity.username))
                 event
             } else {
                 console.log("creating event: ${edit.title}")
-                val event = dao.createEvent(userId, edit, imageSet)
+                val event = dao.event.createEvent(userId, edit, imageSet)
                 app.service.omni.sendMessage(event.toEventCreated(identity.username))
                 event
             }
@@ -101,20 +100,8 @@ fun StreetlightRouting.serveEvents() {
 
         deleteEndpoint(Api.Events.Delete) { eventId, _ ->
             val starId = identity.getUserId(call)
-            dao.deleteEvent(starId, eventId)
+            dao.event.deleteEvent(starId, eventId)
         }
-
-//        webSocket(Api.Events.UserEvents.path) {
-//            val userId = call.getUserId()
-//
-//        }
-
-//        postEndpoint(Api.Events.ParseMultiEvents) { request ->
-//            val identity = identity.getUserIdentity(call)
-//            if (!identity.isAdmin) return@postEndpoint null
-//
-//            reader.readEvents(request.data)
-//        }
 
         postApi(Api.Events.ParseSingleEvent) { request ->
             val request = request.data
@@ -129,23 +116,7 @@ fun StreetlightRouting.serveEvents() {
 
         getEndpoint(Api.Events.ReadLights) {
             val starId = identity.getUserId(call)
-            dao.readEventLights(starId)
-        }
-
-        postEndpoint(Api.Events.EditLight) {
-            val starId = identity.getUserId(call)
-            when (val request = it.data) {
-                is LightEdit -> {
-                    val isSuccess = dao.editEventLight(request, starId)
-                    if (isSuccess && request.isLit) {
-                        app.service.omni.sendBeacon(starId, request.stringId)
-                    }
-                    isSuccess
-                }
-                is MultiLightEdit -> {
-                    dao.editEventLights(request.edits, starId)
-                }
-            }
+            dao.light.readEventLights(starId)
         }
     }
 }

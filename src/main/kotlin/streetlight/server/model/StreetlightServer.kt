@@ -36,7 +36,8 @@ class DaoFacade(
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
     val userFile: UploadFileTableDao = UploadFileTableDao(),
     val talk: CommentTableDao = CommentTableDao(),
-    val omni: OmniTableDao = OmniTableDao()
+    val omni: OmniTableDao = OmniTableDao(),
+    val light: LightTableDao = LightTableDao()
 )
 
 class ServiceFacade(

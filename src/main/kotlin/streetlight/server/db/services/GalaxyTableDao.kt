@@ -69,59 +69,6 @@ class GalaxyTableDao : DbService() {
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
-
-    suspend fun readGalaxyLights(starId: StarId) = dbQuery {
-        GalaxyLightTable.read { GalaxyLightTable.starId.eq(starId) }.map { it[GalaxyLightTable.galaxyId].toProjectId<GalaxyId>() }
-    }
-
-    suspend fun editGalaxyLight(edit: LightEdit, starId: StarId) = dbQuery {
-        val galaxyId = GalaxyId(edit.stringId)
-        when (edit.isLit) {
-            true -> GalaxyLightTable.insertIgnore {
-                it[this.starId] = starId.toUUID()
-                it[this.galaxyId] = galaxyId.toUUID()
-                it[this.createdAt] = Clock.System.now()
-            }
-            else -> GalaxyLightTable.deleteWhere {
-                this.galaxyId.eq(edit.stringId) and this.starId.eq(starId)
-            }
-        }
-        refreshGalaxyLightCount(galaxyId)
-        true
-    }
-
-    suspend fun editGalaxyLights(edits: List<LightEdit>, starId: StarId) = dbQuery {
-        val (toLight, toUnlight) = edits.partition { it.isLit }
-
-        val existingIds = GalaxyTable
-            .select(GalaxyTable.id)
-            .where { GalaxyTable.id inList toLight.map { it.stringId.toUUID() } }
-            .map { it[GalaxyTable.id].value }
-            .toSet()
-
-        GalaxyLightTable.batchInsert(toLight.filter { it.stringId.toUUID() in existingIds }, ignore = true) {
-            this[GalaxyLightTable.starId] = starId.toUUID()
-            this[GalaxyLightTable.galaxyId] = it.stringId.toUUID()
-            this[GalaxyLightTable.createdAt] = Clock.System.now()
-        }
-
-        toUnlight.forEach { edit ->
-            GalaxyLightTable.deleteWhere {
-                this.galaxyId.eq(edit.stringId) and this.starId.eq(starId)
-            }
-        }
-
-        true
-    }
-
-    private fun refreshGalaxyLightCount(galaxyId: GalaxyId) {
-        val count = GalaxyLightTable.selectAll()
-            .where { GalaxyLightTable.galaxyId.eq(galaxyId) }
-            .count().toInt()
-        GalaxyTable.update({ GalaxyTable.id.eq(galaxyId) }) {
-            it[this.lightCount] = count
-        }
-    }
 }
 
 fun GalaxyEdit.toGalaxy() = Galaxy(

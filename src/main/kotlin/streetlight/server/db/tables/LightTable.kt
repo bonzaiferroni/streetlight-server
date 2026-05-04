@@ -11,3 +11,12 @@ object EventLightTable: Table("event_light") {
 
     override val primaryKey = PrimaryKey(eventId, starId)
 }
+
+object GalaxyLightTable : Table("galaxy_light") {
+    // experimenting with pascal case columns
+    val galaxyId = reference("galaxy_id", GalaxyTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
+    val createdAt = timestamp("created_at")
+
+    override val primaryKey = PrimaryKey(galaxyId, starId)
+}

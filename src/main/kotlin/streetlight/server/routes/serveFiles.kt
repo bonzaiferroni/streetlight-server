@@ -36,8 +36,8 @@ fun StreetlightRouting.serveFiles() {
 //        }
     }
 
-    staticFiles("/dev/streetlight", File("../web/build/kotlin-webpack/js/developmentExecutable"))
-    staticFiles("/prod/streetlight", File("../web/build/kotlin-webpack/js/productionExecutable"))
+    staticFiles("/js/streetlight", File("../web/build/kotlin-webpack/js/developmentExecutable"))
+    // staticFiles("/js/streetlight", File("../web/build/kotlin-webpack/js/productionExecutable"))
 }
 
 const val GEN_PATH = "/gen/"

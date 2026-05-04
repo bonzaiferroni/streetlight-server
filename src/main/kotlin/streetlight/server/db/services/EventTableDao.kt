@@ -125,62 +125,9 @@ class EventTableDao: DbService() {
         EventLocationQuery.where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
     }
 
-    suspend fun readEventLights(starId: StarId) = dbQuery {
-        EventLightTable.read { EventLightTable.starId.eq(starId) }.map { it[EventLightTable.eventId].toProjectId<EventId>() }
-    }
-
-    suspend fun editEventLight(edit: LightEdit, starId: StarId) = dbQuery {
-        val eventId = EventId(edit.stringId)
-        when (edit.isLit) {
-            true -> EventLightTable.insertIgnore {
-                it[this.starId] = starId.toUUID()
-                it[this.eventId] = eventId.toUUID()
-                it[this.createdAt] = Clock.System.now()
-            }
-            else -> EventLightTable.deleteWhere {
-                this.eventId.eq(edit.stringId) and this.starId.eq(starId)
-            }
-        }
-        refreshEventLightCount(eventId)
-        true
-    }
-
-    suspend fun editEventLights(edits: List<LightEdit>, starId: StarId) = dbQuery {
-        val (toLight, toUnlight) = edits.partition { it.isLit }
-
-        val existingIds = EventTable
-            .select(EventTable.id)
-            .where { EventTable.id inList toLight.map { it.stringId.toUUID() } }
-            .map { it[EventTable.id].value }
-            .toSet()
-
-        EventLightTable.batchInsert(toLight.filter { it.stringId.toUUID() in existingIds }, ignore = true) {
-            this[EventLightTable.starId] = starId.toUUID()
-            this[EventLightTable.eventId] = it.stringId.toUUID()
-            this[EventLightTable.createdAt] = Clock.System.now()
-        }
-
-        toUnlight.forEach { edit ->
-            EventLightTable.deleteWhere {
-                this.eventId.eq(edit.stringId) and this.starId.eq(starId)
-            }
-        }
-
-        true
-    }
-
     suspend fun readImageUrl(eventId: EventId) = dbQuery {
         EventTable.select(EventTable.imageRef).where { EventTable.id.eq(eventId) }
             .firstOrNull()?.getOrNull(EventTable.imageRef)
-    }
-
-    private fun refreshEventLightCount(eventId: EventId) {
-        val count = EventLightTable.selectAll()
-            .where { EventLightTable.eventId.eq(eventId) }
-            .count().toInt()
-        EventTable.update({ EventTable.id.eq(eventId) }) {
-            it[this.lightCount] = count
-        }
     }
 }
 

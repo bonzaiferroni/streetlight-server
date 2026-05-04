@@ -156,6 +156,7 @@ fun LocationEdit.toLocation() = Location(
     city = city ?: error("no city"),
     resources = resources ?: emptySet(),
     website = website,
+    lightCount = null,
     eventsUrl = eventsUrl,
     aboutUrl = aboutUrl,
     menuUrl = menuUrl,
