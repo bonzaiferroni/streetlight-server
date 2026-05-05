@@ -1,8 +1,14 @@
 package streetlight.server.db.tables
 
+import kampfire.model.GeoPoint
+import kampfire.model.ImageSize
+import kampfire.model.ScaledImageArray
+import kampfire.model.Url
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.url
+import klutch.utils.toGeoPoint
+import klutch.utils.toPGpoint
 import klutch.utils.toUUID
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -43,6 +49,15 @@ object PostTable : UUIDTable("post") {
     // init {
     //     uniqueIndex("galaxy_event_index", galaxyId, eventId)
     // }
+
+    val imageConfig = imageConfigOf(
+        table = this,
+        refColumn = imageRef,
+        arrayColumn = images,
+        ImageSize.Medium,
+        ImageSize.Small,
+        ImageSize.Thumb,
+    )
 }
 
 fun ResultRow.toPostRow() = PostRow(
@@ -53,12 +68,15 @@ fun ResultRow.toPostRow() = PostRow(
     locationId = this[PostTable.locationId]?.toProjectId(),
     title = this[PostTable.title],
     text = this[PostTable.text],
+    geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
+    imageRef = this[PostTable.imageRef],
+    images = this[PostTable.images],
     postType = this[PostTable.postType],
     updatedAt = this[PostTable.updatedAt],
     createdAt = this[PostTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(post: PostRow) {
+fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
     this[PostTable.id] = post.postId.toUUID()
     this[PostTable.galaxyId] = post.galaxyId.toUUID()
     this[PostTable.starId] = post.starId?.toUUID()
@@ -66,14 +84,16 @@ fun UpdateBuilder<*>.writeFull(post: PostRow) {
     this[PostTable.locationId] = post.locationId?.toUUID()
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt
-    writeUpdate(post)
+    writeUpdate(post, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(post: PostRow) {
+fun UpdateBuilder<*>.writeUpdate(post: PostRow, imageSet: SavedImageSet?) {
     this[PostTable.title] = post.title
     this[PostTable.text] = post.text
-    // this[PostTable.geoPoint] =
+    this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
+    this[PostTable.images] = post.images
     this[PostTable.updatedAt] = post.updatedAt
+    writeImages(PostTable.imageConfig, imageSet)
 }
 
 @Serializable
@@ -85,6 +105,9 @@ data class PostRow(
     val starId: StarId?,
     val title: String?,
     val text: String?,
+    val geoPoint: GeoPoint?,
+    val imageRef: Url?,
+    val images: ScaledImageArray?,
     val postType: PostType,
     val updatedAt: Instant,
     val createdAt: Instant,

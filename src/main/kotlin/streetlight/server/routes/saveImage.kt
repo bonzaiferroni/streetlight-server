@@ -60,6 +60,7 @@ suspend fun StreetlightRouting.saveImages(
     config: TableImageConfig
 ): SavedImageSet? {
     if (imageRef == null) {
+        // removes any existing image
         return SavedImageSet(null, null)
     }
     val currentRef = rowId?.let {

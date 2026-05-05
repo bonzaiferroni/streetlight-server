@@ -10,11 +10,10 @@ import klutch.server.postApi
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
-import streetlight.model.data.LightEdit
-import streetlight.model.data.MultiLightEdit
-import streetlight.model.data.Post
 import streetlight.model.data.toProjectId
+import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
@@ -87,9 +86,18 @@ fun StreetlightRouting.serveGalaxies() {
         }
 
         postApi(Api.Galaxies.PostContent) {
-            val request = it.data
+            val edit = it.data
             val identity = identity.getIdentity(call)
-            Ok(dao.post.createPost(request, identity))
+
+
+            val imageSet = saveImages(identity.userId, null, edit.imageRef, PostTable.imageConfig)
+
+            val postId = dao.post.createPost(edit, identity, imageSet)
+
+            when (val post = dao.post.readPost(postId)) {
+                null -> Problem("Something went wrong.")
+                else -> Ok(post)
+            }
         }
 
         postApi(Api.Galaxies.PostLocation) {

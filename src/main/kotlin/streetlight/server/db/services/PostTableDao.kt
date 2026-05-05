@@ -30,6 +30,7 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.PostColumns
 import streetlight.server.db.tables.PostRow
 import streetlight.server.db.tables.PostTable
+import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPostRow
@@ -54,7 +55,7 @@ class PostTableDao : DbService() {
     suspend fun createPost(edit: EventPostEdit, identity: StarIdentity): PostId? = dbQuery {
         val post = edit.toPostRow(identity)
         try {
-            PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
+            PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
         } catch (e: ExposedSQLException) {
             if (e.cause is SQLIntegrityConstraintViolationException) null else throw e
         }
@@ -62,17 +63,17 @@ class PostTableDao : DbService() {
 
     suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
         val post = post.toPostRow(identity)
-        PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
+        PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
     }
 
-    suspend fun createPost(post: ContentEdit, identity: StarIdentity) = dbQuery {
+    suspend fun createPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
-        PostTable.insertAndGetId { it.writeFull(post) }.toProjectId<PostId>()
+        PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
-    suspend fun update(galaxyPost: PostRow) = dbQuery {
+    suspend fun update(galaxyPost: PostRow, imageSet: SavedImageSet?) = dbQuery {
         PostTable.update(where = { PostTable.id.eq(galaxyPost.postId) }) {
-            it.writeUpdate(galaxyPost)
+            it.writeUpdate(galaxyPost, imageSet)
         } == 1
     }
 
@@ -181,6 +182,9 @@ fun EventPostEdit.toPostRow(
     starId = identity.userId,
     title = null,
     text = text,
+    geoPoint = null,
+    imageRef = null,
+    images = null,
     postType = PostType.Event,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
@@ -194,6 +198,9 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     locationId = locationId,
     title = null,
     text = text,
+    geoPoint = null,
+    imageRef = null,
+    images = null,
     postType = PostType.Location,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
@@ -207,6 +214,9 @@ fun ContentEdit.toPostRow(identity: StarIdentity?) = PostRow(
     locationId = null,
     title = title ?: error("title is required"),
     text = text ?: error("text is required"),
+    geoPoint = geoPoint,
+    imageRef = imageRef,
+    images = null,
     postType = PostType.Content,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now()
