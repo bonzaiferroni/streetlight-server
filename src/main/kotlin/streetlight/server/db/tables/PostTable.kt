@@ -54,6 +54,7 @@ object PostTable : UUIDTable("post") {
         table = this,
         refColumn = imageRef,
         arrayColumn = images,
+        ImageSize.Large,
         ImageSize.Medium,
         ImageSize.Small,
         ImageSize.Thumb,
@@ -73,7 +74,7 @@ fun ResultRow.toPostRow() = PostRow(
     images = this[PostTable.images],
     postType = this[PostTable.postType],
     updatedAt = this[PostTable.updatedAt],
-    createdAt = this[PostTable.createdAt]
+    createdAt = this[PostTable.createdAt],
 )
 
 fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
