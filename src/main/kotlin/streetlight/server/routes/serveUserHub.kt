@@ -39,7 +39,6 @@ fun StreetlightRouting.serveUserHub() {
 
 
         postEndpoint(Api.Users.UploadImage) {
-            println("ey")
             val userId = identity.getUserId(call)
             saveLocalImageFile(it.data, userId, randomUuidString())
         }
