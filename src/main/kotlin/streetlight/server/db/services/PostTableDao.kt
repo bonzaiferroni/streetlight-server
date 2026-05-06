@@ -71,9 +71,10 @@ class PostTableDao : DbService() {
         PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
-    suspend fun update(galaxyPost: PostRow, imageSet: SavedImageSet?) = dbQuery {
-        PostTable.update(where = { PostTable.id.eq(galaxyPost.postId) }) {
-            it.writeUpdate(galaxyPost, imageSet)
+    suspend fun editPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+        val post = post.toPostRow(identity)
+        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.userId)}) {
+            it.writeUpdate(post, imageSet)
         } == 1
     }
 
@@ -191,7 +192,7 @@ fun EventPostEdit.toPostRow(
 )
 
 fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
-    postId = PostId.random(),
+    postId = postId ?: PostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
     starId = identity?.userId,
     eventId = null,
@@ -207,7 +208,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
 )
 
 fun ContentEdit.toPostRow(identity: StarIdentity?) = PostRow(
-    postId = PostId.random(),
+    postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.userId,
     eventId = null,

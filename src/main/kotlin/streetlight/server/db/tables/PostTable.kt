@@ -92,7 +92,6 @@ fun UpdateBuilder<*>.writeUpdate(post: PostRow, imageSet: SavedImageSet?) {
     this[PostTable.title] = post.title
     this[PostTable.text] = post.text
     this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
-    this[PostTable.images] = post.images
     this[PostTable.updatedAt] = post.updatedAt
     writeImages(PostTable.imageConfig, imageSet)
 }

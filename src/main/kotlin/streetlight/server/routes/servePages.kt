@@ -8,6 +8,7 @@ import koala.html.IdParse
 import koala.html.StaticParse
 import kotlinx.html.HTML
 import streetlight.model.data.EventId
+import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
@@ -120,8 +121,8 @@ suspend fun StreetlightRouting.renderLocation(arg: String?): HtmlRender? {
 }
 
 suspend fun StreetlightRouting.renderGalaxy(arg: String?): HtmlRender? {
-    val path = arg ?: return null
-    val galaxy = server.dao.galaxy.readGalaxyByPath(path) ?: return null
+    val id = arg ?: return null
+    val galaxy = server.dao.galaxy.readGalaxySlug(id) ?: server.dao.galaxy.readGalaxy(GalaxyId(id)) ?: return null
     val galaxyId = galaxy.galaxyId
     val posts = server.dao.post.readActivePosts(galaxyId)
 

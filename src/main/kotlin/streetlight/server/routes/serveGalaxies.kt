@@ -10,8 +10,8 @@ import klutch.server.postApi
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
+import streetlight.model.data.GalaxyId
 import streetlight.model.data.toProjectId
-import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
@@ -24,9 +24,14 @@ fun StreetlightRouting.serveGalaxies() {
         dao.galaxy.readTopGalaxies()
     }
 
-    getEndpoint(Api.Galaxies.Path) {
+    getApi(Api.Galaxies.ReadSlug, { it }) {
         val pathId = it.data
-        dao.galaxy.readGalaxyByPath(pathId)
+        responseOf(dao.galaxy.readGalaxySlug(pathId))
+    }
+
+    getApi(Api.Galaxies.ReadId, { GalaxyId(it) }) {
+        val galaxyId = it.data
+        responseOf(dao.galaxy.readGalaxy(galaxyId))
     }
 
     postEndpoint(Api.Galaxies.ReadGalaxies) {
@@ -89,15 +94,26 @@ fun StreetlightRouting.serveGalaxies() {
             val edit = it.data
             val identity = identity.getIdentity(call)
 
-
             val imageSet = saveImages(identity.userId, null, edit.imageRef, PostTable.imageConfig)
 
             val postId = dao.post.createPost(edit, identity, imageSet)
 
-            when (val post = dao.post.readPost(postId)) {
-                null -> Problem("Something went wrong.")
-                else -> Ok(post)
+            responseOf(dao.post.readPost(postId))
+        }
+
+        postApi(Api.Galaxies.EditContent) {
+            val edit = it.data
+            val identity = identity.getIdentity(call)
+            val postId = edit.postId ?: error("postId not found")
+
+            val imageSet = saveImages(identity.userId, postId, edit.imageRef, PostTable.imageConfig)
+
+            val isSuccess = dao.post.editPost(edit, identity, imageSet)
+            if (!isSuccess) {
+                return@postApi null
             }
+
+            responseOf(dao.post.readPost(postId))
         }
 
         postApi(Api.Galaxies.PostLocation) {
@@ -105,10 +121,7 @@ fun StreetlightRouting.serveGalaxies() {
             val identity = identity.getIdentity(call)
             val postId = dao.post.createPost(request, identity)
 
-            when (val post = dao.post.readPost(postId)) {
-                null -> Problem("Something went wrong.")
-                else -> Ok(post)
-            }
+            responseOf(dao.post.readPost(postId))
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {

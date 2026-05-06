@@ -5,15 +5,9 @@ import klutch.db.inList
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
-import klutch.utils.toUUID
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -21,10 +15,8 @@ import kotlin.time.Clock
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
-import streetlight.model.data.LightEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.slugOf
-import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toGalaxy
@@ -42,7 +34,7 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.select(GalaxyTable.name).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.getOrNull(GalaxyTable.name)
     }
 
-    suspend fun readGalaxyByPath(path: String) = dbQuery {
+    suspend fun readGalaxySlug(path: String) = dbQuery {
         GalaxyTable.selectAll().where { GalaxyTable.path.eq(path) }.firstOrNull()?.toGalaxy()
     }
 
