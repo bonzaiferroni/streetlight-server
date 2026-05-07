@@ -1,11 +1,14 @@
 package streetlight.server.db.services
 
+import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
+import klutch.utils.eqLowercase
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
@@ -25,8 +28,9 @@ import streetlight.server.utils.toProjectId
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun readGalaxy(galaxyId: GalaxyId) = dbQuery {
-        GalaxyTable.read { it.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
+    suspend fun readGalaxy(id: StringId) = dbQuery {
+        val galaxyId = GalaxyId(id)
+        GalaxyTable.read { it.id.eq(galaxyId) or it.slug.eqLowercase(id) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {
@@ -34,7 +38,7 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readGalaxySlug(path: String) = dbQuery {
-        GalaxyTable.selectAll().where { GalaxyTable.path.eq(path) }.firstOrNull()?.toGalaxy()
+        GalaxyTable.selectAll().where { GalaxyTable.slug.eq(path) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readTopGalaxies(limit: Int = 10) = dbQuery {

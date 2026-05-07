@@ -125,7 +125,7 @@ suspend fun StreetlightRouting.renderLocation(arg: String?): HtmlRender? {
 
 suspend fun StreetlightRouting.renderGalaxy(arg: String?): HtmlRender? {
     val id = arg ?: return null
-    val galaxy = server.dao.galaxy.readGalaxySlug(id) ?: server.dao.galaxy.readGalaxy(GalaxyId(id)) ?: return null
+    val galaxy = server.dao.galaxy.readGalaxy(id) ?: return null
     val galaxyId = galaxy.galaxyId
     val posts = server.dao.post.readActivePosts(galaxyId)
 

@@ -10,7 +10,6 @@ import klutch.server.postApi
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
-import streetlight.model.data.GalaxyId
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
@@ -29,9 +28,9 @@ fun StreetlightRouting.serveGalaxies() {
         responseOf(dao.galaxy.readGalaxySlug(pathId))
     }
 
-    getApi(Api.Galaxies.ReadId, { GalaxyId(it) }) {
-        val galaxyId = it.data
-        responseOf(dao.galaxy.readGalaxy(galaxyId))
+    getApi(Api.Galaxies.ReadId, { it }) {
+        val id = it.data
+        responseOf(dao.galaxy.readGalaxy(id))
     }
 
     postEndpoint(Api.Galaxies.ReadGalaxies) {
