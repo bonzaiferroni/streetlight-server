@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
-import klutch.utils.UserIdentity
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -18,7 +17,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import org.jetbrains.exposed.v1.jdbc.update
-import streetlight.model.data.ContentEdit
+import streetlight.model.data.StarPostEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.EventPostEdit
 import streetlight.model.data.LocationPostEdit
@@ -66,12 +65,12 @@ class PostTableDao : DbService() {
         PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
     }
 
-    suspend fun createPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
         PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
-    suspend fun editPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun editPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
         PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.userId)}) {
             it.writeUpdate(post, imageSet)
@@ -207,7 +206,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun ContentEdit.toPostRow(identity: StarIdentity?) = PostRow(
+fun StarPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.userId,

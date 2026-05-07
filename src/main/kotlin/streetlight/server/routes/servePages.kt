@@ -7,9 +7,11 @@ import koala.html.IdOrNullParse
 import koala.html.IdParse
 import koala.html.StaticParse
 import kotlinx.html.HTML
+import streetlight.model.data.StarPost
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
+import streetlight.model.data.PostId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.server.model.StreetlightRouting
@@ -46,7 +48,8 @@ fun StreetlightRouting.servePages() {
             StreetlightScreen.Star -> renderStar(arg)
             StreetlightScreen.EventProfile -> renderEventProfile(arg)
             StreetlightScreen.SiteDoc -> renderSiteDoc(arg)
-            else -> renderClientRendered()
+            StreetlightScreen.Post -> renderPost(arg)
+            else -> renderClientBase()
         }
     }
 
@@ -156,7 +159,9 @@ suspend fun StreetlightRouting.renderEventProfile(arg: String?): HtmlRender? {
     val event = server.dao.event.readEventLocationBySlug(slug) ?: return null
 
     return HtmlRender {
-        eventPage(event, SiteStyles)
+        appPage("${event.title} | Streetlight", SiteStyles) {
+            eventShell(event)
+        }
     }
 }
 
@@ -165,12 +170,27 @@ suspend fun StreetlightRouting.renderSiteDoc(arg: String?): HtmlRender? {
     val node = SiteDocTree.nodes[docId] ?: return null
 
     return HtmlRender {
-        siteDocPage(node, SiteDocTable, SiteStyles)
+        appPage("${node.doc.title} | Streetlight", SiteStyles) {
+            siteDocShell(node, SiteDocTable)
+        }
     }
 }
 
-suspend fun StreetlightRouting.renderClientRendered(): HtmlRender {
+suspend fun StreetlightRouting.renderPost(arg: String?): HtmlRender? {
+    val postId = arg?.let { PostId(it) } ?: return null
+    val post = dao.post.readPost(postId) as? StarPost ?: return null
+
     return HtmlRender {
-        clientRenderedPage(SiteStyles)
+        appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {
+            starPostShell(post)
+        }
+    }
+}
+
+suspend fun StreetlightRouting.renderClientBase(): HtmlRender {
+    return HtmlRender {
+        appPage("Streetlight", SiteStyles) {
+
+        }
     }
 }

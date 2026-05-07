@@ -1,10 +1,11 @@
 package streetlight.server.db.tables
 
+import kampfire.model.thumb
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.ContentPost
+import streetlight.model.data.StarPost
 import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.PostType
@@ -37,6 +38,7 @@ val GeneralPostColumns = listOf(
     PostTable.createdAt,
     PostTable.updatedAt,
     StarTable.username,
+    StarTable.images,
 ) + LocationTable.columns
 
 fun eventJoin() = PostTable
@@ -61,6 +63,7 @@ fun ResultRow.toEventPost() = EventPost(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
+    userThumb = this[StarTable.images].thumb,
     event = this.toEventLocation(),
     text = this[PostTable.text],
     createdAt = this[PostTable.createdAt],
@@ -71,16 +74,18 @@ fun ResultRow.toLocationPost() = LocationPost(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
+    userThumb = this[StarTable.images].thumb,
     location = this.toLocation(),
     text = this[PostTable.text],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
 
-fun ResultRow.toContentPost() = ContentPost(
+fun ResultRow.toContentPost() = StarPost(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
+    userThumb = this[StarTable.images].thumb,
     title = this[PostTable.title] ?: error("Title not found"),
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
