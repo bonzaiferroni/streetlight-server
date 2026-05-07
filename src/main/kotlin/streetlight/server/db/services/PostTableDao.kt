@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.UnionAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -43,14 +45,6 @@ import kotlin.time.Clock
 
 class PostTableDao : DbService() {
 
-    suspend fun readPostRow(postId: PostId) = dbQuery {
-        PostTable.read { it.id.eq(postId) }.firstOrNull()?.toPostRow()
-    }
-
-    suspend fun readPostRows(galaxyId: GalaxyId) = dbQuery {
-        PostTable.read { PostTable.galaxyId.eq(galaxyId) }.map { it.toPostRow() }
-    }
-
     suspend fun createPost(edit: EventPostEdit, identity: StarIdentity): PostId? = dbQuery {
         val post = edit.toPostRow(identity)
         try {
@@ -66,7 +60,8 @@ class PostTableDao : DbService() {
     }
 
     suspend fun createPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
-        val post = post.toPostRow(identity)
+        val slug = PostTable.nextSlugOf(post.title ?: error("title not found"), PostTable.slug)
+        val post = post.toPostRow(identity, slug)
         PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
@@ -107,6 +102,11 @@ class PostTableDao : DbService() {
 
     suspend fun readPost(postId: PostId) = dbQuery {
         queryPosts { PostTable.id.eq(postId) }.firstOrNull()?.toPost()
+    }
+
+    suspend fun readPost(stringId: StringId) = dbQuery {
+        val postId = PostId(stringId)
+        queryPosts { PostTable.id.eq(postId) or PostTable.slug.eq(stringId) }.firstOrNull()?.toPost()
     }
 
     suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
@@ -180,6 +180,7 @@ fun EventPostEdit.toPostRow(
     eventId = eventId ?: error("eventId is required"),
     locationId = null,
     starId = identity.userId,
+    slug = null,
     title = null,
     text = text,
     geoPoint = null,
@@ -196,6 +197,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     starId = identity?.userId,
     eventId = null,
     locationId = locationId,
+    slug = null,
     title = null,
     text = text,
     geoPoint = null,
@@ -206,12 +208,13 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun StarPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
+fun StarPostEdit.toPostRow(identity: StarIdentity?, slug: String? = null) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.userId,
     eventId = null,
     locationId = null,
+    slug = slug,
     title = title ?: error("title is required"),
     text = text ?: error("text is required"),
     geoPoint = geoPoint,

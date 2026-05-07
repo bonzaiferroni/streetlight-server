@@ -32,7 +32,6 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Slug
 import streetlight.model.data.StarId
-import streetlight.model.data.slugOf
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
@@ -137,7 +136,7 @@ private fun EventEdit.toEvent(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
-    slug = slugOf(title ?: error("no title")),
+    slug = normalizedSlugOf(title ?: error("no title")),
     title = title ?: error("no title"),
     description = description,
     contact = contact,

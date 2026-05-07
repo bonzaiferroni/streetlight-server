@@ -29,6 +29,7 @@ val EventPostColumns = listOf(
 val GeneralPostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
+    PostTable.slug,
     PostTable.title,
     PostTable.text,
     PostTable.geoPoint,
@@ -84,6 +85,7 @@ fun ResultRow.toLocationPost() = LocationPost(
 fun ResultRow.toContentPost() = StarPost(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
+    slug = this[PostTable.slug],
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     title = this[PostTable.title] ?: error("Title not found"),

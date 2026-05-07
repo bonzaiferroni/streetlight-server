@@ -177,8 +177,8 @@ suspend fun StreetlightRouting.renderSiteDoc(arg: String?): HtmlRender? {
 }
 
 suspend fun StreetlightRouting.renderPost(arg: String?): HtmlRender? {
-    val postId = arg?.let { PostId(it) } ?: return null
-    val post = dao.post.readPost(postId) as? StarPost ?: return null
+    val id = arg ?: return null
+    val post = dao.post.readPost(id) as? StarPost ?: return null
 
     return HtmlRender {
         appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {

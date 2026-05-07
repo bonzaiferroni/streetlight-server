@@ -32,6 +32,7 @@ object PostTable : UUIDTable("post") {
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
+    val slug = text("slug").nullable()
     val title = text("title").nullable()
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
@@ -67,6 +68,7 @@ fun ResultRow.toPostRow() = PostRow(
     starId = this[PostTable.starId]?.toProjectId(),
     eventId = this[PostTable.eventId]?.toProjectId(),
     locationId = this[PostTable.locationId]?.toProjectId(),
+    slug = this[PostTable.slug],
     title = this[PostTable.title],
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
@@ -83,6 +85,7 @@ fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
     this[PostTable.starId] = post.starId?.toUUID()
     this[PostTable.eventId] = post.eventId?.toUUID()
     this[PostTable.locationId] = post.locationId?.toUUID()
+    this[PostTable.slug] = post.slug
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt
     writeUpdate(post, imageSet)
@@ -103,6 +106,7 @@ data class PostRow(
     val eventId: EventId?,
     val locationId: LocationId?,
     val starId: StarId?,
+    val slug: String?,
     val title: String?,
     val text: String?,
     val geoPoint: GeoPoint?,

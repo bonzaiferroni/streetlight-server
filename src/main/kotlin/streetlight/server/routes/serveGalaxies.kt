@@ -44,10 +44,10 @@ fun StreetlightRouting.serveGalaxies() {
         Ok(server.dao.post.readActivePosts(galaxyIds))
     }
 
-    getApi(Api.Galaxies.ReadPost, { it.toProjectId() }) { request ->
-        val postId = request.data
-        val post = server.dao.post.readPost(postId)
-        post?.let { Ok(it) } ?: Problem("Post not found: $postId")
+    getApi(Api.Galaxies.ReadPost, { it }) { request ->
+        val id = request.data
+        val post = server.dao.post.readPost(id)
+        post?.let { Ok(it) } ?: Problem("Post not found: $id")
     }
 
     getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {

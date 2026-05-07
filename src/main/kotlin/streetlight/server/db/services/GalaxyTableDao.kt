@@ -16,7 +16,6 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.StarId
-import streetlight.model.data.slugOf
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.toGalaxy
@@ -66,7 +65,7 @@ class GalaxyTableDao : DbService() {
 fun GalaxyEdit.toGalaxy() = Galaxy(
     galaxyId = GalaxyId.random(),
     name = name ?: error("name not found"),
-    slug = slug ?: slugOf(name ?: error("name not found")),
+    slug = slug ?: normalizedSlugOf(name ?: error("name not found")),
     description = description,
     center = center ?: error("center not found"),
     zoom = zoom ?: 10f,
