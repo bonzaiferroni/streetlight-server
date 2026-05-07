@@ -23,12 +23,14 @@ import streetlight.model.data.Comment
 import streetlight.model.data.CommentId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.NewComment
+import streetlight.model.data.PostId
 import streetlight.model.data.StarId
 import streetlight.model.data.SpaceType
 import streetlight.model.data.UpdatedComment
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
+import streetlight.server.db.tables.PostCommentTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
@@ -53,10 +55,12 @@ class CommentTableDao : DbService() {
 
     suspend fun readComments(stringId: StringId, space: SpaceType, limit: Int = 100) = when (space) {
         SpaceType.Galaxy -> readGalaxyTalk(GalaxyId(stringId), limit)
+        SpaceType.Post -> readPostTalk(PostId(stringId), limit)
     }
 
     suspend fun writeComment(comment: NewComment, starId: StarId?) = when (comment.spaceType) {
         SpaceType.Galaxy -> writeGalaxyComment(comment, starId)
+        SpaceType.Post -> writePostComment(comment, starId)
     }
 
     suspend fun writeGalaxyComment(comment: NewComment, starId: StarId?) = dbQuery {
@@ -64,6 +68,15 @@ class CommentTableDao : DbService() {
         GalaxyCommentTable.insert {
             it[GalaxyCommentTable.galaxyId] = comment.galaxyId.toUUID()
             it[GalaxyCommentTable.commentId] = commentId.toUUID()
+        }
+        commentId
+    }
+
+    suspend fun writePostComment(comment: NewComment, starId: StarId?) = dbQuery {
+        val commentId = insertComment(comment, starId)
+        PostCommentTable.insert {
+            it[PostCommentTable.postId] = comment.postId.toUUID()
+            it[PostCommentTable.commentId] = commentId.toUUID()
         }
         commentId
     }
@@ -96,6 +109,13 @@ class CommentTableDao : DbService() {
             .map { it.toComment() }
     }
 
+    suspend fun readPostTalk(postId: PostId, limit: Int = 100) = dbQuery {
+        PostCommentQuery.where { PostCommentTable.postId.eq(postId) }
+            .orderBy(CommentTable.createdAt, SortOrder.DESC)
+            .limit(limit)
+            .map { it.toComment() }
+    }
+
     suspend fun update(comment: CommentRow) = dbQuery {
         CommentTable.update({ CommentTable.id eq comment.commentId.toUUID() }) {
             it.writeUpdate(comment)
@@ -110,6 +130,10 @@ class CommentTableDao : DbService() {
 
 private val GalaxyCommentQuery get() = GalaxyCommentTable
     .join(CommentTable, JoinType.LEFT, GalaxyCommentTable.commentId, CommentTable.id)
+    .toCommentQuery()
+
+private val PostCommentQuery get() = PostCommentTable
+    .join(CommentTable, JoinType.LEFT, PostCommentTable.commentId, CommentTable.id)
     .toCommentQuery()
 
 private val CommentQuery get() = CommentTable.join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)

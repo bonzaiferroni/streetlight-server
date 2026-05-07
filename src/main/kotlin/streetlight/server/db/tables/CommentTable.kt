@@ -39,6 +39,13 @@ object GalaxyCommentTable: Table("galaxy_comment") {
     override val primaryKey = PrimaryKey(galaxyId, commentId)
 }
 
+object PostCommentTable: Table("post_comment") {
+    val postId = reference("post_id", PostTable, onDelete = ReferenceOption.CASCADE).index()
+    val commentId = reference("comment_id", CommentTable, onDelete = ReferenceOption.CASCADE).index()
+
+    override val primaryKey = PrimaryKey(postId, commentId)
+}
+
 fun ResultRow.toCommentRow() = CommentRow(
     commentId = toProjectId(CommentTable.id),
     parentId = toProjectIdOrNull(CommentTable.parentId),
