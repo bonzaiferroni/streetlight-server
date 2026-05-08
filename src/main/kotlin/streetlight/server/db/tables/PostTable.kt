@@ -34,6 +34,7 @@ object PostTable : UUIDTable("post") {
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val slug = text("slug").nullable()
     val title = text("title").nullable()
+    val subtitle = text("subtitle").nullable()
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
@@ -70,6 +71,7 @@ fun ResultRow.toPostRow() = PostRow(
     locationId = this[PostTable.locationId]?.toProjectId(),
     slug = this[PostTable.slug],
     title = this[PostTable.title],
+    subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
     imageRef = this[PostTable.imageRef],
@@ -93,6 +95,7 @@ fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
 
 fun UpdateBuilder<*>.writeUpdate(post: PostRow, imageSet: SavedImageSet?) {
     this[PostTable.title] = post.title
+    this[PostTable.subtitle] = post.subtitle
     this[PostTable.text] = post.text
     this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
     this[PostTable.updatedAt] = post.updatedAt
@@ -108,6 +111,7 @@ data class PostRow(
     val starId: StarId?,
     val slug: String?,
     val title: String?,
+    val subtitle: String?,
     val text: String?,
     val geoPoint: GeoPoint?,
     val imageRef: Url?,
