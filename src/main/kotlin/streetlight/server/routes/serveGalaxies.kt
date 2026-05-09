@@ -3,7 +3,6 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.Ok
 import kampfire.model.Problem
-import klutch.server.authenticateJwt
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
@@ -14,6 +13,7 @@ import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
+import streetlight.server.plugins.authGate
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
 
@@ -54,7 +54,7 @@ fun StreetlightRouting.serveGalaxies() {
         Ok(server.dao.post.readActivePosts(galaxyId))
     }
 
-    authenticateJwt {
+    authGate {
         postEndpoint(Api.Galaxies.Found) { request ->
             val edit = request.data
             val identity = identity.getIdentity(call)

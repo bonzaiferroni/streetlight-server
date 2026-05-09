@@ -39,6 +39,10 @@ class StarTableDao: DbService() {
         }
     }
 
+    suspend fun readUserIdExists(userId: StarId) = dbQuery {
+        !StarTable.selectAll().where { StarTable.id.eq(userId) }.empty()
+    }
+
     suspend fun updateStar(
         starId: StarId,
         edit: StarEdit,

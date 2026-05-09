@@ -10,6 +10,7 @@ import streetlight.model.data.LocationEdited
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
+import streetlight.server.plugins.authGate
 import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveLocations.name)
@@ -43,7 +44,7 @@ fun StreetlightRouting.serveLocations() {
         dao.readLocationsInBounds(request.data)
     }
 
-    authenticateJwt(optional = true) {
+    authGate(optional = true) {
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data
             val identity = identity.getIdentityOrNull(call)

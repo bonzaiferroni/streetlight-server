@@ -17,7 +17,7 @@ fun Application.serveApi(app: StreetlightServer) {
     val identity = Identity(authDao)
     routing {
         routingContextOf(app, identity) {
-            serveUserAuth(authDao, identity, StarRefreshTokenTable, ::provideStarUser)
+            serveUserAuth(authDao, identity, StarRefreshTokenTable, ::provideStarUser, ::createAccessToken, ::authGate)
             serveEvents()
             serveGalaxies()
             serveStars()

@@ -11,16 +11,10 @@ import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>): Unit = io.ktor.server.cio.EngineMain.main(args)
 
 fun Application.module() {
     val app = createStreetlight()
-
-    install(StatusPages) {
-        exception<ChannelWriteException> { call, cause ->
-            // common when client disconnects
-        }
-    }
 
     install(Compression) {
         gzip {
@@ -40,7 +34,7 @@ fun Application.module() {
     configureCors()
     configureSerialization()
     configureDatabases()
-    configureSecurity()
+    configureAuth(app)
     configureWebSockets()
     install(SSE)
     serveApi(app)

@@ -10,7 +10,6 @@ import io.ktor.websocket.readBytes
 import kampfire.api.StringId
 import kampfire.model.Ok
 import kampfire.model.Problem
-import klutch.server.authenticateJwt
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
@@ -28,6 +27,7 @@ import streetlight.model.data.TalkRequest
 import streetlight.server.model.StreetlightRouting
 import streetlight.server.model.dao
 import streetlight.server.model.server
+import streetlight.server.plugins.authGate
 import java.util.concurrent.ConcurrentHashMap
 
 fun StreetlightRouting.serveTalk() {
@@ -45,7 +45,7 @@ fun StreetlightRouting.serveTalk() {
     val clientSpaces = ConcurrentHashMap<StringId, TalkSpace>()
     val spaceLocks = Mutex() // use a per-key lock if traffic is heavy
 
-    authenticateJwt(optional = true) {
+    authGate(optional = true) {
 
         sse(Api.Talk.Connect.path) {
             // val identity = identity.getIdentityOrNull(call)
@@ -90,7 +90,7 @@ fun StreetlightRouting.serveTalk() {
         }
     }
 
-    authenticateJwt {
+    authGate {
         postApi(Api.Talk.UpdateComment) {
             val identity = identity.getIdentity(call)
             val comment = it.data

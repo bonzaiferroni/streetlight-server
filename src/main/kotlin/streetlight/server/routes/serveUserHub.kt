@@ -1,14 +1,14 @@
 package streetlight.server.routes
 
 import kampfire.utils.randomUuidString
-import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.server.model.*
+import streetlight.server.plugins.authGate
 
 fun StreetlightRouting.serveUserHub() {
-    authenticateJwt {
+    authGate {
         getEndpoint(Api.Users.Files) {
             error("not implemented")
 //            val userId = getUserId()

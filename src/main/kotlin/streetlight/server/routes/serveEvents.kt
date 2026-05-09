@@ -20,6 +20,7 @@ import streetlight.model.data.MultiLightEdit
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
+import streetlight.server.plugins.authGate
 import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.name)
@@ -69,7 +70,7 @@ fun StreetlightRouting.serveEvents() {
         dao.event.readEvent(it.data)
     }
 
-    authenticateJwt {
+    authGate {
         postEndpoint(Api.Events.Edit) { request ->
             val identity = identity.getIdentity(call)
             val userId = identity.userId
