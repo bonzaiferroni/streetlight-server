@@ -8,13 +8,14 @@ import kampfire.model.Url
 import koala.utils.jsonConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializer
 import streetlight.model.data.Comment
 import streetlight.model.data.CommentId
 import streetlight.model.data.NewComment
 import streetlight.model.data.CommentCreated
-import streetlight.model.data.TalkHistory
 import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
 import streetlight.model.data.SpaceType
@@ -36,26 +37,22 @@ class TalkSpace(
     private val dao = server.dao.talk
 
     private val thumbCache = mutableMapOf<StarId, Url?>()
+    private val messageSharedFlow = MutableSharedFlow<TalkMessage>()
+    val messageFlow: Flow<TalkMessage> = messageSharedFlow
 
-    private val clients = Collections.synchronizedSet<ServerSSESession>(
-        LinkedHashSet()
-    )
+    var clientCount = 0
+        private set
 
     suspend fun init() {
         // get talk space config
     }
 
-    suspend fun readHistory() = dao.readComments(spaceId, space)
-
-    suspend fun addClient(client: ServerSSESession) {
-        clients += client
-        val history = readHistory()
-        client.send(TalkHistory(history).encode())
+    suspend fun addClient() {
+        clientCount++
     }
 
-    fun removeClient(client: ServerSSESession): Boolean {
-        clients -= client
-        return clients.isEmpty()
+    fun removeClient(): Boolean {
+        return --clientCount == 0
     }
 
     suspend fun sendNewComment(commentId: CommentId, comment: NewComment, identity: StarIdentity?) {
@@ -70,22 +67,13 @@ class TalkSpace(
             updatedAt = Clock.System.now(),
             createdAt = Clock.System.now()
         )
-        sendToClients(CommentCreated(comment))
+        messageSharedFlow.emit(CommentCreated(comment))
     }
 
     suspend fun sendUpdatedComment(comment: UpdatedComment) {
-        sendToClients(CommentUpdated(comment.commentId, comment.text))
-    }
-
-    private suspend fun sendToClients(message: TalkMessage) {
-        clients.forEach { client ->
-            client.send(message.encode())
-        }
+        messageSharedFlow.emit(CommentUpdated(comment.commentId, comment.text))
     }
 
     private suspend fun readThumb(starId: StarId) =
         thumbCache[starId] ?: server.dao.star.readThumb(starId).also { thumbCache[starId] = it }
 }
-
-private fun String.decode(): TalkRequest = jsonConfig.decodeFromString(serializer(), this)
-private fun TalkMessage.encode(): String = jsonConfig.encodeToString(serializer(), this)

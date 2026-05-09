@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.compression)
+    implementation(libs.ktor.server.status.pages)
 
     implementation(libs.logback.classic)
     testImplementation(libs.kotlin.test.junit)
