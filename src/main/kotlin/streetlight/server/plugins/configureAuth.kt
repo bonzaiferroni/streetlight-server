@@ -27,11 +27,11 @@ fun Application.configureAuth(server: StreetlightServer) {
     authentication {
         jwt(TOKEN_NAME) {
             realm = TokenProperty.Realm
-//            authHeader { call ->
-//                call.request.cookies["auth_token"]?.let {
-//                    HttpAuthHeader.Single("Bearer", it)
-//                }
-//            }
+            authHeader { call ->
+                call.request.cookies["auth_token"]?.let {
+                    HttpAuthHeader.Single("Bearer", it)
+                }
+            }
             verifier(
                 JWT
                     .require(Algorithm.HMAC256(secret))
@@ -57,6 +57,7 @@ object TokenProperty {
     const val Audience = "streetlight-api"
     const val Issuer = "streetlight-auth"
     const val Realm = "streetlight-api"
+    const val LifetimeSeconds = 30 * 60 // 30 minutes
 }
 
 const val TOKEN_NAME = "auth-jwt"
@@ -69,7 +70,7 @@ fun createAccessToken(userId: StringId): String {
     return JWT.create()
         .withAudience(TokenProperty.Audience)
         .withIssuer(TokenProperty.Issuer)
-        .withExpiresAt(Date(System.currentTimeMillis() + 60000 * 30)) // 30 minutes
+        .withExpiresAt(Date(System.currentTimeMillis() + TokenProperty.LifetimeSeconds * 1000)) // 30 minutes
         .withSubject(userId)
         .sign(Algorithm.HMAC256(secret))
 }
