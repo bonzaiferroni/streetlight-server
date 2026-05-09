@@ -2,6 +2,7 @@ package streetlight.server
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.sse.SSE
 import klutch.server.configureSecurity
 import streetlight.server.model.createStreetlight
 import streetlight.server.plugins.*
@@ -33,6 +34,7 @@ fun Application.module() {
     configureDatabases()
     configureSecurity()
     configureWebSockets()
+    install(SSE)
     serveApi(app)
     configureLogging()
 }

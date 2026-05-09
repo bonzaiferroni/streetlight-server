@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.ktor.server.netty.jvm)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.sse)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.html.builder)

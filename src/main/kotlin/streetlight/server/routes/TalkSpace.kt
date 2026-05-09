@@ -1,9 +1,11 @@
 package streetlight.server.routes
 
+import io.ktor.server.sse.ServerSSESession
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.send
 import kampfire.api.StringId
 import kampfire.model.Url
+import koala.utils.jsonConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,7 +37,7 @@ class TalkSpace(
 
     private val thumbCache = mutableMapOf<StarId, Url?>()
 
-    private val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(
+    private val clients = Collections.synchronizedSet<ServerSSESession>(
         LinkedHashSet()
     )
 
@@ -45,21 +47,15 @@ class TalkSpace(
 
     suspend fun readHistory() = dao.readComments(spaceId, space)
 
-    suspend fun addClient(client: DefaultWebSocketServerSession) {
+    suspend fun addClient(client: ServerSSESession) {
         clients += client
         val history = readHistory()
         client.send(TalkHistory(history).encode())
     }
 
-    fun removeClient(client: DefaultWebSocketServerSession): Boolean {
+    fun removeClient(client: ServerSSESession): Boolean {
         clients -= client
         return clients.isEmpty()
-    }
-
-    suspend fun takeClientBytes(bytes: ByteArray, identity: StarIdentity?) {
-        // when (val request = bytes.decode()) {
-        //     is SendComment -> takeComment(request, identity)
-        // }
     }
 
     suspend fun sendNewComment(commentId: CommentId, comment: NewComment, identity: StarIdentity?) {
@@ -91,8 +87,5 @@ class TalkSpace(
         thumbCache[starId] ?: server.dao.star.readThumb(starId).also { thumbCache[starId] = it }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-private fun ByteArray.decode(): TalkRequest = defaultCbor.decodeFromByteArray(serializer(), this)
-
-@OptIn(ExperimentalSerializationApi::class)
-private fun TalkMessage.encode(): ByteArray = defaultCbor.encodeToByteArray(serializer(), this)
+private fun String.decode(): TalkRequest = jsonConfig.decodeFromString(serializer(), this)
+private fun TalkMessage.encode(): String = jsonConfig.encodeToString(serializer(), this)

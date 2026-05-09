@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
+import io.ktor.server.sse.sse
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
@@ -10,6 +11,7 @@ import kampfire.model.Ok
 import klutch.server.authenticateJwt
 import klutch.server.getEndpoint
 import klutch.server.postApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import streetlight.model.Api
@@ -31,13 +33,46 @@ fun StreetlightRouting.serveTalk() {
 
     authenticateJwt(optional = true) {
 
-        webSocket(Api.Talk.Connect.path) {
-            val identity = identity.getIdentityOrNull(call)
+//        webSocket(Api.Talk.Connect.path) {
+//            val identity = identity.getIdentityOrNull(call)
+//            val stringId = call.parameters["id"]
+//            val space = call.parameters["space"]?.let { SpaceType.from(it) }
+//            if (stringId == null || space == null) {
+//                call.respond(HttpStatusCode.BadRequest)
+//                return@webSocket
+//            }
+//
+//            val clientSpace = spaceLocks.withLock {
+//                clientSpaces.getOrPut(stringId) { TalkSpace(stringId, space, server) }
+//            }
+//
+//            try {
+//                clientSpace.addClient(this)
+//
+//                for (frame in incoming) {
+//                    if (frame is Frame.Binary) {
+//                        val bytes = frame.readBytes()
+//                        clientSpace.takeClientBytes(bytes, identity)
+//                    }
+//                }
+//            } finally {
+//                spaceLocks.withLock {
+//                    val isEmpty = clientSpace.removeClient(this)
+//                    if (isEmpty) {
+//                        clientSpaces.remove(stringId)
+//                    }
+//                }
+//            }
+//        }
+
+        sse(Api.Talk.Connect.path) {
+            println("connect ey")
+            // val identity = identity.getIdentityOrNull(call)
             val stringId = call.parameters["id"]
             val space = call.parameters["space"]?.let { SpaceType.from(it) }
             if (stringId == null || space == null) {
                 call.respond(HttpStatusCode.BadRequest)
-                return@webSocket
+                return@sse
             }
 
             val clientSpace = spaceLocks.withLock {
@@ -46,13 +81,7 @@ fun StreetlightRouting.serveTalk() {
 
             try {
                 clientSpace.addClient(this)
-
-                for (frame in incoming) {
-                    if (frame is Frame.Binary) {
-                        val bytes = frame.readBytes()
-                        clientSpace.takeClientBytes(bytes, identity)
-                    }
-                }
+                awaitCancellation()
             } finally {
                 spaceLocks.withLock {
                     val isEmpty = clientSpace.removeClient(this)
