@@ -47,8 +47,8 @@ fun StreetlightRouting.serveLocations() {
     authGate(optional = true) {
         postEndpoint(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data
-            val identity = identity.getIdentityOrNull(call)
-            val starId = identity?.userId
+            val identity = call.getIdentityOrNull()
+            val starId = identity?.starId
 
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, LocationTable.imageConfig)

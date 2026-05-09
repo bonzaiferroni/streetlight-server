@@ -1,31 +1,22 @@
 package streetlight.server.routes
 
-import io.ktor.server.sse.ServerSSESession
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.websocket.send
 import kampfire.api.StringId
 import kampfire.model.Url
-import koala.utils.jsonConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.serializer
 import streetlight.model.data.Comment
 import streetlight.model.data.CommentId
 import streetlight.model.data.NewComment
 import streetlight.model.data.CommentCreated
 import streetlight.model.data.TalkMessage
-import streetlight.model.data.TalkRequest
 import streetlight.model.data.SpaceType
 import streetlight.model.data.StarId
 import streetlight.model.data.CommentUpdated
 import streetlight.model.data.UpdatedComment
 import streetlight.server.model.StarIdentity
 import streetlight.server.model.StreetlightServer
-import java.util.Collections
-import kotlin.collections.plusAssign
 import kotlin.time.Clock
 
 class TalkSpace(
@@ -60,7 +51,7 @@ class TalkSpace(
             commentId = commentId,
             parentId = comment.parentId,
             username = identity?.username,
-            thumb = identity?.userId?.let { readThumb(it) },
+            thumb = identity?.starId?.let { readThumb(it) },
             text = comment.text,
             lightCount = 0,
             replyCount = 0,

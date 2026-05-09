@@ -16,12 +16,12 @@ fun StreetlightRouting.serveUserHub() {
         }
 
         getEndpoint(Api.Users.Talents) { _ ->
-            val userId = identity.getUserId(call)
+            val userId = call.getIdentity().starId
             server.dao.talent.readUserTalents(userId)
         }
 
         postEndpoint(Api.Users.EditTalent) {
-            val userId = identity.getUserId(call)
+            val userId = call.getIdentity().starId
             val talentId = it.data.talentId
             if (talentId != null) {
                 server.dao.talent.edit(talentId, it.data, userId)
@@ -39,7 +39,7 @@ fun StreetlightRouting.serveUserHub() {
 
 
         postEndpoint(Api.Users.UploadImage) {
-            val userId = identity.getUserId(call)
+            val userId = call.getIdentity().starId
             saveLocalImageFile(it.data, userId, randomUuidString())
         }
     }

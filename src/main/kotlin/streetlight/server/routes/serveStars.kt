@@ -23,19 +23,19 @@ fun StreetlightRouting.serveStars() {
 
     authGate {
         getEndpoint(Api.Stars.ValidateLogin) {
-            val username = identity.getUsername(call)
+            val username = call.getIdentity().username
             dao.star.readByUsername(username)
         }
 
         postEndpoint(Api.Stars.EditStar) {
             val edit = it.data
-            val starId = identity.getUserId(call)
+            val starId = call.getIdentity().starId
             val imageSet = saveImages(starId, starId, edit.imageRef, EventTable.imageConfig)
             dao.star.updateStar(starId, edit, imageSet)
         }
 
         postApi(Api.Stars.EditLight) {
-            val starId = identity.getUserId(call)
+            val starId = call.getIdentity().starId
             val isSuccess = when (val request = it.data) {
                 is LightEdit -> {
                     dao.light.editLight(request, starId)

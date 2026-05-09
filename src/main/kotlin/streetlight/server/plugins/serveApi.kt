@@ -10,14 +10,17 @@ import streetlight.server.db.services.provideStarUser
 import streetlight.server.model.StreetlightServer
 import klutch.server.routingContextOf
 import klutch.utils.Identity
+import streetlight.server.model.getIdentity
 import streetlight.server.routes.*
 
 fun Application.serveApi(app: StreetlightServer) {
     val authDao = StarAuthDao()
-    val identity = Identity(authDao)
+    // val identity = Identity(authDao)
     routing {
-        routingContextOf(app, identity) {
-            serveUserAuth(authDao, identity, StarRefreshTokenTable, ::provideStarUser, ::createAccessToken, ::authGate)
+        routingContextOf(app) {
+            serveUserAuth(authDao, StarRefreshTokenTable, ::provideStarUser, ::createAccessToken, ::authGate) {
+                it.getIdentity().username
+            }
             serveEvents()
             serveGalaxies()
             serveStars()

@@ -3,19 +3,14 @@ package streetlight.server.routes
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.sse.sse
-import io.ktor.server.websocket.webSocket
 import io.ktor.util.cio.ChannelWriteException
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
 import kampfire.api.StringId
 import kampfire.model.Ok
-import kampfire.model.Problem
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
 import klutch.server.readParamOrNull
 import koala.utils.jsonConfig
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.serializer
@@ -26,6 +21,8 @@ import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
 import streetlight.server.model.StreetlightRouting
 import streetlight.server.model.dao
+import streetlight.server.model.getIdentity
+import streetlight.server.model.getIdentityOrNull
 import streetlight.server.model.server
 import streetlight.server.plugins.authGate
 import java.util.concurrent.ConcurrentHashMap
@@ -78,9 +75,9 @@ fun StreetlightRouting.serveTalk() {
         }
 
         postApi(Api.Talk.CreateComment) {
-            val identity = identity.getIdentityOrNull(call)
+            val identity = call.getIdentityOrNull()
             val comment = it.data
-            val commentId = dao.talk.writeComment(comment, identity?.userId)
+            val commentId = dao.talk.writeComment(comment, identity?.starId)
             // td: move off thread
             spaceLocks.withLock {
                 val space = clientSpaces[comment.spaceId] ?: return@withLock
@@ -92,9 +89,9 @@ fun StreetlightRouting.serveTalk() {
 
     authGate {
         postApi(Api.Talk.UpdateComment) {
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
             val comment = it.data
-            val result = dao.talk.updateComment(comment, identity.userId)
+            val result = dao.talk.updateComment(comment, identity.starId)
             // td: move off thread
             spaceLocks.withLock {
                 val space = clientSpaces[comment.spaceId] ?: return@withLock

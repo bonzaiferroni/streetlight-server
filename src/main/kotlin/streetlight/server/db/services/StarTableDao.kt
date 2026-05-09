@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.UserRole
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
@@ -15,6 +16,7 @@ import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toProjectId
 import kotlin.let
 
@@ -39,8 +41,14 @@ class StarTableDao: DbService() {
         }
     }
 
-    suspend fun readUserIdExists(userId: StarId) = dbQuery {
-        !StarTable.selectAll().where { StarTable.id.eq(userId) }.empty()
+    suspend fun readStarPrincipal(userId: StarId) = dbQuery {
+        StarTable.select(StarTable.username, StarTable.roles).where { StarTable.id.eq(userId) }.map {
+            StarIdentity(
+                starId = userId,
+                username = it[StarTable.username],
+                roles = it[StarTable.roles].map { role -> UserRole.valueOf(role) }.toSet()
+            )
+        }.firstOrNull()
     }
 
     suspend fun updateStar(

@@ -57,8 +57,8 @@ fun StreetlightRouting.serveGalaxies() {
     authGate {
         postEndpoint(Api.Galaxies.Found) { request ->
             val edit = request.data
-            val identity = identity.getIdentity(call)
-            val starId = identity.userId
+            val identity = call.getIdentity()
+            val starId = identity.starId
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             val galaxy = dao.galaxy.create(edit, starId, imageSet)
@@ -77,7 +77,7 @@ fun StreetlightRouting.serveGalaxies() {
 
         postApi(Api.Galaxies.PostEvent) {
             val request = it.data
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
             when (val postId = dao.post.createPost(request, identity)) {
                 null -> Problem("Something went wrong.")
                 else -> {
@@ -91,9 +91,9 @@ fun StreetlightRouting.serveGalaxies() {
 
         postApi(Api.Galaxies.PostContent) {
             val edit = it.data
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
 
-            val imageSet = saveImages(identity.userId, null, edit.imageRef, PostTable.imageConfig)
+            val imageSet = saveImages(identity.starId, null, edit.imageRef, PostTable.imageConfig)
 
             val postId = dao.post.createPost(edit, identity, imageSet)
 
@@ -102,10 +102,10 @@ fun StreetlightRouting.serveGalaxies() {
 
         postApi(Api.Galaxies.EditContent) {
             val edit = it.data
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
             val postId = edit.postId ?: error("postId not found")
 
-            val imageSet = saveImages(identity.userId, postId, edit.imageRef, PostTable.imageConfig)
+            val imageSet = saveImages(identity.starId, postId, edit.imageRef, PostTable.imageConfig)
 
             val isSuccess = dao.post.editPost(edit, identity, imageSet)
             if (!isSuccess) {
@@ -117,20 +117,20 @@ fun StreetlightRouting.serveGalaxies() {
 
         postApi(Api.Galaxies.PostLocation) {
             val request = it.data
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
             val postId = dao.post.createPost(request, identity)
 
             responseOf(dao.post.readPost(postId))
         }
 
         getEndpoint(Api.Galaxies.ReadLights) {
-            val userId = identity.getUserId(call)
+            val userId = call.getIdentity().starId
             dao.light.readGalaxyLights(userId)
         }
 
         postApi(Api.Galaxies.RemovePost) {
             val postId = it.data
-            val identity = identity.getIdentity(call)
+            val identity = call.getIdentity()
             Ok(dao.post.removePost(postId, identity))
         }
     }

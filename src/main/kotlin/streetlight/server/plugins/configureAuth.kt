@@ -3,6 +3,7 @@ package streetlight.server.plugins
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
@@ -22,10 +23,15 @@ import java.util.Base64
 import java.util.Date
 
 fun Application.configureAuth(server: StreetlightServer) {
-    val secret = env.read("APP_SECRET")
+    val secret = env.read(APP_SECRET_KEY)
     authentication {
         jwt(TOKEN_NAME) {
             realm = TokenProperty.Realm
+//            authHeader { call ->
+//                call.request.cookies["auth_token"]?.let {
+//                    HttpAuthHeader.Single("Bearer", it)
+//                }
+//            }
             verifier(
                 JWT
                     .require(Algorithm.HMAC256(secret))
@@ -35,13 +41,8 @@ fun Application.configureAuth(server: StreetlightServer) {
                     .build()
             )
             validate { credential ->
-                val userIdExists = credential.payload.subject?.let {
-                    server.dao.star.readUserIdExists(StarId(it))
-                } ?: false
-                if (userIdExists) {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
+                credential.payload.subject?.let {
+                    server.dao.star.readStarPrincipal(StarId(it))
                 }
             }
             challenge { _, _ ->
@@ -52,11 +53,6 @@ fun Application.configureAuth(server: StreetlightServer) {
     }
 }
 
-object TokenClaim {
-    const val Username = "username"
-    const val Roles = "roles"
-}
-
 object TokenProperty {
     const val Audience = "streetlight-api"
     const val Issuer = "streetlight-auth"
@@ -64,18 +60,17 @@ object TokenProperty {
 }
 
 const val TOKEN_NAME = "auth-jwt"
+const val APP_SECRET_KEY = "APP_SECRET"
 
 private val env = readEnvFromPath()
 
-fun createAccessToken(userId: StringId, username: String, roles: Set<UserRole>): String {
-    val secret = env.read("APP_SECRET")
+fun createAccessToken(userId: StringId): String {
+    val secret = env.read(APP_SECRET_KEY)
     return JWT.create()
         .withAudience(TokenProperty.Audience)
         .withIssuer(TokenProperty.Issuer)
         .withExpiresAt(Date(System.currentTimeMillis() + 60000 * 30)) // 30 minutes
         .withSubject(userId)
-        .withClaim(TokenClaim.Username, username)
-        .withClaim(TokenClaim.Roles, roles.toClaimValue())
         .sign(Algorithm.HMAC256(secret))
 }
 

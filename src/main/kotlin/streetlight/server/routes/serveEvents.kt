@@ -15,8 +15,6 @@ import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventCreated
-import streetlight.model.data.LightEdit
-import streetlight.model.data.MultiLightEdit
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
@@ -72,8 +70,8 @@ fun StreetlightRouting.serveEvents() {
 
     authGate {
         postEndpoint(Api.Events.Edit) { request ->
-            val identity = identity.getIdentity(call)
-            val userId = identity.userId
+            val identity = call.getIdentity()
+            val userId = identity.starId
 
             val edit = request.data
 
@@ -100,7 +98,7 @@ fun StreetlightRouting.serveEvents() {
         }
 
         deleteEndpoint(Api.Events.Delete) { eventId, _ ->
-            val starId = identity.getUserId(call)
+            val starId = call.getIdentity().starId
             dao.event.deleteEvent(starId, eventId)
         }
 
@@ -116,7 +114,7 @@ fun StreetlightRouting.serveEvents() {
 
 
         getEndpoint(Api.Events.ReadLights) {
-            val starId = identity.getUserId(call)
+            val starId = call.getIdentity().starId
             dao.light.readEventLights(starId)
         }
     }

@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
-import klutch.db.read
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -34,7 +33,6 @@ import streetlight.server.db.tables.PostTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
-import streetlight.server.db.tables.toPostRow
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
@@ -67,7 +65,7 @@ class PostTableDao : DbService() {
 
     suspend fun editPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
-        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.userId)}) {
+        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.starId)}) {
             it.writeUpdate(post, imageSet)
         } == 1
     }
@@ -110,7 +108,7 @@ class PostTableDao : DbService() {
     }
 
     suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
-        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.userId) } == 1 // td: or admin, or moderator
+        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId) } == 1 // td: or admin, or moderator
     }
 
     suspend fun readActivePosts(
@@ -179,7 +177,7 @@ fun EventPostEdit.toPostRow(
     galaxyId = galaxyId ?: error("galaxyId is required"),
     eventId = eventId ?: error("eventId is required"),
     locationId = null,
-    starId = identity.userId,
+    starId = identity.starId,
     slug = null,
     title = null,
     subtitle = null,
@@ -195,7 +193,7 @@ fun EventPostEdit.toPostRow(
 fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId ?: error("galaxyId is required"),
-    starId = identity?.userId,
+    starId = identity?.starId,
     eventId = null,
     locationId = locationId,
     slug = null,
@@ -213,7 +211,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
 fun StarPostEdit.toPostRow(identity: StarIdentity?, slug: String? = null) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
-    starId = identity?.userId,
+    starId = identity?.starId,
     eventId = null,
     locationId = null,
     slug = slug,
