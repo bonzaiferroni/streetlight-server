@@ -58,7 +58,7 @@ object TokenProperty {
     const val Audience = "streetlight-api"
     const val Issuer = "streetlight-auth"
     const val Realm = "streetlight-api"
-    const val LifetimeSeconds = 10 // 30 * 60 // 30 minutes
+    const val LifetimeSeconds = 30 * 60 // 30 minutes
 }
 
 const val TOKEN_NAME = "auth-jwt"
