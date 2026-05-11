@@ -12,6 +12,7 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kampfire.api.StringId
+import kampfire.model.Token
 import kampfire.model.UserRole
 import kampfire.model.toClaimValue
 import klutch.environment.readEnvFromPath
@@ -65,14 +66,15 @@ const val APP_SECRET_KEY = "APP_SECRET"
 
 private val env = readEnvFromPath()
 
-fun createAccessToken(userId: StringId): String {
+fun createAccessToken(userId: StringId): Token {
     val secret = env.read(APP_SECRET_KEY)
-    return JWT.create()
+    val value = JWT.create()
         .withAudience(TokenProperty.Audience)
         .withIssuer(TokenProperty.Issuer)
         .withExpiresAt(Date(System.currentTimeMillis() + TokenProperty.LifetimeSeconds * 1000)) // 30 minutes
         .withSubject(userId)
         .sign(Algorithm.HMAC256(secret))
+    return Token(value, TokenProperty.LifetimeSeconds)
 }
 
 fun Route.authGate(optional: Boolean = false, block: Route.() -> Unit) = authenticate(TOKEN_NAME, optional = optional) {

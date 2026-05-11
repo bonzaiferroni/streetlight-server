@@ -19,7 +19,19 @@ import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 
 class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
-    override suspend fun createUser(user: StarUser) = dbQuery {
+    override suspend fun createUser(seed: UserSeed) = dbQuery {
+        val now = Clock.System.now()
+        val user = StarUser(
+            starId = StarId.random(),
+            username = seed.request.username,
+            hashedPassword = seed.hashedPassword,
+            salt = seed.salt,
+            email = seed.request.email,
+            roles = seed.roles.toSet(),
+            createdAt = now,
+            updatedAt = now,
+        )
+
         StarTable.insertAndGetId {
             it.writeFull(user)
         }.value
@@ -53,17 +65,3 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
 
 private fun eqIdentity(identity: String) =
     (StarTable.username.lowerCase() eq identity.lowercase()) or (StarTable.email.lowerCase() eq identity.lowercase())
-
-fun provideStarUser(seed: UserSeed): StarUser {
-    val now = Clock.System.now()
-    return StarUser(
-        starId = StarId.random(),
-        username = seed.request.username,
-        hashedPassword = seed.hashedPassword,
-        salt = seed.salt,
-        email = seed.request.email,
-        roles = seed.roles.toSet(),
-        createdAt = now,
-        updatedAt = now,
-    )
-}

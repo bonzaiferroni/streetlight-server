@@ -10,7 +10,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import streetlight.server.db.services.StarAuthDao
-import streetlight.server.db.services.provideStarUser
 import streetlight.server.db.tables.*
 
 fun initDb(
@@ -31,7 +30,7 @@ fun initDb(
     }
 
     runBlocking {
-        UserInitService(env, StarAuthDao(), ::provideStarUser).initUsers()
+        UserInitService(env, StarAuthDao()).initUsers()
     }
 }
 
