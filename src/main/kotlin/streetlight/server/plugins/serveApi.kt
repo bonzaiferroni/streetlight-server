@@ -21,7 +21,9 @@ fun Application.serveApi(app: StreetlightServer) {
                 refreshTokenTable = StarRefreshTokenTable,
                 createToken = ::createAccessToken,
                 authGate = ::authGate,
-            ) { it.getIdentity().username }
+                getUsername = { it.getIdentity().username },
+                getUserId = { it.getIdentity().starId }
+            )
 
             serveEvents()
             serveGalaxies()
