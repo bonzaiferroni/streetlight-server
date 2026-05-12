@@ -51,7 +51,8 @@ fun StreetlightRouting.serveLocations() {
             val starId = identity?.starId
 
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, LocationTable.imageConfig)
+            val imageRef = edit.imageRef?.takeIf { it.value.isNotBlank() }
+            val imageSet = saveImages(imageUserId, edit.locationId, imageRef, LocationTable.imageConfig)
 
             edit.locationId?.let {
                 val location = dao.updateLocation(it, starId, edit, imageSet)
