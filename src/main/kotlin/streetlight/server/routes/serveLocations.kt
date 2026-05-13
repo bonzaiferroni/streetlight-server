@@ -45,7 +45,7 @@ fun StreetlightRouting.serveLocations() {
     }
 
     authGate(optional = true) {
-        postEndpoint(Api.Locations.CreateOrEdit) { request ->
+        postApi(Api.Locations.CreateOrEdit) { request ->
             val edit = request.data
             val identity = call.getIdentityOrNull()
             val starId = identity?.starId
@@ -54,7 +54,7 @@ fun StreetlightRouting.serveLocations() {
             val imageRef = edit.imageRef?.takeIf { it.value.isNotBlank() }
             val imageSet = saveImages(imageUserId, edit.locationId, imageRef, LocationTable.imageConfig)
 
-            edit.locationId?.let {
+            val location = edit.locationId?.let {
                 val location = dao.updateLocation(it, starId, edit, imageSet)
                 server.service.omni.sendMessage(LocationEdited(
                     locationId = location.locationId,
@@ -71,6 +71,7 @@ fun StreetlightRouting.serveLocations() {
                     recordAt = Clock.System.now()
                 ))
             }
+            responseOf(location)
         }
 
         postApi(Api.Locations.ParseLocation) { request ->
