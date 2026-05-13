@@ -2,11 +2,13 @@ package streetlight.server
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
-import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.sse.SSE
-import io.ktor.util.cio.ChannelWriteException
-import klutch.server.configureSecurity
-import streetlight.server.model.createStreetlight
+import klutch.server.ServerContext
+import klutch.server.configureAuth
+import org.koin.dsl.koinApplication
+import streetlight.model.data.StarId
+import streetlight.server.model.DaoFacade
+import streetlight.server.model.appModule
 import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
@@ -14,7 +16,14 @@ import streetlight.server.plugins.*
 fun main(args: Array<String>): Unit = io.ktor.server.cio.EngineMain.main(args)
 
 fun Application.module() {
-    val app = createStreetlight()
+    // val app = createStreetlight()
+
+    val koin = koinApplication {
+        modules(appModule)
+    }.koin
+
+    val server = ServerContext(koin)
+    val dao = server.get<DaoFacade>()
 
     install(Compression) {
         gzip {
@@ -34,9 +43,9 @@ fun Application.module() {
     configureCors()
     configureSerialization()
     configureDatabases()
-    configureAuth(app)
+    configureAuth(server) { dao.star.readStarPrincipal(StarId(it)) }
     configureWebSockets()
     install(SSE)
-    serveApi(app)
+    serveApi(server)
     configureLogging()
 }

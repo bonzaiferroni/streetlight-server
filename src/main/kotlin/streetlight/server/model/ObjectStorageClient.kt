@@ -9,16 +9,17 @@ import aws.sdk.kotlin.services.s3.putObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.net.url.Url as AwsUrl
 import kabinet.console.globalConsole
+import kabinet.utils.Environment
 import kampfire.model.Url
 import kampfire.model.toUrl
 
-class ObjectStorageClient(
-    private val bucket: String,
-    private val endpoint: String,
-    private val region: String,
-    private val accessKey: String,
-    private val secretKey: String
-) {
+class ObjectStorageClient(env: Environment) {
+    private val bucket = env.read("S3_BUCKET")
+    private val endpoint = env.read("S3_ENDPOINT")
+    private val region = env.read("S3_REGION")
+    private val accessKey = env.read("S3_ACCESS_KEY")
+    private val secretKey = env.read("S3_SECRET_KEY")
+
     private val host = "$bucket.$endpoint"
 
     private val client = S3Client {

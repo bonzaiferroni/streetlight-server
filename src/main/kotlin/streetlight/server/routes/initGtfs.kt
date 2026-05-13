@@ -7,6 +7,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import klutch.server.ApiContext
 import kotlin.time.Clock
 import kotlin.time.Instant
 import streetlight.model.data.TransitRoute
@@ -14,7 +15,7 @@ import streetlight.model.data.TransitShape
 import streetlight.model.data.TransitStop
 import streetlight.model.data.TransitStopTime
 import streetlight.model.data.TransitTrip
-import streetlight.server.model.StreetlightServer
+import streetlight.server.model.dao
 import java.io.File
 import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.days
@@ -22,8 +23,8 @@ import kotlin.time.Duration.Companion.days
 private val console = globalConsole.getHandle("initGtfs")
 private val httpClient = HttpClient(CIO)
 
-suspend fun initGtfs(app: StreetlightServer) {
-    if (app.dao.transitRoute.readAllRoutes().isNotEmpty()) return
+suspend fun ApiContext.initGtfs() {
+    if (dao.transitRoute.readAllRoutes().isNotEmpty()) return
     console.log("initializin' gtfs")
     val cacheDir = File("gtfs")
     if (!cacheDir.exists()) cacheDir.mkdirs()
@@ -95,9 +96,9 @@ suspend fun initGtfs(app: StreetlightServer) {
     }
 
     console.log("upserting ${routesModified.size} routes")
-    app.dao.transitRoute.batchUpsert(routesModified)
+    dao.transitRoute.batchUpsert(routesModified)
     console.log("upserting ${stops.size} size")
-    app.dao.transitStop.batchUpsert(stops)
+    dao.transitStop.batchUpsert(stops)
 
     val routeStops = routeTrips.entries.associate { (routeId, trips) ->
         routeId to stopTimes.filter { stopTime -> trips.any { stopTime.tripId == it.tripId } }.map { it.transitStopId }.toSet()
@@ -105,7 +106,7 @@ suspend fun initGtfs(app: StreetlightServer) {
 
     console.log("upserting routeStops for ${routeStops.size} routes")
     routeStops.forEach { (transitRouteId, transitStopIds) ->
-        app.dao.transitRoute.upsertRouteStops(transitRouteId, transitStopIds)
+        dao.transitRoute.upsertRouteStops(transitRouteId, transitStopIds)
     }
 }
 

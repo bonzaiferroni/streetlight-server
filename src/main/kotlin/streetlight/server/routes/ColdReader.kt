@@ -1,21 +1,20 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import streetlight.agent.UrlParser
+import streetlight.agent.ParserService
 import streetlight.model.data.ColdParse
 import streetlight.model.data.Location
 import streetlight.model.external.OSMQuery
 import streetlight.model.external.toGeoPoint
-import streetlight.server.model.StreetlightServer
 import streetlight.server.external.OSMHttpClient
+import streetlight.server.model.DaoFacade
 
 private val console = globalConsole.getHandle(ColdReader::class)
 
 class ColdReader(
-    private val app: StreetlightServer
+    private val parser: ParserService,
+    private val dao: DaoFacade,
 ) {
-    private val agent = UrlParser(app.env.read("GEMINI_KEY_A"))
-    private val dao = app.dao.event
     private val osmClient by lazy { OSMHttpClient() }
 
 //    suspend fun serve(request: ParseRequest): MultiEventParseResult? {
@@ -46,7 +45,7 @@ class ColdReader(
 //        return MultiEventParseResult(parse.hasContent, location = location, events = events)
 //    }
 
-    private suspend fun readLocationFromParse(parse: ColdParse, app: StreetlightServer): Location? {
+    private suspend fun readLocationFromParse(parse: ColdParse): Location? {
         val parse = parse.location ?: return null
         val name = parse.name
         var address = parse.address
@@ -55,7 +54,7 @@ class ColdReader(
             return null
         }
 
-        var location = app.dao.location.readLocationAt(name, address)
+        var location = dao.location.readLocationAt(name, address)
         if (location != null) {
             console.log("found db location from parse")
             return location
@@ -66,14 +65,14 @@ class ColdReader(
             street = parse.address,
             city = parse.city
         ))?.firstOrNull() ?: return null
-        location = app.dao.location.readLocationAt(place.toGeoPoint())
+        location = dao.location.readLocationAt(place.toGeoPoint())
         if (location != null) {
             console.log("found db location from OSM geoPoint")
             return location
         }
 
         address = place.address.let { "${it.number} ${it.road}" }
-        location = app.dao.location.readLocationAt(place.name, address)
+        location = dao.location.readLocationAt(place.name, address)
         if (location != null) {
             console.log("found db location from OSM name/address")
             return location

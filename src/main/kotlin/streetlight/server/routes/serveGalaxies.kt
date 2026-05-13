@@ -3,6 +3,7 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.Ok
 import kampfire.model.Problem
+import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
@@ -13,11 +14,12 @@ import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
-import streetlight.server.plugins.authGate
+import klutch.server.authGate
 
-private val console = globalConsole.getHandle(StreetlightRouting::serveGalaxies.name)
+private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 
-fun StreetlightRouting.serveGalaxies() {
+fun ApiContext.serveGalaxies() {
+    val omni = server.get<OmniService>()
 
     getEndpoint(Api.Galaxies.Top) {
         dao.galaxy.readTopGalaxies()
@@ -40,18 +42,18 @@ fun StreetlightRouting.serveGalaxies() {
 
     postApi(Api.Galaxies.ReadMultiPosts) {
         val galaxyIds = it.data
-        Ok(server.dao.post.readActivePosts(galaxyIds))
+        Ok(dao.post.readActivePosts(galaxyIds))
     }
 
     getApi(Api.Galaxies.ReadPost, { it }) { request ->
         val id = request.data
-        val post = server.dao.post.readPost(id)
+        val post = dao.post.readPost(id)
         post?.let { Ok(it) } ?: Problem("Post not found: $id")
     }
 
     getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {
         val galaxyId = it.data
-        Ok(server.dao.post.readActivePosts(galaxyId))
+        Ok(dao.post.readActivePosts(galaxyId))
     }
 
     authGate {
@@ -63,7 +65,7 @@ fun StreetlightRouting.serveGalaxies() {
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             val galaxy = dao.galaxy.create(edit, starId, imageSet)
             if (galaxy != null) {
-                server.service.omni.sendMessage(
+                omni.sendMessage(
                     GalaxyFounded(
                         galaxyId = galaxy.galaxyId,
                         name = galaxy.name,

@@ -4,6 +4,7 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.toUrl
+import klutch.server.ApiContext
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
@@ -16,7 +17,7 @@ import java.io.File
 
 private val console = globalConsole.getHandle("uploader")
 
-suspend fun StreetlightRouting.saveLocalImageFile(
+suspend fun ApiContext.saveLocalImageFile(
     bytes: ByteArray,
     starId: StarId?,
     filename: String? = null,
@@ -32,7 +33,7 @@ suspend fun StreetlightRouting.saveLocalImageFile(
     val url = "/${uploadFolder.name}/$name".toUrl()
     file.writeBytes(bytes)
 
-    server.dao.userFile.create(
+    dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
             starId = starId,
@@ -48,19 +49,20 @@ suspend fun StreetlightRouting.saveLocalImageFile(
     return url
 }
 
-suspend fun StreetlightRouting.saveS3ImageFile(
+suspend fun ApiContext.saveS3ImageFile(
     bytes: ByteArray,
     userId: StarId?,
     size: ImageSize,
     format: FileFormat,
     filename: String? = null,
 ): Url? {
+    val storage = server.get<ObjectStorageClient>()
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value
 
-    val url = server.storage.s3.put(bytes, filename, format.contentType) ?: return null
+    val url = storage.put(bytes, filename, format.contentType) ?: return null
     
-    server.dao.userFile.create(
+    dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
             starId = userId,

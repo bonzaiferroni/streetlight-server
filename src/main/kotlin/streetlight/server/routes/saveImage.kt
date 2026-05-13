@@ -9,17 +9,17 @@ import kampfire.model.ImageSize
 import kampfire.model.ScaledImage
 import kampfire.model.Url
 import kampfire.utils.randomUuidString
+import klutch.server.ApiContext
 import streetlight.model.data.FileFormat
 import streetlight.model.data.ProjectId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.TableImageConfig
-import streetlight.server.model.StreetlightRouting
 import java.io.File
 
 private val console = globalConsole.getHandle("saveImage")
 
-suspend fun StreetlightRouting.saveLocalImage(
+suspend fun ApiContext.saveLocalImage(
     bytes: ByteArray,
     starId: StarId?,
     filename: String,
@@ -32,7 +32,7 @@ suspend fun StreetlightRouting.saveLocalImage(
     return saveLocalImageFile(resizedBytes, starId, filename, format)
 }
 
-suspend fun StreetlightRouting.saveRemoteImage(
+suspend fun ApiContext.saveRemoteImage(
     bytes: ByteArray,
     userId: StarId?,
     filename: String,
@@ -53,7 +53,7 @@ suspend fun StreetlightRouting.saveRemoteImage(
     return results.takeIf { it.isNotEmpty() }
 }
 
-suspend fun StreetlightRouting.saveImages(
+suspend fun ApiContext.saveImages(
     userId: StarId?,
     rowId: ProjectId?,
     imageRef: Url?,
@@ -88,7 +88,7 @@ private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode
     return FormatAndEncodingMode(format, forceEncoding)
 }
 
-suspend fun StreetlightRouting.saveImageSizes(
+suspend fun ApiContext.saveImageSizes(
     userId: StarId?,
     imageUrl: Url,
     sizes: List<ImageSize>,

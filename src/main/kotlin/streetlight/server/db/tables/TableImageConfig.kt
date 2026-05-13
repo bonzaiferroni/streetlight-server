@@ -1,7 +1,6 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
-import kampfire.model.ScaledImage
 import kampfire.model.ScaledImageArray
 import kampfire.model.Url
 import klutch.db.DbService
@@ -11,8 +10,6 @@ import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.ProjectId
-import streetlight.server.model.StreetlightRouting
-import streetlight.server.routes.saveImageSizes
 
 class TableImageConfig(
     val table: UUIDTable,

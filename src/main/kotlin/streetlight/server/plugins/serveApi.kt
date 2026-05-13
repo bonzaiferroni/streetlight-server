@@ -6,20 +6,17 @@ import klutch.gemini.serveSpeech
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.server.db.services.StarAuthDao
-import streetlight.server.model.StreetlightServer
 import klutch.server.routingContextOf
 import streetlight.server.model.getIdentity
 import streetlight.server.routes.*
 
-fun Application.serveApi(app: StreetlightServer) {
+fun Application.serveApi(server: ServerContext) {
     val authDao = StarAuthDao()
     // val identity = Identity(authDao)
     routing {
-        routingContextOf(app) {
+        routingContextOf(server) {
             serveUserAuth(
                 dao = authDao,
-                refreshTokenTable = StarRefreshTokenTable,
-                createToken = ::createAccessToken,
                 authGate = ::authGate,
                 getUsername = { it.getIdentity().username },
                 getUserId = { it.getIdentity().starId }
@@ -35,7 +32,7 @@ fun Application.serveApi(app: StreetlightServer) {
             serveGtfs()
             serveRequests()
             // serveGemini(Api.Gemini, app.gemini)
-            serveSpeech(Api.Speech, app.ai.speech)
+            // serveSpeech(Api.Speech, app.ai.speech)
             serveUserHub()
             serveChat()
             serveMap()

@@ -6,6 +6,7 @@ import io.ktor.server.sse.sse
 import io.ktor.util.cio.ChannelWriteException
 import kampfire.api.StringId
 import kampfire.model.Ok
+import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
@@ -19,15 +20,13 @@ import streetlight.model.data.GalaxyId
 import streetlight.model.data.SpaceType
 import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
-import streetlight.server.model.StreetlightRouting
 import streetlight.server.model.dao
 import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
-import streetlight.server.model.server
-import streetlight.server.plugins.authGate
+import klutch.server.authGate
 import java.util.concurrent.ConcurrentHashMap
 
-fun StreetlightRouting.serveTalk() {
+fun ApiContext.serveTalk() {
 
     getEndpoint(Api.Talk.ReadGalaxy, { GalaxyId(it) }) {
         dao.talk.readGalaxyTalk(it.data)
@@ -54,7 +53,7 @@ fun StreetlightRouting.serveTalk() {
             }
 
             val clientSpace = spaceLocks.withLock {
-                clientSpaces.getOrPut(stringId) { TalkSpace(stringId, space, server) }
+                clientSpaces.getOrPut(stringId) { TalkSpace(stringId, space, dao) }
             }
 
             try {

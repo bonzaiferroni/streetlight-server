@@ -15,17 +15,16 @@ import streetlight.model.data.SpaceType
 import streetlight.model.data.StarId
 import streetlight.model.data.CommentUpdated
 import streetlight.model.data.UpdatedComment
+import streetlight.server.model.DaoFacade
 import streetlight.server.model.StarIdentity
-import streetlight.server.model.StreetlightServer
 import kotlin.time.Clock
 
 class TalkSpace(
     val spaceId: StringId,
     val space: SpaceType,
-    val server: StreetlightServer
+    private val dao: DaoFacade,
 ) {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val dao = server.dao.talk
 
     private val thumbCache = mutableMapOf<StarId, Url?>()
     private val messageSharedFlow = MutableSharedFlow<TalkMessage>()
@@ -66,5 +65,5 @@ class TalkSpace(
     }
 
     private suspend fun readThumb(starId: StarId) =
-        thumbCache[starId] ?: server.dao.star.readThumb(starId).also { thumbCache[starId] = it }
+        thumbCache[starId] ?: dao.star.readThumb(starId).also { thumbCache[starId] = it }
 }

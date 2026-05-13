@@ -3,15 +3,15 @@ package streetlight.server.routes
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
+import streetlight.server.db.services.SongTableService
 import streetlight.server.model.*
 
-fun StreetlightRouting.serveSongs() {
-    val dao = server.dao.song
-    val service = server.service.song
+fun ApiContext.serveSongs() {
+    // val service = server.get<SongTableService>()
 
     getEndpoint(Api.SongProfile, { it.toProjectId() }) {
         val songId = it.data
-        dao.readById(songId)
+        dao.song.readById(songId)
     }
 
 //    authenticateJwt {

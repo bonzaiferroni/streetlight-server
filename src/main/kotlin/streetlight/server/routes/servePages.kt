@@ -3,18 +3,16 @@ package streetlight.server.routes
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import klutch.server.ApiContext
 import koala.html.IdOrNullParse
 import koala.html.IdParse
 import koala.html.StaticParse
 import kotlinx.html.HTML
 import streetlight.model.data.StarPost
 import streetlight.model.data.EventId
-import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
-import streetlight.model.data.PostId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
-import streetlight.server.model.StreetlightRouting
 import streetlight.web.StreetlightScreen
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
@@ -22,9 +20,9 @@ import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
 
-private val console = globalConsole.getHandle(StreetlightRouting::servePages.name)
+private val console = globalConsole.getHandle(ApiContext::servePages.name)
 
-fun StreetlightRouting.servePages() {
+fun ApiContext.servePages() {
 
 //    get("/event-portal/{id}") {
 //        val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
@@ -86,7 +84,7 @@ fun StreetlightRouting.servePages() {
     // not yet implemented in web app
     get("/event-signup/{id}") {
         val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
-        val event = server.dao.event.readEvent(eventId) ?: return@get
+        val event = dao.event.readEvent(eventId) ?: return@get
         call.respondHtml {
             eventSignUp(event, SiteStyles)
         }
@@ -100,34 +98,34 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
-suspend fun StreetlightRouting.renderHome(): HtmlRender {
-    val content = server.service.content.readHomeContent()
+suspend fun ApiContext.renderHome(): HtmlRender {
+    val content = server.get<ContentService>().readHomeContent()
 
     return HtmlRender {
         homePage(content, SiteStyles)
     }
 }
 
-suspend fun StreetlightRouting.renderAboutApp(): HtmlRender {
+suspend fun ApiContext.renderAboutApp(): HtmlRender {
     return HtmlRender {
         aboutPage(SiteStyles)
     }
 }
 
-suspend fun StreetlightRouting.renderLocation(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
     val locationId = arg?.let { LocationId(it) } ?: return null
-    val location = server.dao.location.readLocation(locationId) ?: return null
+    val location = dao.location.readLocation(locationId) ?: return null
 
     return HtmlRender {
         locationPage(location, SiteStyles)
     }
 }
 
-suspend fun StreetlightRouting.renderGalaxy(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderGalaxy(arg: String?): HtmlRender? {
     val id = arg ?: return null
-    val galaxy = server.dao.galaxy.readGalaxy(id) ?: return null
+    val galaxy = dao.galaxy.readGalaxy(id) ?: return null
     val galaxyId = galaxy.galaxyId
-    val posts = server.dao.post.readActivePosts(galaxyId)
+    val posts = dao.post.readActivePosts(galaxyId)
 
     val content = GalaxyContent(
         galaxy = galaxy,
@@ -139,11 +137,11 @@ suspend fun StreetlightRouting.renderGalaxy(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun StreetlightRouting.renderStar(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderStar(arg: String?): HtmlRender? {
     val username = arg ?: return null
-    val userId = server.dao.star.readIdByUsername(username) ?: return null // td: serve not found content
-    val star = server.dao.star.readByUsername(username) ?: return null
-    val posts = server.dao.post.readStarPosts(userId)
+    val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
+    val star = dao.star.readByUsername(username) ?: return null
+    val posts = dao.post.readStarPosts(userId)
     val content = StarProfileContent(
         star = star,
         posts = posts
@@ -154,9 +152,9 @@ suspend fun StreetlightRouting.renderStar(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun StreetlightRouting.renderEventProfile(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderEventProfile(arg: String?): HtmlRender? {
     val slug = arg ?: return null
-    val event = server.dao.event.readEventLocationBySlug(slug) ?: return null
+    val event = dao.event.readEventLocationBySlug(slug) ?: return null
 
     return HtmlRender {
         appPage("${event.title} | Streetlight", SiteStyles) {
@@ -165,7 +163,7 @@ suspend fun StreetlightRouting.renderEventProfile(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun StreetlightRouting.renderSiteDoc(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
     val docId = arg ?: return null
     val node = SiteDocTree.nodes[docId] ?: return null
 
@@ -176,7 +174,7 @@ suspend fun StreetlightRouting.renderSiteDoc(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun StreetlightRouting.renderPost(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
     val id = arg ?: return null
     val post = dao.post.readPost(id) as? StarPost ?: return null
 
@@ -187,7 +185,7 @@ suspend fun StreetlightRouting.renderPost(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun StreetlightRouting.renderClientBase(): HtmlRender {
+suspend fun ApiContext.renderClientBase(): HtmlRender {
     return HtmlRender {
         appPage("Streetlight", SiteStyles) {
 

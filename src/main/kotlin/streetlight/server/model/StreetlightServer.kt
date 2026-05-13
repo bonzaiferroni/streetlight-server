@@ -4,20 +4,10 @@ import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
 import kabinet.utils.Environment
-import klutch.db.services.UserTableDao
 import klutch.environment.readEnvFromPath
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
-import streetlight.agent.UrlParser
 import streetlight.server.db.services.*
-
-interface StreetlightServer {
-    val env: Environment
-    val dao: DaoFacade
-    val service: ServiceFacade
-    val ai: InferenceFacade
-    val storage: StorageFacade
-}
 
 class DaoFacade(
     val location: LocationTableDao = LocationTableDao(),
@@ -40,39 +30,9 @@ class DaoFacade(
     val light: LightTableDao = LightTableDao()
 )
 
-class ServiceFacade(
-    app: StreetlightServer,
-    val song: SongTableService = SongTableService(),
-    val omni: OmniService = OmniService(app.dao),
-    val content: ContentService = ContentService(app.dao)
-    // val service: CreateUserService = CreateUserService(),
-)
-
-class StorageFacade(
-    env: Environment
-) {
-    val s3 = ObjectStorageClient(
-        bucket = env.read("S3_BUCKET"),
-        endpoint = env.read("S3_ENDPOINT"),
-        region = env.read("S3_REGION"),
-        accessKey = env.read("S3_ACCESS_KEY"),
-        secretKey = env.read("S3_SECRET_KEY"),
-    )
-//    val s3 = S3Client {
-//        region = env.read("S3_REGION") // e.g. "gra" or "sbg"
-//        endpointUrl = Url.parse(env.read("S3_ENDPOINT"))
-//        credentialsProvider = StaticCredentialsProvider {
-//            accessKeyId = env.read("S3_ACCESS_KEY")
-//            secretAccessKey = env.read("S3_SECRET_KEY")
-//        }
-//    }
-}
-
 class InferenceFacade(
     env: Environment
 ) {
-    val parser = UrlParser(env.read("GEMINI_KEY_A"))
-
     private val failedRequestFilter = mutableSetOf<String>()
     private val replicate = ReplicateClient(env.read("REPLICATE_KEY"))
     private val serverIp = env.read("SERVER_IP")
@@ -101,14 +61,4 @@ class InferenceFacade(
     }
 }
 
-fun createStreetlight(): StreetlightServer {
-    return object: StreetlightServer {
-        override val env = readEnvFromPath()
-        override val dao = DaoFacade()
-        override val ai = InferenceFacade(env)
-        override val storage = StorageFacade(env)
-        override val service = ServiceFacade(this)
-    }
-}
-
-private val console = globalConsole.getHandle(StreetlightServer::class)
+private val console = globalConsole.getHandle("StreetlightServer")

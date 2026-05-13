@@ -10,38 +10,38 @@ import streetlight.model.data.LocationEdited
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
-import streetlight.server.plugins.authGate
+import klutch.server.authGate
 import kotlin.time.Clock
 
-private val console = globalConsole.getHandle(StreetlightRouting::serveLocations.name)
+private val console = globalConsole.getHandle(ApiContext::serveLocations.name)
 
-fun StreetlightRouting.serveLocations() {
-    val dao = server.dao.location
-    val reader = LocationParser(server)
+fun ApiContext.serveLocations() {
+    val parser = server.get<LocationParser>()
+    val omni = server.get<OmniService>()
 
     getEndpoint(Api.Locations, { it.toProjectId() }) {
         val id = it.data
-        dao.readLocation(id)
+        dao.location.readLocation(id)
     }
 
     getEndpoint(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
-        dao.searchLocations(query)
+        dao.location.searchLocations(query)
     }
 
     getEndpoint(Api.Locations.ReadTop) { endpoint ->
         val count = readParam(endpoint.count)
-        dao.readTop(count)
+        dao.location.readTop(count)
     }
 
     queryEndpoint(Api.Locations.QueryPoint, GeoPoint::fromQuery) { sent, endpoint ->
         sent?.let {
-            dao.readNearbyLocations(sent, 1.kilometers)
+            dao.location.readNearbyLocations(sent, 1.kilometers)
         }
     }
 
     postEndpoint(Api.Locations.QueryBounds) { request ->
-        dao.readLocationsInBounds(request.data)
+        dao.location.readLocationsInBounds(request.data)
     }
 
     authGate(optional = true) {
@@ -55,16 +55,16 @@ fun StreetlightRouting.serveLocations() {
             val imageSet = saveImages(imageUserId, edit.locationId, imageRef, LocationTable.imageConfig)
 
             val location = edit.locationId?.let {
-                val location = dao.updateLocation(it, starId, edit, imageSet)
-                server.service.omni.sendMessage(LocationEdited(
+                val location = dao.location.updateLocation(it, starId, edit, imageSet)
+                omni.sendMessage(LocationEdited(
                     locationId = location.locationId,
                     name = location.name,
                     username = identity?.username,
                     recordAt = Clock.System.now()
                 ))
                 location
-            } ?: dao.createLocation(starId, edit, imageSet).also {
-                server.service.omni.sendMessage(LocationCreated(
+            } ?: dao.location.createLocation(starId, edit, imageSet).also {
+                omni.sendMessage(LocationCreated(
                     locationId = it.locationId,
                     name = it.name,
                     username = identity?.username,
@@ -75,7 +75,7 @@ fun StreetlightRouting.serveLocations() {
         }
 
         postApi(Api.Locations.ParseLocation) { request ->
-            reader.parseLocation(request.data)
+            parser.parseLocation(request.data)
         }
     }
 }

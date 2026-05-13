@@ -18,14 +18,14 @@ import streetlight.model.data.EventCreated
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
-import streetlight.server.plugins.authGate
+import klutch.server.authGate
 import kotlin.time.Clock
 
-private val console = globalConsole.getHandle(StreetlightRouting::serveEvents.name)
+private val console = globalConsole.getHandle(ApiContext::serveEvents.name)
 
-fun StreetlightRouting.serveEvents() {
-    val app = model
-    val reader = EventParser(app)
+fun ApiContext.serveEvents() {
+    val reader = server.get<EventParser>()
+    val omni = server.get<OmniService>()
 
     getEndpoint(Api.Events) {
         dao.event.readActiveEvents()
@@ -87,12 +87,12 @@ fun StreetlightRouting.serveEvents() {
             if (eventId != null) {
                 console.log("updating event: ${edit.title}")
                 val event = dao.event.updateEvent(eventId, userId, edit, imageSet)
-                app.service.omni.sendMessage(event.toEventEdited(identity.username))
+                omni.sendMessage(event.toEventEdited(identity.username))
                 event
             } else {
                 console.log("creating event: ${edit.title}")
                 val event = dao.event.createEvent(userId, edit, imageSet)
-                app.service.omni.sendMessage(event.toEventCreated(identity.username))
+                omni.sendMessage(event.toEventCreated(identity.username))
                 event
             }
         }

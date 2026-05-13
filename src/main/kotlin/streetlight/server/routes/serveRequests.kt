@@ -1,12 +1,13 @@
 package streetlight.server.routes
 
+import klutch.server.ApiContext
 import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.server.model.*
 
-fun StreetlightRouting.serveRequests() {
+fun ApiContext.serveRequests() {
 
     postEndpoint(Api.RequestBox) {
-        server.dao.request.createRequest(it.data)?.requestId
+        dao.request.createRequest(it.data)?.requestId
     }
 }

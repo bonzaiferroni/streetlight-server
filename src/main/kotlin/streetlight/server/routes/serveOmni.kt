@@ -7,20 +7,21 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.send
 import kabinet.console.globalConsole
+import klutch.server.ApiContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import streetlight.model.Api
 import streetlight.model.data.OmniHistory
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniStatus
-import streetlight.server.model.StreetlightRouting
-import streetlight.server.model.server
+import streetlight.server.model.OmniService
+import streetlight.server.model.dao
 import java.util.Collections
 
-private val console = globalConsole.getHandle(StreetlightRouting::serveOmni.name)
+private val console = globalConsole.getHandle(ApiContext::serveOmni.name)
 
-fun StreetlightRouting.serveOmni() {
-    val omni = server.service.omni
+fun ApiContext.serveOmni() {
+    val omni = server.get<OmniService>()
 
     val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(
         LinkedHashSet()
@@ -31,7 +32,7 @@ fun StreetlightRouting.serveOmni() {
     webSocket(Api.Omni.Log.path) {
         clients += this
         try {
-            val history = server.dao.omni.readHistory(20)
+            val history = dao.omni.readHistory(20)
             // console.log(history.size)
 
             sendMessage(OmniHistory(history))

@@ -5,6 +5,7 @@ import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
+import streetlight.agent.ParserService
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventParseResult
@@ -15,14 +16,11 @@ import streetlight.model.data.LocationParse
 import streetlight.model.data.ParseRequest
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEdit
-import streetlight.server.model.StreetlightServer
 import streetlight.server.utils.readHtmlMetaInfo
 
 class LocationParser(
-    private val app: StreetlightServer
+    private val parser: ParserService
 ) {
-    private val agent = app.ai.parser
-
     suspend fun parseLocation(request: ParseRequest): ApiResponse<LocationEdit> {
         val html = when (request) {
             is UrlParseRequest -> fetchHtml(request.url)
@@ -36,7 +34,7 @@ class LocationParser(
 
         val meta = doc.readHtmlMetaInfo()
 
-        return when (val response = agent.readHtml<LocationParse>(url, doc, ParserText.locationInstructions)) {
+        return when (val response = parser.readHtml<LocationParse>(url, doc, ParserText.locationInstructions)) {
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(

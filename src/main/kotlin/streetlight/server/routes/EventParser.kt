@@ -6,6 +6,7 @@ import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
+import streetlight.agent.ParserService
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventEdit
@@ -16,15 +17,14 @@ import streetlight.model.data.ParseRequest
 import streetlight.model.data.EventParseResult
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
-import streetlight.server.model.StreetlightServer
+import streetlight.server.model.InferenceFacade
 import streetlight.server.utils.readHtmlMetaInfo
 
 private val console = globalConsole.getHandle(EventParser::class)
 
 class EventParser(
-    private val app: StreetlightServer
+    private val parser: ParserService
 ) {
-    private val agent = app.ai.parser
 
     suspend fun parseEvent(request: ParseRequest): ApiResponse<EventEdit> {
         val html = when (request) {
@@ -39,7 +39,7 @@ class EventParser(
 
         val meta = doc.readHtmlMetaInfo()
 
-        return when (val response = agent.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
+        return when (val response = parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEventEdit(url, null, null).copy(

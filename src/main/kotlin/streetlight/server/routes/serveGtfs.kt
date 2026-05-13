@@ -14,6 +14,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import klutch.server.ApiContext
 import klutch.server.getEndpoint
 import klutch.server.readParam
 import kotlinx.coroutines.CoroutineScope
@@ -26,14 +27,15 @@ import streetlight.model.data.AreaTransit
 import streetlight.model.data.AreaTransitState
 import streetlight.model.data.TransitVehicle
 import streetlight.server.model.*
+import streetlight.server.routes.initGtfs
 import kotlin.time.Duration.Companion.seconds
 
 private val httpClient = HttpClient(CIO)
-private val console = globalConsole.getHandle(StreetlightRouting::serveGtfs.name)
+private val console = globalConsole.getHandle(ApiContext::serveGtfs.name)
 
-fun StreetlightRouting.serveGtfs() {
+fun ApiContext.serveGtfs() {
     CoroutineScope(Dispatchers.IO).launch {
-        initGtfs(server)
+        initGtfs()
     }
 
     var vehiclePositionBytes: ByteArray? = null
@@ -109,8 +111,8 @@ fun StreetlightRouting.serveGtfs() {
 
     getEndpoint(Api.Gtfs.Routes) {
         val routeIds = setOf("101E", "101D", "103W", "117N", "107R", "101H", "A")
-        val routes = server.dao.transitRoute.readRoutes(routeIds)
-        val stops = server.dao.transitStop.readRouteStops(routeIds)
+        val routes = dao.transitRoute.readRoutes(routeIds)
+        val stops = dao.transitStop.readRouteStops(routeIds)
         AreaTransit(
             routes = routes,
             stops = stops

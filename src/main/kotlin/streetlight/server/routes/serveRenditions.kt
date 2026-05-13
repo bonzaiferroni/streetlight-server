@@ -5,17 +5,15 @@ import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.model.*
 
-fun StreetlightRouting.serveRenditions() {
-    val dao = server.dao.rendition
-
+fun ApiContext.serveRenditions() {
     getEndpoint(Api.RenditionFeed, { it.toProjectId() }) {
         val id = it.data
-        dao.readById(id)
+        dao.rendition.readById(id)
     }
 
     getEndpoint(Api.RenditionFeed.BySong, { it.toProjectId() }) {
         val songId = it.data
-        dao.readAllBySongId(songId)
+        dao.rendition.readAllBySongId(songId)
     }
 
 //    authenticateJwt {

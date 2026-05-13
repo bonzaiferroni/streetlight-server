@@ -62,6 +62,9 @@ dependencies {
 
     implementation(platform("aws.sdk.kotlin:bom:1.6.52"))
     implementation("aws.sdk.kotlin:s3")
+
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
 }
 
 ktor {

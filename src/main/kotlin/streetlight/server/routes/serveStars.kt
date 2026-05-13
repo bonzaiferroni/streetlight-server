@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import kampfire.model.Ok
 import kampfire.model.Problem
+import klutch.server.ApiContext
 import klutch.server.getEndpoint
 import klutch.server.postApi
 import klutch.server.postEndpoint
@@ -12,9 +13,9 @@ import streetlight.model.data.MultiLightEdit
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import streetlight.server.model.dao
-import streetlight.server.plugins.authGate
+import klutch.server.authGate
 
-fun StreetlightRouting.serveStars() {
+fun ApiContext.serveStars() {
 
     getEndpoint(Api.Stars.ReadByUsername) { endpoint ->
         val username = readParamOrNull(endpoint.username) ?: return@getEndpoint null

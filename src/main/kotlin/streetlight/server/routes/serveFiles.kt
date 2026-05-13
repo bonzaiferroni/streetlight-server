@@ -3,12 +3,10 @@ package streetlight.server.routes
 import io.ktor.http.ContentType
 import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
-import io.ktor.server.routing.Routing
-import koala.JsFile
-import streetlight.server.model.StreetlightRouting
+import klutch.server.ApiContext
 import java.io.File
 
-fun StreetlightRouting.serveFiles() {
+fun ApiContext.serveFiles() {
     uploadFolder.mkdirs()
     wwwFolder.mkdirs()
 
