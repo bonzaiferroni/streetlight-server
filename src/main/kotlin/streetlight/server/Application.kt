@@ -8,7 +8,7 @@ import klutch.server.configureAuth
 import org.koin.dsl.koinApplication
 import streetlight.model.data.StarId
 import streetlight.server.model.DaoFacade
-import streetlight.server.model.appModule
+import streetlight.server.model.serverModule
 import streetlight.server.plugins.*
 
 //val host = "https://streetlight.ing"
@@ -19,7 +19,7 @@ fun Application.module() {
     // val app = createStreetlight()
 
     val koin = koinApplication {
-        modules(appModule)
+        modules(serverModule)
     }.koin
 
     val server = ServerContext(koin)

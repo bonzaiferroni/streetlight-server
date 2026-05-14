@@ -1,6 +1,7 @@
 package streetlight.server.db
 
 import kabinet.utils.Environment
+import klutch.db.createCounterTrigger
 import klutch.db.services.UserInitService
 import klutch.db.tables.RefreshTokenTable
 import klutch.environment.readEnvFromPath
@@ -21,12 +22,18 @@ fun initDb(
     val db = connectDb(env)
 
     transaction(db) {
+        // replaced: SchemaUtils.create(*dbTables.toTypedArray())
         val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables(refreshTokenTable).toTypedArray())
         statements.forEach { statement ->
             exec(statement)
         }
-        // SchemaUtils.create(*dbTables.toTypedArray())
+
+        // uncomment for logger
         // addLogger(StdOutSqlLogger)
+
+        counterTriggers.forEach {
+            createCounterTrigger(it)
+        }
     }
 
     runBlocking {
@@ -57,7 +64,14 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     GalaxyLightTable,
     EventLightTable,
     LocationLightTable,
+    CityTable,
+    CountryTable,
+    StateTable,
     OmniTable,
+)
+
+val counterTriggers = listOf(
+    galaxyCountTrigger
 )
 
 fun connectDb(env: Environment) = Database.connect(

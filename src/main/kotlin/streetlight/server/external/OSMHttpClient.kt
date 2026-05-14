@@ -11,8 +11,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kampfire.model.GeoPoint
 import kotlinx.serialization.json.Json
+import streetlight.model.external.OSMCity
 import streetlight.model.external.OSMPlace
 import streetlight.model.external.OSMQuery
+import streetlight.model.external.toOSMCity
 
 class OSMHttpClient(
     userAgent: String = "Streetlight/1.0"
@@ -31,7 +33,7 @@ class OSMHttpClient(
         }
     }
 
-    suspend fun readPlace(point: GeoPoint): OSMPlace? =
+    suspend fun searchPlace(point: GeoPoint): OSMPlace? =
         client.get("https://nominatim.openstreetmap.org/reverse") {
             url {
                 parameters.append("lat", point.lat.toString())
@@ -41,7 +43,7 @@ class OSMHttpClient(
             }
         }.body()
 
-    suspend fun readPlace(query: OSMQuery): List<OSMPlace>? =
+    suspend fun searchPlace(query: OSMQuery): List<OSMPlace>? =
         client.get("https://nominatim.openstreetmap.org/search") {
             url {
                 query.amenity?.let { parameters.append("amenity", it) }
@@ -56,4 +58,8 @@ class OSMHttpClient(
                 parameters.append("limit", query.limit.toString())
             }
         }.body()
+
+    suspend fun searchCity(query: String, country: String): List<OSMCity>? =
+        searchPlace(OSMQuery(city = query, country = country))?.map { it.toOSMCity() }
+        
 }

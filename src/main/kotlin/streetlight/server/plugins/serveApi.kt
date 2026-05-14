@@ -41,6 +41,7 @@ fun Application.serveApi(server: ServerContext) {
             serveSiteDocs()
             serveTalk()
             serveContent()
+            serveLocality()
         }
     }
 }

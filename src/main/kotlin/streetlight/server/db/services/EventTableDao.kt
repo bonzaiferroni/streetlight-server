@@ -12,27 +12,19 @@ import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.eqLowercase
+import klutch.utils.eqIgnoreCase
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.jdbc.batchInsert
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
-import streetlight.model.data.LightEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.Slug
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
@@ -41,7 +33,6 @@ import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -62,7 +53,7 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventBySlug(slug: Slug) = dbQuery {
-        EventTable.readFirstOrNull { it.slug.eqLowercase(slug) }?.toEvent()
+        EventTable.readFirstOrNull { it.slug.eqIgnoreCase(slug) }?.toEvent()
     }
 
     suspend fun readEventLocationBySlug(slug: Slug) = dbQuery {

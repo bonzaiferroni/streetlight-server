@@ -6,7 +6,7 @@ import klutch.db.DbService
 import klutch.db.readById
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.eqLowercase
+import klutch.utils.eqIgnoreCase
 import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -24,14 +24,14 @@ class StarTableDao: DbService() {
 
     suspend fun readByUsername(username: String) = dbQuery {
         StarTable.selectAll()
-            .where { StarTable.username.eqLowercase(username) }
+            .where { StarTable.username.eqIgnoreCase(username) }
             .map { it.toStar() }
             .firstOrNull()
     }
 
     suspend fun readIdByUsername(username: String): StarId? = dbQuery {
         StarTable.select(StarTable.id)
-            .where { StarTable.username.eqLowercase(username) }
+            .where { StarTable.username.eqIgnoreCase(username) }
             .firstOrNull()?.let { it[StarTable.id].toProjectId() }
     }
 

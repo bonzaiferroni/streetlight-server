@@ -4,7 +4,6 @@ import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
 import kabinet.utils.Environment
-import klutch.environment.readEnvFromPath
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
 import streetlight.server.db.services.*
@@ -23,6 +22,7 @@ class DaoFacade(
     val request: RequestTableDao = RequestTableDao(),
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),
+    val city: LocalityTableDao = LocalityTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
     val userFile: UploadFileTableDao = UploadFileTableDao(),
     val talk: CommentTableDao = CommentTableDao(),

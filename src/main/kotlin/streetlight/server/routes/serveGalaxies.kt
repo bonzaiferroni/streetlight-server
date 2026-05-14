@@ -57,24 +57,32 @@ fun ApiContext.serveGalaxies() {
     }
 
     authGate {
-        postEndpoint(Api.Galaxies.Found) { request ->
+        postEndpoint(Api.Galaxies.CreateOrEdit) { request ->
             val edit = request.data
             val identity = call.getIdentity()
             val starId = identity.starId
+            val city = edit.cityId?.let { dao.city.readCity(it) ?: error("city not found") }
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-            val galaxy = dao.galaxy.create(edit, starId, imageSet)
-            if (galaxy != null) {
-                omni.sendMessage(
-                    GalaxyFounded(
-                        galaxyId = galaxy.galaxyId,
-                        name = galaxy.name,
-                        username = identity.username,
-                        recordAt = galaxy.createdAt
-                    )
-                )
+            when (edit.galaxyId) {
+                null -> {
+                    val galaxy = dao.galaxy.create(edit, starId, city, imageSet)
+                    if (galaxy != null) {
+                        omni.sendMessage(
+                            GalaxyFounded(
+                                galaxyId = galaxy.galaxyId,
+                                name = galaxy.name,
+                                username = identity.username,
+                                recordAt = galaxy.createdAt
+                            )
+                        )
+                    }
+                    galaxy
+                }
+                else -> {
+                    dao.galaxy.update(edit, city, imageSet)
+                }
             }
-            galaxy
         }
 
         postApi(Api.Galaxies.PostEvent) {

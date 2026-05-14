@@ -60,7 +60,7 @@ class ColdReader(
             return location
         }
 
-        val place = osmClient.readPlace(OSMQuery(
+        val place = osmClient.searchPlace(OSMQuery(
             amenity = parse.name,
             street = parse.address,
             city = parse.city

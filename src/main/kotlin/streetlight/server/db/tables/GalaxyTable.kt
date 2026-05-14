@@ -13,6 +13,8 @@ import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.City
+import streetlight.model.data.CityId
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
@@ -21,8 +23,11 @@ import streetlight.server.utils.toProjectId
 
 object GalaxyTable : UUIDTable("galaxy") {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val cityName = text("city_name").nullable()
     val slug = text("path").uniqueIndex() // td: rename column as slug
     val name = text("name")
+    val tagLine = text("tag_line").nullable()
     val description = text("description").nullable()
     val center = point("center")
     val zoom = float("zoom")
@@ -49,14 +54,16 @@ object GalaxyTable : UUIDTable("galaxy") {
     )
 }
 
-fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.toUUID()
     this[GalaxyTable.founderId] = founderId.toUUID()
     this[GalaxyTable.createdAt] = galaxy.createdAt
-    writeGalaxyUpdate(galaxy, imageSet)
+    writeGalaxyUpdate(galaxy, city, imageSet)
 }
 
-fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: SavedImageSet?) {
+    this[GalaxyTable.cityId] = city?.cityId?.toUUID()
+    this[GalaxyTable.cityName] = city?.name
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.description] = galaxy.description
     this[GalaxyTable.slug] = galaxy.slug
@@ -73,6 +80,7 @@ fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
     slug = this[GalaxyTable.slug],
     name = this[GalaxyTable.name],
+    tagLine = this[GalaxyTable.tagLine],
     description = this[GalaxyTable.description],
     center = this[GalaxyTable.center].toGeoPoint(),
     zoom = this[GalaxyTable.zoom],

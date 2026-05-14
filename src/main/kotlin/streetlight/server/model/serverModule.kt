@@ -9,11 +9,12 @@ import streetlight.server.db.services.SongTableService
 import klutch.server.JwtService
 import klutch.server.TokenConfig
 import streetlight.agent.ParserService
+import streetlight.server.external.OSMHttpClient
 import streetlight.server.plugins.StarRefreshTokenTable
 import streetlight.server.routes.EventParser
 import streetlight.server.routes.LocationParser
 
-val appModule = module {
+val serverModule = module {
     single { readEnvFromPath() }
     single { DaoFacade() }
     single { TokenConfig(
@@ -33,6 +34,7 @@ val appModule = module {
     single { OmniService(get()) }
     single { ContentService(get()) }
     single { RefreshTokenService(StarRefreshTokenTable) }
+    single { OSMHttpClient() }
 }
 
 val ApiContext.env get() = server.koin.get<Environment>()
