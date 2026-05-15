@@ -8,6 +8,7 @@ import klutch.db.url
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -19,7 +20,7 @@ import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
-object LocationTable : UUIDTable("location") {
+object LocationTable : UuidTable("location") {
     val starId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
     // td: update column name in database
     val scoutId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
@@ -77,9 +78,9 @@ fun ResultRow.toLocation() = Location(
 
 // Updaters
 fun UpdateBuilder<*>.writeFull(location: Location, scoutId: StarId?, imageSet: SavedImageSet?) {
-    this[LocationTable.id] = location.locationId.toUUID()
-    this[LocationTable.starId] = scoutId?.toUUID()
-    this[LocationTable.scoutId] = scoutId?.toUUID()
+    this[LocationTable.id] = location.locationId.value
+    this[LocationTable.starId] = scoutId?.value
+    this[LocationTable.scoutId] = scoutId?.value
     this[LocationTable.createdAt] = location.createdAt
     writeUpdate(location, imageSet)
 }

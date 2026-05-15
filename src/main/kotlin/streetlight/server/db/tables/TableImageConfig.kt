@@ -6,13 +6,14 @@ import kampfire.model.Url
 import klutch.db.DbService
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.ProjectId
 
 class TableImageConfig(
-    val table: UUIDTable,
+    val table: UuidTable,
     val refColumn: Column<Url?>,
     val arrayColumn: Column<ScaledImageArray?>,
     val sizes: List<ImageSize>
@@ -28,7 +29,7 @@ data class SavedImageSet(
     val array: ScaledImageArray?
 )
 
-fun <T: UUIDTable> imageConfigOf(
+fun <T: UuidTable> imageConfigOf(
     table: T,
     refColumn: Column<Url?>,
     arrayColumn: Column<ScaledImageArray?>,

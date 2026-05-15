@@ -4,9 +4,8 @@ import kampfire.model.ImageSize
 import kampfire.model.UserRole
 import klutch.db.scaledImages
 import klutch.db.url
-import klutch.utils.toStringId
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -16,7 +15,7 @@ import streetlight.model.data.StarId
 import streetlight.model.data.StarUser
 
 // this provides additional properties for User, likely will become the only table for account information
-object StarTable: UUIDTable("star") {
+object StarTable: UuidTable("star") {
     val username = text("username")
     val hashedPassword = text("hashed_password")
     val salt = text("salt")
@@ -51,7 +50,7 @@ fun ResultRow.toStar() = Star(
 )
 
 fun ResultRow.toStarUser() = StarUser(
-    starId = StarId(this[StarTable.id].value.toStringId()),
+    starId = StarId(this[StarTable.id].value),
     username = this[StarTable.username],
     hashedPassword = this[StarTable.hashedPassword],
     salt = this[StarTable.salt],
@@ -62,7 +61,7 @@ fun ResultRow.toStarUser() = StarUser(
 )
 
 fun UpdateBuilder<*>.writeFull(user: StarUser) {
-    this[StarTable.id] = user.userId.value.toUUID()
+    this[StarTable.id] = user.userId.value
     this[StarTable.createdAt] = user.createdAt
     writeUpdate(user)
 }

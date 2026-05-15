@@ -2,16 +2,16 @@ package streetlight.server.db.tables
 
 import kabinet.utils.toInstantFromUtc
 import kabinet.utils.toLocalDateTimeUtc
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Request
 import streetlight.server.utils.toProjectId
 
-object RequestTable : UUIDTable() {
+object RequestTable : UuidTable() {
     val eventId = reference("event_id", EventTable, onDelete = ReferenceOption.CASCADE)
     val songId = reference("song_id", SongTable, onDelete = ReferenceOption.CASCADE)
     val isJoining = bool("is_joining")
@@ -32,9 +32,9 @@ fun ResultRow.toRequest() = Request(
 
 // Updaters
 fun UpdateBuilder<*>.writeFull(request: Request) {
-    this[RequestTable.id] = request.requestId.toUUID()
-    this[RequestTable.eventId] = request.eventId.toUUID()
-    this[RequestTable.songId] = request.songId.toUUID()
+    this[RequestTable.id] = request.requestId.value
+    this[RequestTable.eventId] = request.eventId.value
+    this[RequestTable.songId] = request.songId.value
     writeUpdate(request)
 }
 

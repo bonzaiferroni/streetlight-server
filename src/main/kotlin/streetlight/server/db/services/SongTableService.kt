@@ -6,7 +6,6 @@ import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.readById
 import klutch.utils.eq
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.count
@@ -37,7 +36,7 @@ class SongTableService(): DbService() {
 
         if (nextRequest != null) {
             RequestTable.deleteSingle { it.id.eq(nextRequest.requestId) }
-            val song = SongTable.readById(nextRequest.songId.toUUID()).toSong()
+            val song = SongTable.readById(nextRequest.songId.value).toSong()
             console.log("playing request: ${song.title}")
             EventSong(
                 song = song,

@@ -6,10 +6,10 @@ import klutch.db.scaledImages
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -21,7 +21,7 @@ import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
-object GalaxyTable : UUIDTable("galaxy") {
+object GalaxyTable : UuidTable("galaxy") {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityName = text("city_name").nullable()
@@ -55,8 +55,8 @@ object GalaxyTable : UUIDTable("galaxy") {
 }
 
 fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: City?, imageSet: SavedImageSet?) {
-    this[GalaxyTable.id] = galaxy.galaxyId.toUUID()
-    this[GalaxyTable.founderId] = founderId.toUUID()
+    this[GalaxyTable.id] = galaxy.galaxyId.value
+    this[GalaxyTable.founderId] = founderId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
     writeGalaxyUpdate(galaxy, city, imageSet)
 }

@@ -4,6 +4,7 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.toUrl
+import kampfire.utils.toStringId
 import klutch.server.ApiContext
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
@@ -58,7 +59,7 @@ suspend fun ApiContext.saveS3ImageFile(
 ): Url? {
     val storage = server.get<ObjectStorageClient>()
     val fileId = UploadFileId.random()
-    val filename = filename ?: fileId.value
+    val filename = filename ?: fileId.value.toString()
 
     val url = storage.put(bytes, filename, format.contentType) ?: return null
     

@@ -1,9 +1,9 @@
 package streetlight.server.db.tables
 
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -14,7 +14,7 @@ import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 import kotlin.time.Instant
 
-object CommentTable: UUIDTable("comment") {
+object CommentTable: UuidTable("comment") {
     val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).nullable().index()
     val text = text("text")
@@ -56,9 +56,9 @@ fun ResultRow.toCommentRow() = CommentRow(
 )
 
 fun UpdateBuilder<*>.writeFull(comment: CommentRow) {
-    this[CommentTable.id] = comment.commentId.toUUID()
-    this[CommentTable.parentId] = comment.parentId?.toUUID()
-    this[CommentTable.starId] = comment.starId?.toUUID()
+    this[CommentTable.id] = comment.commentId.value
+    this[CommentTable.parentId] = comment.parentId?.value
+    this[CommentTable.starId] = comment.starId?.value
     this[CommentTable.createdAt] = comment.createdAt
     writeUpdate(comment)
 }

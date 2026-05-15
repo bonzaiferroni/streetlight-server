@@ -3,10 +3,10 @@ package streetlight.server.db.tables
 import kampfire.model.ImageSize
 import klutch.db.scaledImages
 import klutch.db.url
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -18,7 +18,7 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 
-object EventTable : UUIDTable("event") {
+object EventTable : UuidTable("event") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -61,10 +61,10 @@ object EventTable : UUIDTable("event") {
 }
 
 fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, imageSet: SavedImageSet?) {
-    this[EventTable.id] = event.eventId.toUUID()
-    this[EventTable.starId] = starId.toUUID()
-    this[EventTable.locationId] = event.locationId.toUUID()
-    this[EventTable.currentRequestId] = event.currentRequestId?.toUUID()
+    this[EventTable.id] = event.eventId.value
+    this[EventTable.starId] = starId.value
+    this[EventTable.locationId] = event.locationId.value
+    this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.slug] = event.slug
     this[EventTable.createdAt] = event.createdAt
     writeUpdate(event, imageSet)

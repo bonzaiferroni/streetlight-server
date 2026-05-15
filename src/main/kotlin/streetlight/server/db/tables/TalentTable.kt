@@ -1,8 +1,8 @@
 package streetlight.server.db.tables
 
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -14,7 +14,7 @@ import streetlight.model.data.TalentLevel
 import streetlight.model.data.TalentType
 import streetlight.server.utils.toProjectId
 
-object TalentTable : UUIDTable("talent") {
+object TalentTable : UuidTable("talent") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     val name = text("name")
     val description = text("description").nullable()
@@ -42,8 +42,8 @@ fun ResultRow.toTalent() = Talent(
 
 // Updaters
 fun UpdateBuilder<*>.writeFull(talent: Talent, starId: StarId) {
-    this[TalentTable.id] = talent.talentId.value.toUUID()
-    this[TalentTable.starId] = starId.value.toUUID()
+    this[TalentTable.id] = talent.talentId.value
+    this[TalentTable.starId] = starId.value
     this[TalentTable.createdAt] = talent.createdAt
     writeUpdate(talent)
 }

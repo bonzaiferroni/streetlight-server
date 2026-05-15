@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import klutch.utils.toStringId
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.count
@@ -49,7 +48,7 @@ class SongTableDao: DbService() {
                 updatedAt = now,
                 createdAt = now,
             ))
-        }.value.toStringId().toProjectId()
+        }.value.toProjectId()
     }
 
     suspend fun updateSong(starId: StarId, song: Song): Boolean = dbQuery {

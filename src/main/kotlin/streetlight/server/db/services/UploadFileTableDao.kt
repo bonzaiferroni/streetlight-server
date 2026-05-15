@@ -4,8 +4,8 @@ import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import klutch.utils.toStringId
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
@@ -21,11 +21,11 @@ class UploadFileTableDao : DbService() {
     }
 
     suspend fun readUserFiles(userId: BasicUserId) = dbQuery {
-        UploadFileTable.read { UploadFileTable.starId.eq(userId) }.map { it.toUploadFile() }
+        UploadFileTable.read { UploadFileTable.starId.eq(userId.value) }.map { it.toUploadFile() }
     }
 
     suspend fun readUserFiles(userId: BasicUserId, count: Int) = dbQuery {
-        UploadFileTable.read { UploadFileTable.starId.eq(userId) }
+        UploadFileTable.read { UploadFileTable.starId.eq(userId.value) }
             .orderBy(UploadFileTable.createdAt, SortOrder.DESC_NULLS_LAST)
             .limit(count)
             .map { it.toUploadFile() }
@@ -34,6 +34,6 @@ class UploadFileTableDao : DbService() {
     suspend fun create(userFile: UploadFile): UploadFileId = dbQuery {
         UploadFileTable.insertAndGetId {
             it.writeFull(userFile)
-        }.value.toStringId().toProjectId()
+        }.value.toProjectId()
     }
 }

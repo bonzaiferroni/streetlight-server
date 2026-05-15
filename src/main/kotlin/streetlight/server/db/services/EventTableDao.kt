@@ -13,7 +13,6 @@ import klutch.db.readFirstOrNull
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.eqIgnoreCase
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
@@ -69,7 +68,7 @@ class EventTableDao: DbService() {
         EventTable.insertWithSlug(event.title, EventTable.slug) {
             it.writeFull(event, starId, imageSet)
         }
-        EventTable.readById(event.eventId.toUUID()).toEvent()
+        EventTable.readById(event.eventId.value).toEvent()
     }
 
     suspend fun updateEvent(
@@ -82,7 +81,7 @@ class EventTableDao: DbService() {
         EventTable.updateSingleWhere({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event, imageSet)
         }
-        EventTable.readById(event.eventId.toUUID()).toEvent()
+        EventTable.readById(event.eventId.value).toEvent()
     }
 
     suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {

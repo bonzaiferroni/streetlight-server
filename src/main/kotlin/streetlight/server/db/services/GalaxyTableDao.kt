@@ -26,12 +26,13 @@ import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
 import streetlight.server.db.tables.writeGalaxyUpdate
 import streetlight.server.utils.toProjectId
+import kotlin.uuid.Uuid
 
 class GalaxyTableDao : DbService() {
 
     suspend fun readGalaxy(id: StringId) = dbQuery {
-        val galaxyId = GalaxyId(id)
-        GalaxyTable.read { it.id.eq(galaxyId) or it.slug.eqIgnoreCase(id) }.firstOrNull()?.toGalaxy()
+        val galaxyId = Uuid.parseOrNull(id)?.let { GalaxyId(it) }
+        GalaxyTable.read { it.id.eq(galaxyId?.value) or it.slug.eqIgnoreCase(id) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {

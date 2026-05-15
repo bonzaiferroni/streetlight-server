@@ -2,16 +2,16 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.url
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.*
 import streetlight.server.utils.toProjectId
 
-object UploadFileTable : UUIDTable("user_file") {
+object UploadFileTable : UuidTable("user_file") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).nullable()
     val url = url("url")
     val fileType = enumeration<FileType>("file_type")
@@ -33,8 +33,8 @@ fun ResultRow.toUploadFile() = UploadFile(
 )
 
 fun UpdateBuilder<*>.writeFull(file: UploadFile) {
-    this[UploadFileTable.id] = file.uploadFileId.toUUID()
-    this[UploadFileTable.starId] = file.starId?.toUUID()
+    this[UploadFileTable.id] = file.uploadFileId.value
+    this[UploadFileTable.starId] = file.starId?.value
     this[UploadFileTable.createdAt] = file.createdAt
     writeUpdate(file)
 }

@@ -2,16 +2,11 @@ package streetlight.server.db.services
 
 import kotlin.time.Instant
 import klutch.db.DbService
-import klutch.db.read
 import klutch.utils.eq
-import klutch.utils.toStringId
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
@@ -26,16 +21,16 @@ import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.utils.toProjectId
 import java.util.UUID
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 private class LightConfig(
     val parentTable: Table,
-    val parentId: Column<EntityID<UUID>>,
+    val parentId: Column<EntityID<Uuid>>,
     val lightTable: Table,
-    val lightStarId: Column<EntityID<UUID>>,
-    val lightForeignId: Column<EntityID<UUID>>,
+    val lightStarId: Column<EntityID<Uuid>>,
+    val lightForeignId: Column<EntityID<Uuid>>,
     val parentLightCount: Column<Int>,
     val createdAt: Column<Instant>,
 )
@@ -79,10 +74,10 @@ class LightTableDao : DbService() {
     }
 
     // -- generic engine --
-    private suspend fun <T> readLights(config: LightConfig, starId: StarId, toId: (String) -> T) = dbQuery {
+    private suspend fun <T> readLights(config: LightConfig, starId: StarId, toId: (Uuid) -> T) = dbQuery {
         config.lightTable.select(config.lightForeignId)
             .where { config.lightStarId.eq(starId) }
-            .map { toId(it[config.lightForeignId].value.toStringId()) }
+            .map { toId(it[config.lightForeignId].value) }
     }
 
     private suspend fun editLight(
@@ -92,19 +87,19 @@ class LightTableDao : DbService() {
     ) = dbQuery {
         when (edit.isLit) {
             true -> config.lightTable.insertIgnore {
-                it[config.lightStarId] = starId.toUUID()
-                it[config.lightForeignId] = edit.stringId.toUUID()
+                it[config.lightStarId] = starId.value
+                it[config.lightForeignId] = edit.targetId
                 it[config.createdAt] = Clock.System.now()
             }
             else -> config.lightTable.deleteWhere {
-                config.lightForeignId.eq(edit.stringId) and config.lightStarId.eq(starId)
+                config.lightForeignId.eq(edit.targetId) and config.lightStarId.eq(starId)
             }
         }
-        refreshLightCount(config, edit.stringId)
+        refreshLightCount(config, edit.targetId)
         true
     }
 
-    private fun refreshLightCount(config: LightConfig, foreignId: String) {
+    private fun refreshLightCount(config: LightConfig, foreignId: Uuid) {
         val count = config.lightTable.selectAll()
             .where { config.lightForeignId.eq(foreignId) }
             .count().toInt()

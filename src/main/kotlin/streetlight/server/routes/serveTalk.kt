@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.sse.sse
 import io.ktor.util.cio.ChannelWriteException
-import kampfire.api.StringId
 import kampfire.model.Ok
 import klutch.server.ApiContext
 import klutch.server.getApi
@@ -16,7 +15,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.serializer
 import streetlight.model.Api
-import streetlight.model.data.GalaxyId
 import streetlight.model.data.SpaceType
 import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
@@ -24,11 +22,13 @@ import streetlight.server.model.dao
 import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import klutch.server.authGate
+import streetlight.model.data.toProjectId
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.uuid.Uuid
 
 fun ApiContext.serveTalk() {
 
-    getEndpoint(Api.Talk.ReadGalaxy, { GalaxyId(it) }) {
+    getEndpoint(Api.Talk.ReadGalaxy, { it.toProjectId() }) {
         dao.talk.readGalaxyTalk(it.data)
     }
 
@@ -38,22 +38,22 @@ fun ApiContext.serveTalk() {
         Ok(dao.talk.readComments(spaceId, spaceType))
     }
 
-    val clientSpaces = ConcurrentHashMap<StringId, TalkSpace>()
+    val clientSpaces = ConcurrentHashMap<Uuid, TalkSpace>()
     val spaceLocks = Mutex() // use a per-key lock if traffic is heavy
 
     authGate(optional = true) {
 
         sse(Api.Talk.Connect.path) {
             // val identity = identity.getIdentityOrNull(call)
-            val stringId = call.parameters["id"]
+            val spaceId = call.parameters["id"]?.let { Uuid.parse(it) }
             val space = call.parameters["space"]?.let { SpaceType.from(it) }
-            if (stringId == null || space == null) {
+            if (spaceId == null || space == null) {
                 call.respond(HttpStatusCode.BadRequest)
                 return@sse
             }
 
             val clientSpace = spaceLocks.withLock {
-                clientSpaces.getOrPut(stringId) { TalkSpace(stringId, space, dao) }
+                clientSpaces.getOrPut(spaceId) { TalkSpace(spaceId, space, dao) }
             }
 
             try {
@@ -67,7 +67,7 @@ fun ApiContext.serveTalk() {
                 spaceLocks.withLock {
                     val isEmpty = clientSpace.removeClient()
                     if (isEmpty) {
-                        clientSpaces.remove(stringId)
+                        clientSpaces.remove(spaceId)
                     }
                 }
             }

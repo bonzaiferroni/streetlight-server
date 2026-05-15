@@ -4,7 +4,6 @@ import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import klutch.utils.toStringId
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Performer
@@ -29,7 +28,7 @@ class SparkTableDao: DbService() {
     suspend fun createSpark(performer: Performer): PerformerId = dbQuery {
         PerformerTable.insertAndGetId {
             it.writeFull(performer)
-        }.value.toStringId().toProjectId()
+        }.value.toProjectId()
     }
 
     suspend fun updateSpark(performer: Performer) = dbQuery {

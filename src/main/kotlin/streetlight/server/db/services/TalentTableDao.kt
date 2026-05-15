@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
-import klutch.utils.toStringId
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
@@ -38,7 +37,7 @@ class TalentTableDao : DbService() {
     suspend fun create(talent: Talent, starId: StarId): TalentId = dbQuery {
         TalentTable.insertAndGetId {
             it.writeFull(talent, starId)
-        }.value.toStringId().toProjectId()
+        }.value.toProjectId()
     }
 
     suspend fun create(talent: TalentEdit, userId: StarId): Talent? = dbQuery {

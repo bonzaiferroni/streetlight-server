@@ -40,6 +40,7 @@ import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toProjectId
 import java.sql.SQLIntegrityConstraintViolationException
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class PostTableDao : DbService() {
 
@@ -65,7 +66,7 @@ class PostTableDao : DbService() {
 
     suspend fun editPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
-        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.starId)}) {
+        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.starId.value)}) {
             it.writeUpdate(post, imageSet)
         } == 1
     }
@@ -95,7 +96,7 @@ class PostTableDao : DbService() {
         order: PostOrder = PostOrder.NewFirst,
         limit: Int = 100
     ) = dbQuery {
-        readPosts(order, limit) { PostTable.starId.eq(userId) }
+        readPosts(order, limit) { PostTable.starId.eq(userId.value) }
     }
 
     suspend fun readPost(postId: PostId) = dbQuery {
@@ -103,12 +104,12 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readPost(stringId: StringId) = dbQuery {
-        val postId = PostId(stringId)
-        queryPosts { PostTable.id.eq(postId) or PostTable.slug.eq(stringId) }.firstOrNull()?.toPost()
+        val postId = Uuid.parseOrNull(stringId)?.let { PostId(it) }
+        queryPosts { PostTable.id.eq(postId?.value) or PostTable.slug.eq(stringId) }.firstOrNull()?.toPost()
     }
 
     suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
-        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId) } == 1 // td: or admin, or moderator
+        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value) } == 1 // td: or admin, or moderator
     }
 
     suspend fun readActivePosts(

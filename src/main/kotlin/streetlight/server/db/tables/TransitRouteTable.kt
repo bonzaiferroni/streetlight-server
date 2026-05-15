@@ -12,9 +12,6 @@ import streetlight.model.data.TransitRoute
 import streetlight.model.data.TransitRouteId
 import streetlight.model.data.VehicleType
 
-/**
- * Ahoy! This be the TransitRouteTable, where we store the charts for our noble vessels.
- */
 object TransitRouteTable: IdTable<String>("transit_route") {
     override val id = text("id").entityId()
     val shortName = text("short_name")

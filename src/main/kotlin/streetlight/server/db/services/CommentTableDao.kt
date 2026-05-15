@@ -5,9 +5,7 @@ import kampfire.api.StringId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
-import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -37,6 +35,7 @@ import streetlight.server.db.tables.writeUpdate
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 private val console = globalConsole.getHandle(CommentTableDao::class)
 
@@ -46,16 +45,16 @@ class CommentTableDao : DbService() {
         CommentTable.insertAndGetId {
             it.writeFull(comment)
         }
-        CommentTable.readById(comment.commentId.toUUID()).toComment()
+        CommentTable.readById(comment.commentId.value).toComment()
     }
 
     suspend fun readComment(commentId: CommentId) = dbQuery {
         CommentQuery.where { CommentTable.id.eq(commentId) }.firstOrNull()?.toComment()
     }
 
-    suspend fun readComments(stringId: StringId, space: SpaceType, limit: Int = 100) = when (space) {
-        SpaceType.Galaxy -> readGalaxyTalk(GalaxyId(stringId), limit)
-        SpaceType.Post -> readPostTalk(PostId(stringId), limit)
+    suspend fun readComments(id: Uuid, space: SpaceType, limit: Int = 100) = when (space) {
+        SpaceType.Galaxy -> readGalaxyTalk(GalaxyId(id), limit)
+        SpaceType.Post -> readPostTalk(PostId(id), limit)
     }
 
     suspend fun writeComment(comment: NewComment, starId: StarId?) = when (comment.spaceType) {
@@ -66,8 +65,8 @@ class CommentTableDao : DbService() {
     suspend fun writeGalaxyComment(comment: NewComment, starId: StarId?) = dbQuery {
         val commentId = insertComment(comment, starId)
         GalaxyCommentTable.insert {
-            it[GalaxyCommentTable.galaxyId] = comment.galaxyId.toUUID()
-            it[GalaxyCommentTable.commentId] = commentId.toUUID()
+            it[GalaxyCommentTable.galaxyId] = comment.galaxyId.value
+            it[GalaxyCommentTable.commentId] = commentId.value
         }
         commentId
     }
@@ -75,8 +74,8 @@ class CommentTableDao : DbService() {
     suspend fun writePostComment(comment: NewComment, starId: StarId?) = dbQuery {
         val commentId = insertComment(comment, starId)
         PostCommentTable.insert {
-            it[PostCommentTable.postId] = comment.postId.toUUID()
-            it[PostCommentTable.commentId] = commentId.toUUID()
+            it[PostCommentTable.postId] = comment.postId.value
+            it[PostCommentTable.commentId] = commentId.value
         }
         commentId
     }
@@ -97,7 +96,7 @@ class CommentTableDao : DbService() {
     }
 
     suspend fun updateComment(comment: UpdatedComment, starId: StarId?) = dbQuery {
-        CommentTable.update({ CommentTable.id.eq(comment.commentId) and CommentTable.starId.eq(starId) }) {
+        CommentTable.update({ CommentTable.id.eq(comment.commentId) and CommentTable.starId.eq(starId?.value) }) {
             it[CommentTable.text] = comment.text
         } == 1
     }
@@ -117,14 +116,14 @@ class CommentTableDao : DbService() {
     }
 
     suspend fun update(comment: CommentRow) = dbQuery {
-        CommentTable.update({ CommentTable.id eq comment.commentId.toUUID() }) {
+        CommentTable.update({ CommentTable.id eq comment.commentId.value }) {
             it.writeUpdate(comment)
         }
-        CommentTable.readById(comment.commentId.toUUID()).toComment()
+        CommentTable.readById(comment.commentId.value).toComment()
     }
 
     suspend fun delete(commentId: CommentId) = dbQuery {
-        CommentTable.deleteWhere { id eq commentId.toUUID() } > 0
+        CommentTable.deleteWhere { id eq commentId.value } > 0
     }
 }
 

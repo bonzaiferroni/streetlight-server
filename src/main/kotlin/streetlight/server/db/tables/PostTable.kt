@@ -9,10 +9,10 @@ import klutch.db.scaledImages
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
-import klutch.utils.toUUID
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -27,7 +27,7 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import kotlin.time.Instant
 
-object PostTable : UUIDTable("post") {
+object PostTable : UuidTable("post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
@@ -82,11 +82,11 @@ fun ResultRow.toPostRow() = PostRow(
 )
 
 fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
-    this[PostTable.id] = post.postId.toUUID()
-    this[PostTable.galaxyId] = post.galaxyId.toUUID()
-    this[PostTable.starId] = post.starId?.toUUID()
-    this[PostTable.eventId] = post.eventId?.toUUID()
-    this[PostTable.locationId] = post.locationId?.toUUID()
+    this[PostTable.id] = post.postId.value
+    this[PostTable.galaxyId] = post.galaxyId.value
+    this[PostTable.starId] = post.starId?.value
+    this[PostTable.eventId] = post.eventId?.value
+    this[PostTable.locationId] = post.locationId?.value
     this[PostTable.slug] = post.slug
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt

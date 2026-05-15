@@ -64,7 +64,7 @@ fun ApiContext.serveEvents() {
         dao.event.readEventLocationBySlug(slug)
     }
 
-    getEndpoint(Api.Events.ReadById, { EventId(it) }) {
+    getEndpoint(Api.Events.ReadById, { it.toProjectId() }) {
         dao.event.readEvent(it.data)
     }
 

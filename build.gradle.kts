@@ -67,6 +67,12 @@ dependencies {
     implementation(libs.koin.core)
 }
 
+kotlin {
+    compilerOptions {
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    }
+}
+
 ktor {
     fatJar {
         archiveFileName.set("streetlight-server.jar")

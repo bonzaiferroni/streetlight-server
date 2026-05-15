@@ -12,7 +12,6 @@ import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import klutch.utils.eq
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -79,11 +78,11 @@ class LocationTableDao : DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         val location = edit.toLocation()
-        val isOwnerOrNull = LocationTable.starId.isNull() or LocationTable.starId.eq(starId)
+        val isOwnerOrNull = LocationTable.starId.isNull() or LocationTable.starId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.writeUpdate(location, imageSet)
         }
-        LocationTable.readById(locationId.value.toUUID()).toLocation()
+        LocationTable.readById(locationId.value).toLocation()
     }
 
     suspend fun createLocation(starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {

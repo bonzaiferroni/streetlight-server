@@ -7,7 +7,6 @@ import klutch.db.readById
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
 import klutch.utils.eqIgnoreCase
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.StarEdit
@@ -59,7 +58,7 @@ class StarTableDao: DbService() {
         StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
             it.writeUpdate(edit, imageSet)
         }
-        StarTable.readById(starId.toUUID()).toStar()
+        StarTable.readById(starId.value).toStar()
     }
 
 }

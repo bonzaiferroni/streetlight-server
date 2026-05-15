@@ -1,7 +1,6 @@
 package streetlight.server.db.services
 
 import klutch.db.DbService
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq

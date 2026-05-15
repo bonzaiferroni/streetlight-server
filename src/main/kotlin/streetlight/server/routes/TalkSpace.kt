@@ -18,9 +18,10 @@ import streetlight.model.data.UpdatedComment
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.StarIdentity
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class TalkSpace(
-    val spaceId: StringId,
+    val spaceId: Uuid,
     val space: SpaceType,
     private val dao: DaoFacade,
 ) {

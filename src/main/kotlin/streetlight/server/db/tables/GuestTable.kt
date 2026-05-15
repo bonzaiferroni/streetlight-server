@@ -1,8 +1,8 @@
 package streetlight.server.db.tables
 
-import klutch.utils.toUUID
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -11,7 +11,7 @@ import streetlight.model.data.Guest
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 
-object GuestTable : UUIDTable("guest") {
+object GuestTable : UuidTable("guest") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val name = text("name").nullable()
     val songs = jsonb<List<String>>("songs", tableJsonDefault).nullable()
@@ -27,8 +27,8 @@ fun ResultRow.toGuest() = Guest(
 )
 
 fun UpdateBuilder<*>.writeFull(guest: Guest) {
-    this[GuestTable.id] = guest.guestId.toUUID()
-    this[GuestTable.starId] = guest.starId?.toUUID()
+    this[GuestTable.id] = guest.guestId.value
+    this[GuestTable.starId] = guest.starId?.value
     this[GuestTable.createdAt] = guest.createdAt
     writeUpdate(guest)
 }

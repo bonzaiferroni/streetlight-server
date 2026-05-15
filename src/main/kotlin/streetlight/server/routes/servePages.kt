@@ -7,10 +7,12 @@ import klutch.server.ApiContext
 import koala.html.IdOrNullParse
 import koala.html.IdParse
 import koala.html.StaticParse
+import koala.html.UuidParse
 import kotlinx.html.HTML
 import streetlight.model.data.StarPost
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
+import streetlight.model.data.toProjectId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.web.StreetlightScreen
@@ -56,6 +58,7 @@ fun ApiContext.servePages() {
         val path = when (val parse = screen.routeParse) {
             is IdOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
             is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
+            is UuidParse -> "/${screen.pathRoot}/{${parse.label}}"
             is StaticParse -> screen.pathRoot
         }
 
@@ -63,6 +66,7 @@ fun ApiContext.servePages() {
             val arg = when (val parse = screen.routeParse) {
                 is IdOrNullParse -> call.parameters[parse.label]
                 is IdParse -> call.parameters[parse.label]
+                is UuidParse -> call.parameters[parse.label]
                 is StaticParse -> null
             }
 
@@ -83,7 +87,7 @@ fun ApiContext.servePages() {
 
     // not yet implemented in web app
     get("/event-signup/{id}") {
-        val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
+        val eventId: EventId = call.parameters["id"]?.toProjectId() ?: return@get
         val event = dao.event.readEvent(eventId) ?: return@get
         call.respondHtml {
             eventSignUp(event, SiteStyles)
@@ -113,7 +117,7 @@ suspend fun ApiContext.renderAboutApp(): HtmlRender {
 }
 
 suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
-    val locationId = arg?.let { LocationId(it) } ?: return null
+    val locationId = arg?.toProjectId<LocationId>() ?: return null
     val location = dao.location.readLocation(locationId) ?: return null
 
     return HtmlRender {
