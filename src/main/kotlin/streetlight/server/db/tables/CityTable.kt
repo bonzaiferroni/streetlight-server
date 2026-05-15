@@ -23,6 +23,10 @@ object CityTable : IntIdTable("city") {
     val galaxyCount = integer("galaxy_count").default(0)
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    init {
+        uniqueIndex(name, stateId)
+    }
 }
 
 val galaxyCountTrigger = CounterTrigger(

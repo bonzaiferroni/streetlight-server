@@ -17,6 +17,10 @@ object StateTable : IntIdTable("state") {
     val countryId = reference("country_id", CountryTable.id)
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    init {
+        uniqueIndex(name, countryId)
+    }
 }
 
 fun ResultRow.toState() = State(

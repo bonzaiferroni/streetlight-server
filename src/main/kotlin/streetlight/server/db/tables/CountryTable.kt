@@ -12,7 +12,7 @@ import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 
 object CountryTable : IntIdTable("country") {
-    val name = text("name")
+    val name = text("name").uniqueIndex()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 }

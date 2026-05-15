@@ -25,7 +25,7 @@ fun ApiContext.serveLocality() {
             dao.city.readTopCities()
         } else {
             val dbLocalities = dao.city.searchLocalities(query, limit)
-            if (dbLocalities.size == limit) {
+            if (dbLocalities.size == limit || query.length < 2) {
                 dbLocalities
             } else {
                 console.log("querying osm: $query")

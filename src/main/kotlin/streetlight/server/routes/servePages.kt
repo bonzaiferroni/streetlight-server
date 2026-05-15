@@ -54,7 +54,7 @@ fun ApiContext.servePages() {
     StreetlightScreen.entries.forEach { screen ->
 
         val path = when (val parse = screen.routeParse) {
-            is IdOrNullParse -> "/${screen.pathRoot}/{${parse.label}}"
+            is IdOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
             is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
             is StaticParse -> screen.pathRoot
         }
@@ -186,9 +186,8 @@ suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
 }
 
 suspend fun ApiContext.renderClientBase(): HtmlRender {
+    console.log("ey")
     return HtmlRender {
-        appPage("Streetlight", SiteStyles) {
-
-        }
+        appPage("Streetlight", SiteStyles) { }
     }
 }
