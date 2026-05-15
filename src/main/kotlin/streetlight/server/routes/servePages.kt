@@ -190,7 +190,6 @@ suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
 }
 
 suspend fun ApiContext.renderClientBase(): HtmlRender {
-    console.log("ey")
     return HtmlRender {
         appPage("Streetlight", SiteStyles) { }
     }
