@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
@@ -9,9 +10,9 @@ import streetlight.server.model.*
 fun ApiContext.serveSongs() {
     // val service = server.get<SongTableService>()
 
-    getEndpoint(Api.SongProfile, { it.toProjectId() }) {
+    getApi(Api.SongProfile, { it.toProjectId() }) {
         val songId = it.data
-        dao.song.readById(songId)
+        dao.song.readById(songId).toResponse()
     }
 
 //    authenticateJwt {

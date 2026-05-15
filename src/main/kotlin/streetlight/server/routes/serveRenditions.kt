@@ -1,19 +1,20 @@
 package streetlight.server.routes
 
+import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toProjectId
 import streetlight.server.model.*
 
 fun ApiContext.serveRenditions() {
-    getEndpoint(Api.RenditionFeed, { it.toProjectId() }) {
+    getApi(Api.RenditionFeed, { it.toProjectId() }) {
         val id = it.data
-        dao.rendition.readById(id)
+        dao.rendition.readById(id).toResponse()
     }
 
-    getEndpoint(Api.RenditionFeed.BySong, { it.toProjectId() }) {
+    getApi(Api.RenditionFeed.BySong, { it.toProjectId() }) {
         val songId = it.data
-        dao.rendition.readAllBySongId(songId)
+        dao.rendition.readAllBySongId(songId).toResponse()
     }
 
 //    authenticateJwt {

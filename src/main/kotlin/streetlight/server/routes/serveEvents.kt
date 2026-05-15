@@ -6,6 +6,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import kampfire.model.Ok
+import kampfire.model.responseOf
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import kotlinx.html.body
@@ -13,7 +15,6 @@ import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.EventEdited
 import streetlight.model.data.Event
-import streetlight.model.data.EventId
 import streetlight.model.data.EventCreated
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
@@ -27,13 +28,13 @@ fun ApiContext.serveEvents() {
     val reader = server.get<EventParser>()
     val omni = server.get<OmniService>()
 
-    getEndpoint(Api.Events) {
-        dao.event.readActiveEvents()
+    getApi(Api.Events) {
+        Ok(dao.event.readActiveEvents())
     }
 
-    queryEndpoint(Api.Events.QueryMap, MapQuery::fromQuery) { sent, endpoint ->
-        if (sent == null) return@queryEndpoint emptyList()
-        dao.event.readEventsInBounds(sent.bounds)
+    getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
+        val sent = it.data
+        Ok(dao.event.readEventsInBounds(sent.bounds))
     }
 
     get("/qr") {
@@ -45,31 +46,31 @@ fun ApiContext.serveEvents() {
         }
     }
 
-    getEndpoint(Api.Events.AtLocation, { it.toProjectId()}) {
-        dao.event.readLocationEvents(it.data)
+    getApi(Api.Events.AtLocation, { it.toProjectId()}) {
+        Ok(dao.event.readLocationEvents(it.data))
     }
 
-    postEndpoint(Api.Events.ReadEventLocations) {
+    postApi(Api.Events.ReadEventLocations) {
         val ids = it.data
-        dao.event.readEventLocations(ids)
+        Ok(dao.event.readEventLocations(ids))
     }
 
-    getEndpoint(Api.Events.ReadBySlug) {
+    getApi(Api.Events.ReadBySlug) {
         val slug = it.data
-        dao.event.readEventBySlug(slug)
+        responseOf(dao.event.readEventBySlug(slug))
     }
 
-    getEndpoint(Api.Events.ReadEventLocationBySlug) {
+    getApi(Api.Events.ReadEventLocationBySlug) {
         val slug = it.data
-        dao.event.readEventLocationBySlug(slug)
+        responseOf(dao.event.readEventLocationBySlug(slug))
     }
 
-    getEndpoint(Api.Events.ReadById, { it.toProjectId() }) {
-        dao.event.readEvent(it.data)
+    getApi(Api.Events.ReadById, { it.toProjectId() }) {
+        responseOf(dao.event.readEvent(it.data))
     }
 
     authGate {
-        postEndpoint(Api.Events.Edit) { request ->
+        postApi(Api.Events.Edit) { request ->
             val identity = call.getIdentity()
             val userId = identity.starId
 
@@ -77,14 +78,14 @@ fun ApiContext.serveEvents() {
 
             if (edit.eventId == null && dao.event.hasConflict(request.data)) {
                 call.respond(HttpStatusCode.Conflict)
-                return@postEndpoint null
+                return@postApi null
             }
 
             val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
 
             val eventId = edit.eventId
-            if (eventId != null) {
+            val event = if (eventId != null) {
                 console.log("updating event: ${edit.title}")
                 val event = dao.event.updateEvent(eventId, userId, edit, imageSet)
                 omni.sendMessage(event.toEventEdited(identity.username))
@@ -95,11 +96,13 @@ fun ApiContext.serveEvents() {
                 omni.sendMessage(event.toEventCreated(identity.username))
                 event
             }
+            responseOf(event)
         }
 
-        deleteEndpoint(Api.Events.Delete) { eventId, _ ->
+        deleteApi(Api.Events.Delete) {
+            val eventId = it.data
             val starId = call.getIdentity().starId
-            dao.event.deleteEvent(starId, eventId)
+            Ok(dao.event.deleteEvent(starId, eventId))
         }
 
         postApi(Api.Events.ParseSingleEvent) { request ->
@@ -108,14 +111,14 @@ fun ApiContext.serveEvents() {
             reader.parseEvent(request)
         }
 
-        postEndpoint(Api.Events.ParseEvent) {
+        postApi(Api.Events.ParseEvent) {
             error("not implemented")
         }
 
 
-        getEndpoint(Api.Events.ReadLights) {
+        getApi(Api.Events.ReadLights) {
             val starId = call.getIdentity().starId
-            dao.light.readEventLights(starId)
+            Ok(dao.light.readEventLights(starId))
         }
     }
 }

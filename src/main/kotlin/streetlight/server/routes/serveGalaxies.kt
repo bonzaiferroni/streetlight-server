@@ -3,11 +3,12 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.Ok
 import kampfire.model.Problem
+import kampfire.model.toResponse
+import kampfire.model.responseOf
 import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.postApi
-import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
 import streetlight.model.data.toProjectId
@@ -21,8 +22,8 @@ private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 fun ApiContext.serveGalaxies() {
     val omni = server.get<OmniService>()
 
-    getEndpoint(Api.Galaxies.Top) {
-        dao.galaxy.readTopGalaxies()
+    getApi(Api.Galaxies.Top) {
+        Ok(dao.galaxy.readTopGalaxies())
     }
 
     getApi(Api.Galaxies.ReadSlug, { it }) {
@@ -35,9 +36,9 @@ fun ApiContext.serveGalaxies() {
         responseOf(dao.galaxy.readGalaxy(id))
     }
 
-    postEndpoint(Api.Galaxies.ReadGalaxies) {
+    postApi(Api.Galaxies.ReadGalaxies) {
         val galaxyIds = it.data
-        dao.galaxy.readGalaxies(galaxyIds)
+        Ok(dao.galaxy.readGalaxies(galaxyIds))
     }
 
     postApi(Api.Galaxies.ReadMultiPosts) {
@@ -57,7 +58,7 @@ fun ApiContext.serveGalaxies() {
     }
 
     authGate {
-        postEndpoint(Api.Galaxies.CreateOrEdit) { request ->
+        postApi(Api.Galaxies.CreateOrEdit) { request ->
             val edit = request.data
             val identity = call.getIdentity()
             val starId = identity.starId
@@ -82,7 +83,7 @@ fun ApiContext.serveGalaxies() {
                 else -> {
                     dao.galaxy.update(edit, city, imageSet)
                 }
-            }
+            }.toResponse()
         }
 
         postApi(Api.Galaxies.PostEvent) {
@@ -133,9 +134,9 @@ fun ApiContext.serveGalaxies() {
             responseOf(dao.post.readPost(postId))
         }
 
-        getEndpoint(Api.Galaxies.ReadLights) {
+        getApi(Api.Galaxies.ReadLights) {
             val userId = call.getIdentity().starId
-            dao.light.readGalaxyLights(userId)
+            Ok(dao.light.readGalaxyLights(userId))
         }
 
         postApi(Api.Galaxies.RemovePost) {

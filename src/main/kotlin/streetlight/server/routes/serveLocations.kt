@@ -3,6 +3,8 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
+import kampfire.model.responseOf
+import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.LocationCreated
@@ -19,29 +21,28 @@ fun ApiContext.serveLocations() {
     val parser = server.get<LocationParser>()
     val omni = server.get<OmniService>()
 
-    getEndpoint(Api.Locations, { it.toProjectId() }) {
+    getApi(Api.Locations, { it.toProjectId() }) {
         val id = it.data
-        dao.location.readLocation(id)
+        dao.location.readLocation(id).toResponse()
     }
 
-    getEndpoint(Api.Locations.Search) { endpoint ->
+    getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
-        dao.location.searchLocations(query)
+        dao.location.searchLocations(query).toResponse()
     }
 
-    getEndpoint(Api.Locations.ReadTop) { endpoint ->
+    getApi(Api.Locations.ReadTop) { endpoint ->
         val count = readParam(endpoint.count)
-        dao.location.readTop(count)
+        dao.location.readTop(count).toResponse()
     }
 
-    queryEndpoint(Api.Locations.QueryPoint, GeoPoint::fromQuery) { sent, endpoint ->
-        sent?.let {
-            dao.location.readNearbyLocations(sent, 1.kilometers)
-        }
+    getApi(Api.Locations.QueryPoint, GeoPoint::fromQuery) {
+        val sent = it.data
+        dao.location.readNearbyLocations(sent, 1.kilometers).toResponse()
     }
 
-    postEndpoint(Api.Locations.QueryBounds) { request ->
-        dao.location.readLocationsInBounds(request.data)
+    postApi(Api.Locations.QueryBounds) { request ->
+        dao.location.readLocationsInBounds(request.data).toResponse()
     }
 
     authGate(optional = true) {

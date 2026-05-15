@@ -14,7 +14,9 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import kampfire.model.toResponse
 import klutch.server.ApiContext
+import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.readParam
 import kotlinx.coroutines.CoroutineScope
@@ -109,14 +111,14 @@ fun ApiContext.serveGtfs() {
         }
     }
 
-    getEndpoint(Api.Gtfs.Routes) {
+    getApi(Api.Gtfs.Routes) {
         val routeIds = setOf("101E", "101D", "103W", "117N", "107R", "101H", "A")
         val routes = dao.transitRoute.readRoutes(routeIds)
         val stops = dao.transitStop.readRouteStops(routeIds)
         AreaTransit(
             routes = routes,
             stops = stops
-        )
+        ).toResponse()
     }
 }
 

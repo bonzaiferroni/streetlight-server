@@ -5,6 +5,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.sse.sse
 import io.ktor.util.cio.ChannelWriteException
 import kampfire.model.Ok
+import kampfire.model.toResponse
 import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.getEndpoint
@@ -28,8 +29,8 @@ import kotlin.uuid.Uuid
 
 fun ApiContext.serveTalk() {
 
-    getEndpoint(Api.Talk.ReadGalaxy, { it.toProjectId() }) {
-        dao.talk.readGalaxyTalk(it.data)
+    getApi(Api.Talk.ReadGalaxy, { it.toProjectId() }) {
+        dao.talk.readGalaxyTalk(it.data).toResponse()
     }
 
     getApi(Api.Talk.ReadHistory) {
