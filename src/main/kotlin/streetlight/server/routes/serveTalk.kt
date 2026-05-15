@@ -61,8 +61,6 @@ fun ApiContext.serveTalk() {
                 clientSpace.messageFlow.collect { message ->
                     send(message.encode())
                 }
-            } catch (e: ChannelWriteException) {
-                // client disconnected mid-write
             } finally {
                 spaceLocks.withLock {
                     val isEmpty = clientSpace.removeClient()

@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
+import klutch.db.CounterTrigger
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.url
@@ -8,9 +9,7 @@ import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.City
@@ -34,14 +33,13 @@ object GalaxyTable : UuidTable("galaxy") {
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewMode = enumeration<ReviewMode>("review_mode")
     val postGuide = text("post_guide").nullable()
-    val lightCount = integer("light_count").default(0)
+    val starCount = integer("star_count").default(0)
+    val eventCount = integer("event_count").default(0)
+    val postCount = integer("post_count").default(0)
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
-
-    val lightCountSource = GalaxyLightTable.starId.count()
-    val eventCountSource = PostTable.eventId.count()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -53,6 +51,9 @@ object GalaxyTable : UuidTable("galaxy") {
         ImageSize.Thumb,
     )
 }
+
+val galaxyLightTrigger = CounterTrigger(GalaxyTable, GalaxyLightTable, GalaxyLightTable.galaxyId, GalaxyTable.starCount)
+val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 
 fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
@@ -90,9 +91,9 @@ fun ResultRow.toGalaxy() = Galaxy(
     postGuide = this[GalaxyTable.postGuide],
     imageRef = this[GalaxyTable.imageRef],
     images = this[GalaxyTable.images],
-    lightCount = this[GalaxyTable.lightCount],
-    eventCount = this.getOrNull(GalaxyTable.eventCountSource)?.toInt(),
-    locationCount = this.getOrNull(GalaxyTable.eventCountSource)?.toInt(),
+    lightCount = this[GalaxyTable.starCount],
+    eventCount = this[GalaxyTable.eventCount],
+    locationCount = this[GalaxyTable.postCount],
     updatedAt = this[GalaxyTable.updatedAt],
     createdAt = this[GalaxyTable.createdAt],
 )

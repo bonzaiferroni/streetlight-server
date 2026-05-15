@@ -70,8 +70,11 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     OmniTable,
 )
 
-val counterTriggers = listOf(
-    galaxyCountTrigger
+val counterTriggers get() = listOf(
+    cityGalaxyCountTrigger,
+    galaxyLightTrigger,
+    galaxyPostCountTrigger,
+    eventLightTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

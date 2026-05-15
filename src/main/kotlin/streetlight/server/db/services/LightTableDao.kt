@@ -26,34 +26,25 @@ import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 private class LightConfig(
-    val parentTable: Table,
-    val parentId: Column<EntityID<Uuid>>,
     val lightTable: Table,
     val lightStarId: Column<EntityID<Uuid>>,
     val lightForeignId: Column<EntityID<Uuid>>,
-    val parentLightCount: Column<Int>,
     val createdAt: Column<Instant>,
 )
 
 class LightTableDao : DbService() {
 
     private val eventLight = LightConfig(
-        parentTable = EventTable,
-        parentId = EventTable.id,
         lightTable = EventLightTable,
         lightStarId = EventLightTable.starId,
         lightForeignId = EventLightTable.eventId,
-        parentLightCount = EventTable.lightCount,
         createdAt = EventLightTable.createdAt,
     )
 
     private val galaxyLight = LightConfig(
-        parentTable = GalaxyTable,
-        parentId = GalaxyTable.id,
         lightTable = GalaxyLightTable,
         lightStarId = GalaxyLightTable.starId,
         lightForeignId = GalaxyLightTable.galaxyId,
-        parentLightCount = GalaxyTable.lightCount,
         createdAt = GalaxyLightTable.createdAt,
     )
 
@@ -95,16 +86,6 @@ class LightTableDao : DbService() {
                 config.lightForeignId.eq(edit.targetId) and config.lightStarId.eq(starId)
             }
         }
-        refreshLightCount(config, edit.targetId)
         true
-    }
-
-    private fun refreshLightCount(config: LightConfig, foreignId: Uuid) {
-        val count = config.lightTable.selectAll()
-            .where { config.lightForeignId.eq(foreignId) }
-            .count().toInt()
-        config.parentTable.update({ config.parentId.eq(foreignId) }) {
-            it[config.parentLightCount] = count
-        }
     }
 }

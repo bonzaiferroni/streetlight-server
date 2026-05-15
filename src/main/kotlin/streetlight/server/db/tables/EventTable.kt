@@ -1,13 +1,12 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
+import klutch.db.CounterTrigger
 import klutch.db.scaledImages
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
@@ -46,8 +45,6 @@ object EventTable : UuidTable("event") {
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
-    val lightCountSource = EventLightTable.starId.count()
-
     const val SLUG_INDEX = "event_slug_index"
 
     val imageConfig = imageConfigOf(
@@ -59,6 +56,8 @@ object EventTable : UuidTable("event") {
         ImageSize.Thumb,
     )
 }
+
+val eventLightTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
 
 fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value
