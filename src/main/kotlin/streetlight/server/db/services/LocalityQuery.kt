@@ -3,6 +3,7 @@ package streetlight.server.db.services
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
+import streetlight.model.data.CityId
 import streetlight.model.data.Locality
 import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.CountryTable
@@ -25,7 +26,7 @@ object LocalityAspect {
 }
 
 fun ResultRow.toLocality() = Locality(
-    cityId = this[CityTable.id].toProjectId(),
+    cityId = CityId(this[CityTable.id].value),
     city = this[CityTable.name],
     state = this[StateTable.name],
     country = this[CountryTable.name],

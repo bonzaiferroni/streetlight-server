@@ -62,7 +62,7 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: Ci
 }
 
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: SavedImageSet?) {
-    this[GalaxyTable.cityId] = city?.cityId?.toUUID()
+    this[GalaxyTable.cityId] = city?.cityId?.value
     this[GalaxyTable.cityName] = city?.name
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.description] = galaxy.description
@@ -78,6 +78,7 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: Sa
 
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
+    cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
     slug = this[GalaxyTable.slug],
     name = this[GalaxyTable.name],
     tagLine = this[GalaxyTable.tagLine],

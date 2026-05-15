@@ -1,5 +1,7 @@
 package streetlight.server.model
 
+import kabinet.console.LogHandle
+import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.db.services.RefreshTokenService
 import klutch.environment.readEnvFromPath
@@ -24,6 +26,7 @@ val serverModule = module {
         lifetimeSeconds = 30 * 60,
     ) }
     single { ObjectStorageClient(get()) }
+    single { globalConsole.getHandle("api") }
 
     // services
     single { ParserService(get()) }
@@ -39,4 +42,5 @@ val serverModule = module {
 
 val ApiContext.env get() = server.koin.get<Environment>()
 val ApiContext.dao get() = server.koin.get<DaoFacade>()
+val ApiContext.console get() = server.koin.get<LogHandle>()
 

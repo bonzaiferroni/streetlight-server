@@ -72,6 +72,7 @@ class GalaxyTableDao : DbService() {
 
 fun GalaxyEdit.toGalaxy() = Galaxy(
     galaxyId = galaxyId ?: GalaxyId.random(),
+    cityId = cityId,
     name = name ?: error("name not found"),
     slug = slug ?: normalizedSlugOf(name ?: error("name not found")),
     tagLine = tagLine,

@@ -4,10 +4,13 @@ import kampfire.model.Ok
 import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.readParam
+import klutch.server.readParamOrNull
 import streetlight.model.Api
+import streetlight.model.data.CityId
 import streetlight.model.data.Locality
 import streetlight.model.external.OSMCity
 import streetlight.server.external.OSMHttpClient
+import streetlight.server.model.console
 import streetlight.server.model.dao
 
 fun ApiContext.serveLocality() {
@@ -15,16 +18,26 @@ fun ApiContext.serveLocality() {
 
     getApi(Api.Localities.SearchCity) { endpoint ->
         val query = readParam(endpoint.query)
+        val country = readParam(endpoint.country)
+        val limit = readParamOrNull(endpoint.limit) ?: 10
+
         val localities = if (query.isBlank()) {
             dao.city.readTopCities()
         } else {
-            val country = readParam(endpoint.country)
-            val dbLocalities = dao.city.searchLocalities(query)
-            if (dbLocalities.any { it.city.equals(query, ignoreCase = true) }) {
+            val dbLocalities = dao.city.searchLocalities(query, limit)
+            if (dbLocalities.size == limit) {
                 dbLocalities
             } else {
-                dbLocalities + (osm.searchCity(query, country)?.filter { it.name.startsWith(query, ignoreCase = true) }
-                    ?.map { it.toLocality() } ?: emptyList())
+                console.log("querying osm: $query")
+                val cities = osm.searchCity(query, country)?.filter { city ->
+                    dbLocalities.none { it.city == city.name && it.state == city.state && it.country == city.country }
+                }?.map { it.toLocality() }?.takeIf { it.isNotEmpty() }
+                if (cities != null) {
+                    val osmLocalities = dao.city.createCities(cities)
+                    dbLocalities + osmLocalities.filter { it.city.startsWith(query, ignoreCase = true) }.take(limit - dbLocalities.size)
+                } else {
+                    dbLocalities
+                }
             }
         }
 
@@ -33,7 +46,7 @@ fun ApiContext.serveLocality() {
 }
 
 fun OSMCity.toLocality() = Locality(
-    cityId = null,
+    cityId = CityId.empty,
     city = name,
     state = state,
     country = country,
