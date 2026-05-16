@@ -5,7 +5,9 @@ import klutch.db.CounterTrigger
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.url
+import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
+import klutch.utils.toList
 import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -26,10 +28,10 @@ object GalaxyTable : UuidTable("galaxy") {
     val cityName = text("city_name").nullable()
     val slug = text("path").uniqueIndex() // td: rename column as slug
     val name = text("name")
-    val tagLine = text("tag_line").nullable()
+    val tagline = text("tagline").nullable()
     val description = text("description").nullable()
-    val center = point("center")
-    val zoom = float("zoom")
+    val geoPoint = point("geo_point")
+    val geoBounds = array<Double>("geo_bounds")
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewMode = enumeration<ReviewMode>("review_mode")
     val postGuide = text("post_guide").nullable()
@@ -66,10 +68,11 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: Sa
     this[GalaxyTable.cityId] = city?.cityId?.value
     this[GalaxyTable.cityName] = city?.name
     this[GalaxyTable.name] = galaxy.name
+    this[GalaxyTable.tagline] = galaxy.tagline
     this[GalaxyTable.description] = galaxy.description
     this[GalaxyTable.slug] = galaxy.slug
-    this[GalaxyTable.center] = galaxy.center.toPGpoint()
-    this[GalaxyTable.zoom] = galaxy.zoom
+    this[GalaxyTable.geoPoint] = galaxy.geoPoint.toPGpoint()
+    this[GalaxyTable.geoBounds] = galaxy.geoBounds.toList()
     this[GalaxyTable.postPermission] = galaxy.postPermission
     this[GalaxyTable.reviewMode] = galaxy.reviewMode
     this[GalaxyTable.postGuide] = galaxy.postGuide
@@ -82,10 +85,10 @@ fun ResultRow.toGalaxy() = Galaxy(
     cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
     slug = this[GalaxyTable.slug],
     name = this[GalaxyTable.name],
-    tagLine = this[GalaxyTable.tagLine],
+    tagline = this[GalaxyTable.tagline],
     description = this[GalaxyTable.description],
-    center = this[GalaxyTable.center].toGeoPoint(),
-    zoom = this[GalaxyTable.zoom],
+    geoPoint = this[GalaxyTable.geoPoint].toGeoPoint(),
+    geoBounds = this[GalaxyTable.geoBounds].toGeoBounds(),
     postPermission = this[GalaxyTable.postPermission],
     reviewMode = this[GalaxyTable.reviewMode],
     postGuide = this[GalaxyTable.postGuide],

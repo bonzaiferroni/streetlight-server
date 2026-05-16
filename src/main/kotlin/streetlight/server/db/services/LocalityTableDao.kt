@@ -1,6 +1,8 @@
 package streetlight.server.db.services
 
 import klutch.db.DbService
+import klutch.utils.toList
+import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -14,12 +16,10 @@ import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.data.Locality
-import streetlight.model.data.State
 import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.CountryTable
 import streetlight.server.db.tables.StateTable
 import streetlight.server.db.tables.toCity
-import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import kotlin.time.Clock
 
@@ -104,6 +104,9 @@ class LocalityTableDao : DbService() {
         CityTable.batchInsert(localities, ignore = true) {
             this[CityTable.name] = it.city
             this[CityTable.stateId] = stateIds.getValue(it.state to it.country)
+            this[CityTable.geoRank] = it.geoRank
+            this[CityTable.geoPoint] = it.geoPoint.toPGpoint()
+            this[CityTable.geoBounds] = it.geoBounds.toList()
             this[CityTable.createdAt] = now
             this[CityTable.updatedAt] = now
         }

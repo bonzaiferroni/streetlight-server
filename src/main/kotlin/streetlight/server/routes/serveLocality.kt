@@ -50,5 +50,8 @@ fun OSMCity.toLocality() = Locality(
     city = name,
     state = state,
     country = country,
-    galaxyCount = 0
+    galaxyCount = 0,
+    geoRank = importance,
+    geoPoint = geoPoint,
+    geoBounds = geoBounds,
 )
