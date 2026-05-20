@@ -32,7 +32,7 @@ object LocationTable : UuidTable("location") {
     val state = text("state").nullable()
     val geoPoint = point("geo_point")
     val mapRank = float("map_rank").nullable()
-    val mapClass = text("map_class").nullable()
+    val mapCategory = text("map_category").nullable()
     val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
     val website = text("link").nullable()
@@ -73,7 +73,7 @@ fun ResultRow.toLocation() = Location(
     city = this[LocationTable.city],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     mapRank = this[LocationTable.mapRank],
-    mapClass = this[LocationTable.mapClass],
+    mapClass = this[LocationTable.mapCategory],
     mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     website = this[LocationTable.website],

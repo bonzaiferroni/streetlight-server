@@ -7,7 +7,6 @@ import kampfire.model.GeoPoint
 import klutch.db.DbService
 import klutch.db.inBounds
 import klutch.db.isNearEq
-import klutch.db.read
 import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
@@ -96,8 +95,7 @@ class LocationTableDao : DbService() {
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
         val query = query.lowercase()
         val queryMatch = LocationTable.name.lowerCase().like("%$query%") or
-                LocationTable.description.lowerCase().like("%$query%") or
-                LocationTable.address.lowerCase().like("%$query%")
+                LocationTable.address.lowerCase().like("$query%") // td: proper address search
         val cityMatch = city?.let {
             LocationTable.city.lowerCase().eq(city.lowercase())
         }
@@ -163,7 +161,7 @@ fun LocationEdit.toLocation() = Location(
     name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
     mapRank = mapRank,
-    mapClass = mapClass,
+    mapClass = mapCategory,
     mapType = mapType,
     description = description,
     address = address ?: error("no address"),

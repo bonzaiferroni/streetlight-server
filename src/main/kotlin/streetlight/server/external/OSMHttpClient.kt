@@ -46,7 +46,6 @@ class OSMHttpClient(
     suspend fun searchPlace(query: OSMQuery): List<OSMLocation>? =
         client.get("https://nominatim.openstreetmap.org/search") {
             url {
-                query.query?.let { parameters.append("q", it) }
                 query.amenity?.let { parameters.append("amenity", it) }
                 query.street?.let { parameters.append("street", it) }
                 query.city?.let { parameters.append("city", it) }
@@ -63,6 +62,6 @@ class OSMHttpClient(
     suspend fun searchCity(query: String, country: String): List<OSMCity>? =
         searchPlace(OSMQuery(city = query, country = country))?.map { it.toOSMCity() }
 
-    suspend fun searchPlace(query: String, city: String, state: String): List<OSMLocation>? =
-        searchPlace(OSMQuery(query = query, city = city, state = state))
+    suspend fun searchPlace(city: String, state: String): List<OSMLocation>? =
+        searchPlace(OSMQuery(city = city, state = state))
 }

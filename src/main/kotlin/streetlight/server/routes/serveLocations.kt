@@ -28,8 +28,8 @@ fun ApiContext.serveLocations() {
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
-        val city = readParam(endpoint.city).takeIf { it.isNotBlank() }
-        val state = readParam(endpoint.state).takeIf { it.isNotBlank() }
+        val city = readParam(endpoint.city)?.takeIf { it.isNotBlank() }
+        val state = readParam(endpoint.state)?.takeIf { it.isNotBlank() }
         val limit = readParam(endpoint.limit)
 
         if (query.isBlank()) {
