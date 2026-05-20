@@ -33,7 +33,7 @@ class OSMHttpClient(
         }
     }
 
-    suspend fun searchPlace(point: GeoPoint): OSMLocation? =
+    suspend fun search(point: GeoPoint): OSMLocation? =
         client.get("https://nominatim.openstreetmap.org/reverse") {
             url {
                 parameters.append("lat", point.lat.toString())
@@ -43,7 +43,7 @@ class OSMHttpClient(
             }
         }.body()
 
-    suspend fun searchPlace(query: OSMQuery): List<OSMLocation>? =
+    suspend fun search(query: OSMQuery): List<OSMLocation>? =
         client.get("https://nominatim.openstreetmap.org/search") {
             url {
                 query.amenity?.let { parameters.append("amenity", it) }
@@ -60,8 +60,11 @@ class OSMHttpClient(
         }.body()
 
     suspend fun searchCity(query: String, country: String): List<OSMCity>? =
-        searchPlace(OSMQuery(city = query, country = country))?.map { it.toOSMCity() }
+        search(OSMQuery(city = query, country = country))?.map { it.toOSMCity() }
 
-    suspend fun searchPlace(city: String, state: String): List<OSMLocation>? =
-        searchPlace(OSMQuery(city = city, state = state))
+    suspend fun readCity(city: String, state: String): OSMCity? =
+        search(OSMQuery(city = city, state = state))?.firstOrNull()?.toOSMCity()
+
+    suspend fun search(city: String, state: String): List<OSMLocation>? =
+        search(OSMQuery(city = city, state = state))
 }

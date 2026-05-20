@@ -17,6 +17,7 @@ import streetlight.model.data.ParseRequest
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEdit
 import streetlight.server.utils.readHtmlMetaInfo
+import streetlight.server.utils.stripHtml
 
 class LocationParser(
     private val parser: ParserService
@@ -39,7 +40,7 @@ class LocationParser(
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
-                    description = parse.description ?: meta.description,
+                    description = parse.description ?: meta.description?.stripHtml(),
                     name = parse.name ?: meta.title
                 ))
             }
@@ -47,7 +48,7 @@ class LocationParser(
                 Ok(
                     data = LocationEdit(
                         name = meta.title,
-                        description = meta.description,
+                        description = meta.description?.stripHtml(),
                         imageRef = meta.image
                     ),
                     message = "${response.message} Returning only document meta information."

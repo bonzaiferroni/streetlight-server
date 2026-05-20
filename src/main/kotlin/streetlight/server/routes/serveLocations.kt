@@ -13,6 +13,7 @@ import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import streetlight.server.db.services.CityService
 import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(ApiContext::serveLocations.name)
@@ -20,6 +21,7 @@ private val console = globalConsole.getHandle(ApiContext::serveLocations.name)
 fun ApiContext.serveLocations() {
     val parser = server.get<LocationParser>()
     val omni = server.get<OmniService>()
+    val cityService = server.get<CityService>()
 
     getApi(Api.Locations, { it.toProjectId() }) {
         val id = it.data
@@ -55,13 +57,15 @@ fun ApiContext.serveLocations() {
 
     authGate(optional = true) {
         postApi(Api.Locations.CreateOrEdit) { request ->
-            val edit = request.data
+            var edit = request.data
             val identity = call.getIdentityOrNull()
             val starId = identity?.starId
 
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageRef = edit.imageRef?.takeIf { it.value.isNotBlank() }
             val imageSet = saveImages(imageUserId, edit.locationId, imageRef, LocationTable.imageConfig)
+            val cityId = cityService.readOrCreateCity(edit.city, edit.state)
+            edit = edit.copy(cityId = cityId)
 
             val location = edit.locationId?.let {
                 val location = dao.location.updateLocation(it, starId, edit, imageSet)

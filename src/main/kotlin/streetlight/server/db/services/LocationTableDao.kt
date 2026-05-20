@@ -133,39 +133,21 @@ class LocationTableDao : DbService() {
     }
 }
 
-//fun Transaction.findOrCreatePlace(place: Place, userId: UserId?, isHost: Boolean?): LocationId? {
-//    val isHost = isHost ?: false
-//    val name = place.name
-//    val geoPoint = place.geoPoint
-//    if (name == null || geoPoint == null) return null
-//    val location = LocationTable.readFirstOrNull {
-//        it.name.eq(name) and it.geoPoint.isNearEq(geoPoint)
-//    }?.toLocation()
-//
-//    return if (location != null) {
-//        console.log("Using stored location ${location.name}")
-//        location.locationId
-//    } else {
-//        console.log("creating new location ${place.name} at ${place.address}")
-//        LocationTable.insertAndGetId {
-//            it.writeFull(place.toLocation(), userId)
-//        }.toProjectId()
-//    }
-//}
-
 
 
 fun LocationEdit.toLocation() = Location(
     locationId = locationId ?: LocationId.random(),
+    cityId = cityId,
     mapId = mapId,
     name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
     mapRank = mapRank,
-    mapClass = mapCategory,
+    mapCategory = mapCategory,
     mapType = mapType,
     description = description,
-    address = address ?: error("no address"),
+    address = address,
     city = city,
+    state = state,
     resources = resources ?: emptySet(),
     website = website,
     lightCount = null,

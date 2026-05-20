@@ -22,9 +22,9 @@ fun ApiContext.serveCity() {
         val limit = readParamOrNull(endpoint.limit) ?: 10
 
         val localities = if (query.isBlank()) {
-            dao.locality.readTopCities()
+            dao.city.readTopCities()
         } else {
-            val dbLocalities = dao.locality.searchCities(query, limit)
+            val dbLocalities = dao.city.searchCities(query, limit)
             if (dbLocalities.isNotEmpty() || query.length < 2) {
                 dbLocalities
             } else {
@@ -33,7 +33,7 @@ fun ApiContext.serveCity() {
                     dbLocalities.none { it.name == city.name && it.state == city.state && it.country == city.country }
                 }?.map { it.toCity() }?.takeIf { it.isNotEmpty() }
                 if (cities != null) {
-                    val osmLocalities = dao.locality.createCities(cities)
+                    val osmLocalities = dao.city.createCities(cities)
                     dbLocalities + osmLocalities.filter { it.name.startsWith(query, ignoreCase = true) }.take(limit - dbLocalities.size)
                 } else {
                     dbLocalities

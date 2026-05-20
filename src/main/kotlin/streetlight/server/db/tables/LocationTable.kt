@@ -14,6 +14,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.json.jsonb
+import streetlight.model.data.CityId
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
@@ -24,7 +25,7 @@ object LocationTable : UuidTable("location") {
     val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
-    val mapId = long("map_Id").nullable()
+    val mapId = long("map_Id").nullable().uniqueIndex()
     val name = text("name").nullable()
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -66,14 +67,16 @@ val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationT
 fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
     mapId = this[LocationTable.mapId],
+    cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
     name = this[LocationTable.name],
     username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],
     address = this[LocationTable.address],
     city = this[LocationTable.city],
+    state = this[LocationTable.state],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     mapRank = this[LocationTable.mapRank],
-    mapClass = this[LocationTable.mapCategory],
+    mapCategory = this[LocationTable.mapCategory],
     mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     website = this[LocationTable.website],
@@ -98,12 +101,15 @@ fun UpdateBuilder<*>.writeFull(location: Location, starId: StarId?, imageSet: Sa
 
 fun UpdateBuilder<*>.writeUpdate(location: Location, imageSet: SavedImageSet?) {
     this[LocationTable.mapId] = location.mapId
+    this[LocationTable.cityId] = location.cityId?.value
     // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description
     this[LocationTable.address] = location.address
-    this[LocationTable.city] = location.city
     this[LocationTable.geoPoint] = location.geoPoint.toPGpoint()
+    this[LocationTable.mapCategory] = location.mapCategory
+    this[LocationTable.mapType] = location.mapType
+    this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
     this[LocationTable.website] = location.website
     this[LocationTable.eventsUrl] = location.eventsUrl

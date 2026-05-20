@@ -1,8 +1,6 @@
 package streetlight.server.db.services
 
 import klutch.db.DbService
-import klutch.utils.toList
-import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -10,6 +8,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -25,7 +24,6 @@ import streetlight.server.db.tables.StateTable
 import streetlight.server.db.tables.toCity
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import kotlin.time.Clock
 
 class CityTableDao : DbService() {
 
@@ -109,6 +107,36 @@ class CityTableDao : DbService() {
         CityTable.selectAll()
             .where { CityTable.name.inList(cityNames) and CityTable.stateId.inList(stateIds.values) }
             .map { it.toCity() }
+    }
+
+    suspend fun readCityId(city: String, state: String) = dbQuery {
+        CityTable.select(CityTable.id).where {
+            CityTable.name.eq(city) and CityTable.state.eq(state)
+        }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
+    }
+
+    suspend fun createCity(city: City): CityId = dbQuery {
+        val countryId = CountryTable.select(CountryTable.id).where {
+            CountryTable.name.eq(city.country)
+        }.firstOrNull()?.let { it[CountryTable.id].value } ?: CountryTable.insertAndGetId {
+            val country = countryOf(city.country)
+            it.writeFull(country)
+        }.value
+
+        val stateId = StateTable.select(StateTable.id).where {
+            StateTable.name.eq(city.state) and StateTable.countryId.eq(countryId)
+        }.firstOrNull()?.let { it[StateTable.id].value } ?: StateTable.insertAndGetId {
+            val state = stateOf(city.state, city.country, CountryId(countryId))
+            it.writeFull(state)
+        }.value
+
+        val cityId = CityTable.select(CityTable.id).where {
+            CityTable.name.eq(city.name) and CityTable.stateId.eq(stateId)
+        }.firstOrNull()?.let { it[CityTable.id].value } ?: CityTable.insertAndGetId {
+            it.writeFull(city, StateId(stateId))
+        }.value
+
+        CityId(cityId)
     }
 }
 
