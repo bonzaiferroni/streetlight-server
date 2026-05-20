@@ -25,7 +25,7 @@ import streetlight.server.utils.toProjectId
 object GalaxyTable : UuidTable("galaxy") {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val cityName = text("city_name").nullable()
+    val city = text("city").nullable()
     val slug = text("path").uniqueIndex() // td: rename column as slug
     val name = text("name")
     val tagline = text("tagline").nullable()
@@ -66,7 +66,7 @@ fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: Ci
 
 fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.cityId] = city?.cityId?.value
-    this[GalaxyTable.cityName] = city?.name
+    this[GalaxyTable.city] = city?.name
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.tagline] = galaxy.tagline
     this[GalaxyTable.description] = galaxy.description
@@ -83,6 +83,7 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: Sa
 fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
     cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
+    city = this[GalaxyTable.city],
     slug = this[GalaxyTable.slug],
     name = this[GalaxyTable.name],
     tagline = this[GalaxyTable.tagline],

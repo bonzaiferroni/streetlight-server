@@ -2,9 +2,7 @@ package streetlight.server.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
-import klutch.gemini.serveSpeech
 import klutch.server.*
-import streetlight.model.Api
 import streetlight.server.db.services.StarAuthDao
 import klutch.server.routingContextOf
 import streetlight.server.model.getIdentity
@@ -41,7 +39,7 @@ fun Application.serveApi(server: ServerContext) {
             serveSiteDocs()
             serveTalk()
             serveContent()
-            serveLocality()
+            serveCity()
         }
     }
 }

@@ -14,6 +14,7 @@ import klutch.db.withinRadius
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.andIfNotNull
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
@@ -78,7 +79,7 @@ class LocationTableDao : DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         val location = edit.toLocation()
-        val isOwnerOrNull = LocationTable.starId.isNull() or LocationTable.starId.eq(starId?.value)
+        val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.writeUpdate(location, imageSet)
         }
@@ -92,11 +93,21 @@ class LocationTableDao : DbService() {
         LocationTable.readById(locationId).toLocation()
     }
 
-    suspend fun searchLocations(query: String) = dbQuery {
+    suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
         val query = query.lowercase()
-        LocationTable.read {
-            (it.name.lowerCase().like("%$query%") or it.description.lowerCase().like("%$query%")) or it.address.lowerCase().like("%$query%")
+        val queryMatch = LocationTable.name.lowerCase().like("%$query%") or
+                LocationTable.description.lowerCase().like("%$query%") or
+                LocationTable.address.lowerCase().like("%$query%")
+        val cityMatch = city?.let {
+            LocationTable.city.lowerCase().eq(city.lowercase())
         }
+        val stateMatch = state?.let {
+            LocationTable.state.lowerCase().eq(state.lowercase())
+        }
+        LocationTable.selectAll().where {
+            queryMatch.andIfNotNull(cityMatch).andIfNotNull(stateMatch)
+        }
+            .limit(limit)
             .map { it.toLocation() }
     }
 
@@ -148,11 +159,15 @@ class LocationTableDao : DbService() {
 
 fun LocationEdit.toLocation() = Location(
     locationId = locationId ?: LocationId.random(),
-    name = name ?: error("no location name"),
+    mapId = mapId,
+    name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
+    mapRank = mapRank,
+    mapClass = mapClass,
+    mapType = mapType,
     description = description,
-    address = address,
-    city = city ?: error("no city"),
+    address = address ?: error("no address"),
+    city = city,
     resources = resources ?: emptySet(),
     website = website,
     lightCount = null,

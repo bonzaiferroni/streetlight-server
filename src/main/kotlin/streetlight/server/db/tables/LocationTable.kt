@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
+import klutch.db.SyncValueTrigger
 import klutch.utils.*
 import klutch.db.point
 import klutch.db.scaledImages
@@ -9,7 +10,6 @@ import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.select
@@ -21,14 +21,19 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UuidTable("location") {
-    val starId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
-    // td: update column name in database
-    val scoutId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
-    val name = text("name")
+    val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    val cityId = reference("city_id", CityTable).nullable()
+    val mapId = long("map_Id").nullable()
+    val name = text("name").nullable()
     val description = text("description").nullable()
     val address = text("address").nullable()
-    val city = text("city")
+    val city = text("city").nullable()
+    val state = text("state").nullable()
     val geoPoint = point("geo_point")
+    val mapRank = float("map_rank").nullable()
+    val mapClass = text("map_class").nullable()
+    val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
     val website = text("link").nullable()
     val lightCount = integer("light_count").default(0)
@@ -52,17 +57,24 @@ object LocationTable : UuidTable("location") {
     )
 }
 
-val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.starId, StarTable.id)
+val locationCityTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.city, CityTable, CityTable.name)
+val locationStateTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.state, CityTable, CityTable.state)
+
+val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.ownerId, StarTable.id)
     .select(LocationTable.columns + StarTable.username)
 
 fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
+    mapId = this[LocationTable.mapId],
     name = this[LocationTable.name],
     username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],
     address = this[LocationTable.address],
     city = this[LocationTable.city],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
+    mapRank = this[LocationTable.mapRank],
+    mapClass = this[LocationTable.mapClass],
+    mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     website = this[LocationTable.website],
     lightCount = this[LocationTable.lightCount],
@@ -77,15 +89,15 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, scoutId: StarId?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(location: Location, starId: StarId?, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.value
-    this[LocationTable.starId] = scoutId?.value
-    this[LocationTable.scoutId] = scoutId?.value
+    this[LocationTable.creatorId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
     writeUpdate(location, imageSet)
 }
 
 fun UpdateBuilder<*>.writeUpdate(location: Location, imageSet: SavedImageSet?) {
+    this[LocationTable.mapId] = location.mapId
     // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline
     this[LocationTable.name] = location.name
     this[LocationTable.description] = location.description

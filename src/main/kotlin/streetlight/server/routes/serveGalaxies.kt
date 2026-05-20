@@ -7,7 +7,6 @@ import kampfire.model.toResponse
 import kampfire.model.responseOf
 import klutch.server.ApiContext
 import klutch.server.getApi
-import klutch.server.getEndpoint
 import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.data.GalaxyFounded
@@ -62,7 +61,7 @@ fun ApiContext.serveGalaxies() {
             val edit = request.data
             val identity = call.getIdentity()
             val starId = identity.starId
-            val city = edit.cityId?.let { dao.city.readCity(it) ?: error("city not found") }
+            val city = edit.cityId?.let { dao.locality.readCity(it) ?: error("city not found") }
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             when (edit.galaxyId) {

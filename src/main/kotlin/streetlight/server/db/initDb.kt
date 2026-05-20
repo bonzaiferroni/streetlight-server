@@ -2,6 +2,7 @@ package streetlight.server.db
 
 import kabinet.utils.Environment
 import klutch.db.createCounterTrigger
+import klutch.db.createSyncValueTrigger
 import klutch.db.services.UserInitService
 import klutch.db.tables.RefreshTokenTable
 import klutch.environment.readEnvFromPath
@@ -33,6 +34,10 @@ fun initDb(
 
         counterTriggers.forEach {
             createCounterTrigger(it)
+        }
+
+        syncValueTriggers.forEach {
+            createSyncValueTrigger(it)
         }
     }
 
@@ -71,10 +76,18 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
 )
 
 val counterTriggers get() = listOf(
-    cityGalaxyCountTrigger,
+    cityGalaxyTrigger,
     galaxyLightTrigger,
     galaxyPostCountTrigger,
     eventLightTrigger,
+)
+
+val syncValueTriggers get() = listOf(
+    stateCountryTrigger,
+    cityStateTrigger,
+    cityCountryTrigger,
+    locationCityTrigger,
+    locationStateTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

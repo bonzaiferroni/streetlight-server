@@ -15,15 +15,19 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.City
 import streetlight.model.data.CityId
-import streetlight.model.data.Locality
+import streetlight.model.data.Country
+import streetlight.model.data.CountryId
+import streetlight.model.data.State
+import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.CountryTable
 import streetlight.server.db.tables.StateTable
 import streetlight.server.db.tables.toCity
+import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import kotlin.time.Clock
 
-class LocalityTableDao : DbService() {
+class CityTableDao : DbService() {
 
     suspend fun readCity(cityId: CityId) = dbQuery {
         CityTable.selectAll().where { CityTable.id eq cityId.value }.firstOrNull()?.toCity()
@@ -58,28 +62,25 @@ class LocalityTableDao : DbService() {
 //    }
 
     suspend fun readTopCities(limit: Int = 10) = dbQuery {
-        LocalityAspect.query()
+        CityTable.selectAll()
             .orderBy(CityTable.galaxyCount, SortOrder.DESC)
             .limit(limit)
-            .map { it.toLocality() }
+            .map { it.toCity() }
     }
 
-    suspend fun searchLocalities(query: String, limit: Int = 10) = dbQuery {
-        LocalityAspect.query()
+    suspend fun searchCities(query: String, limit: Int = 10) = dbQuery {
+        CityTable.selectAll()
             .where { CityTable.name.like("${query.lowercase()}%")}
             .limit(limit)
-            .map { it.toLocality() }
+            .map { it.toCity() }
     }
 
-    suspend fun createCities(localities: List<Locality>) = dbQuery {
-        val now = Clock.System.now()
-
+    suspend fun createCities(cities: List<City>) = dbQuery {
         // 1. Countries
-        val uniqueCountries = localities.map { it.country }.distinct()
+        val uniqueCountries = cities.map { it.country }.distinct()
         CountryTable.batchInsert(uniqueCountries, ignore = true) {
-            this[CountryTable.name] = it
-            this[CountryTable.createdAt] = now
-            this[CountryTable.updatedAt] = now
+            val country = countryOf(it)
+            this.writeFull(country)
         }
         val countryIds: Map<String, Int> = CountryTable
             .selectAll()
@@ -87,12 +88,10 @@ class LocalityTableDao : DbService() {
             .associate { it[CountryTable.name] to it[CountryTable.id].value }
 
         // 2. States
-        val uniqueStates = localities.map { it.state to it.country }.distinct()
+        val uniqueStates = cities.map { it.state to it.country }.distinct()
         StateTable.batchInsert(uniqueStates, ignore = true) { (state, country) ->
-            this[StateTable.countryId] = countryIds.getValue(country)
-            this[StateTable.name] = state
-            this[StateTable.createdAt] = now
-            this[StateTable.updatedAt] = now
+            val state = stateOf(state, country, CountryId(countryIds.getValue(country)))
+            this.writeFull(state)
         }
         val stateIds: Map<Pair<String, String>, Int> = StateTable
             .innerJoin(CountryTable)
@@ -101,19 +100,29 @@ class LocalityTableDao : DbService() {
             .associate { (it[StateTable.name] to it[CountryTable.name]) to it[StateTable.id].value }
 
         // 3. Cities
-        CityTable.batchInsert(localities, ignore = true) {
-            this[CityTable.name] = it.city
-            this[CityTable.stateId] = stateIds.getValue(it.state to it.country)
-            this[CityTable.geoRank] = it.geoRank
-            this[CityTable.geoPoint] = it.geoPoint.toPGpoint()
-            this[CityTable.geoBounds] = it.geoBounds.toList()
-            this[CityTable.createdAt] = now
-            this[CityTable.updatedAt] = now
+        CityTable.batchInsert(cities, ignore = true) {
+            val stateId = stateIds.getValue(it.state to it.country)
+            this.writeFull(it, StateId(stateId))
         }
 
-        val cityNames = localities.map { it.city }.distinct()
-        LocalityAspect.query()
+        val cityNames = cities.map { it.name }.distinct()
+        CityTable.selectAll()
             .where { CityTable.name.inList(cityNames) and CityTable.stateId.inList(stateIds.values) }
-            .map { it.toLocality() }
+            .map { it.toCity() }
     }
 }
+
+private fun stateOf(
+    name: String,
+    country: String,
+    countryId: CountryId
+) = State(
+    stateId = StateId(0),
+    countryId = countryId,
+    name = name,
+    country = country
+)
+
+private fun countryOf(
+    name: String,
+) = Country(CountryId(0), name)

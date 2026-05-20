@@ -74,6 +74,7 @@ class GalaxyTableDao : DbService() {
 fun GalaxyEdit.toGalaxy() = Galaxy(
     galaxyId = galaxyId ?: GalaxyId.random(),
     cityId = cityId,
+    city = null,
     name = name?.trim().takeIf { GalaxyEdit.isValidName(it) } ?: error("invalid name: $name"),
     slug = slug?.trim().takeIf { GalaxyEdit.isValidPath(it) } ?: error("invalid slug: $slug"),
     tagline = tagline?.trim(),

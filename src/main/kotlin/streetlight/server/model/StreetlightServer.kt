@@ -22,7 +22,7 @@ class DaoFacade(
     val request: RequestTableDao = RequestTableDao(),
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),
-    val city: LocalityTableDao = LocalityTableDao(),
+    val locality: CityTableDao = CityTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
     val userFile: UploadFileTableDao = UploadFileTableDao(),
     val talk: CommentTableDao = CommentTableDao(),

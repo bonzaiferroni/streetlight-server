@@ -28,7 +28,15 @@ fun ApiContext.serveLocations() {
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
-        dao.location.searchLocations(query).toResponse()
+        val city = readParam(endpoint.city).takeIf { it.isNotBlank() }
+        val state = readParam(endpoint.state).takeIf { it.isNotBlank() }
+        val limit = readParam(endpoint.limit)
+
+        if (query.isBlank()) {
+            emptyList()
+        } else {
+            dao.location.searchLocations(query, city, state, limit)
+        }.toResponse()
     }
 
     getApi(Api.Locations.ReadTop) { endpoint ->
@@ -59,7 +67,7 @@ fun ApiContext.serveLocations() {
                 val location = dao.location.updateLocation(it, starId, edit, imageSet)
                 omni.sendMessage(LocationEdited(
                     locationId = location.locationId,
-                    name = location.name,
+                    name = location.displayTitle,
                     username = identity?.username,
                     recordAt = Clock.System.now()
                 ))
@@ -67,7 +75,7 @@ fun ApiContext.serveLocations() {
             } ?: dao.location.createLocation(starId, edit, imageSet).also {
                 omni.sendMessage(LocationCreated(
                     locationId = it.locationId,
-                    name = it.name,
+                    name = it.displayTitle,
                     username = identity?.username,
                     recordAt = Clock.System.now()
                 ))
