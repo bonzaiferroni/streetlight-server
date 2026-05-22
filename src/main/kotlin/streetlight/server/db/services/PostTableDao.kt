@@ -18,7 +18,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import org.jetbrains.exposed.v1.jdbc.update
-import streetlight.model.data.StarPostEdit
+import streetlight.model.data.ContentEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.EventPostEdit
 import streetlight.model.data.LocationPostEdit
@@ -58,13 +58,13 @@ class PostTableDao : DbService() {
         PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
     }
 
-    suspend fun createPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.title ?: error("title not found"), PostTable.slug)
         val post = post.toPostRow(identity, slug)
         PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
-    suspend fun editPost(post: StarPostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun editPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val post = post.toPostRow(identity)
         PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.starId.value)}) {
             it.writeUpdate(post, imageSet)
@@ -209,7 +209,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun StarPostEdit.toPostRow(identity: StarIdentity?, slug: String? = null) = PostRow(
+fun ContentEdit.toPostRow(identity: StarIdentity?, slug: String? = null) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.starId,
