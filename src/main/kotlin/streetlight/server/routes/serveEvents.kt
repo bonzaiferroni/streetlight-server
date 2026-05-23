@@ -70,7 +70,7 @@ fun ApiContext.serveEvents() {
     }
 
     authGate {
-        postApi(Api.Events.Edit) { request ->
+        postApi(Api.Events.CreateOrEdit) { request ->
             val identity = call.getIdentity()
             val userId = identity.starId
 
@@ -85,18 +85,18 @@ fun ApiContext.serveEvents() {
             val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
 
             val eventId = edit.eventId
-            val event = if (eventId != null) {
+            val slug = if (eventId != null) {
                 console.log("updating event: ${edit.title}")
-                val event = dao.event.updateEvent(eventId, userId, edit, imageSet)
-                omni.sendMessage(event.toEventEdited(identity.username))
-                event
+                dao.event.updateEvent(eventId, userId, edit, imageSet)
+                // omni.sendMessage(event.toEventEdited(identity.username))
+                // event
             } else {
                 console.log("creating event: ${edit.title}")
-                val event = dao.event.createEvent(userId, edit, imageSet)
-                omni.sendMessage(event.toEventCreated(identity.username))
-                event
+                dao.event.createEvent(userId, edit, imageSet)
+                // omni.sendMessage(event.toEventCreated(identity.username))
+                // event
             }
-            responseOf(event)
+            responseOf(slug)
         }
 
         deleteApi(Api.Events.Delete) {

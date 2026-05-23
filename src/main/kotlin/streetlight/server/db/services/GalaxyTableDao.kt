@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.api.SlugOrId
 import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
@@ -9,6 +10,7 @@ import klutch.utils.eq
 import klutch.utils.eqIgnoreCase
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.orIfNotNull
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
@@ -30,9 +32,9 @@ import kotlin.uuid.Uuid
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun readGalaxy(id: StringId) = dbQuery {
-        val galaxyId = Uuid.parseOrNull(id)?.let { GalaxyId(it) }
-        GalaxyTable.read { it.id.eq(galaxyId?.value) or it.slug.eqIgnoreCase(id) }.firstOrNull()?.toGalaxy()
+    suspend fun readGalaxy(value: SlugOrId) = dbQuery {
+        val matchId = Uuid.parseOrNull(value)?.let { GalaxyTable.id.eq(it) }
+        GalaxyTable.read { it.slug.eqIgnoreCase(value).orIfNotNull(matchId) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {

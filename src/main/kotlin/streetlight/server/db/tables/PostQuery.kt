@@ -5,7 +5,7 @@ import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.StarPost
+import streetlight.model.data.Post
 import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.PostType
@@ -83,7 +83,7 @@ fun ResultRow.toLocationPost() = LocationPost(
     updatedAt = this[PostTable.updatedAt]
 )
 
-fun ResultRow.toContentPost() = StarPost(
+fun ResultRow.toContentPost() = Post(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     slug = this[PostTable.slug],

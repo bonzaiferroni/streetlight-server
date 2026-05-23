@@ -27,12 +27,12 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import kotlin.time.Instant
 
-object PostTable : UuidTable("post") {
+object PostTable : UuidTable("post"), SlugTable {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
-    val slug = text("slug").nullable()
+    override val slug = text("slug").uniqueIndex()
     val title = text("title").nullable()
     val subtitle = text("subtitle").nullable()
     val text = text("text").nullable()
@@ -109,7 +109,7 @@ data class PostRow(
     val eventId: EventId?,
     val locationId: LocationId?,
     val starId: StarId?,
-    val slug: String?,
+    val slug: String,
     val title: String?,
     val subtitle: String?,
     val text: String?,

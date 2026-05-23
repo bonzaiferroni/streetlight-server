@@ -9,8 +9,9 @@ import koala.html.IdParse
 import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
-import streetlight.model.data.StarPost
+import streetlight.model.data.Post
 import streetlight.model.data.EventId
+import streetlight.model.data.GalaxyContent
 import streetlight.model.data.LocationId
 import streetlight.model.data.toProjectId
 import streetlight.server.model.*
@@ -180,11 +181,11 @@ suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
 
 suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
     val id = arg ?: return null
-    val post = dao.post.readPost(id) as? StarPost ?: return null
+    val post = dao.post.readPost(id) as? Post ?: return null
 
     return HtmlRender {
         appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {
-            starPostShell(post)
+            postShell(post)
         }
     }
 }

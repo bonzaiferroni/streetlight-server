@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.api.Slug
 import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
@@ -14,11 +15,12 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.UnionAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import org.jetbrains.exposed.v1.jdbc.update
-import streetlight.model.data.ContentEdit
+import streetlight.model.data.PostEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.EventPostEdit
 import streetlight.model.data.LocationPostEdit
@@ -27,6 +29,7 @@ import streetlight.model.data.PostOrder
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.PostColumns
 import streetlight.server.db.tables.PostRow
 import streetlight.server.db.tables.PostTable
@@ -44,31 +47,35 @@ import kotlin.uuid.Uuid
 
 class PostTableDao : DbService() {
 
-    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity): PostId? = dbQuery {
-        val post = edit.toPostRow(identity)
-        try {
-            PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
-        } catch (e: ExposedSQLException) {
-            if (e.cause is SQLIntegrityConstraintViolationException) null else throw e
-        }
-    }
-
-    suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
-        val post = post.toPostRow(identity)
+    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
+        val slug = PostTable.nextSlugOf(edit.eventId, EventTable, EventTable.title)
+        val post = edit.toPostRow(identity, slug)
         PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
     }
 
-    suspend fun createPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
-        val slug = PostTable.nextSlugOf(post.title ?: error("title not found"), PostTable.slug)
+    suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
+        val slug = PostTable.nextSlugOf(post.locationId, LocationTable, LocationTable.name)
+        val post = post.toPostRow(identity, slug)
+        PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
+    }
+
+    suspend fun createPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+        val slug = PostTable.nextSlugOf(post.title ?: error("title not found"))
         val post = post.toPostRow(identity, slug)
         PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
     }
 
-    suspend fun editPost(post: ContentEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
-        val post = post.toPostRow(identity)
-        PostTable.update({ PostTable.id.eq(post.postId) and PostTable.starId.eq(identity.starId.value)}) {
+    suspend fun readSlug(postId: PostId) = dbQuery {
+        PostTable.select(PostTable.slug).where { PostTable.id.eq(postId) }.firstOrNull()?.getOrNull(PostTable.slug)
+    }
+
+    suspend fun editPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+        val postId = post.postId ?: return@dbQuery null
+        val slug = readSlug(postId) ?: return@dbQuery null
+        val post = post.toPostRow(identity, slug)
+        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value)}) {
             it.writeUpdate(post, imageSet)
-        } == 1
+        }.let { if (it == 1) postId else null }
     }
 
     suspend fun delete(postId: PostId) = dbQuery {
@@ -171,15 +178,13 @@ class PostTableDao : DbService() {
     }
 }
 
-fun EventPostEdit.toPostRow(
-    identity: StarIdentity,
-) = PostRow(
+fun EventPostEdit.toPostRow(identity: StarIdentity, slug: Slug) = PostRow(
     postId = postId ?: PostId.random(),
-    galaxyId = galaxyId ?: error("galaxyId is required"),
-    eventId = eventId ?: error("eventId is required"),
+    galaxyId = galaxyId,
+    eventId = eventId,
     locationId = null,
     starId = identity.starId,
-    slug = null,
+    slug = slug,
     title = null,
     subtitle = null,
     text = text,
@@ -191,13 +196,13 @@ fun EventPostEdit.toPostRow(
     createdAt = Clock.System.now(),
 )
 
-fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
+fun LocationPostEdit.toPostRow(identity: StarIdentity?, slug: Slug) = PostRow(
     postId = postId ?: PostId.random(),
-    galaxyId = galaxyId ?: error("galaxyId is required"),
+    galaxyId = galaxyId,
     starId = identity?.starId,
     eventId = null,
     locationId = locationId,
-    slug = null,
+    slug = slug,
     title = null,
     subtitle = null,
     text = text,
@@ -209,7 +214,7 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun ContentEdit.toPostRow(identity: StarIdentity?, slug: String? = null) = PostRow(
+fun PostEdit.toPostRow(identity: StarIdentity?, slug: String) = PostRow(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.starId,

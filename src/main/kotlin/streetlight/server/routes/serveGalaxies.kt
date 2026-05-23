@@ -15,6 +15,7 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import streetlight.model.data.GalaxyContent
 
 private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 
@@ -25,12 +26,7 @@ fun ApiContext.serveGalaxies() {
         Ok(dao.galaxy.readTopGalaxies())
     }
 
-    getApi(Api.Galaxies.ReadSlug, { it }) {
-        val pathId = it.data
-        responseOf(dao.galaxy.readGalaxySlug(pathId))
-    }
-
-    getApi(Api.Galaxies.ReadId, { it }) {
+    getApi(Api.Galaxies.ReadGalaxy, { it }) {
         val id = it.data
         responseOf(dao.galaxy.readGalaxy(id))
     }
@@ -54,6 +50,12 @@ fun ApiContext.serveGalaxies() {
     getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {
         val galaxyId = it.data
         Ok(dao.post.readActivePosts(galaxyId))
+    }
+
+    getApi(Api.Galaxies.ReadContent, { it }) {
+        val galaxy = dao.galaxy.readGalaxy(it.data) ?: return@getApi null
+        val posts = dao.post.readActivePosts(galaxy.galaxyId)
+        Ok(GalaxyContent(galaxy, posts))
     }
 
     authGate {
@@ -85,52 +87,35 @@ fun ApiContext.serveGalaxies() {
             }.toResponse()
         }
 
-        postApi(Api.Galaxies.PostEvent) {
+        postApi(Api.Galaxies.CreateEventPost) {
             val request = it.data
             val identity = call.getIdentity()
-            when (val postId = dao.post.createPost(request, identity)) {
-                null -> Problem("Something went wrong.")
-                else -> {
-                    when (val post = dao.post.readPost(postId)) {
-                        null -> Problem("Something went wrong.")
-                        else -> Ok(post)
-                    }
-                }
-            }
+            responseOf(dao.post.createPost(request, identity))
         }
 
-        postApi(Api.Galaxies.PostContent) {
+        postApi(Api.Galaxies.CreatePost) {
             val edit = it.data
             val identity = call.getIdentity()
 
             val imageSet = saveImages(identity.starId, null, edit.imageRef, PostTable.imageConfig)
 
-            val postId = dao.post.createPost(edit, identity, imageSet)
-
-            responseOf(dao.post.readPost(postId))
+            responseOf(dao.post.createPost(edit, identity, imageSet))
         }
 
-        postApi(Api.Galaxies.EditContent) {
+        postApi(Api.Galaxies.EditPost) {
             val edit = it.data
             val identity = call.getIdentity()
             val postId = edit.postId ?: error("postId not found")
 
             val imageSet = saveImages(identity.starId, postId, edit.imageRef, PostTable.imageConfig)
 
-            val isSuccess = dao.post.editPost(edit, identity, imageSet)
-            if (!isSuccess) {
-                return@postApi null
-            }
-
-            responseOf(dao.post.readPost(postId))
+            responseOf(dao.post.editPost(edit, identity, imageSet))
         }
 
-        postApi(Api.Galaxies.PostLocation) {
+        postApi(Api.Galaxies.CreateLocationPost) {
             val request = it.data
             val identity = call.getIdentity()
-            val postId = dao.post.createPost(request, identity)
-
-            responseOf(dao.post.readPost(postId))
+            responseOf(dao.post.createPost(request, identity))
         }
 
         getApi(Api.Galaxies.ReadLights) {

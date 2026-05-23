@@ -21,11 +21,12 @@ import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 
-object LocationTable : UuidTable("location") {
+object LocationTable : UuidTable("location"), SlugTable {
     val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
     val mapId = long("map_Id").nullable().uniqueIndex()
+    override val slug = text("slug").uniqueIndex()
     val name = text("name").nullable()
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -68,6 +69,7 @@ fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
     mapId = this[LocationTable.mapId],
     cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
+    slug = this[LocationTable.slug],
     name = this[LocationTable.name],
     username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],

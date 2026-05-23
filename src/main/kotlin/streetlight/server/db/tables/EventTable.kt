@@ -17,11 +17,11 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 
-object EventTable : UuidTable("event") {
+object EventTable : UuidTable("event"), SlugTable {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
-    val slug = text("slug").uniqueIndex(SLUG_INDEX)
+    override val slug = text("slug").uniqueIndex(SLUG_INDEX)
     val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")

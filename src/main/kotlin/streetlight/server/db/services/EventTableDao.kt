@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.api.Slug
 import kampfire.model.GeoBounds
 import klutch.db.DbService
 import klutch.db.count
@@ -16,22 +17,25 @@ import klutch.utils.eqIgnoreCase
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
 import streetlight.model.data.LocationId
-import streetlight.model.data.Slug
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.EventLocationQuery
+import streetlight.server.db.tables.readSlug
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -64,11 +68,12 @@ class EventTableDao: DbService() {
         event: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val event = event.toEvent(EventId.random())
-        EventTable.insertWithSlug(event.title, EventTable.slug) {
+        val title = event.title ?: error("title not found")
+        val slug = EventTable.nextSlugOf(title)
+        val event = event.toEvent(EventId.random(), slug)
+        EventTable.insertAndGetId {
             it.writeFull(event, starId, imageSet)
-        }
-        EventTable.readById(event.eventId.value).toEvent()
+        }.toProjectId<EventId>()
     }
 
     suspend fun updateEvent(
@@ -77,11 +82,12 @@ class EventTableDao: DbService() {
         edit: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val event = edit.toEvent(eventId)
-        EventTable.updateSingleWhere({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
+        val slug = EventTable.readSlug(eventId) ?: error("slug not found")
+        val event = edit.toEvent(eventId, slug)
+        EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event, imageSet)
         }
-        EventTable.readById(event.eventId.value).toEvent()
+        eventId
     }
 
     suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
@@ -120,13 +126,11 @@ class EventTableDao: DbService() {
     }
 }
 
-private fun EventEdit.toEvent(
-    eventId: EventId,
-) = Event(
+private fun EventEdit.toEvent(eventId: EventId, slug: Slug) = Event(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
-    slug = normalizedSlugOf(title ?: error("no title")),
+    slug = normalizeSlugBase(title ?: error("no title")),
     title = title ?: error("no title"),
     description = description,
     contact = contact,

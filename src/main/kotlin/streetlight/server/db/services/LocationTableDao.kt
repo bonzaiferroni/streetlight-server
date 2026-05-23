@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.api.Slug
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
@@ -19,6 +20,7 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -32,6 +34,7 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
+import streetlight.server.db.tables.readSlug
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
@@ -77,19 +80,23 @@ class LocationTableDao : DbService() {
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val location = edit.toLocation()
+        val slugBase = edit.getSlugBase(locationId)
+        val slug = LocationTable.nextSlugOf(slugBase)
+        val location = edit.toLocation(locationId, slug)
         val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.writeUpdate(location, imageSet)
         }
-        LocationTable.readById(locationId.value).toLocation()
+        locationId
     }
 
     suspend fun createLocation(starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
-        val location = edit.toLocation()
-        val locationId =
-            LocationTable.insertAndGetId { it.writeFull(location, starId, imageSet) }.value
-        LocationTable.readById(locationId).toLocation()
+        val locationId = LocationId.random()
+        val slugBase = edit.getSlugBase(locationId)
+        val slug = LocationTable.nextSlugOf(slugBase)
+        val location = edit.toLocation(locationId, slug)
+        LocationTable.insert { it.writeFull(location, starId, imageSet) }
+        locationId
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
@@ -135,10 +142,11 @@ class LocationTableDao : DbService() {
 
 
 
-fun LocationEdit.toLocation() = Location(
-    locationId = locationId ?: LocationId.random(),
+fun LocationEdit.toLocation(locationId: LocationId, slug: Slug) = Location(
+    locationId = locationId,
     cityId = cityId,
     mapId = mapId,
+    slug = slug,
     name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
     mapRank = mapRank,
@@ -161,3 +169,8 @@ fun LocationEdit.toLocation() = Location(
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now()
 )
+
+fun LocationEdit.getSlugBase(locationId: LocationId) = when {
+    name != null && city != null -> "$name-$city"
+    else -> locationId.value.toString()
+}

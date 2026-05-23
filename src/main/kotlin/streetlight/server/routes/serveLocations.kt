@@ -67,24 +67,10 @@ fun ApiContext.serveLocations() {
             val cityId = cityService.readOrCreateCity(edit.city, edit.state)
             edit = edit.copy(cityId = cityId)
 
-            val location = edit.locationId?.let {
-                val location = dao.location.updateLocation(it, starId, edit, imageSet)
-                omni.sendMessage(LocationEdited(
-                    locationId = location.locationId,
-                    name = location.displayTitle,
-                    username = identity?.username,
-                    recordAt = Clock.System.now()
-                ))
-                location
-            } ?: dao.location.createLocation(starId, edit, imageSet).also {
-                omni.sendMessage(LocationCreated(
-                    locationId = it.locationId,
-                    name = it.displayTitle,
-                    username = identity?.username,
-                    recordAt = Clock.System.now()
-                ))
-            }
-            responseOf(location)
+            when (val locationId = edit.locationId) {
+                null -> dao.location.createLocation(starId, edit, imageSet)
+                else -> dao.location.updateLocation(locationId, starId, edit, imageSet)
+            }.toResponse()
         }
 
         postApi(Api.Locations.ParseLocation) { request ->
