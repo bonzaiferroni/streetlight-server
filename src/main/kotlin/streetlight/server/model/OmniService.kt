@@ -1,20 +1,17 @@
 package streetlight.server.model
 
 import kampfire.api.Slug
-import kampfire.api.StringId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import streetlight.model.data.EventId
 import streetlight.model.data.EventCreated
+import streetlight.model.data.EventUpdated
 import streetlight.model.data.GalaxyFounded
-import streetlight.model.data.GalaxyId
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniRecord
-import streetlight.model.data.StarId
 import kotlin.time.Clock
 
 class OmniService(private val dao: DaoFacade) {
@@ -36,11 +33,14 @@ class OmniService(private val dao: DaoFacade) {
     }
 
     fun sendGalaxyFounded(name: String, slug: Slug, username: String) = sendMessage(
-        GalaxyFounded(
-            slug = slug,
-            name = name,
-            username = username,
-            recordAt = Clock.System.now()
-        )
+        GalaxyFounded(slug = slug, name = name, username = username, recordAt = Clock.System.now())
+    )
+
+    fun sendEventCreated(title: String, slug: Slug, username: String) = sendMessage(
+        EventCreated(slug = slug, title = title, username = username, recordAt = Clock.System.now())
+    )
+
+    fun sendEventUpdated(title: String, slug: Slug, username: String) = sendMessage(
+        EventUpdated(slug = slug, title = title, username = username, recordAt = Clock.System.now())
     )
 }

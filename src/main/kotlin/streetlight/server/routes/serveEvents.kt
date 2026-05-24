@@ -2,25 +2,26 @@ package streetlight.server.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import kampfire.api.Slug
+import kampfire.model.ApiResponse
 import kampfire.model.Ok
+import kampfire.model.Problem
 import kampfire.model.responseOf
+import kampfire.model.toResponse
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
-import streetlight.model.data.EventEdited
-import streetlight.model.data.Event
-import streetlight.model.data.EventCreated
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
-import kotlin.time.Clock
+import streetlight.model.data.EventEdit
+import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiContext::serveEvents.name)
 
@@ -70,33 +71,45 @@ fun ApiContext.serveEvents() {
     }
 
     authGate {
-        postApi(Api.Events.CreateOrEdit) { request ->
-            val identity = call.getIdentity()
-            val userId = identity.starId
-
-            val edit = request.data
-
-            if (edit.eventId == null && dao.event.hasConflict(request.data)) {
-                call.respond(HttpStatusCode.Conflict)
-                return@postApi null
+        suspend fun handleEdit(
+            edit: EventEdit,
+            identity: StarIdentity,
+            block: suspend (SavedImageSet) -> Slug?
+        ): ApiResponse<Slug>? {
+            if (edit.eventId == null && dao.event.hasConflict(edit)) {
+                return Problem("Event already exists")
             }
 
-            val imageUserId = userId.takeIf { edit.imageRef?.isRelative ?: false }
+            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
+            return block(requireNotNull(imageSet)).toResponse()
+        }
 
-            val eventId = edit.eventId
-            val slug = if (eventId != null) {
-                console.log("updating event: ${edit.title}")
-                dao.event.updateEvent(eventId, userId, edit, imageSet)
-                // omni.sendMessage(event.toEventEdited(identity.username))
-                // event
-            } else {
-                console.log("creating event: ${edit.title}")
-                dao.event.createEvent(userId, edit, imageSet)
-                // omni.sendMessage(event.toEventCreated(identity.username))
-                // event
+        postApi(Api.Events.CreateEvent) { request ->
+            val identity = call.getIdentity()
+            val edit = request.data
+            val title = requireNotNull(edit.title)
+
+            handleEdit(edit, identity) { imageSet ->
+                console.log("creating event: $title")
+                dao.event.createEvent(identity.starId, edit, imageSet).also { slug ->
+                    omni.sendEventCreated(title, slug, identity.username)
+                }
             }
-            responseOf(slug)
+        }
+
+        postApi(Api.Events.UpdateEvent) { request ->
+            val identity = call.getIdentity()
+            val edit = request.data
+            val title = requireNotNull(edit.title)
+
+            handleEdit(edit, identity) { imageSet ->
+                val eventId = requireNotNull(edit.eventId)
+                console.log("updating event: ${edit.title}")
+                dao.event.updateEvent(eventId, identity.starId, edit, imageSet).also { slug ->
+                    omni.sendEventUpdated(title, slug, identity.username)
+                }
+            }
         }
 
         deleteApi(Api.Events.Delete) {
@@ -122,6 +135,3 @@ fun ApiContext.serveEvents() {
         }
     }
 }
-
-private fun Event.toEventEdited(username: String) = EventEdited(eventId, title, username, Clock.System.now())
-private fun Event.toEventCreated(username: String) = EventCreated(eventId, title, username, Clock.System.now())

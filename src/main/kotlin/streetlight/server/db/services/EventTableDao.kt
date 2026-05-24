@@ -27,11 +27,13 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.EventLocationQuery
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.getSlugRecord
+import klutch.db.tables.nextSlugOf
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -69,7 +71,8 @@ class EventTableDao: DbService() {
         val event = edit.toEvent(EventId.random())
         EventTable.insertAndGetId {
             it.writeFull(event, starId, SlugRecord(slug), imageSet)
-        }.toProjectId<EventId>()
+        }
+        slug
     }
 
     suspend fun updateEvent(
@@ -84,7 +87,7 @@ class EventTableDao: DbService() {
         EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
             it.writeUpdate(event, slugSync, imageSet)
         }
-        eventId
+        slugSync.slug
     }
 
     suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {

@@ -8,6 +8,7 @@ import kampfire.model.ScaledImageArray
 import kampfire.model.Url
 import klutch.db.point
 import klutch.db.scaledImages
+import klutch.db.tables.SlugTable
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint

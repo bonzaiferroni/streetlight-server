@@ -32,6 +32,9 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.getSlugRecord
+import klutch.db.tables.nextSlugOf
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull

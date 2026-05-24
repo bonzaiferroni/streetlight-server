@@ -4,6 +4,8 @@ import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.scaledImages
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.SlugTable
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -15,7 +17,6 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.StarId
-import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 

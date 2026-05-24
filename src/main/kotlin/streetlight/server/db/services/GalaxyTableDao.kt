@@ -5,12 +5,10 @@ import kampfire.api.isValid
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
-import klutch.db.readFirstOrNull
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -22,10 +20,12 @@ import streetlight.model.data.GalaxyId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.SavedImageSet
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.getDefinedSlugRecord
+import klutch.db.tables.isSlugAvailable
 import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
 import streetlight.server.db.tables.writeGalaxyUpdate
-import streetlight.server.utils.toProjectId
 
 class GalaxyTableDao : DbService() {
 

@@ -6,6 +6,8 @@ import klutch.db.SyncValueTrigger
 import klutch.utils.*
 import klutch.db.point
 import klutch.db.scaledImages
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.SlugTable
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -20,7 +22,6 @@ import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
-import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UuidTable("location"), SlugTable {

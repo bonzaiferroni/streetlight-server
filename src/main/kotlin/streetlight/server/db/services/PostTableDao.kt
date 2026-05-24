@@ -30,19 +30,27 @@ import streetlight.server.db.tables.PostColumns
 import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import streetlight.server.db.tables.SavedImageSet
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.getSlugRecord
+import klutch.db.tables.nextSlugOf
+import klutch.db.tables.readColumn
+import streetlight.model.data.EventId
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
+import streetlight.server.utils.toProjectId
 import kotlin.time.Clock
 
 class PostTableDao : DbService() {
 
     suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
-        val slug = PostTable.nextSlugOf(edit.eventId, EventTable, EventTable.title)
-        val post = edit.toPostRecord(identity, SlugRecord(slug))
+        val eventId = EventTable.readColumn(edit.eventSlug, EventTable.id).toProjectId<EventId>()
+
+        val slug = PostTable.nextSlugOf(eventId, EventTable, EventTable.title)
+        val post = edit.toPostRecord(eventId, identity, SlugRecord(slug))
         PostTable.insert { it.writeFull(post, null) }
         slug
     }
@@ -170,7 +178,7 @@ class PostTableDao : DbService() {
     }
 }
 
-fun EventPostEdit.toPostRecord(identity: StarIdentity, slugRecord: SlugRecord) = PostRecord(
+fun EventPostEdit.toPostRecord(eventId: EventId, identity: StarIdentity, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = eventId,

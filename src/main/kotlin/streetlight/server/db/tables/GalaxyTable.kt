@@ -5,6 +5,8 @@ import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.point
 import klutch.db.scaledImages
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.SlugTable
 import klutch.db.url
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
@@ -21,7 +23,6 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
-import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
