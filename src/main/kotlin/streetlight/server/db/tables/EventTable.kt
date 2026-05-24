@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.scaledImages
@@ -14,6 +15,7 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.StarId
+import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 import streetlight.server.utils.toProjectIdOrNull
 
@@ -21,7 +23,8 @@ object EventTable : UuidTable("event"), SlugTable {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
-    override val slug = text("slug").uniqueIndex(SLUG_INDEX)
+    override val slug = text("slug").uniqueIndex()
+    override val pastSlug = text("past_slug").index().nullable()
     val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")
@@ -45,8 +48,6 @@ object EventTable : UuidTable("event"), SlugTable {
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
-    const val SLUG_INDEX = "event_slug_index"
-
     val imageConfig = imageConfigOf(
         table = this,
         refColumn = imageRef,
@@ -59,17 +60,18 @@ object EventTable : UuidTable("event"), SlugTable {
 
 val eventLightTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
 
-fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value
     this[EventTable.starId] = starId.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
-    this[EventTable.slug] = event.slug
     this[EventTable.createdAt] = event.createdAt
-    writeUpdate(event, imageSet)
+    writeUpdate(event, slugRecord, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(event: Event, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeUpdate(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+    this[EventTable.slug] = slugRecord.slug.string
+    this[EventTable.pastSlug] = slugRecord.pastSlug?.string
     this[EventTable.website] = event.url
     this[EventTable.sourceUrl] = event.sourceUrl
     this[EventTable.sourceImageUrl] = event.sourceImageUrl
@@ -94,7 +96,7 @@ fun ResultRow.toEvent() = Event(
     eventId = toProjectId(EventTable.id),
     locationId = toProjectId(EventTable.locationId),
     currentRequestId = toProjectIdOrNull(EventTable.currentRequestId),
-    slug = this[EventTable.slug],
+    slug = this[EventTable.slug].toSlug(),
     title = this[EventTable.title],
     description = this[EventTable.description],
     status = this[EventTable.status],

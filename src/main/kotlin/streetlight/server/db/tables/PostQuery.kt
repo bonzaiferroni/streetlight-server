@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toSlug
 import kampfire.model.thumb
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
@@ -86,7 +87,7 @@ fun ResultRow.toLocationPost() = LocationPost(
 fun ResultRow.toContentPost() = Post(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
-    slug = this[PostTable.slug],
+    slug = this[PostTable.slug].toSlug(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     title = this[PostTable.title] ?: error("Title not found"),

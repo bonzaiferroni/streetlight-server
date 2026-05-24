@@ -9,11 +9,8 @@ import klutch.db.deleteSingle
 import klutch.db.inBounds
 import klutch.db.inList
 import klutch.db.read
-import klutch.db.readById
 import klutch.db.readFirstOrNull
-import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.eqIgnoreCase
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
@@ -30,7 +27,6 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.EventLocationQuery
-import streetlight.server.db.tables.readSlug
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.writeFull
@@ -56,7 +52,7 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readEventBySlug(slug: Slug) = dbQuery {
-        EventTable.readFirstOrNull { it.slug.eqIgnoreCase(slug) }?.toEvent()
+        EventTable.readFirstOrNull { it.slug.eq(slug) }?.toEvent()
     }
 
     suspend fun readEventLocationBySlug(slug: Slug) = dbQuery {
@@ -65,14 +61,14 @@ class EventTableDao: DbService() {
 
     suspend fun createEvent(
         starId: StarId,
-        event: EventEdit,
+        edit: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val title = event.title ?: error("title not found")
+        val title = edit.title ?: error("title not found")
         val slug = EventTable.nextSlugOf(title)
-        val event = event.toEvent(EventId.random(), slug)
+        val event = edit.toEvent(EventId.random())
         EventTable.insertAndGetId {
-            it.writeFull(event, starId, imageSet)
+            it.writeFull(event, starId, SlugRecord(slug), imageSet)
         }.toProjectId<EventId>()
     }
 
@@ -82,10 +78,11 @@ class EventTableDao: DbService() {
         edit: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
-        val slug = EventTable.readSlug(eventId) ?: error("slug not found")
-        val event = edit.toEvent(eventId, slug)
+        val title = edit.title ?: error("title not found")
+        val slugSync = EventTable.getSlugRecord(eventId, title)
+        val event = edit.toEvent(eventId)
         EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
-            it.writeUpdate(event, imageSet)
+            it.writeUpdate(event, slugSync, imageSet)
         }
         eventId
     }
@@ -126,11 +123,11 @@ class EventTableDao: DbService() {
     }
 }
 
-private fun EventEdit.toEvent(eventId: EventId, slug: Slug) = Event(
+private fun EventEdit.toEvent(eventId: EventId) = Event(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
-    slug = normalizeSlugBase(title ?: error("no title")),
+    slug = Slug.Empty,
     title = title ?: error("no title"),
     description = description,
     contact = contact,

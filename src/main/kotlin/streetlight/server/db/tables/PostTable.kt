@@ -1,5 +1,7 @@
 package streetlight.server.db.tables
 
+import kampfire.api.Slug
+import kampfire.api.toSlug
 import kampfire.model.GeoPoint
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImageArray
@@ -13,7 +15,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
@@ -33,6 +34,7 @@ object PostTable : UuidTable("post"), SlugTable {
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     override val slug = text("slug").uniqueIndex()
+    override val pastSlug = text("past_slug").uniqueIndex().nullable()
     val title = text("title").nullable()
     val subtitle = text("subtitle").nullable()
     val text = text("text").nullable()
@@ -63,13 +65,14 @@ object PostTable : UuidTable("post"), SlugTable {
     )
 }
 
-fun ResultRow.toPostRow() = PostRow(
+fun ResultRow.toPostRow() = PostRecord(
     postId = this[PostTable.id].toProjectId(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     starId = this[PostTable.starId]?.toProjectId(),
     eventId = this[PostTable.eventId]?.toProjectId(),
     locationId = this[PostTable.locationId]?.toProjectId(),
-    slug = this[PostTable.slug],
+    slug = this[PostTable.slug].toSlug(),
+    pastSlug = this[PostTable.pastSlug]?.toSlug(),
     title = this[PostTable.title],
     subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
@@ -81,19 +84,20 @@ fun ResultRow.toPostRow() = PostRow(
     createdAt = this[PostTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(post: PostRow, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(post: PostRecord, imageSet: SavedImageSet?) {
     this[PostTable.id] = post.postId.value
     this[PostTable.galaxyId] = post.galaxyId.value
     this[PostTable.starId] = post.starId?.value
     this[PostTable.eventId] = post.eventId?.value
     this[PostTable.locationId] = post.locationId?.value
-    this[PostTable.slug] = post.slug
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt
     writeUpdate(post, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(post: PostRow, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeUpdate(post: PostRecord, imageSet: SavedImageSet?) {
+    this[PostTable.slug] = post.slug.string
+    this[PostTable.pastSlug] = post.pastSlug?.string
     this[PostTable.title] = post.title
     this[PostTable.subtitle] = post.subtitle
     this[PostTable.text] = post.text
@@ -103,13 +107,14 @@ fun UpdateBuilder<*>.writeUpdate(post: PostRow, imageSet: SavedImageSet?) {
 }
 
 @Serializable
-data class PostRow(
+data class PostRecord(
     val postId: PostId,
     val galaxyId: GalaxyId,
     val eventId: EventId?,
     val locationId: LocationId?,
     val starId: StarId?,
-    val slug: String,
+    val slug: Slug,
+    val pastSlug: Slug?,
     val title: String?,
     val subtitle: String?,
     val text: String?,

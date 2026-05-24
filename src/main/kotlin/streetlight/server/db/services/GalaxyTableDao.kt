@@ -1,16 +1,13 @@
 package streetlight.server.db.services
 
-import kampfire.api.SlugOrId
-import kampfire.api.StringId
+import kampfire.api.Slug
+import kampfire.api.isValid
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
-import klutch.utils.eqIgnoreCase
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.core.orIfNotNull
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
@@ -28,13 +25,15 @@ import streetlight.server.db.tables.toGalaxy
 import streetlight.server.db.tables.writeGalaxyFull
 import streetlight.server.db.tables.writeGalaxyUpdate
 import streetlight.server.utils.toProjectId
-import kotlin.uuid.Uuid
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun readGalaxy(value: SlugOrId) = dbQuery {
-        val matchId = Uuid.parseOrNull(value)?.let { GalaxyTable.id.eq(it) }
-        GalaxyTable.read { it.slug.eqIgnoreCase(value).orIfNotNull(matchId) }.firstOrNull()?.toGalaxy()
+    suspend fun readGalaxy(slug: Slug) = dbQuery {
+        GalaxyTable.read { it.slug.eq(slug) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readGalaxy(galaxyId: GalaxyId) = dbQuery {
+        GalaxyTable.read { it.id.eq(galaxyId) }
     }
 
     suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {
@@ -55,15 +54,24 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun create(edit: GalaxyEdit, starId: StarId, city: City?, imageSet: SavedImageSet?) = dbQuery {
-        val id = GalaxyTable.insertAndGetId { it.writeGalaxyFull(edit.toGalaxy(), starId, city, imageSet) }.toProjectId<GalaxyId>()
+        val slug = requireNotNull(edit.slug) { "Slug not found" }
+        require(slug.isValid()) { "Invalid slug" }
+        require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
+
+        val id = GalaxyTable.insertAndGetId {
+            it.writeGalaxyFull(edit.toGalaxy(), starId, SlugRecord(slug), city, imageSet)
+        }.toProjectId<GalaxyId>()
         GalaxyTable.readFirstOrNull { it.id.eq(id) }?.toGalaxy()
     }
 
     suspend fun update(edit: GalaxyEdit, city: City?, imageSet: SavedImageSet?) = dbQuery {
-        val galaxyId = edit.galaxyId ?: error("galaxy id not found")
+        val slug = requireNotNull(edit.slug) { "Slug not found" }
+        val galaxyId = requireNotNull(edit.galaxyId) { "galaxy id not found" }
+        val slugRecord = GalaxyTable.getDefinedSlugRecord(galaxyId, slug)
+
         val galaxy = edit.toGalaxy()
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
-            it.writeGalaxyUpdate(galaxy, city, imageSet)
+            it.writeGalaxyUpdate(galaxy, slugRecord, city, imageSet)
         }
         GalaxyTable.readFirstOrNull { it.id.eq(galaxyId) }?.toGalaxy()
     }
@@ -77,12 +85,12 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     galaxyId = galaxyId ?: GalaxyId.random(),
     cityId = cityId,
     city = null,
-    name = name?.trim().takeIf { GalaxyEdit.isValidName(it) } ?: error("invalid name: $name"),
-    slug = slug?.trim().takeIf { GalaxyEdit.isValidPath(it) } ?: error("invalid slug: $slug"),
+    name = requireNotNull(name?.trim().takeIf { GalaxyEdit.isValidName(it) }) { "invalid name: $name" },
+    slug = Slug.Empty,
     tagline = tagline?.trim(),
     description = description?.trim(),
-    geoPoint = geoBounds?.center ?: error("geo bounds not found"),
-    geoBounds = geoBounds ?: error("geo bounds not found"),
+    geoPoint = requireNotNull(geoBounds?.center) { "geo bounds not found" },
+    geoBounds = requireNotNull(geoBounds) { "geo bounds not found" },
     postPermission = postPermission,
     reviewMode = reviewMode,
     postGuide = postGuide?.trim(),

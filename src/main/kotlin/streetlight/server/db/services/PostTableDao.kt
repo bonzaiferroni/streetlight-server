@@ -1,7 +1,6 @@
 package streetlight.server.db.services
 
 import kampfire.api.Slug
-import kampfire.api.StringId
 import klutch.db.DbService
 import klutch.db.inList
 import klutch.utils.eq
@@ -11,12 +10,9 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.neq
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.jetbrains.exposed.v1.jdbc.UnionAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -31,7 +27,7 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.PostColumns
-import streetlight.server.db.tables.PostRow
+import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.eventJoin
@@ -40,42 +36,39 @@ import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
-import streetlight.server.utils.toProjectId
-import java.sql.SQLIntegrityConstraintViolationException
 import kotlin.time.Clock
-import kotlin.uuid.Uuid
 
 class PostTableDao : DbService() {
 
     suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
         val slug = PostTable.nextSlugOf(edit.eventId, EventTable, EventTable.title)
-        val post = edit.toPostRow(identity, slug)
-        PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
+        val post = edit.toPostRecord(identity, SlugRecord(slug))
+        PostTable.insert { it.writeFull(post, null) }
+        slug
     }
 
     suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.locationId, LocationTable, LocationTable.name)
-        val post = post.toPostRow(identity, slug)
-        PostTable.insertAndGetId { it.writeFull(post, null) }.toProjectId<PostId>()
+        val post = post.toPostRecord(identity, SlugRecord(slug))
+        PostTable.insert { it.writeFull(post, null) }
+        slug
     }
 
     suspend fun createPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.title ?: error("title not found"))
-        val post = post.toPostRow(identity, slug)
-        PostTable.insertAndGetId { it.writeFull(post, imageSet) }.toProjectId<PostId>()
-    }
-
-    suspend fun readSlug(postId: PostId) = dbQuery {
-        PostTable.select(PostTable.slug).where { PostTable.id.eq(postId) }.firstOrNull()?.getOrNull(PostTable.slug)
+        val post = post.toPostRecord(identity, SlugRecord(slug))
+        PostTable.insert { it.writeFull(post, imageSet) }
+        slug
     }
 
     suspend fun editPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+        val title = post.title ?: error("title not found")
         val postId = post.postId ?: return@dbQuery null
-        val slug = readSlug(postId) ?: return@dbQuery null
-        val post = post.toPostRow(identity, slug)
+        val slugSync = PostTable.getSlugRecord(postId, title)
+        val post = post.toPostRecord(identity, slugSync)
         PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value)}) {
             it.writeUpdate(post, imageSet)
-        }.let { if (it == 1) postId else null }
+        }.let { if (it == 1) slugSync.slug else null }
     }
 
     suspend fun delete(postId: PostId) = dbQuery {
@@ -110,9 +103,8 @@ class PostTableDao : DbService() {
         queryPosts { PostTable.id.eq(postId) }.firstOrNull()?.toPost()
     }
 
-    suspend fun readPost(stringId: StringId) = dbQuery {
-        val postId = Uuid.parseOrNull(stringId)?.let { PostId(it) }
-        queryPosts { PostTable.id.eq(postId?.value) or PostTable.slug.eq(stringId) }.firstOrNull()?.toPost()
+    suspend fun readPost(slug: Slug) = dbQuery {
+        queryPosts { PostTable.slug.eq(slug) }.firstOrNull()?.toPost()
     }
 
     suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
@@ -178,13 +170,14 @@ class PostTableDao : DbService() {
     }
 }
 
-fun EventPostEdit.toPostRow(identity: StarIdentity, slug: Slug) = PostRow(
+fun EventPostEdit.toPostRecord(identity: StarIdentity, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = eventId,
     locationId = null,
     starId = identity.starId,
-    slug = slug,
+    slug = slugRecord.slug,
+    pastSlug = slugRecord.pastSlug,
     title = null,
     subtitle = null,
     text = text,
@@ -196,13 +189,14 @@ fun EventPostEdit.toPostRow(identity: StarIdentity, slug: Slug) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun LocationPostEdit.toPostRow(identity: StarIdentity?, slug: Slug) = PostRow(
+fun LocationPostEdit.toPostRecord(identity: StarIdentity?, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.starId,
     eventId = null,
     locationId = locationId,
-    slug = slug,
+    slug = slugRecord.slug,
+    pastSlug = slugRecord.pastSlug,
     title = null,
     subtitle = null,
     text = text,
@@ -214,13 +208,14 @@ fun LocationPostEdit.toPostRow(identity: StarIdentity?, slug: Slug) = PostRow(
     createdAt = Clock.System.now(),
 )
 
-fun PostEdit.toPostRow(identity: StarIdentity?, slug: String) = PostRow(
+fun PostEdit.toPostRecord(identity: StarIdentity?, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.starId,
     eventId = null,
     locationId = null,
-    slug = slug,
+    slug = slugRecord.slug,
+    pastSlug = slugRecord.pastSlug,
     title = title ?: error("title is required"),
     subtitle = subtitle,
     text = text ?: error("text is required"),

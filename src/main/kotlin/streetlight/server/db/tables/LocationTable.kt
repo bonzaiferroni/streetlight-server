@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.utils.*
@@ -19,6 +20,7 @@ import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
+import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 
 object LocationTable : UuidTable("location"), SlugTable {
@@ -27,6 +29,7 @@ object LocationTable : UuidTable("location"), SlugTable {
     val cityId = reference("city_id", CityTable).nullable()
     val mapId = long("map_Id").nullable().uniqueIndex()
     override val slug = text("slug").uniqueIndex()
+    override val pastSlug = text("past_slug").index().nullable()
     val name = text("name").nullable()
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -69,7 +72,7 @@ fun ResultRow.toLocation() = Location(
     locationId = toProjectId(LocationTable.id),
     mapId = this[LocationTable.mapId],
     cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
-    slug = this[LocationTable.slug],
+    slug = this[LocationTable.slug].toSlug(),
     name = this[LocationTable.name],
     username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],
@@ -94,14 +97,16 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, starId: StarId?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeFull(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.creatorId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
-    writeUpdate(location, imageSet)
+    writeUpdate(location, slugRecord, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(location: Location, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeUpdate(location: Location, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+    this[LocationTable.slug] = slugRecord.slug.string
+    this[LocationTable.pastSlug] = slugRecord.pastSlug?.string
     this[LocationTable.mapId] = location.mapId
     this[LocationTable.cityId] = location.cityId?.value
     // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline

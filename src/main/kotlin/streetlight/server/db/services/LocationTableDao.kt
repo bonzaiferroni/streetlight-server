@@ -8,7 +8,6 @@ import kampfire.model.GeoPoint
 import klutch.db.DbService
 import klutch.db.inBounds
 import klutch.db.isNearEq
-import klutch.db.readById
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import klutch.utils.eq
@@ -21,7 +20,6 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
@@ -34,7 +32,6 @@ import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
-import streetlight.server.db.tables.readSlug
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
@@ -81,11 +78,11 @@ class LocationTableDao : DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
-        val slug = LocationTable.nextSlugOf(slugBase)
-        val location = edit.toLocation(locationId, slug)
+        val slugSync = LocationTable.getSlugRecord(locationId, slugBase)
+        val location = edit.toLocation(locationId)
         val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.writeUpdate(location, imageSet)
+            it.writeUpdate(location, slugSync, imageSet)
         }
         locationId
     }
@@ -94,8 +91,8 @@ class LocationTableDao : DbService() {
         val locationId = LocationId.random()
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
-        val location = edit.toLocation(locationId, slug)
-        LocationTable.insert { it.writeFull(location, starId, imageSet) }
+        val location = edit.toLocation(locationId)
+        LocationTable.insert { it.writeFull(location, starId, SlugRecord(slug), imageSet) }
         locationId
     }
 
@@ -142,11 +139,11 @@ class LocationTableDao : DbService() {
 
 
 
-fun LocationEdit.toLocation(locationId: LocationId, slug: Slug) = Location(
+fun LocationEdit.toLocation(locationId: LocationId) = Location(
     locationId = locationId,
     cityId = cityId,
     mapId = mapId,
-    slug = slug,
+    slug = Slug.Empty,
     name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
     mapRank = mapRank,

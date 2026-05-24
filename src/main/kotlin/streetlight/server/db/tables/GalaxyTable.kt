@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.point
@@ -20,13 +21,15 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
+import streetlight.server.db.services.SlugRecord
 import streetlight.server.utils.toProjectId
 
-object GalaxyTable : UuidTable("galaxy") {
+object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val city = text("city").nullable()
-    val slug = text("path").uniqueIndex() // td: rename column as slug
+    override val slug = text("path").uniqueIndex() // td: rename column as slug
+    override val pastSlug = text("past_slug").index().nullable()
     val name = text("name")
     val tagline = text("tagline").nullable()
     val description = text("description").nullable()
@@ -57,20 +60,21 @@ object GalaxyTable : UuidTable("galaxy") {
 val galaxyLightTrigger = CounterTrigger(GalaxyTable, GalaxyLightTable, GalaxyLightTable.galaxyId, GalaxyTable.starCount)
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 
-fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
     this[GalaxyTable.founderId] = founderId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
-    writeGalaxyUpdate(galaxy, city, imageSet)
+    writeGalaxyUpdate(galaxy, slugRecord, city, imageSet)
 }
 
-fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
+    this[GalaxyTable.slug] = slugRecord.slug.string
+    this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.string
     this[GalaxyTable.cityId] = city?.cityId?.value
     this[GalaxyTable.city] = city?.name
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.tagline] = galaxy.tagline
     this[GalaxyTable.description] = galaxy.description
-    this[GalaxyTable.slug] = galaxy.slug
     this[GalaxyTable.geoPoint] = galaxy.geoPoint.toPGpoint()
     this[GalaxyTable.geoBounds] = galaxy.geoBounds.toList()
     this[GalaxyTable.postPermission] = galaxy.postPermission
@@ -84,7 +88,7 @@ fun ResultRow.toGalaxy() = Galaxy(
     galaxyId = toProjectId(GalaxyTable.id),
     cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
     city = this[GalaxyTable.city],
-    slug = this[GalaxyTable.slug],
+    slug = this[GalaxyTable.slug].toSlug(),
     name = this[GalaxyTable.name],
     tagline = this[GalaxyTable.tagline],
     description = this[GalaxyTable.description],

@@ -3,9 +3,11 @@ package streetlight.server.routes
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import kampfire.api.toSlug
 import klutch.server.ApiContext
-import koala.html.IdOrNullParse
+import koala.html.SlugOrNullParse
 import koala.html.IdParse
+import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
@@ -57,7 +59,8 @@ fun ApiContext.servePages() {
     StreetlightScreen.entries.forEach { screen ->
 
         val path = when (val parse = screen.routeParse) {
-            is IdOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
+            is SlugParse -> "/${screen.pathRoot}/{${parse.label}?}"
+            is SlugOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
             is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
             is UuidParse -> "/${screen.pathRoot}/{${parse.label}}"
             is StaticParse -> screen.pathRoot
@@ -65,7 +68,8 @@ fun ApiContext.servePages() {
 
         get(path) {
             val arg = when (val parse = screen.routeParse) {
-                is IdOrNullParse -> call.parameters[parse.label]
+                is SlugParse -> call.parameters[parse.label]
+                is SlugOrNullParse -> call.parameters[parse.label]
                 is IdParse -> call.parameters[parse.label]
                 is UuidParse -> call.parameters[parse.label]
                 is StaticParse -> null
@@ -127,8 +131,8 @@ suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
 }
 
 suspend fun ApiContext.renderGalaxy(arg: String?): HtmlRender? {
-    val id = arg ?: return null
-    val galaxy = dao.galaxy.readGalaxy(id) ?: return null
+    val slug = arg?.toSlug() ?: return null
+    val galaxy = dao.galaxy.readGalaxy(slug) ?: return null
     val galaxyId = galaxy.galaxyId
     val posts = dao.post.readActivePosts(galaxyId)
 
@@ -158,7 +162,7 @@ suspend fun ApiContext.renderStar(arg: String?): HtmlRender? {
 }
 
 suspend fun ApiContext.renderEventProfile(arg: String?): HtmlRender? {
-    val slug = arg ?: return null
+    val slug = arg?.toSlug() ?: return null
     val event = dao.event.readEventLocationBySlug(slug) ?: return null
 
     return HtmlRender {
@@ -180,8 +184,8 @@ suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
 }
 
 suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
-    val id = arg ?: return null
-    val post = dao.post.readPost(id) as? Post ?: return null
+    val slug = arg?.toSlug() ?: return null
+    val post = dao.post.readPost(slug) as? Post ?: return null
 
     return HtmlRender {
         appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {

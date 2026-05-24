@@ -1,8 +1,8 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import kampfire.api.toSlug
 import kampfire.model.Ok
-import kampfire.model.Problem
 import kampfire.model.toResponse
 import kampfire.model.responseOf
 import klutch.server.ApiContext
@@ -26,9 +26,9 @@ fun ApiContext.serveGalaxies() {
         Ok(dao.galaxy.readTopGalaxies())
     }
 
-    getApi(Api.Galaxies.ReadGalaxy, { it }) {
+    getApi(Api.Galaxies.ReadGalaxySlug, { it.toSlug() }) {
         val id = it.data
-        responseOf(dao.galaxy.readGalaxy(id))
+        dao.galaxy.readGalaxy(id).toResponse()
     }
 
     postApi(Api.Galaxies.ReadGalaxies) {
@@ -41,10 +41,14 @@ fun ApiContext.serveGalaxies() {
         Ok(dao.post.readActivePosts(galaxyIds))
     }
 
-    getApi(Api.Galaxies.ReadPost, { it }) { request ->
-        val id = request.data
-        val post = dao.post.readPost(id)
-        post?.let { Ok(it) } ?: Problem("Post not found: $id")
+    getApi(Api.Galaxies.ReadPostSlug, { it.toSlug() }) {
+        val slug = it.data
+        dao.post.readPost(slug).toResponse()
+    }
+
+    getApi(Api.Galaxies.ReadPostId, { it.toProjectId() }) {
+        val postId = it.data
+        dao.post.readPost(postId).toResponse()
     }
 
     getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {
@@ -52,7 +56,7 @@ fun ApiContext.serveGalaxies() {
         Ok(dao.post.readActivePosts(galaxyId))
     }
 
-    getApi(Api.Galaxies.ReadContent, { it }) {
+    getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
         val galaxy = dao.galaxy.readGalaxy(it.data) ?: return@getApi null
         val posts = dao.post.readActivePosts(galaxy.galaxyId)
         Ok(GalaxyContent(galaxy, posts))
