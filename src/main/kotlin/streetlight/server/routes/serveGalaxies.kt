@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.Ok
 import kampfire.model.toResponse
@@ -9,14 +10,15 @@ import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
-import streetlight.model.data.GalaxyFounded
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import streetlight.model.data.City
 import streetlight.model.data.GalaxyContent
-import kotlin.time.Clock
+import streetlight.model.data.GalaxyEdit
+import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 
@@ -64,23 +66,35 @@ fun ApiContext.serveGalaxies() {
     }
 
     authGate {
-        postApi(Api.Galaxies.CreateOrEdit) { request ->
-            val edit = request.data
-            val identity = call.getIdentity()
+        suspend fun handleEdit(
+            edit: GalaxyEdit,
+            identity: StarIdentity,
+            block: suspend (City, SavedImageSet) -> Slug?
+        ): Slug? {
             val starId = identity.starId
-            val city = edit.cityId?.let { dao.city.readCity(it) ?: error("city not found") }
+            val city = edit.cityId?.let { dao.city.readCity(it) }
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-            when (edit.galaxyId) {
-                null -> {
-                    dao.galaxy.create(edit, starId, city, imageSet).also { slug ->
-                        val name = requireNotNull(edit.name) { "name not found" }
-                        omni.sendGalaxyFounded(name, slug, identity.username)
-                    }
+
+            return block(requireNotNull(city), requireNotNull(imageSet))
+        }
+
+        postApi(Api.Galaxies.CreateGalaxy) {
+            val edit = it.data
+            val identity = call.getIdentity()
+            handleEdit(edit, identity) { city, imageSet ->
+                dao.galaxy.create(edit, identity.starId, city, imageSet).also { slug ->
+                    val name = requireNotNull(edit.name) { "name not found" }
+                    omni.sendGalaxyFounded(name, slug, identity.username)
                 }
-                else -> {
-                    dao.galaxy.update(edit, city, imageSet)
-                }
+            }.toResponse()
+        }
+
+        postApi(Api.Galaxies.UpdateGalaxy) {
+            val edit = it.data
+            val identity = call.getIdentity()
+            handleEdit(edit, identity) { city, imageSet ->
+                dao.galaxy.update(edit, city, imageSet)
             }.toResponse()
         }
 
