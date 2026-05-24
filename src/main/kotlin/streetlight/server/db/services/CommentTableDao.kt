@@ -29,8 +29,8 @@ import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
 import streetlight.server.db.tables.PostCommentTable
 import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 import kotlin.time.Clock
@@ -42,7 +42,7 @@ class CommentTableDao : DbService() {
 
     suspend fun create(comment: CommentRow) = dbQuery {
         CommentTable.insertAndGetId {
-            it.writeFull(comment)
+            it.createRecord(comment)
         }
         CommentTable.readById(comment.commentId.value).toComment()
     }
@@ -82,7 +82,7 @@ class CommentTableDao : DbService() {
     private fun insertComment(comment: NewComment, starId: StarId?): CommentId {
         val commentId = CommentId.random()
         CommentTable.insert {
-            it.writeFull(CommentRow(
+            it.createRecord(CommentRow(
                 commentId = commentId,
                 parentId = comment.parentId,
                 starId = starId,
@@ -116,7 +116,7 @@ class CommentTableDao : DbService() {
 
     suspend fun update(comment: CommentRow) = dbQuery {
         CommentTable.update({ CommentTable.id eq comment.commentId.value }) {
-            it.writeUpdate(comment)
+            it.updateRecord(comment)
         }
         CommentTable.readById(comment.commentId.value).toComment()
     }

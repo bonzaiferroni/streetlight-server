@@ -12,7 +12,7 @@ import streetlight.model.data.UploadFileId
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.UploadFileTable
 import streetlight.server.db.tables.toUploadFile
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 
 class UploadFileTableDao : DbService() {
 
@@ -33,7 +33,7 @@ class UploadFileTableDao : DbService() {
 
     suspend fun create(userFile: UploadFile): UploadFileId = dbQuery {
         UploadFileTable.insertAndGetId {
-            it.writeFull(userFile)
+            it.createRecord(userFile)
         }.value.toRecordId()
     }
 }

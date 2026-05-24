@@ -31,14 +31,14 @@ fun ResultRow.toUploadFile() = UploadFile(
     createdAt = this[UploadFileTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(file: UploadFile) {
+fun UpdateBuilder<*>.createRecord(file: UploadFile) {
     this[UploadFileTable.id] = file.uploadFileId.value
     this[UploadFileTable.starId] = file.starId?.value
     this[UploadFileTable.createdAt] = file.createdAt
-    writeUpdate(file)
+    updateRecord(file)
 }
 
-fun UpdateBuilder<*>.writeUpdate(file: UploadFile) {
+fun UpdateBuilder<*>.updateRecord(file: UploadFile) {
     this[UploadFileTable.url] = file.url
     this[UploadFileTable.fileType] = file.fileType
     this[UploadFileTable.size] = file.size

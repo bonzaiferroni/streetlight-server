@@ -2,19 +2,17 @@ package streetlight.server.db.services
 
 import klutch.db.DbService
 import klutch.db.read
-import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.upsert
-import streetlight.model.data.TransitRouteId
 import streetlight.model.data.TransitStop
 import streetlight.model.data.TransitStopId
 import streetlight.server.db.tables.TransitRouteStopTable
 import streetlight.server.db.tables.TransitStopTable
 import streetlight.server.db.tables.toTransitStop
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 
 class TransitStopTableDao : DbService() {
 
@@ -24,19 +22,19 @@ class TransitStopTableDao : DbService() {
 
     suspend fun createTransitStop(transitStop: TransitStop) = dbQuery {
         TransitStopTable.insertAndGetId {
-            it.writeFull(transitStop)
+            it.createRecord(transitStop)
         }
     }
 
     suspend fun upsert(transitStop: TransitStop) = dbQuery {
         TransitStopTable.upsert(TransitStopTable.id) {
-            it.writeFull(transitStop)
+            it.createRecord(transitStop)
         }
     }
 
     suspend fun batchUpsert(transitStops: List<TransitStop>) = dbQuery {
         TransitStopTable.batchUpsert(transitStops, TransitStopTable.id) {
-            this.writeFull(it)
+            this.createRecord(it)
         }
     }
 

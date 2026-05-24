@@ -20,8 +20,8 @@ import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toSong
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 
 class SongTableDao: DbService() {
     suspend fun readById(songId: SongId) = dbQuery {
@@ -36,7 +36,7 @@ class SongTableDao: DbService() {
     suspend fun createSong(starId: StarId, newSong: NewSong): SongId = dbQuery {
         val now = Clock.System.now()
         SongTable.insertAndGetId {
-            it.writeFull(Song(
+            it.createRecord(Song(
                 songId = SongId.random(),
                 starId = starId,
                 title = newSong.title,
@@ -53,7 +53,7 @@ class SongTableDao: DbService() {
 
     suspend fun updateSong(starId: StarId, song: Song): Boolean = dbQuery {
         SongTable.update({ SongTable.starId.eq(starId) and SongTable.id.eq(song.songId) }) {
-            it.writeUpdate(song)
+            it.updateRecord(song)
         } > 0
     }
 

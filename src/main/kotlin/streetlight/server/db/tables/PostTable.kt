@@ -85,7 +85,7 @@ fun ResultRow.toPostRow() = PostRecord(
     createdAt = this[PostTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(post: PostRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(post: PostRecord, imageSet: SavedImageSet?) {
     this[PostTable.id] = post.postId.value
     this[PostTable.galaxyId] = post.galaxyId.value
     this[PostTable.starId] = post.starId?.value
@@ -93,10 +93,10 @@ fun UpdateBuilder<*>.writeFull(post: PostRecord, imageSet: SavedImageSet?) {
     this[PostTable.locationId] = post.locationId?.value
     this[PostTable.postType] = post.postType
     this[PostTable.createdAt] = post.createdAt
-    writeUpdate(post, imageSet)
+    updateRecord(post, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(post: PostRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(post: PostRecord, imageSet: SavedImageSet?) {
     this[PostTable.slug] = post.slug.string
     this[PostTable.pastSlug] = post.pastSlug?.string
     this[PostTable.title] = post.title

@@ -14,7 +14,7 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.updateRecord
 import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toRecordId
 import kotlin.let
@@ -56,7 +56,7 @@ class StarTableDao: DbService() {
         imageSet: SavedImageSet?
     ) = dbQuery {
         StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
-            it.writeUpdate(edit, imageSet)
+            it.updateRecord(edit, imageSet)
         }
         StarTable.readById(starId.value).toStar()
     }

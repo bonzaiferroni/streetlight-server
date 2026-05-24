@@ -61,14 +61,14 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
 val galaxyLightTrigger = CounterTrigger(GalaxyTable, GalaxyLightTable, GalaxyLightTable.galaxyId, GalaxyTable.starCount)
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 
-fun UpdateBuilder<*>.writeGalaxyFull(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
     this[GalaxyTable.founderId] = founderId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
-    writeGalaxyUpdate(galaxy, slugRecord, city, imageSet)
+    updateRecord(galaxy, slugRecord, city, imageSet)
 }
 
-fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.slug] = slugRecord.slug.string
     this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.string
     this[GalaxyTable.cityId] = city?.cityId?.value

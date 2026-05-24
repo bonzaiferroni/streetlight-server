@@ -98,14 +98,14 @@ fun ResultRow.toLocation() = Location(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.creatorId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
-    writeUpdate(location, slugRecord, imageSet)
+    updateRecord(location, slugRecord, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(location: Location, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[LocationTable.slug] = slugRecord.slug.string
     this[LocationTable.pastSlug] = slugRecord.pastSlug?.string
     this[LocationTable.mapId] = location.mapId

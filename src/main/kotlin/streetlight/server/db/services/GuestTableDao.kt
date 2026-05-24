@@ -8,7 +8,7 @@ import streetlight.model.data.Guest
 import streetlight.model.data.GuestId
 import streetlight.server.db.tables.GuestTable
 import streetlight.server.db.tables.toGuest
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 
 class GuestTableDao: DbService() {
 
@@ -17,6 +17,6 @@ class GuestTableDao: DbService() {
     }
 
     suspend fun create(guest: Guest) = dbQuery {
-        GuestTable.insert { it.writeFull(guest) }
+        GuestTable.insert { it.createRecord(guest) }
     }
 }

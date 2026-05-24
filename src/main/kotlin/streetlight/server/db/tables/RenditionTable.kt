@@ -27,14 +27,14 @@ fun ResultRow.toRendition() = Rendition(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(rendition: Rendition) {
+fun UpdateBuilder<*>.createRecord(rendition: Rendition) {
     this[RenditionTable.id] = rendition.renditionId.value
     this[RenditionTable.songId] = rendition.songId.value
     this[RenditionTable.starId] = rendition.starId.value
-    writeUpdate(rendition)
+    updateRecord(rendition)
 }
 
-fun UpdateBuilder<*>.writeUpdate(rendition: Rendition) {
+fun UpdateBuilder<*>.updateRecord(rendition: Rendition) {
     this[RenditionTable.notes] = rendition.notes
     this[RenditionTable.rating] = rendition.rating
     this[RenditionTable.createdAt] = rendition.createdAt

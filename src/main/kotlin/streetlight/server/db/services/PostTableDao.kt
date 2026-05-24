@@ -39,8 +39,8 @@ import streetlight.model.data.LocationId
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPost
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
@@ -52,7 +52,7 @@ class PostTableDao : DbService() {
 
         val slug = PostTable.nextSlugOf(eventId, EventTable, EventTable.title)
         val post = edit.toPostRecord(eventId, identity, SlugRecord(slug))
-        PostTable.insert { it.writeFull(post, null) }
+        PostTable.insert { it.createRecord(post, null) }
         slug
     }
 
@@ -61,14 +61,14 @@ class PostTableDao : DbService() {
 
         val slug = PostTable.nextSlugOf(locationId, LocationTable, LocationTable.name)
         val post = edit.toPostRecord(locationId, identity, SlugRecord(slug))
-        PostTable.insert { it.writeFull(post, null) }
+        PostTable.insert { it.createRecord(post, null) }
         slug
     }
 
     suspend fun createPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.title ?: error("title not found"))
         val post = post.toPostRecord(identity, SlugRecord(slug))
-        PostTable.insert { it.writeFull(post, imageSet) }
+        PostTable.insert { it.createRecord(post, imageSet) }
         slug
     }
 
@@ -78,7 +78,7 @@ class PostTableDao : DbService() {
         val slugSync = PostTable.getSlugRecord(postId, title)
         val post = post.toPostRecord(identity, slugSync)
         PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value)}) {
-            it.writeUpdate(post, imageSet)
+            it.updateRecord(post, imageSet)
         }.let { if (it == 1) slugSync.slug else null }
     }
 

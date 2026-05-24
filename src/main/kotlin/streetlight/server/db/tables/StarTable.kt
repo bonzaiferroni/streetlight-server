@@ -6,7 +6,6 @@ import klutch.db.scaledImages
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Star
@@ -60,13 +59,13 @@ fun ResultRow.toStarUser() = StarUser(
     updatedAt = this[StarTable.updatedAt],
 )
 
-fun UpdateBuilder<*>.writeFull(user: StarUser) {
+fun UpdateBuilder<*>.createRecord(user: StarUser) {
     this[StarTable.id] = user.userId.value
     this[StarTable.createdAt] = user.createdAt
-    writeUpdate(user)
+    updateRecord(user)
 }
 
-fun UpdateBuilder<*>.writeUpdate(user: StarUser) {
+fun UpdateBuilder<*>.updateRecord(user: StarUser) {
     this[StarTable.username] = user.username
     this[StarTable.hashedPassword] = user.hashedPassword
     this[StarTable.salt] = user.salt
@@ -75,7 +74,7 @@ fun UpdateBuilder<*>.writeUpdate(user: StarUser) {
     this[StarTable.updatedAt] = user.updatedAt
 }
 
-fun UpdateBuilder<*>.writeUpdate(edit: StarEdit, images: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(edit: StarEdit, images: SavedImageSet?) {
     this[StarTable.name] = edit.name
     this[StarTable.description] = edit.description
     writeImages(StarTable.imageConfig, images)

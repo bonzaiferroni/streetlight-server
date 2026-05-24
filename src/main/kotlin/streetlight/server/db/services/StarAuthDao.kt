@@ -14,7 +14,7 @@ import streetlight.model.data.StarId
 import streetlight.model.data.StarUser
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStarUser
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 
@@ -33,7 +33,7 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
         )
 
         StarTable.insertAndGetId {
-            it.writeFull(user)
+            it.createRecord(user)
         }.value
     }
 

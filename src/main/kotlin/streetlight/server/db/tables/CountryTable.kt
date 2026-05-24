@@ -19,12 +19,12 @@ fun ResultRow.toCountry() = Country(
     name = this[CountryTable.name],
 )
 
-fun UpdateBuilder<*>.writeFull(country: Country) {
+fun UpdateBuilder<*>.createRecord(country: Country) {
     this[CountryTable.createdAt] = Clock.System.now()
-    writeUpdate(country)
+    updateRecord(country)
 }
 
-fun UpdateBuilder<*>.writeUpdate(country: Country) {
+fun UpdateBuilder<*>.updateRecord(country: Country) {
     this[CountryTable.name] = country.name
     this[CountryTable.updatedAt] = Clock.System.now()
 }

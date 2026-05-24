@@ -39,8 +39,8 @@ import klutch.db.tables.nextSlugOf
 import streetlight.model.data.CityId
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
 private val console = globalConsole.getHandle(LocationTableDao::class)
@@ -92,7 +92,7 @@ class LocationTableDao : DbService() {
         val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.writeUpdate(location, slugRecord, imageSet)
+            it.updateRecord(location, slugRecord, imageSet)
         }
         slugRecord.slug
     }
@@ -102,7 +102,7 @@ class LocationTableDao : DbService() {
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insert { it.writeFull(location, starId, SlugRecord(slug), imageSet) }
+        LocationTable.insert { it.createRecord(location, starId, SlugRecord(slug), imageSet) }
         slug
     }
 

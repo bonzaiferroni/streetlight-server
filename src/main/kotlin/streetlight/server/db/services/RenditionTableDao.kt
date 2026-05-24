@@ -17,8 +17,8 @@ import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.toRendition
 import streetlight.model.data.NewRendition
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
 class RenditionTableDao: DbService() {
@@ -39,7 +39,7 @@ class RenditionTableDao: DbService() {
 
     suspend fun create(starId: StarId, songPlay: NewRendition): RenditionId = dbQuery {
         RenditionTable.insertAndGetId {
-            it.writeFull(
+            it.createRecord(
                 Rendition(
                     renditionId = RenditionId.random(),
                     songId = songPlay.songId,
@@ -54,7 +54,7 @@ class RenditionTableDao: DbService() {
 
     suspend fun update(rendition: Rendition): Boolean = dbQuery {
         RenditionTable.updateSingleWhere({ RenditionTable.id.eq(rendition.renditionId) }) {
-            it.writeUpdate(rendition)
+            it.updateRecord(rendition)
         } != null
     }
 

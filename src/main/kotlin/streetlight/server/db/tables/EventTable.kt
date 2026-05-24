@@ -61,16 +61,16 @@ object EventTable : UuidTable("event"), SlugTable {
 
 val eventLightTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
 
-fun UpdateBuilder<*>.writeFull(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value
     this[EventTable.starId] = starId.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.createdAt] = event.createdAt
-    writeUpdate(event, slugRecord, imageSet)
+    updateRecord(event, slugRecord, imageSet)
 }
 
-fun UpdateBuilder<*>.writeUpdate(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.slug] = slugRecord.slug.string
     this[EventTable.pastSlug] = slugRecord.pastSlug?.string
     this[EventTable.website] = event.url

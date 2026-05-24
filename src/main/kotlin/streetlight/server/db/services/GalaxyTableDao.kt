@@ -24,8 +24,8 @@ import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import streetlight.server.db.tables.toGalaxy
-import streetlight.server.db.tables.writeGalaxyFull
-import streetlight.server.db.tables.writeGalaxyUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 
 class GalaxyTableDao : DbService() {
 
@@ -60,7 +60,7 @@ class GalaxyTableDao : DbService() {
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
 
         GalaxyTable.insert {
-            it.writeGalaxyFull(edit.toGalaxy(), starId, SlugRecord(slug), city, imageSet)
+            it.createRecord(edit.toGalaxy(), starId, SlugRecord(slug), city, imageSet)
         }
         slug
     }
@@ -72,7 +72,7 @@ class GalaxyTableDao : DbService() {
 
         val galaxy = edit.toGalaxy()
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
-            it.writeGalaxyUpdate(galaxy, slugRecord, city, imageSet)
+            it.updateRecord(galaxy, slugRecord, city, imageSet)
         }
         slug
     }

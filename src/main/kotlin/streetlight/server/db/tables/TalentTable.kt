@@ -40,14 +40,14 @@ fun ResultRow.toTalent() = Talent(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(talent: Talent, starId: StarId) {
+fun UpdateBuilder<*>.createRecord(talent: Talent, starId: StarId) {
     this[TalentTable.id] = talent.talentId.value
     this[TalentTable.starId] = starId.value
     this[TalentTable.createdAt] = talent.createdAt
-    writeUpdate(talent)
+    updateRecord(talent)
 }
 
-fun UpdateBuilder<*>.writeUpdate(talent: Talent) {
+fun UpdateBuilder<*>.updateRecord(talent: Talent) {
     this[TalentTable.name] = talent.name
     this[TalentTable.description] = talent.description
     this[TalentTable.imageUrl] = talent.imageUrl

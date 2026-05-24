@@ -28,14 +28,14 @@ fun ResultRow.toRequest() = Request(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(request: Request) {
+fun UpdateBuilder<*>.createRecord(request: Request) {
     this[RequestTable.id] = request.requestId.value
     this[RequestTable.eventId] = request.eventId.value
     this[RequestTable.songId] = request.songId.value
-    writeUpdate(request)
+    updateRecord(request)
 }
 
-fun UpdateBuilder<*>.writeUpdate(request: Request) {
+fun UpdateBuilder<*>.updateRecord(request: Request) {
     this[RequestTable.isJoining] = request.isJoining
     this[RequestTable.comment] = request.comment
     this[RequestTable.requesterName] = request.requesterName

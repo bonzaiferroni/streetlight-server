@@ -37,14 +37,14 @@ fun ResultRow.toSong() = Song(
 )
 
 // Updaters
-fun UpdateBuilder<*>.writeFull(song: Song) {
+fun UpdateBuilder<*>.createRecord(song: Song) {
     this[SongTable.id] = song.songId.value
     this[SongTable.starId] = song.starId.value
     this[SongTable.createdAt] = song.createdAt
-    writeUpdate(song)
+    updateRecord(song)
 }
 
-fun UpdateBuilder<*>.writeUpdate(song: Song) {
+fun UpdateBuilder<*>.updateRecord(song: Song) {
     this[SongTable.name] = song.title
     this[SongTable.artist] = song.artist
     this[SongTable.notation] = song.notation

@@ -32,8 +32,8 @@ import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -70,7 +70,7 @@ class EventTableDao: DbService() {
         val slug = EventTable.nextSlugOf(title)
         val event = edit.toEvent(EventId.random())
         EventTable.insertAndGetId {
-            it.writeFull(event, starId, SlugRecord(slug), imageSet)
+            it.createRecord(event, starId, SlugRecord(slug), imageSet)
         }
         slug
     }
@@ -85,7 +85,7 @@ class EventTableDao: DbService() {
         val slugSync = EventTable.getSlugRecord(eventId, title)
         val event = edit.toEvent(eventId)
         EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
-            it.writeUpdate(event, slugSync, imageSet)
+            it.updateRecord(event, slugSync, imageSet)
         }
         slugSync.slug
     }

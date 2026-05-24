@@ -25,14 +25,14 @@ fun ResultRow.toGuest() = Guest(
     createdAt = this[GuestTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(guest: Guest) {
+fun UpdateBuilder<*>.createRecord(guest: Guest) {
     this[GuestTable.id] = guest.guestId.value
     this[GuestTable.starId] = guest.starId?.value
     this[GuestTable.createdAt] = guest.createdAt
-    writeUpdate(guest)
+    updateRecord(guest)
 }
 
-fun UpdateBuilder<*>.writeUpdate(guest: Guest) {
+fun UpdateBuilder<*>.updateRecord(guest: Guest) {
     this[GuestTable.name] = guest.name
     this[GuestTable.songs] = guest.songs
 }

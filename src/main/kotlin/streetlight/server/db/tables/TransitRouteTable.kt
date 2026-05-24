@@ -45,15 +45,15 @@ fun ResultRow.toTransitRoute() = TransitRoute(
 /**
  * Write the full cargo of a TransitRoute to the table.
  */
-fun UpdateBuilder<*>.writeFull(transitRoute: TransitRoute) {
+fun UpdateBuilder<*>.createRecord(transitRoute: TransitRoute) {
     this[TransitRouteTable.id] = transitRoute.transitRouteId.value
-    writeUpdate(transitRoute)
+    updateRecord(transitRoute)
 }
 
 /**
  * Update the changeable parts of our TransitRoute cargo.
  */
-fun UpdateBuilder<*>.writeUpdate(transitRoute: TransitRoute) {
+fun UpdateBuilder<*>.updateRecord(transitRoute: TransitRoute) {
     this[TransitRouteTable.shortName] = transitRoute.shortName
     this[TransitRouteTable.longName] = transitRoute.longName
     this[TransitRouteTable.description] = transitRoute.description

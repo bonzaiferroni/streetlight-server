@@ -11,8 +11,8 @@ import streetlight.model.data.PerformerId
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.PerformerTable
 import streetlight.server.db.tables.toSpark
-import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.updateRecord
 
 class SparkTableDao: DbService() {
 
@@ -27,13 +27,13 @@ class SparkTableDao: DbService() {
 
     suspend fun createSpark(performer: Performer): PerformerId = dbQuery {
         PerformerTable.insertAndGetId {
-            it.writeFull(performer)
+            it.createRecord(performer)
         }.value.toRecordId()
     }
 
     suspend fun updateSpark(performer: Performer) = dbQuery {
         PerformerTable.update(where = { PerformerTable.id.eq(performer.performerId) }) {
-            it.writeUpdate(performer)
+            it.updateRecord(performer)
         } == 1
     }
 }
