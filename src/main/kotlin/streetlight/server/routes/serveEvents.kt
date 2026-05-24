@@ -56,17 +56,12 @@ fun ApiContext.serveEvents() {
         Ok(dao.event.readEventLocations(ids))
     }
 
-    getApi(Api.Events.ReadBySlug) {
-        val slug = it.data
-        responseOf(dao.event.readEventBySlug(slug))
-    }
-
-    getApi(Api.Events.ReadEventLocationBySlug) {
+    getApi(Api.Events.ReadSlug) {
         val slug = it.data
         responseOf(dao.event.readEventLocationBySlug(slug))
     }
 
-    getApi(Api.Events.ReadById, { it.toProjectId() }) {
+    getApi(Api.Events.ReadId, { it.toProjectId() }) {
         responseOf(dao.event.readEvent(it.data))
     }
 
