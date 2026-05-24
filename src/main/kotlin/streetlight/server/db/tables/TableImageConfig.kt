@@ -7,10 +7,9 @@ import klutch.db.DbService
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.ProjectId
+import streetlight.model.data.RecordId
 
 class TableImageConfig(
     val table: UuidTable,
@@ -19,7 +18,7 @@ class TableImageConfig(
     val sizes: List<ImageSize>
 ): DbService() {
 
-    suspend fun readImageRef(id: ProjectId) = dbQuery {
+    suspend fun readImageRef(id: RecordId) = dbQuery {
         table.select(refColumn).where { table.id.eq(id) }.firstOrNull()?.getOrNull(refColumn)
     }
 }
@@ -49,11 +48,3 @@ fun UpdateBuilder<*>.writeImages(
     this[config.refColumn] = set.imageRef
     this[config.arrayColumn] = set.array
 }
-
-//suspend fun deleteCurrentImages(rowId: ProjectId?, imageUrl: Url?, config: TableImageConfig) {
-//    val uuid = rowId?.toUUID() ?: return
-//    val currentImageUrl = config.table.select(config.refColumn).where { config.table.id.eq(uuid) }
-//        .firstOrNull()?.getOrNull(config.refColumn) ?: return
-//    if (imageUrl == currentImageUrl) return
-//    // do the deletion, locally and s3
-//}

@@ -15,7 +15,7 @@ import streetlight.model.data.StarUser
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStarUser
 import streetlight.server.db.tables.writeFull
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 
 class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
@@ -39,7 +39,7 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
 
     override suspend fun readIdByUsername(username: String) = dbQuery {
         StarTable.select(StarTable.id).where { StarTable.username.eq(username) }
-            .firstOrNull()?.getOrNull(StarTable.id)?.toProjectId<StarId>()
+            .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
     }
 
     override suspend fun readByUsernameOrEmail(identity: String): StarUser? = dbQuery {

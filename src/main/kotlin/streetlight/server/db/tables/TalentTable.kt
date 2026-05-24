@@ -3,7 +3,6 @@ package streetlight.server.db.tables
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.StarId
@@ -12,7 +11,7 @@ import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
 import streetlight.model.data.TalentLevel
 import streetlight.model.data.TalentType
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object TalentTable : UuidTable("talent") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
@@ -28,7 +27,7 @@ object TalentTable : UuidTable("talent") {
 }
 
 fun ResultRow.toTalent() = Talent(
-    talentId = toProjectId<TalentId>(TalentTable.id),
+    talentId = toRecordId<TalentId>(TalentTable.id),
     name = this[TalentTable.name],
     description = this[TalentTable.description],
     imageUrl = this[TalentTable.imageUrl],

@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventLocation
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 val EventLocationQuery get() = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
         .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id).select(EventLocationColumns)
@@ -39,8 +39,8 @@ val EventLocationColumns = listOf(
 )
 
 fun ResultRow.toEventLocation() = EventLocation(
-    eventId = toProjectId(EventTable.id),
-    locationId = toProjectId(EventTable.locationId),
+    eventId = toRecordId(EventTable.id),
+    locationId = toRecordId(EventTable.locationId),
     eventSlug = this[EventTable.slug].toSlug(),
     locationSlug = this[LocationTable.slug].toSlug(),
     username = this[StarTable.username],

@@ -10,7 +10,7 @@ import streetlight.model.data.Post
 import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.PostType
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 val PostQuery get() = PostTable
     .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
@@ -64,9 +64,9 @@ fun ResultRow.toPost() = when (this[PostTable.postType]) {
 }
 
 fun ResultRow.toEventPost() = EventPost(
-    postId = this[PostTable.id].toProjectId(),
+    postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
-    galaxyId = this[PostTable.galaxyId].toProjectId(),
+    galaxyId = this[PostTable.galaxyId].toRecordId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     event = this.toEventLocation(),
@@ -76,9 +76,9 @@ fun ResultRow.toEventPost() = EventPost(
 )
 
 fun ResultRow.toLocationPost() = LocationPost(
-    postId = this[PostTable.id].toProjectId(),
+    postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
-    galaxyId = this[PostTable.galaxyId].toProjectId(),
+    galaxyId = this[PostTable.galaxyId].toRecordId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     location = this.toLocation(),
@@ -88,9 +88,9 @@ fun ResultRow.toLocationPost() = LocationPost(
 )
 
 fun ResultRow.toContentPost() = Post(
-    postId = this[PostTable.id].toProjectId(),
+    postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
-    galaxyId = this[PostTable.galaxyId].toProjectId(),
+    galaxyId = this[PostTable.galaxyId].toRecordId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     title = this[PostTable.title] ?: error("Title not found"),

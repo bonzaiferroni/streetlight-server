@@ -19,7 +19,7 @@ import streetlight.model.data.NewRendition
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 class RenditionTableDao: DbService() {
 
@@ -49,7 +49,7 @@ class RenditionTableDao: DbService() {
                     createdAt = Clock.System.now(),
                 )
             )
-        }.toProjectId()
+        }.toRecordId()
     }
 
     suspend fun update(rendition: Rendition): Boolean = dbQuery {

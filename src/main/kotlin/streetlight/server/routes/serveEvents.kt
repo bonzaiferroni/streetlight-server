@@ -16,7 +16,7 @@ import klutch.server.*
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
@@ -47,7 +47,7 @@ fun ApiContext.serveEvents() {
         }
     }
 
-    getApi(Api.Events.AtLocation, { it.toProjectId()}) {
+    getApi(Api.Events.AtLocation, { it.toRecordId()}) {
         Ok(dao.event.readLocationEvents(it.data))
     }
 
@@ -61,7 +61,7 @@ fun ApiContext.serveEvents() {
         responseOf(dao.event.readEventLocationBySlug(slug))
     }
 
-    getApi(Api.Events.ReadId, { it.toProjectId() }) {
+    getApi(Api.Events.ReadId, { it.toRecordId() }) {
         responseOf(dao.event.readEvent(it.data))
     }
 

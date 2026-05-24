@@ -7,12 +7,10 @@ import kampfire.model.kilometers
 import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
-import streetlight.model.data.toProjectId
-import streetlight.server.db.tables.LocationTable
+import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.model.data.CityId
-import streetlight.model.data.EventEdit
 import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.CityService
 import streetlight.server.db.tables.EventTable
@@ -25,7 +23,7 @@ fun ApiContext.serveLocations() {
     val omni = server.get<OmniService>()
     val cityService = server.get<CityService>()
 
-    getApi(Api.Locations, { it.toProjectId() }) {
+    getApi(Api.Locations, { it.toRecordId() }) {
         val id = it.data
         dao.location.readLocation(id).toResponse()
     }

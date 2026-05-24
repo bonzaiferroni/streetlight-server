@@ -3,11 +3,10 @@ package streetlight.server.db.tables
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import streetlight.model.data.Performer
 import streetlight.model.data.PerformerId
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object PerformerTable : UuidTable("performer") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
@@ -16,8 +15,8 @@ object PerformerTable : UuidTable("performer") {
 }
 
 fun ResultRow.toSpark() = Performer(
-    performerId = toProjectId<PerformerId>(PerformerTable.id),
-    starId = toProjectId(PerformerTable.starId),
+    performerId = toRecordId<PerformerId>(PerformerTable.id),
+    starId = toRecordId(PerformerTable.starId),
     venmo = this[PerformerTable.venmo],
     stageName = this[PerformerTable.stageName],
 )

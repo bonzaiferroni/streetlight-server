@@ -13,12 +13,12 @@ import kotlin.time.Clock
 import streetlight.model.data.TalentEdit
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.toTalent
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 class TalentTableDao : DbService() {
 
@@ -37,7 +37,7 @@ class TalentTableDao : DbService() {
     suspend fun create(talent: Talent, starId: StarId): TalentId = dbQuery {
         TalentTable.insertAndGetId {
             it.writeFull(talent, starId)
-        }.value.toProjectId()
+        }.value.toRecordId()
     }
 
     suspend fun create(talent: TalentEdit, userId: StarId): Talent? = dbQuery {
@@ -54,7 +54,7 @@ class TalentTableDao : DbService() {
                 updatedAt = Clock.System.now(),
                 createdAt = Clock.System.now(),
             ), userId)
-        }.toProjectId()
+        }.toRecordId()
         TalentTable.read { it.id.eq(id) }.firstOrNull()?.toTalent()
     }
 

@@ -15,7 +15,7 @@ import streetlight.model.data.Post
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.LocationId
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.web.StreetlightScreen
@@ -92,7 +92,7 @@ fun ApiContext.servePages() {
 
     // not yet implemented in web app
     get("/event-signup/{id}") {
-        val eventId: EventId = call.parameters["id"]?.toProjectId() ?: return@get
+        val eventId: EventId = call.parameters["id"]?.toRecordId() ?: return@get
         val event = dao.event.readEvent(eventId) ?: return@get
         call.respondHtml {
             eventSignUp(event, SiteStyles)
@@ -122,7 +122,7 @@ suspend fun ApiContext.renderAboutApp(): HtmlRender {
 }
 
 suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
-    val locationId = arg?.toProjectId<LocationId>() ?: return null
+    val locationId = arg?.toRecordId<LocationId>() ?: return null
     val location = dao.location.readLocation(locationId) ?: return null
 
     return HtmlRender {

@@ -10,7 +10,7 @@ import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
@@ -49,12 +49,12 @@ fun ApiContext.serveGalaxies() {
         dao.post.readPost(slug).toResponse()
     }
 
-    getApi(Api.Galaxies.ReadPostId, { it.toProjectId() }) {
+    getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
         val postId = it.data
         dao.post.readPost(postId).toResponse()
     }
 
-    getApi(Api.Galaxies.ReadPosts, { it.toProjectId() }) {
+    getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
         val galaxyId = it.data
         Ok(dao.post.readActivePosts(galaxyId))
     }

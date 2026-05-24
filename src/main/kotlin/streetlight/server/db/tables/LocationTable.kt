@@ -22,7 +22,7 @@ import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object LocationTable : UuidTable("location"), SlugTable {
     val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
@@ -70,7 +70,7 @@ val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationT
     .select(LocationTable.columns + StarTable.username)
 
 fun ResultRow.toLocation() = Location(
-    locationId = toProjectId(LocationTable.id),
+    locationId = toRecordId(LocationTable.id),
     mapId = this[LocationTable.mapId],
     cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
     slug = this[LocationTable.slug].toSlug(),

@@ -41,7 +41,7 @@ import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 private val console = globalConsole.getHandle(LocationTableDao::class)
 
@@ -139,7 +139,7 @@ class LocationTableDao : DbService() {
     suspend fun readLocationsInBounds(bounds: GeoBounds): List<LocationInfo> = dbQuery {
         LocationTable.leftJoin(EventTable).selectAll().where { LocationTable.geoPoint.inBounds(bounds) }
             .toList()
-            .groupBy { it[LocationTable.id].toProjectId<LocationId>() }.map { (_, rows) ->
+            .groupBy { it[LocationTable.id].toRecordId<LocationId>() }.map { (_, rows) ->
                 val location = rows.first().toLocation()
                 val events = rows.mapNotNull { row -> row.getOrNull(EventTable.id)?.let { row.toEvent() } }
                 LocationInfo(location, events)

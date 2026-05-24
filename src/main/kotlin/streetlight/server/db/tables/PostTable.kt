@@ -26,7 +26,7 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.PostId
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 import kotlin.time.Instant
 
 object PostTable : UuidTable("post"), SlugTable {
@@ -67,11 +67,11 @@ object PostTable : UuidTable("post"), SlugTable {
 }
 
 fun ResultRow.toPostRow() = PostRecord(
-    postId = this[PostTable.id].toProjectId(),
-    galaxyId = this[PostTable.galaxyId].toProjectId(),
-    starId = this[PostTable.starId]?.toProjectId(),
-    eventId = this[PostTable.eventId]?.toProjectId(),
-    locationId = this[PostTable.locationId]?.toProjectId(),
+    postId = this[PostTable.id].toRecordId(),
+    galaxyId = this[PostTable.galaxyId].toRecordId(),
+    starId = this[PostTable.starId]?.toRecordId(),
+    eventId = this[PostTable.eventId]?.toRecordId(),
+    locationId = this[PostTable.locationId]?.toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     pastSlug = this[PostTable.pastSlug]?.toSlug(),
     title = this[PostTable.title],

@@ -5,7 +5,6 @@ import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import streetlight.model.data.TransitStop
 import streetlight.model.data.TransitStopId
-import streetlight.server.utils.toProjectId
 
 object TransitStopTable : IdTable<String>("transit_stop") {
     override val id = text("id").entityId()

@@ -42,13 +42,13 @@ import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 
 class PostTableDao : DbService() {
 
     suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
-        val eventId = EventTable.readColumn(edit.eventSlug, EventTable.id).toProjectId<EventId>()
+        val eventId = EventTable.readColumn(edit.eventSlug, EventTable.id).toRecordId<EventId>()
 
         val slug = PostTable.nextSlugOf(eventId, EventTable, EventTable.title)
         val post = edit.toPostRecord(eventId, identity, SlugRecord(slug))
@@ -57,7 +57,7 @@ class PostTableDao : DbService() {
     }
 
     suspend fun createPost(edit: LocationPostEdit, identity: StarIdentity?) = dbQuery {
-        val locationId = LocationTable.readColumn(edit.locationSlug, LocationTable.id).toProjectId<LocationId>()
+        val locationId = LocationTable.readColumn(edit.locationSlug, LocationTable.id).toRecordId<LocationId>()
 
         val slug = PostTable.nextSlugOf(locationId, LocationTable, LocationTable.name)
         val post = edit.toPostRecord(locationId, identity, SlugRecord(slug))

@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Performer
 import streetlight.model.data.PerformerId
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.PerformerTable
 import streetlight.server.db.tables.toSpark
 import streetlight.server.db.tables.writeFull
@@ -28,7 +28,7 @@ class SparkTableDao: DbService() {
     suspend fun createSpark(performer: Performer): PerformerId = dbQuery {
         PerformerTable.insertAndGetId {
             it.writeFull(performer)
-        }.value.toProjectId()
+        }.value.toRecordId()
     }
 
     suspend fun updateSpark(performer: Performer) = dbQuery {

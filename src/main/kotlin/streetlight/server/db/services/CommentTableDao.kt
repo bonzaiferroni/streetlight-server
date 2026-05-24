@@ -1,7 +1,6 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
-import kampfire.api.StringId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
@@ -32,8 +31,8 @@ import streetlight.server.db.tables.PostCommentTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
-import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toProjectIdOrNull
+import streetlight.server.utils.toRecordId
+import streetlight.server.utils.toRecordIdOrNull
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -142,8 +141,8 @@ private fun Join.toCommentQuery() = join(StarTable, JoinType.LEFT, CommentTable.
     .select(CommentColumns)
 
 private fun ResultRow.toComment() = Comment(
-    commentId = toProjectId(CommentTable.id),
-    parentId = toProjectIdOrNull(CommentTable.parentId),
+    commentId = toRecordId(CommentTable.id),
+    parentId = toRecordIdOrNull(CommentTable.parentId),
     username = this[StarTable.username],
     thumb = this[StarTable.images].thumb,
     text = this[CommentTable.text],

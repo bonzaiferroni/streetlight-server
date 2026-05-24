@@ -4,13 +4,12 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Song
 import streetlight.model.data.SongNotation
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object SongTable : UuidTable() {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
@@ -25,8 +24,8 @@ object SongTable : UuidTable() {
 }
 
 fun ResultRow.toSong() = Song(
-    songId = toProjectId(SongTable.id),
-    starId = toProjectId(SongTable.starId),
+    songId = toRecordId(SongTable.id),
+    starId = toRecordId(SongTable.starId),
     title = this[SongTable.name],
     artist = this[SongTable.artist],
     notation = this[SongTable.notation],

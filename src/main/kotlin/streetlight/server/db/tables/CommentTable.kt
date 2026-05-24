@@ -4,14 +4,13 @@ import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CommentId
 import streetlight.model.data.StarId
-import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toProjectIdOrNull
+import streetlight.server.utils.toRecordId
+import streetlight.server.utils.toRecordIdOrNull
 import kotlin.time.Instant
 
 object CommentTable: UuidTable("comment") {
@@ -47,9 +46,9 @@ object PostCommentTable: Table("post_comment") {
 }
 
 fun ResultRow.toCommentRow() = CommentRow(
-    commentId = toProjectId(CommentTable.id),
-    parentId = toProjectIdOrNull(CommentTable.parentId),
-    starId = toProjectIdOrNull(CommentTable.starId),
+    commentId = toRecordId(CommentTable.id),
+    parentId = toRecordIdOrNull(CommentTable.parentId),
+    starId = toRecordIdOrNull(CommentTable.starId),
     text = this[CommentTable.text],
     updatedAt = this[CommentTable.updatedAt],
     createdAt = this[CommentTable.createdAt],

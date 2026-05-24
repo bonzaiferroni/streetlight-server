@@ -11,7 +11,7 @@ import kampfire.model.Url
 import kampfire.utils.randomUuidString
 import klutch.server.ApiContext
 import streetlight.model.data.FileFormat
-import streetlight.model.data.ProjectId
+import streetlight.model.data.RecordId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.TableImageConfig
@@ -55,7 +55,7 @@ suspend fun ApiContext.saveRemoteImage(
 
 suspend fun ApiContext.saveImages(
     userId: StarId?,
-    rowId: ProjectId?,
+    rowId: RecordId?,
     imageRef: Url?,
     config: TableImageConfig
 ): SavedImageSet? {

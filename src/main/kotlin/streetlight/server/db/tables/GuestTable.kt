@@ -3,13 +3,12 @@ package streetlight.server.db.tables
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Guest
-import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toProjectIdOrNull
+import streetlight.server.utils.toRecordId
+import streetlight.server.utils.toRecordIdOrNull
 
 object GuestTable : UuidTable("guest") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -19,8 +18,8 @@ object GuestTable : UuidTable("guest") {
 }
 
 fun ResultRow.toGuest() = Guest(
-    guestId = toProjectId(GuestTable.id),
-    starId = toProjectIdOrNull(GuestTable.starId),
+    guestId = toRecordId(GuestTable.id),
+    starId = toRecordIdOrNull(GuestTable.starId),
     name = this[GuestTable.name],
     songs = this[GuestTable.songs],
     createdAt = this[GuestTable.createdAt],

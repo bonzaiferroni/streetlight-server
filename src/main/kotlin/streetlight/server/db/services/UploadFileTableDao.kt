@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.UploadFileTable
 import streetlight.server.db.tables.toUploadFile
 import streetlight.server.db.tables.writeFull
@@ -34,6 +34,6 @@ class UploadFileTableDao : DbService() {
     suspend fun create(userFile: UploadFile): UploadFileId = dbQuery {
         UploadFileTable.insertAndGetId {
             it.writeFull(userFile)
-        }.value.toProjectId()
+        }.value.toRecordId()
     }
 }

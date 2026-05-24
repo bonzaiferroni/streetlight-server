@@ -3,12 +3,11 @@ package streetlight.server.db.tables
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.SelfRating
 import streetlight.model.data.Rendition
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object RenditionTable : UuidTable() {
     val songId = reference("song_id", SongTable, onDelete = ReferenceOption.CASCADE)
@@ -19,9 +18,9 @@ object RenditionTable : UuidTable() {
 }
 
 fun ResultRow.toRendition() = Rendition(
-    renditionId = toProjectId(RenditionTable.id),
-    songId = toProjectId(RenditionTable.songId),
-    starId = toProjectId(RenditionTable.starId),
+    renditionId = toRecordId(RenditionTable.id),
+    songId = toRecordId(RenditionTable.songId),
+    starId = toRecordId(RenditionTable.starId),
     notes = this[RenditionTable.notes],
     rating = this[RenditionTable.rating],
     createdAt = this[RenditionTable.createdAt],

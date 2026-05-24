@@ -17,8 +17,8 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.StarId
-import streetlight.server.utils.toProjectId
-import streetlight.server.utils.toProjectIdOrNull
+import streetlight.server.utils.toRecordId
+import streetlight.server.utils.toRecordIdOrNull
 
 object EventTable : UuidTable("event"), SlugTable {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
@@ -94,9 +94,9 @@ fun UpdateBuilder<*>.writeUpdate(event: Event, slugRecord: SlugRecord, imageSet:
 }
 
 fun ResultRow.toEvent() = Event(
-    eventId = toProjectId(EventTable.id),
-    locationId = toProjectId(EventTable.locationId),
-    currentRequestId = toProjectIdOrNull(EventTable.currentRequestId),
+    eventId = toRecordId(EventTable.id),
+    locationId = toRecordId(EventTable.locationId),
+    currentRequestId = toRecordIdOrNull(EventTable.currentRequestId),
     slug = this[EventTable.slug].toSlug(),
     title = this[EventTable.title],
     description = this[EventTable.description],

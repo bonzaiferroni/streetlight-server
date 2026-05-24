@@ -5,11 +5,10 @@ import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.*
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object UploadFileTable : UuidTable("user_file") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).nullable()
@@ -22,8 +21,8 @@ object UploadFileTable : UuidTable("user_file") {
 }
 
 fun ResultRow.toUploadFile() = UploadFile(
-    uploadFileId = toProjectId(UploadFileTable.id),
-    starId = this[UploadFileTable.starId]?.toProjectId(),
+    uploadFileId = toRecordId(UploadFileTable.id),
+    starId = this[UploadFileTable.starId]?.toRecordId(),
     url = this[UploadFileTable.url],
     fileType = this[UploadFileTable.fileType],
     size = this[UploadFileTable.size],

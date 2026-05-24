@@ -23,7 +23,7 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -86,7 +86,7 @@ fun UpdateBuilder<*>.writeGalaxyUpdate(galaxy: Galaxy, slugRecord: SlugRecord, c
 }
 
 fun ResultRow.toGalaxy() = Galaxy(
-    galaxyId = toProjectId(GalaxyTable.id),
+    galaxyId = toRecordId(GalaxyTable.id),
     cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
     city = this[GalaxyTable.city],
     slug = this[GalaxyTable.slug].toSlug(),

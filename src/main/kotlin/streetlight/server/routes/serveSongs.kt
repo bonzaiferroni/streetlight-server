@@ -3,14 +3,13 @@ package streetlight.server.routes
 import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
-import streetlight.model.data.toProjectId
-import streetlight.server.db.services.SongTableService
+import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 
 fun ApiContext.serveSongs() {
     // val service = server.get<SongTableService>()
 
-    getApi(Api.SongProfile, { it.toProjectId() }) {
+    getApi(Api.Songs.ReadId, { it.toRecordId() }) {
         val songId = it.data
         dao.song.readById(songId).toResponse()
     }
@@ -26,7 +25,7 @@ fun ApiContext.serveSongs() {
 //            dao.createSong(userId, it.data)
 //        }
 //
-//        getEndpoint(Api.Songs.TakeNextSong, { it.toProjectId() }) { eventId, endpoint ->
+//        getEndpoint(Api.Songs.TakeNextSong, { it.toRecordId() }) { eventId, endpoint ->
 //            val since: Instant = readParam(endpoint.since)
 //            val userId = getUserId()
 //            service.takeNextSong(userId, eventId, since)

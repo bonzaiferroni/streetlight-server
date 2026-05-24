@@ -16,7 +16,7 @@ import streetlight.model.data.RequestItem
 import streetlight.model.data.Song
 import streetlight.model.data.SongId
 import streetlight.model.data.StarId
-import streetlight.model.data.toProjectId
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toSong
@@ -48,7 +48,7 @@ class SongTableDao: DbService() {
                 updatedAt = now,
                 createdAt = now,
             ))
-        }.value.toProjectId()
+        }.value.toRecordId()
     }
 
     suspend fun updateSong(starId: StarId, song: Song): Boolean = dbQuery {

@@ -16,7 +16,7 @@ import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.writeUpdate
 import streetlight.server.model.StarIdentity
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 import kotlin.let
 
 class StarTableDao: DbService() {
@@ -31,7 +31,7 @@ class StarTableDao: DbService() {
     suspend fun readIdByUsername(username: String): StarId? = dbQuery {
         StarTable.select(StarTable.id)
             .where { StarTable.username.eqIgnoreCase(username) }
-            .firstOrNull()?.let { it[StarTable.id].toProjectId() }
+            .firstOrNull()?.let { it[StarTable.id].toRecordId() }
     }
 
     suspend fun readThumb(starId: StarId) = dbQuery {

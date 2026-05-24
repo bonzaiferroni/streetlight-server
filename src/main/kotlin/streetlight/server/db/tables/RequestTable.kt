@@ -1,15 +1,12 @@
 package streetlight.server.db.tables
 
-import kabinet.utils.toInstantFromUtc
-import kabinet.utils.toLocalDateTimeUtc
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Request
-import streetlight.server.utils.toProjectId
+import streetlight.server.utils.toRecordId
 
 object RequestTable : UuidTable() {
     val eventId = reference("event_id", EventTable, onDelete = ReferenceOption.CASCADE)
@@ -21,9 +18,9 @@ object RequestTable : UuidTable() {
 }
 
 fun ResultRow.toRequest() = Request(
-    requestId = toProjectId(RequestTable.id),
-    eventId = toProjectId(RequestTable.eventId),
-    songId = toProjectId(RequestTable.songId),
+    requestId = toRecordId(RequestTable.id),
+    eventId = toRecordId(RequestTable.eventId),
+    songId = toRecordId(RequestTable.songId),
     isJoining = this[RequestTable.isJoining],
     comment = this[RequestTable.comment],
     requesterName = this[RequestTable.requesterName],
