@@ -1,20 +1,22 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import kampfire.api.Slug
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
-import kampfire.model.responseOf
 import kampfire.model.toResponse
 import klutch.server.*
 import streetlight.model.Api
-import streetlight.model.data.LocationCreated
-import streetlight.model.data.LocationEdited
 import streetlight.model.data.toProjectId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import streetlight.model.data.CityId
+import streetlight.model.data.EventEdit
+import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.CityService
-import kotlin.time.Clock
+import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiContext::serveLocations.name)
 
@@ -56,22 +58,40 @@ fun ApiContext.serveLocations() {
     }
 
     authGate(optional = true) {
-        postApi(Api.Locations.CreateOrEdit) { request ->
-            var edit = request.data
-            val identity = call.getIdentityOrNull()
-            val starId = identity?.starId
-
-            val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageRef = edit.imageRef?.takeIf { it.value.isNotBlank() }
-            val imageSet = saveImages(imageUserId, edit.locationId, imageRef, LocationTable.imageConfig)
+        suspend fun handleEdit(
+            edit: LocationEdit,
+            identity: StarIdentity?,
+            block: suspend (CityId, SavedImageSet) -> Slug?
+        ): Slug? {
+            val imageUserId = identity?.starId.takeIf { edit.imageRef?.isRelative ?: false }
+            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
             val cityId = cityService.readOrCreateCity(edit.city, edit.state)
-            edit = edit.copy(cityId = cityId)
+            return block(requireNotNull(cityId), requireNotNull(imageSet))
+        }
 
-            when (val locationId = edit.locationId) {
-                null -> dao.location.createLocation(starId, edit, imageSet)
-                else -> dao.location.updateLocation(locationId, starId, edit, imageSet)
+        postApi(Api.Locations.CreateLocation) { request ->
+            val edit = request.data
+            val identity = call.getIdentityOrNull()
+
+            handleEdit(edit, identity) { cityId, imageSet ->
+                dao.location.createLocation(cityId, identity?.starId, edit, imageSet)
             }.toResponse()
         }
+
+        postApi(Api.Locations.UpdateLocation) { request ->
+            val edit = request.data
+            val identity = call.getIdentityOrNull()
+            val locationId = requireNotNull(edit.locationId)
+
+            handleEdit(edit, identity) { cityId, imageSet ->
+                dao.location.updateLocation(locationId, cityId, identity?.starId, edit, imageSet)
+            }.toResponse()
+        }
+
+        // when (val locationId = edit.locationId) {
+        //                null -> dao.location.createLocation(starId, edit, imageSet)
+        //                else -> dao.location.updateLocation(locationId, starId, edit, imageSet)
+        //            }.toResponse()
 
         postApi(Api.Locations.ParseLocation) { request ->
             parser.parseLocation(request.data)

@@ -35,6 +35,7 @@ import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import klutch.db.tables.readColumn
 import streetlight.model.data.EventId
+import streetlight.model.data.LocationId
 import streetlight.server.db.tables.eventJoin
 import streetlight.server.db.tables.generalJoin
 import streetlight.server.db.tables.toPost
@@ -55,9 +56,11 @@ class PostTableDao : DbService() {
         slug
     }
 
-    suspend fun createPost(post: LocationPostEdit, identity: StarIdentity?) = dbQuery {
-        val slug = PostTable.nextSlugOf(post.locationId, LocationTable, LocationTable.name)
-        val post = post.toPostRecord(identity, SlugRecord(slug))
+    suspend fun createPost(edit: LocationPostEdit, identity: StarIdentity?) = dbQuery {
+        val locationId = LocationTable.readColumn(edit.locationSlug, LocationTable.id).toProjectId<LocationId>()
+
+        val slug = PostTable.nextSlugOf(locationId, LocationTable, LocationTable.name)
+        val post = edit.toPostRecord(locationId, identity, SlugRecord(slug))
         PostTable.insert { it.writeFull(post, null) }
         slug
     }
@@ -197,7 +200,7 @@ fun EventPostEdit.toPostRecord(eventId: EventId, identity: StarIdentity, slugRec
     createdAt = Clock.System.now(),
 )
 
-fun LocationPostEdit.toPostRecord(identity: StarIdentity?, slugRecord: SlugRecord) = PostRecord(
+fun LocationPostEdit.toPostRecord(locationId: LocationId, identity: StarIdentity?, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     starId = identity?.starId,

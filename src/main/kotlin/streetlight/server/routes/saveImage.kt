@@ -59,7 +59,7 @@ suspend fun ApiContext.saveImages(
     imageRef: Url?,
     config: TableImageConfig
 ): SavedImageSet? {
-    if (imageRef == null) {
+    if (imageRef == null || imageRef.value.isBlank()) {
         // removes any existing image
         return SavedImageSet(null, null)
     }

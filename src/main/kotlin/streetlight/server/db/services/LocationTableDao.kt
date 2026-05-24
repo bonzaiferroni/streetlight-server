@@ -35,6 +35,7 @@ import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import streetlight.model.data.CityId
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.writeFull
@@ -76,27 +77,28 @@ class LocationTableDao : DbService() {
 
     suspend fun updateLocation(
         locationId: LocationId,
+        cityId: CityId,
         starId: StarId?,
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
-        val slugSync = LocationTable.getSlugRecord(locationId, slugBase)
-        val location = edit.toLocation(locationId)
+        val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
+        val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.writeUpdate(location, slugSync, imageSet)
+            it.writeUpdate(location, slugRecord, imageSet)
         }
-        locationId
+        slugRecord.slug
     }
 
-    suspend fun createLocation(starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createLocation(cityId: CityId, starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
         val locationId = LocationId.random()
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
-        val location = edit.toLocation(locationId)
+        val location = edit.toLocation(cityId, locationId)
         LocationTable.insert { it.writeFull(location, starId, SlugRecord(slug), imageSet) }
-        locationId
+        slug
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
@@ -142,7 +144,7 @@ class LocationTableDao : DbService() {
 
 
 
-fun LocationEdit.toLocation(locationId: LocationId) = Location(
+fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     locationId = locationId,
     cityId = cityId,
     mapId = mapId,
