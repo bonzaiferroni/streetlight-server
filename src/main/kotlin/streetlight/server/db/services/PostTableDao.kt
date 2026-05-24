@@ -118,8 +118,8 @@ class PostTableDao : DbService() {
         queryPosts { PostTable.slug.eq(slug) }.firstOrNull()?.toPost()
     }
 
-    suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
-        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value) } == 1 // td: or admin, or moderator
+    suspend fun removePost(slug: Slug, identity: StarIdentity) = dbQuery {
+        PostTable.deleteWhere { PostTable.slug.eq(slug) and PostTable.starId.eq(identity.starId.value) } == 1 // td: or admin, or moderator
     }
 
     suspend fun readActivePosts(

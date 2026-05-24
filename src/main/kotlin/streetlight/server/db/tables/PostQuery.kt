@@ -21,6 +21,7 @@ val PostQuery get() = PostTable
 val EventPostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
+    PostTable.slug,
     PostTable.text,
     PostTable.postType,
     PostTable.createdAt,
@@ -64,6 +65,7 @@ fun ResultRow.toPost() = when (this[PostTable.postType]) {
 
 fun ResultRow.toEventPost() = EventPost(
     postId = this[PostTable.id].toProjectId(),
+    slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
@@ -75,6 +77,7 @@ fun ResultRow.toEventPost() = EventPost(
 
 fun ResultRow.toLocationPost() = LocationPost(
     postId = this[PostTable.id].toProjectId(),
+    slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
@@ -86,8 +89,8 @@ fun ResultRow.toLocationPost() = LocationPost(
 
 fun ResultRow.toContentPost() = Post(
     postId = this[PostTable.id].toProjectId(),
-    galaxyId = this[PostTable.galaxyId].toProjectId(),
     slug = this[PostTable.slug].toSlug(),
+    galaxyId = this[PostTable.galaxyId].toProjectId(),
     username = this[StarTable.username],
     userThumb = this[StarTable.images].thumb,
     title = this[PostTable.title] ?: error("Title not found"),

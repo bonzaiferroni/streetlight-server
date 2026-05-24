@@ -28,6 +28,7 @@ val EventLocationColumns = listOf(
     EventTable.createdAt,
     EventTable.updatedAt,
     StarTable.username,
+    LocationTable.slug,
     LocationTable.images,
     LocationTable.name,
     LocationTable.description,
@@ -40,7 +41,8 @@ val EventLocationColumns = listOf(
 fun ResultRow.toEventLocation() = EventLocation(
     eventId = toProjectId(EventTable.id),
     locationId = toProjectId(EventTable.locationId),
-    slug = this[EventTable.slug].toSlug(),
+    eventSlug = this[EventTable.slug].toSlug(),
+    locationSlug = this[LocationTable.slug].toSlug(),
     username = this[StarTable.username],
     url = this[EventTable.website],
     eventImages = this[EventTable.images],

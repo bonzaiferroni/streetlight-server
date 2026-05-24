@@ -49,8 +49,8 @@ fun ApiContext.servePages() {
             StreetlightScreen.Location -> renderLocation(arg)
             StreetlightScreen.Galaxy -> renderGalaxy(arg)
             StreetlightScreen.Star -> renderStar(arg)
-            StreetlightScreen.EventProfile -> renderEventProfile(arg)
-            StreetlightScreen.SiteDoc -> renderSiteDoc(arg)
+            StreetlightScreen.Event -> renderEventProfile(arg)
+            StreetlightScreen.Docs -> renderSiteDoc(arg)
             StreetlightScreen.Post -> renderPost(arg)
             else -> renderClientBase()
         }

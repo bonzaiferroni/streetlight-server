@@ -8,6 +8,7 @@ import kampfire.model.GeoPoint
 import klutch.db.DbService
 import klutch.db.inBounds
 import klutch.db.isNearEq
+import klutch.db.mapFirstOrNull
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import klutch.utils.eq
@@ -47,7 +48,11 @@ private val console = globalConsole.getHandle(LocationTableDao::class)
 class LocationTableDao : DbService() {
 
     suspend fun readLocation(locationId: LocationId) = dbQuery {
-        LocationQuery.where { LocationTable.id.eq(locationId) }.firstOrNull()?.toLocation()
+        LocationQuery.where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
+    }
+
+    suspend fun readSlug(slug: Slug) = dbQuery {
+        LocationQuery.where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
     }
 
     suspend fun readLocationAt(name: String?, address: String?) = dbQuery {

@@ -30,6 +30,11 @@ fun ApiContext.serveLocations() {
         dao.location.readLocation(id).toResponse()
     }
 
+    getApi(Api.Locations.ReadSlug) {
+        val slug = it.data
+        dao.location.readSlug(slug).toResponse()
+    }
+
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
         val city = readParam(endpoint.city)?.takeIf { it.isNotBlank() }
