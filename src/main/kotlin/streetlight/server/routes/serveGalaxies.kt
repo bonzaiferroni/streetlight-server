@@ -16,6 +16,7 @@ import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.model.data.GalaxyContent
+import kotlin.time.Clock
 
 private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 
@@ -72,18 +73,10 @@ fun ApiContext.serveGalaxies() {
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
             when (edit.galaxyId) {
                 null -> {
-                    val galaxy = dao.galaxy.create(edit, starId, city, imageSet)
-                    if (galaxy != null) {
-                        omni.sendMessage(
-                            GalaxyFounded(
-                                galaxyId = galaxy.galaxyId,
-                                name = galaxy.name,
-                                username = identity.username,
-                                recordAt = galaxy.createdAt
-                            )
-                        )
+                    dao.galaxy.create(edit, starId, city, imageSet).also { slug ->
+                        val name = requireNotNull(edit.name) { "name not found" }
+                        omni.sendGalaxyFounded(name, slug, identity.username)
                     }
-                    galaxy
                 }
                 else -> {
                     dao.galaxy.update(edit, city, imageSet)

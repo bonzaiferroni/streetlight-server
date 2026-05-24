@@ -9,6 +9,7 @@ import klutch.db.readFirstOrNull
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -58,10 +59,10 @@ class GalaxyTableDao : DbService() {
         require(slug.isValid()) { "Invalid slug" }
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
 
-        val id = GalaxyTable.insertAndGetId {
+        GalaxyTable.insert {
             it.writeGalaxyFull(edit.toGalaxy(), starId, SlugRecord(slug), city, imageSet)
-        }.toProjectId<GalaxyId>()
-        GalaxyTable.readFirstOrNull { it.id.eq(id) }?.toGalaxy()
+        }
+        slug
     }
 
     suspend fun update(edit: GalaxyEdit, city: City?, imageSet: SavedImageSet?) = dbQuery {
@@ -73,7 +74,7 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
             it.writeGalaxyUpdate(galaxy, slugRecord, city, imageSet)
         }
-        GalaxyTable.readFirstOrNull { it.id.eq(galaxyId) }?.toGalaxy()
+        slug
     }
 
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {

@@ -8,6 +8,7 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.ProjectId
 import streetlight.server.db.tables.SlugTable
@@ -23,7 +24,7 @@ fun <T> T.readSlug(recordId: ProjectId) where T: IdTable<Uuid>, T: SlugTable =
     select(slug).where { id.eq(recordId) }.mapFirst(slug) { it.toSlug() }
 
 fun <T> T.isSlugAvailable(value: Slug): Boolean where T: Table, T: SlugTable =
-    select(slug).where { slug.eq(value) }.limit(1).none()
+    select(slug).where { slug.eq(value) or pastSlug.eq(value) }.limit(1).none()
 
 @JvmName("nextSlugOfNullable")
 fun <Id: ProjectId, T> T.nextSlugOf(
@@ -80,7 +81,11 @@ fun <T> T.getSlugRecord(recordId: ProjectId, slugBase: String): SlugRecord where
 fun <T> T.getDefinedSlugRecord(recordId: ProjectId, slug: Slug): SlugRecord where T: IdTable<Uuid>, T: SlugTable {
     val record = readSlugRecord(recordId)
 
-    return if (record.slug == slug) record else SlugRecord(slug, record.slug)
+    if (record.slug == slug) return record
+
+    require(isSlugAvailable(slug)) { "slug already taken: $slug" }
+
+    return SlugRecord(slug, record.slug)
 }
 
 private fun generateSlug(slugBase: String, attempt: Int) = when(attempt) {
@@ -92,7 +97,7 @@ private fun generateSlug(slugBase: String, attempt: Int) = when(attempt) {
 }
 
 private fun normalizeSlugBase(source: String): String =
-    Normalizer.normalize(source, Normalizer.Form.NFD)
+    Normalizer.normalize(source.take(Slug.MAX_LENGTH - SLUG_SUFFIX_LENGTH - 1), Normalizer.Form.NFD)
         .replace("\\p{M}".toRegex(), "")
         .normalizeSlugSource()
 
