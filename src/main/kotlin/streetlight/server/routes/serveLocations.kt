@@ -78,6 +78,7 @@ fun ApiContext.serveLocations() {
             val identity = call.getIdentityOrNull()
 
             handleEdit(edit, identity) { cityId, imageSet ->
+                console.log("creating location: ${edit.label}")
                 dao.location.createLocation(cityId, identity?.starId, edit, imageSet)
             }.toResponse()
         }
