@@ -70,7 +70,7 @@ fun ApiContext.serveEvents() {
         suspend fun <T> handleEdit(
             edit: EventEdit,
             identity: StarIdentity,
-            block: suspend (SavedImageSet) -> T?
+            block: suspend (SavedImageSet?) -> T?
         ): ApiResponse<T>? {
             if (edit.eventId == null && dao.event.hasConflict(edit)) {
                 return Problem("Event already exists")
@@ -78,7 +78,7 @@ fun ApiContext.serveEvents() {
 
             val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
-            return block(requireNotNull(imageSet)).toResponse()
+            return block(imageSet).toResponse()
         }
 
         postApi(Api.Events.CreateEvent) { request ->

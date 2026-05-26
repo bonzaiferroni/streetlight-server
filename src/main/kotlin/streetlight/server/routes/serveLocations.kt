@@ -65,12 +65,12 @@ fun ApiContext.serveLocations() {
         suspend fun <T> handleEdit(
             edit: LocationEdit,
             identity: StarIdentity?,
-            block: suspend (CityId, SavedImageSet) -> T?
+            block: suspend (CityId, SavedImageSet?) -> T?
         ): T? {
             val imageUserId = identity?.starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
             val cityId = cityService.readOrCreateCity(edit.city, edit.state)
-            return block(requireNotNull(cityId), requireNotNull(imageSet))
+            return block(requireNotNull(cityId) { "city not found" }, imageSet)
         }
 
         postApi(Api.Locations.CreateLocation) { request ->
