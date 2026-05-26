@@ -94,7 +94,7 @@ class LocationTableDao : DbService() {
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord, imageSet)
         }
-        slugRecord.slug
+        readLocation(locationId)
     }
 
     suspend fun createLocation(cityId: CityId, starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
@@ -103,7 +103,7 @@ class LocationTableDao : DbService() {
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
         LocationTable.insert { it.createRecord(location, starId, SlugRecord(slug), imageSet) }
-        slug
+        readLocation(locationId)
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {

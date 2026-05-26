@@ -20,6 +20,7 @@ import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import streetlight.model.data.Event
 import streetlight.model.data.EventEdit
 import streetlight.server.db.tables.SavedImageSet
 
@@ -66,11 +67,11 @@ fun ApiContext.serveEvents() {
     }
 
     authGate {
-        suspend fun handleEdit(
+        suspend fun <T> handleEdit(
             edit: EventEdit,
             identity: StarIdentity,
-            block: suspend (SavedImageSet) -> Slug?
-        ): ApiResponse<Slug>? {
+            block: suspend (SavedImageSet) -> T?
+        ): ApiResponse<T>? {
             if (edit.eventId == null && dao.event.hasConflict(edit)) {
                 return Problem("Event already exists")
             }
@@ -87,8 +88,8 @@ fun ApiContext.serveEvents() {
 
             handleEdit(edit, identity) { imageSet ->
                 console.log("creating event: $title")
-                dao.event.createEvent(identity.starId, edit, imageSet).also { slug ->
-                    omni.sendEventCreated(title, slug, identity.username)
+                dao.event.createEvent(identity.starId, edit, imageSet)?.also { event ->
+                    omni.sendEventCreated(title, event.slug, identity.username)
                 }
             }
         }
@@ -101,8 +102,8 @@ fun ApiContext.serveEvents() {
             handleEdit(edit, identity) { imageSet ->
                 val eventId = requireNotNull(edit.eventId)
                 console.log("updating event: ${edit.title}")
-                dao.event.updateEvent(eventId, identity.starId, edit, imageSet).also { slug ->
-                    omni.sendEventUpdated(title, slug, identity.username)
+                dao.event.updateEvent(eventId, identity.starId, edit, imageSet)?.also { event ->
+                    omni.sendEventUpdated(title, event.slug, identity.username)
                 }
             }
         }

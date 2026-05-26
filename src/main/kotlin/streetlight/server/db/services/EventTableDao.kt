@@ -30,6 +30,7 @@ import streetlight.server.db.tables.EventLocationQuery
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.createRecord
@@ -66,13 +67,14 @@ class EventTableDao: DbService() {
         edit: EventEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
+        val eventId = EventId.random()
         val title = edit.title ?: error("title not found")
         val slug = EventTable.nextSlugOf(title)
-        val event = edit.toEvent(EventId.random())
-        EventTable.insertAndGetId {
+        val event = edit.toEvent(eventId)
+        EventTable.insert {
             it.createRecord(event, starId, SlugRecord(slug), imageSet)
         }
-        slug
+        readEvent(eventId)
     }
 
     suspend fun updateEvent(
@@ -87,7 +89,7 @@ class EventTableDao: DbService() {
         EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
             it.updateRecord(event, slugSync, imageSet)
         }
-        slugSync.slug
+        readEvent(eventId)
     }
 
     suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
@@ -140,7 +142,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     cost = cost ?: error("no cost provided"),
     visibility = null,
     links = links,
-    url = link,
+    url = url,
     imageRef = imageRef,
     images = null,
     sourceUrl = sourceUrl,

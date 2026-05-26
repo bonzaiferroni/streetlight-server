@@ -11,6 +11,7 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.model.data.CityId
+import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.CityService
 import streetlight.server.db.tables.EventTable
@@ -61,11 +62,11 @@ fun ApiContext.serveLocations() {
     }
 
     authGate(optional = true) {
-        suspend fun handleEdit(
+        suspend fun <T> handleEdit(
             edit: LocationEdit,
             identity: StarIdentity?,
-            block: suspend (CityId, SavedImageSet) -> Slug?
-        ): Slug? {
+            block: suspend (CityId, SavedImageSet) -> T?
+        ): T? {
             val imageUserId = identity?.starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
             val cityId = cityService.readOrCreateCity(edit.city, edit.state)
