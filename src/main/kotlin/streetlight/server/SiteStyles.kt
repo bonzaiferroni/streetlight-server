@@ -3,6 +3,7 @@ package streetlight.server
 import koala.CssFile
 import koala.css.*
 import koala.html.*
+import streetlight.web.layouts.FeedPostCss
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
@@ -69,6 +70,7 @@ private val KtStyles = listOf(
     AppOverlayCss,
     EarthCss,
     TalkLogCss,
+    FeedPostCss,
 )
 
 private val Utilities = listOf(
