@@ -30,17 +30,18 @@ import streetlight.server.utils.toRecordId
 import kotlin.time.Instant
 
 object PostTable : UuidTable("post"), SlugTable {
-    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE)
+    val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE).index()
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     override val slug = text("slug").uniqueIndex()
     override val pastSlug = text("past_slug").uniqueIndex().nullable()
-    val title = text("title").nullable()
+    val title = text("title").nullable().index()
     val subtitle = text("subtitle").nullable()
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
+    val boosts = integer("boosts").default(0).index()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
@@ -78,6 +79,7 @@ fun ResultRow.toPostRow() = PostRecord(
     subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
+    boosts = this[PostTable.boosts],
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
     postType = this[PostTable.postType],
@@ -120,6 +122,7 @@ data class PostRecord(
     val subtitle: String?,
     val text: String?,
     val geoPoint: GeoPoint?,
+    val boosts: Int,
     val imageRef: Url?,
     val images: ScaledImageArray?,
     val postType: PostType,
