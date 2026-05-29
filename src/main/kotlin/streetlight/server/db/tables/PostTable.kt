@@ -6,6 +6,7 @@ import kampfire.model.GeoPoint
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImageArray
 import kampfire.model.Url
+import klutch.db.SyncValueTrigger
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.tables.SlugTable
@@ -38,6 +39,7 @@ object PostTable : UuidTable("post"), SlugTable {
     override val pastSlug = text("past_slug").uniqueIndex().nullable()
     val title = text("title").nullable().index()
     val subtitle = text("subtitle").nullable()
+    val username = text("username").nullable()
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
@@ -66,6 +68,8 @@ object PostTable : UuidTable("post"), SlugTable {
         ImageSize.Thumb,
     )
 }
+
+val postUsernameTrigger = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
 
 fun ResultRow.toPostRow() = PostRecord(
     postId = this[PostTable.id].toRecordId(),

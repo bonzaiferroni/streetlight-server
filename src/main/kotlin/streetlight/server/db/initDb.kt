@@ -88,6 +88,7 @@ val syncValueTriggers get() = listOf(
     cityCountryTrigger,
     locationCityTrigger,
     locationStateTrigger,
+    postUsernameTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

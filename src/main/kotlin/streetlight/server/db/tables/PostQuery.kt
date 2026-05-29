@@ -32,6 +32,7 @@ val GeneralPostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
     PostTable.slug,
+    PostTable.username,
     PostTable.title,
     PostTable.subtitle,
     PostTable.text,
@@ -41,17 +42,13 @@ val GeneralPostColumns = listOf(
     PostTable.links,
     PostTable.createdAt,
     PostTable.updatedAt,
-    StarTable.username,
-    StarTable.images,
 ) + LocationTable.columns
 
 fun eventJoin() = PostTable
-    .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
     .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
 
 fun generalJoin() = PostTable
-    .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
     .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
 
@@ -67,8 +64,7 @@ fun ResultRow.toEventPost() = EventPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
-    username = this[StarTable.username],
-    userThumb = this[StarTable.images].thumb,
+    username = this[PostTable.username],
     event = this.toEventLocation(),
     text = this[PostTable.text],
     createdAt = this[PostTable.createdAt],
@@ -79,8 +75,7 @@ fun ResultRow.toLocationPost() = LocationPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
-    username = this[StarTable.username],
-    userThumb = this[StarTable.images].thumb,
+    username = this[PostTable.username],
     location = this.toLocation(),
     text = this[PostTable.text],
     createdAt = this[PostTable.createdAt],
@@ -91,8 +86,7 @@ fun ResultRow.toContentPost() = Post(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
-    username = this[StarTable.username],
-    userThumb = this[StarTable.images].thumb,
+    username = this[PostTable.username],
     title = this[PostTable.title] ?: error("Title not found"),
     subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
