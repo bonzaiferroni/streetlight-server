@@ -172,7 +172,6 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     imageRef = imageRef,
     images = null,
     extraLinks = null,
-    username = null,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now()
 )

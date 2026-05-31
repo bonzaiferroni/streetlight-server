@@ -70,6 +70,7 @@ object PostTable : UuidTable("post"), SlugTable {
 }
 
 val postUsernameTrigger = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
+val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
 
 fun ResultRow.toPostRow() = PostRecord(
     postId = this[PostTable.id].toRecordId(),

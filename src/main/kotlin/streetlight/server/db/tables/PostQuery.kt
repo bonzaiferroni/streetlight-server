@@ -1,34 +1,18 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toSlug
-import kampfire.model.thumb
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.Post
+import streetlight.model.data.BasicPost
 import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.PostType
+import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-val PostQuery get() = PostTable
-    .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
-    .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
-    .join(StarTable, JoinType.LEFT, PostTable.starId, StarTable.id)
-    .select(EventPostColumns)
-
-val EventPostColumns = listOf(
-    PostTable.id,
-    PostTable.galaxyId,
-    PostTable.slug,
-    PostTable.text,
-    PostTable.postType,
-    PostTable.createdAt,
-    PostTable.updatedAt,
-) + EventLocationColumns
-
-val GeneralPostColumns = listOf(
+val PostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
     PostTable.slug,
@@ -40,24 +24,29 @@ val GeneralPostColumns = listOf(
     PostTable.imageRef,
     PostTable.images,
     PostTable.links,
+    PostTable.postType,
     PostTable.createdAt,
     PostTable.updatedAt,
-) + LocationTable.columns
+    PostLightTable.starId
+)
 
-fun eventJoin() = PostTable
-    .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
-    .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
+val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns).distinct()
 
-fun generalJoin() = PostTable
+fun postQuery(starId: StarId?) = PostTable
     .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
-
-val PostColumns = (EventPostColumns + GeneralPostColumns).distinct()
+    .join(PostLightTable, JoinType.LEFT, PostTable.id, PostLightTable.postId,
+        additionalConstraint = PostLightTable.getConstraint(starId))
+    .join(EventLightTable, JoinType.LEFT, PostTable.eventId, EventLightTable.starId,
+        additionalConstraint = EventLightTable.getConstraint(starId))
+    .join(LocationLightTable, JoinType.LEFT, PostTable.locationId, LocationLightTable.locationId,
+        additionalConstraint = LocationLightTable.getConstraint(starId))
+    .select(PostQueryColumns)
 
 fun ResultRow.toPost() = when (this[PostTable.postType]) {
     PostType.Event -> toEventPost()
     PostType.Location -> toLocationPost()
-    PostType.Content -> toContentPost()
+    PostType.Content -> toBasicPost()
 }
 
 fun ResultRow.toEventPost() = EventPost(
@@ -67,6 +56,7 @@ fun ResultRow.toEventPost() = EventPost(
     username = this[PostTable.username],
     event = this.toEventLocation(),
     text = this[PostTable.text],
+    isLit = this.getOrNull(PostLightTable.starId) != null,
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
@@ -78,11 +68,12 @@ fun ResultRow.toLocationPost() = LocationPost(
     username = this[PostTable.username],
     location = this.toLocation(),
     text = this[PostTable.text],
+    isLit = this.getOrNull(PostLightTable.starId) != null,
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
 
-fun ResultRow.toContentPost() = Post(
+fun ResultRow.toBasicPost() = BasicPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
@@ -94,6 +85,7 @@ fun ResultRow.toContentPost() = Post(
     links = this[PostTable.links],
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
+    isLit = this.getOrNull(PostLightTable.starId) != null,
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )

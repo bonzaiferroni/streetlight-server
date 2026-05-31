@@ -39,30 +39,37 @@ fun ApiContext.serveGalaxies() {
         Ok(dao.galaxy.readGalaxies(galaxyIds))
     }
 
-    postApi(Api.Galaxies.ReadMultiPosts) {
-        val galaxyIds = it.data
-        Ok(dao.post.readActivePosts(galaxyIds))
-    }
+    authGate(optional = true) {
+        postApi(Api.Galaxies.ReadMultiPosts) {
+            val galaxyIds = it.data
+            val identity = call.getIdentityOrNull()
+            Ok(dao.post.readOrderedPosts(galaxyIds, identity?.starId))
+        }
 
-    getApi(Api.Galaxies.ReadPostSlug, { it.toSlug() }) {
-        val slug = it.data
-        dao.post.readPost(slug).toResponse()
-    }
+        getApi(Api.Galaxies.ReadPostSlug, { it.toSlug() }) {
+            val slug = it.data
+            val identity = call.getIdentityOrNull()
+            dao.post.readPost(slug, identity?.starId).toResponse()
+        }
 
-    getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
-        val postId = it.data
-        dao.post.readPost(postId).toResponse()
-    }
+        getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
+            val postId = it.data
+            val identity = call.getIdentityOrNull()
+            dao.post.readPost(postId, identity?.starId).toResponse()
+        }
 
-    getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
-        val galaxyId = it.data
-        Ok(dao.post.readActivePosts(galaxyId))
-    }
+        getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
+            val galaxyId = it.data
+            val identity = call.getIdentityOrNull()
+            Ok(dao.post.readOrderedPosts(galaxyId, identity?.starId))
+        }
 
-    getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
-        val galaxy = dao.galaxy.readGalaxy(it.data) ?: return@getApi null
-        val posts = dao.post.readActivePosts(galaxy.galaxyId)
-        Ok(GalaxyContent(galaxy, posts))
+        getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
+            val galaxy = dao.galaxy.readGalaxy(it.data) ?: return@getApi null
+            val identity = call.getIdentityOrNull()
+            val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.starId)
+            Ok(GalaxyContent(galaxy, posts))
+        }
     }
 
     authGate {

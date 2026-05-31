@@ -5,16 +5,18 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.api.toSlug
 import klutch.server.ApiContext
+import klutch.server.authGate
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
 import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
-import streetlight.model.data.Post
+import streetlight.model.data.BasicPost
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.LocationId
+import streetlight.model.data.StarId
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
@@ -42,48 +44,51 @@ fun ApiContext.servePages() {
 
 
 
-    suspend fun renderScreen(screen: StreetlightScreen, arg: String?): HtmlRender? {
+    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, starId: StarId?): HtmlRender? {
         return when (screen) {
-            StreetlightScreen.Home -> renderHome()
+            StreetlightScreen.Home -> renderHome(starId)
             StreetlightScreen.AboutApp -> renderAboutApp()
             StreetlightScreen.Location -> renderLocation(arg)
-            StreetlightScreen.Galaxy -> renderGalaxy(arg)
-            StreetlightScreen.Star -> renderStar(arg)
+            StreetlightScreen.Galaxy -> renderGalaxy(arg, starId)
+            StreetlightScreen.Star -> renderStar(arg, starId)
             StreetlightScreen.Event -> renderEventProfile(arg)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Post -> renderPost(arg)
+            StreetlightScreen.Post -> renderPost(arg, starId)
             else -> renderClientBase()
         }
     }
 
-    StreetlightScreen.entries.forEach { screen ->
+    authGate(optional = true) {
+        StreetlightScreen.entries.forEach { screen ->
 
-        val path = when (val parse = screen.routeParse) {
-            is SlugParse -> "/${screen.pathRoot}/{${parse.label}?}"
-            is SlugOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
-            is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
-            is UuidParse -> "/${screen.pathRoot}/{${parse.label}}"
-            is StaticParse -> screen.pathRoot
-        }
-
-        get(path) {
-            val arg = when (val parse = screen.routeParse) {
-                is SlugParse -> call.parameters[parse.label]
-                is SlugOrNullParse -> call.parameters[parse.label]
-                is IdParse -> call.parameters[parse.label]
-                is UuidParse -> call.parameters[parse.label]
-                is StaticParse -> null
+            val path = when (val parse = screen.routeParse) {
+                is SlugParse -> "/${screen.pathRoot}/{${parse.label}?}"
+                is SlugOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
+                is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
+                is UuidParse -> "/${screen.pathRoot}/{${parse.label}}"
+                is StaticParse -> screen.pathRoot
             }
 
-            when (val render = renderScreen(screen, arg)) {
-                null -> {
-                    call.respondHtml {
-                        // td: not found
-                    }
+            get(path) {
+                val identity = call.getIdentityOrNull()
+                val arg = when (val parse = screen.routeParse) {
+                    is SlugParse -> call.parameters[parse.label]
+                    is SlugOrNullParse -> call.parameters[parse.label]
+                    is IdParse -> call.parameters[parse.label]
+                    is UuidParse -> call.parameters[parse.label]
+                    is StaticParse -> null
                 }
-                else -> {
-                    call.respondHtml {
-                        render.block(this)
+
+                when (val render = renderScreen(screen, arg, identity?.starId)) {
+                    null -> {
+                        call.respondHtml {
+                            // td: not found
+                        }
+                    }
+                    else -> {
+                        call.respondHtml {
+                            render.block(this)
+                        }
                     }
                 }
             }
@@ -107,8 +112,8 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
-suspend fun ApiContext.renderHome(): HtmlRender {
-    val content = server.get<ContentService>().readHomeContent()
+suspend fun ApiContext.renderHome(starId: StarId?): HtmlRender {
+    val content = server.get<ContentService>().readHomeContent(starId)
 
     return HtmlRender {
         homePage(content, SiteStyles)
@@ -130,11 +135,11 @@ suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderGalaxy(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderGalaxy(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
     val galaxy = dao.galaxy.readGalaxy(slug) ?: return null
     val galaxyId = galaxy.galaxyId
-    val posts = dao.post.readActivePosts(galaxyId)
+    val posts = dao.post.readOrderedPosts(galaxyId, starId)
 
     val content = GalaxyContent(
         galaxy = galaxy,
@@ -146,11 +151,11 @@ suspend fun ApiContext.renderGalaxy(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderStar(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderStar(arg: String?, starId: StarId?): HtmlRender? {
     val username = arg ?: return null
     val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
     val star = dao.star.readByUsername(username) ?: return null
-    val posts = dao.post.readStarPosts(userId)
+    val posts = dao.post.readStarPosts(userId, starId)
     val content = StarProfileContent(
         star = star,
         posts = posts
@@ -183,9 +188,9 @@ suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderPost(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderPost(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val post = dao.post.readPost(slug) as? Post ?: return null
+    val post = dao.post.readPost(slug, starId) as? BasicPost ?: return null
 
     return HtmlRender {
         appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {

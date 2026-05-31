@@ -75,7 +75,6 @@ fun ResultRow.toLocation() = Location(
     cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
     slug = this[LocationTable.slug].toSlug(),
     name = this[LocationTable.name],
-    username = this.getOrNull(StarTable.username),
     description = this[LocationTable.description],
     address = this[LocationTable.address],
     city = this[LocationTable.city],

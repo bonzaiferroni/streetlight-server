@@ -17,11 +17,15 @@ import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
 import streetlight.model.data.LightType
+import streetlight.model.data.LocationId
+import streetlight.model.data.PostId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventLightTable
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyLightTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.LocationLightTable
+import streetlight.server.db.tables.PostLightTable
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -49,15 +53,32 @@ class LightTableDao : DbService() {
         createdAt = GalaxyLightTable.createdAt,
     )
 
+    private val locationLight = LightConfig(
+        lightTable = LocationLightTable,
+        lightStarId = LocationLightTable.starId,
+        lightForeignId = LocationLightTable.locationId,
+        createdAt = LocationLightTable.createdAt,
+    )
+
+    private val postLight = LightConfig(
+        lightTable = PostLightTable,
+        lightStarId = PostLightTable.starId,
+        lightForeignId = PostLightTable.postId,
+        createdAt = PostLightTable.createdAt,
+    )
+
     // -- public API --
 
     suspend fun readEventLights(starId: StarId) = readLights(eventLight, starId) { EventId(it) }
     suspend fun readGalaxyLights(starId: StarId) = readLights(galaxyLight, starId) { GalaxyId(it) }
+    suspend fun readLocationLights(starId: StarId) = readLights(locationLight, starId) { LocationId(it) }
+    suspend fun readPostLights(starId: StarId) = readLights(postLight, starId) { PostId(it) }
 
     suspend fun editLight(edit: LightEdit, starId: StarId) = when (edit.lightType) {
         LightType.Event -> editLight(eventLight, edit, starId)
         LightType.Galaxy -> editLight(galaxyLight, edit, starId)
-        LightType.Location -> TODO()
+        LightType.Location -> editLight(locationLight, edit, starId)
+        LightType.Post -> editLight(postLight, edit, starId)
     }
 
     suspend fun editLights(edits: List<LightEdit>, starId: StarId): Boolean {

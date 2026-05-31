@@ -62,6 +62,7 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     TalentTable,
     GalaxyTable,
     PostTable,
+    PostLightTable,
     CommentTable,
     CommentLightTable,
     GalaxyCommentTable,
@@ -89,6 +90,7 @@ val syncValueTriggers get() = listOf(
     locationCityTrigger,
     locationStateTrigger,
     postUsernameTrigger,
+    postEventLocationTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(
