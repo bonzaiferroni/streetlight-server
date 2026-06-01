@@ -29,6 +29,7 @@ import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
+import streetlight.server.db.tables.PostLightTable
 import streetlight.server.db.tables.postQuery
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.createRecord
@@ -38,25 +39,35 @@ import kotlin.time.Clock
 
 class PostTableDao : DbService() {
 
-    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
+    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity?) = dbQuery {
         val slug = PostTable.nextSlugOf(edit.eventId, EventTable, EventTable.title)
         val post = edit.toPostRecord(edit.eventId, identity, SlugRecord(slug))
-        PostTable.insert { it.createRecord(post, null) }
+        createPost(post, identity, null)
         slug
     }
 
     suspend fun createPost(edit: LocationPostEdit, identity: StarIdentity?) = dbQuery {
         val slug = PostTable.nextSlugOf(edit.locationId, LocationTable, LocationTable.name)
         val post = edit.toPostRecord(edit.locationId, identity, SlugRecord(slug))
-        PostTable.insert { it.createRecord(post, null) }
+        createPost(post, identity, null)
         slug
     }
 
-    suspend fun createPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createPost(post: PostEdit, identity: StarIdentity?, imageSet: SavedImageSet?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.title ?: error("title not found"))
         val post = post.toPostRecord(identity, SlugRecord(slug))
-        PostTable.insert { it.createRecord(post, imageSet) }
+        createPost(post, identity, imageSet)
         slug
+    }
+
+    private fun createPost(record: PostRecord, identity: StarIdentity?, imageSet: SavedImageSet?) {
+        PostTable.insert { it.createRecord(record, imageSet) }
+        identity?.starId?.let { starId ->
+            PostLightTable.insert {
+                it[PostLightTable.postId] = record.postId.value
+                it[PostLightTable.starId] = starId.value
+            }
+        }
     }
 
     suspend fun editPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
@@ -133,12 +144,12 @@ class PostTableDao : DbService() {
     }
 }
 
-fun EventPostEdit.toPostRecord(eventId: EventId, identity: StarIdentity, slugRecord: SlugRecord) = PostRecord(
+fun EventPostEdit.toPostRecord(eventId: EventId, identity: StarIdentity?, slugRecord: SlugRecord) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = eventId,
     locationId = null,
-    starId = identity.starId,
+    starId = identity?.starId,
     slug = slugRecord.slug,
     pastSlug = slugRecord.pastSlug,
     title = null,
