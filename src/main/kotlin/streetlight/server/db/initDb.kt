@@ -80,7 +80,8 @@ val counterTriggers get() = listOf(
     cityGalaxyTrigger,
     galaxyLightTrigger,
     galaxyPostCountTrigger,
-    eventLightTrigger,
+    eventLightCountTrigger,
+    postLightCountTrigger,
 )
 
 val syncValueTriggers get() = listOf(
@@ -91,6 +92,8 @@ val syncValueTriggers get() = listOf(
     locationStateTrigger,
     postUsernameTrigger,
     postEventLocationTrigger,
+    postGalaxyNameTrigger,
+    postGalaxySlugTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

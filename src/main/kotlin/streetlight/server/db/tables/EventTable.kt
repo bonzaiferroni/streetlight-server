@@ -59,7 +59,7 @@ object EventTable : UuidTable("event"), SlugTable {
     )
 }
 
-val eventLightTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
+val eventLightCountTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
 
 fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value

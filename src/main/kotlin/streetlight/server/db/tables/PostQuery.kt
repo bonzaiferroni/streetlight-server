@@ -15,6 +15,8 @@ import streetlight.server.utils.toRecordId
 val PostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
+    PostTable.galaxySlug,
+    PostTable.galaxyName,
     PostTable.slug,
     PostTable.username,
     PostTable.title,
@@ -25,6 +27,7 @@ val PostColumns = listOf(
     PostTable.images,
     PostTable.links,
     PostTable.postType,
+    PostTable.lightCount,
     PostTable.createdAt,
     PostTable.updatedAt,
     PostLightTable.starId
@@ -53,10 +56,13 @@ fun ResultRow.toEventPost() = EventPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
+    galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
+    galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
     username = this[PostTable.username],
     event = this.toEventLocation(),
     text = this[PostTable.text],
     isLit = this.getOrNull(PostLightTable.starId) != null,
+    lightCount = this[PostTable.lightCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
@@ -65,10 +71,13 @@ fun ResultRow.toLocationPost() = LocationPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
+    galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
+    galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
     username = this[PostTable.username],
     location = this.toLocation(),
     text = this[PostTable.text],
     isLit = this.getOrNull(PostLightTable.starId) != null,
+    lightCount = this[PostTable.lightCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
@@ -77,6 +86,8 @@ fun ResultRow.toBasicPost() = BasicPost(
     postId = this[PostTable.id].toRecordId(),
     slug = this[PostTable.slug].toSlug(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
+    galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
+    galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
     username = this[PostTable.username],
     title = this[PostTable.title] ?: error("Title not found"),
     subtitle = this[PostTable.subtitle],
@@ -86,6 +97,7 @@ fun ResultRow.toBasicPost() = BasicPost(
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
     isLit = this.getOrNull(PostLightTable.starId) != null,
+    lightCount = this[PostTable.lightCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )

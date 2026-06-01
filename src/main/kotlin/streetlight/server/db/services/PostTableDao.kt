@@ -66,6 +66,7 @@ class PostTableDao : DbService() {
             PostLightTable.insert {
                 it[PostLightTable.postId] = record.postId.value
                 it[PostLightTable.starId] = starId.value
+                it[PostLightTable.createdAt] = Clock.System.now()
             }
         }
     }
@@ -156,7 +157,7 @@ fun EventPostEdit.toPostRecord(eventId: EventId, identity: StarIdentity?, slugRe
     subtitle = null,
     text = text,
     geoPoint = null,
-    boosts = 0,
+    lightCount = 0,
     imageRef = null,
     images = null,
     postType = PostType.Event,
@@ -176,7 +177,7 @@ fun LocationPostEdit.toPostRecord(locationId: LocationId, identity: StarIdentity
     subtitle = null,
     text = text,
     geoPoint = null,
-    boosts = 0,
+    lightCount = 0,
     imageRef = null,
     images = null,
     postType = PostType.Location,
@@ -195,7 +196,7 @@ fun PostEdit.toPostRecord(identity: StarIdentity?, slugRecord: SlugRecord) = Pos
     title = title ?: error("title is required"),
     subtitle = subtitle,
     text = text ?: error("text is required"),
-    boosts = 0,
+    lightCount = 0,
     geoPoint = geoPoint,
     imageRef = imageRef,
     images = null,

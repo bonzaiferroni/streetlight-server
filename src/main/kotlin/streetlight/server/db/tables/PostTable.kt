@@ -6,6 +6,7 @@ import kampfire.model.GeoPoint
 import kampfire.model.ImageSize
 import kampfire.model.ScaledImageArray
 import kampfire.model.Url
+import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.point
 import klutch.db.scaledImages
@@ -43,20 +44,16 @@ object PostTable : UuidTable("post"), SlugTable {
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
-    val boosts = integer("boosts").default(0).index()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val updatedAt = timestamp("updated_at").index()
     val createdAt = timestamp("created_at").index()
 
-    // td: use partial index
-    //         CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_location_per_galaxy
-    //            ON posts (location_id, galaxy_id)
-    //            WHERE post_type = 'location'
-    // init {
-    //     uniqueIndex("galaxy_event_index", galaxyId, eventId)
-    // }
+    // denormalized reference values
+    val galaxySlug = text("galaxy_slug").nullable()
+    val galaxyName = text("galaxy_name").nullable()
+    val lightCount = integer("light_count").default(0).index()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -69,10 +66,13 @@ object PostTable : UuidTable("post"), SlugTable {
     )
 }
 
+val postLightCountTrigger = CounterTrigger(PostTable, PostLightTable, PostLightTable.postId, PostTable.lightCount)
 val postUsernameTrigger = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
 val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
+val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
+val postGalaxySlugTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
-fun ResultRow.toPostRow() = PostRecord(
+fun ResultRow.toPostRecord() = PostRecord(
     postId = this[PostTable.id].toRecordId(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
     starId = this[PostTable.starId]?.toRecordId(),
@@ -84,7 +84,7 @@ fun ResultRow.toPostRow() = PostRecord(
     subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
-    boosts = this[PostTable.boosts],
+    lightCount = this[PostTable.lightCount],
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
     postType = this[PostTable.postType],
@@ -127,7 +127,7 @@ data class PostRecord(
     val subtitle: String?,
     val text: String?,
     val geoPoint: GeoPoint?,
-    val boosts: Int,
+    val lightCount: Int,
     val imageRef: Url?,
     val images: ScaledImageArray?,
     val postType: PostType,
