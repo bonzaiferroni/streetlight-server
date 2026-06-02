@@ -62,14 +62,14 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     TalentTable,
     GalaxyTable,
     PostTable,
-    PostLightTable,
+    PostStarTable,
     CommentTable,
-    CommentLightTable,
+    CommentStarTable,
     GalaxyCommentTable,
     PostCommentTable,
-    GalaxyLightTable,
-    EventLightTable,
-    LocationLightTable,
+    GalaxyStarTable,
+    EventStarTable,
+    LocationStarTable,
     CityTable,
     CountryTable,
     StateTable,
@@ -78,10 +78,12 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
 
 val counterTriggers get() = listOf(
     cityGalaxyTrigger,
-    galaxyLightTrigger,
+    galaxyStarTrigger,
+    galaxyEventCountTrigger,
+    galaxyLocationCountTrigger,
     galaxyPostCountTrigger,
-    eventLightCountTrigger,
-    postLightCountTrigger,
+    eventStarCountTrigger,
+    postStarCountTrigger,
 )
 
 val syncValueTriggers get() = listOf(

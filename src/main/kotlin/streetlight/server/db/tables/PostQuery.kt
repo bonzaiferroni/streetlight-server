@@ -27,10 +27,10 @@ val PostColumns = listOf(
     PostTable.images,
     PostTable.links,
     PostTable.postType,
-    PostTable.lightCount,
+    PostTable.starCount,
     PostTable.createdAt,
     PostTable.updatedAt,
-    PostLightTable.starId
+    PostStarTable.starId
 )
 
 val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns).distinct()
@@ -38,12 +38,12 @@ val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns).di
 fun postQuery(starId: StarId?) = PostTable
     .join(EventTable, JoinType.LEFT, PostTable.eventId, EventTable.id)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
-    .join(PostLightTable, JoinType.LEFT, PostTable.id, PostLightTable.postId,
-        additionalConstraint = PostLightTable.getConstraint(starId))
-    .join(EventLightTable, JoinType.LEFT, PostTable.eventId, EventLightTable.starId,
-        additionalConstraint = EventLightTable.getConstraint(starId))
-    .join(LocationLightTable, JoinType.LEFT, PostTable.locationId, LocationLightTable.locationId,
-        additionalConstraint = LocationLightTable.getConstraint(starId))
+    .join(PostStarTable, JoinType.LEFT, PostTable.id, PostStarTable.postId,
+        additionalConstraint = PostStarTable.getConstraint(starId))
+    .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId,
+        additionalConstraint = EventStarTable.getConstraint(starId))
+    .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
+        additionalConstraint = LocationStarTable.getConstraint(starId))
     .select(PostQueryColumns)
 
 fun ResultRow.toPost() = when (this[PostTable.postType]) {
@@ -61,8 +61,8 @@ fun ResultRow.toEventPost() = EventPost(
     username = this[PostTable.username],
     event = this.toEventLocation(),
     text = this[PostTable.text],
-    isLit = this.getOrNull(PostLightTable.starId) != null,
-    lightCount = this[PostTable.lightCount],
+    isLit = this.getOrNull(PostStarTable.starId) != null,
+    lightCount = this[PostTable.starCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
@@ -76,8 +76,8 @@ fun ResultRow.toLocationPost() = LocationPost(
     username = this[PostTable.username],
     location = this.toLocation(),
     text = this[PostTable.text],
-    isLit = this.getOrNull(PostLightTable.starId) != null,
-    lightCount = this[PostTable.lightCount],
+    isLit = this.getOrNull(PostStarTable.starId) != null,
+    lightCount = this[PostTable.starCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )
@@ -96,8 +96,8 @@ fun ResultRow.toBasicPost() = BasicPost(
     links = this[PostTable.links],
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
-    isLit = this.getOrNull(PostLightTable.starId) != null,
-    lightCount = this[PostTable.lightCount],
+    isLit = this.getOrNull(PostStarTable.starId) != null,
+    lightCount = this[PostTable.starCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt]
 )

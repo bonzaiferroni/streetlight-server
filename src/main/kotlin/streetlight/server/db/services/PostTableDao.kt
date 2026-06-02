@@ -29,7 +29,7 @@ import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
-import streetlight.server.db.tables.PostLightTable
+import streetlight.server.db.tables.PostStarTable
 import streetlight.server.db.tables.postQuery
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.createRecord
@@ -63,10 +63,10 @@ class PostTableDao : DbService() {
     private fun createPost(record: PostRecord, identity: StarIdentity?, imageSet: SavedImageSet?) {
         PostTable.insert { it.createRecord(record, imageSet) }
         identity?.starId?.let { starId ->
-            PostLightTable.insert {
-                it[PostLightTable.postId] = record.postId.value
-                it[PostLightTable.starId] = starId.value
-                it[PostLightTable.createdAt] = Clock.System.now()
+            PostStarTable.insert {
+                it[PostStarTable.postId] = record.postId.value
+                it[PostStarTable.starId] = starId.value
+                it[PostStarTable.createdAt] = Clock.System.now()
             }
         }
     }

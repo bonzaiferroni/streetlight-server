@@ -42,7 +42,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val images = scaledImages("image_array").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
-    val lightCount = integer("light_count").default(0)
+    val starCount = integer("star_count").default(0)
     // val doorsAt = timestamp("doors_at").nullable()
     val startsAt = timestamp("starts_at")
     val endsAt = timestamp("ends_at").nullable()
@@ -59,7 +59,7 @@ object EventTable : UuidTable("event"), SlugTable {
     )
 }
 
-val eventLightCountTrigger = CounterTrigger(EventTable, EventLightTable, EventLightTable.eventId, EventTable.lightCount)
+val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStarTable.eventId, EventTable.starCount)
 
 fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value
@@ -114,7 +114,7 @@ fun ResultRow.toEvent() = Event(
     images = this[EventTable.images],
     streamUrl = this[EventTable.streamUrl],
     timeZoneId = this[EventTable.timeZoneId],
-    lightCount = this[EventTable.lightCount],
+    lightCount = this[EventTable.starCount],
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
     updatedAt = this[EventTable.updatedAt],

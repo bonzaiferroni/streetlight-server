@@ -7,7 +7,7 @@ class ContentService(private val dao: DaoFacade) {
 
     suspend fun readHomeContent(starId: StarId?): HomeContent {
         val posts = dao.post.readOrderedPosts(starId)
-        val galaxies = dao.galaxy.readTopGalaxies(3)
+        val galaxies = dao.galaxy.readTopGalaxies(starId, 3)
         return HomeContent(
             galaxies = galaxies,
             posts = posts,

@@ -11,8 +11,6 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
@@ -20,13 +18,10 @@ import streetlight.model.data.LightType
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostId
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.EventLightTable
-import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.GalaxyLightTable
-import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.LocationLightTable
-import streetlight.server.db.tables.PostLightTable
-import java.util.UUID
+import streetlight.server.db.tables.EventStarTable
+import streetlight.server.db.tables.GalaxyStarTable
+import streetlight.server.db.tables.LocationStarTable
+import streetlight.server.db.tables.PostStarTable
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -40,31 +35,31 @@ private class LightConfig(
 class LightTableDao : DbService() {
 
     private val eventLight = LightConfig(
-        lightTable = EventLightTable,
-        lightStarId = EventLightTable.starId,
-        lightForeignId = EventLightTable.eventId,
-        createdAt = EventLightTable.createdAt,
+        lightTable = EventStarTable,
+        lightStarId = EventStarTable.starId,
+        lightForeignId = EventStarTable.eventId,
+        createdAt = EventStarTable.createdAt,
     )
 
     private val galaxyLight = LightConfig(
-        lightTable = GalaxyLightTable,
-        lightStarId = GalaxyLightTable.starId,
-        lightForeignId = GalaxyLightTable.galaxyId,
-        createdAt = GalaxyLightTable.createdAt,
+        lightTable = GalaxyStarTable,
+        lightStarId = GalaxyStarTable.starId,
+        lightForeignId = GalaxyStarTable.galaxyId,
+        createdAt = GalaxyStarTable.createdAt,
     )
 
     private val locationLight = LightConfig(
-        lightTable = LocationLightTable,
-        lightStarId = LocationLightTable.starId,
-        lightForeignId = LocationLightTable.locationId,
-        createdAt = LocationLightTable.createdAt,
+        lightTable = LocationStarTable,
+        lightStarId = LocationStarTable.starId,
+        lightForeignId = LocationStarTable.locationId,
+        createdAt = LocationStarTable.createdAt,
     )
 
     private val postLight = LightConfig(
-        lightTable = PostLightTable,
-        lightStarId = PostLightTable.starId,
-        lightForeignId = PostLightTable.postId,
-        createdAt = PostLightTable.createdAt,
+        lightTable = PostStarTable,
+        lightStarId = PostStarTable.starId,
+        lightForeignId = PostStarTable.postId,
+        createdAt = PostStarTable.createdAt,
     )
 
     // -- public API --

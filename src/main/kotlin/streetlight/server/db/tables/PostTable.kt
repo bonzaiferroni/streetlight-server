@@ -50,10 +50,10 @@ object PostTable : UuidTable("post"), SlugTable {
     val updatedAt = timestamp("updated_at").index()
     val createdAt = timestamp("created_at").index()
 
-    // denormalized reference values
+    // denormalized columns
     val galaxySlug = text("galaxy_slug").nullable()
     val galaxyName = text("galaxy_name").nullable()
-    val lightCount = integer("light_count").default(0).index()
+    val starCount = integer("star_count").default(0).index()
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -66,7 +66,7 @@ object PostTable : UuidTable("post"), SlugTable {
     )
 }
 
-val postLightCountTrigger = CounterTrigger(PostTable, PostLightTable, PostLightTable.postId, PostTable.lightCount)
+val postStarCountTrigger = CounterTrigger(PostTable, PostStarTable, PostStarTable.postId, PostTable.starCount)
 val postUsernameTrigger = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
 val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
 val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
@@ -84,7 +84,7 @@ fun ResultRow.toPostRecord() = PostRecord(
     subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
     geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
-    lightCount = this[PostTable.lightCount],
+    lightCount = this[PostTable.starCount],
     imageRef = this[PostTable.imageRef],
     images = this[PostTable.images],
     postType = this[PostTable.postType],

@@ -22,8 +22,8 @@ val LocationColumns = listOf(
     LocationTable.imageRef,
     LocationTable.images,
     LocationTable.links,
-    LocationTable.lightCount,
+    LocationTable.starCount,
     LocationTable.updatedAt,
     LocationTable.createdAt,
-    LocationLightTable.starId,
+    LocationStarTable.starId,
 )

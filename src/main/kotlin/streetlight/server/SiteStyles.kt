@@ -9,6 +9,7 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import streetlight.web.ui.StarLightCss
+import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
 import java.io.File
 
@@ -67,6 +68,7 @@ private val KtStyles = listOf(
     FeatureImageCss,
 
     // web module
+    StreetlightCss,
     AppBodyCss,
     AppOverlayCss,
     EarthCss,

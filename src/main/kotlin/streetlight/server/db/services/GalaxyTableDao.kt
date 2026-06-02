@@ -4,13 +4,9 @@ import kampfire.api.Slug
 import kampfire.api.isValid
 import klutch.db.DbService
 import klutch.db.inList
-import klutch.db.read
 import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.City
 import kotlin.time.Clock
@@ -23,45 +19,28 @@ import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
-import streetlight.server.db.tables.toGalaxy
+import org.jetbrains.exposed.v1.core.SortOrder
+import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun readGalaxy(slug: Slug) = dbQuery {
-        GalaxyTable.read { it.slug.eq(slug) }.firstOrNull()?.toGalaxy()
-    }
-
-    suspend fun readGalaxy(galaxyId: GalaxyId) = dbQuery {
-        GalaxyTable.read { it.id.eq(galaxyId) }
-    }
-
-    suspend fun readGalaxyName(galaxyId: GalaxyId) = dbQuery {
-        GalaxyTable.select(GalaxyTable.name).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.getOrNull(GalaxyTable.name)
-    }
-
-    suspend fun readGalaxySlug(path: String) = dbQuery {
-        GalaxyTable.selectAll().where { GalaxyTable.slug.eq(path) }.firstOrNull()?.toGalaxy()
-    }
-
-    suspend fun readTopGalaxies(limit: Int = 10) = dbQuery {
-        // .orderBy(GalaxyTable.lightCount, SortOrder.DESC)
-        GalaxyTable.selectAll().limit(limit).map { it.toGalaxy() }
-    }
-    
-    suspend fun readGalaxies(galaxyIds: List<GalaxyId>) = dbQuery {
-        GalaxyTable.selectAll().where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
-    }
-
     suspend fun create(edit: GalaxyEdit, starId: StarId, city: City?, imageSet: SavedImageSet?) = dbQuery {
         val slug = requireNotNull(edit.slug) { "Slug not found" }
         require(slug.isValid()) { "Invalid slug" }
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
+        val record = edit.toGalaxy()
 
         GalaxyTable.insert {
-            it.createRecord(edit.toGalaxy(), starId, SlugRecord(slug), city, imageSet)
+            it.createRecord(record, starId, SlugRecord(slug), city, imageSet)
         }
+        GalaxyStarTable.insert {
+            it[GalaxyStarTable.galaxyId] = record.galaxyId.value
+            it[GalaxyStarTable.starId] = starId.value
+            it[GalaxyStarTable.createdAt] = Clock.System.now()
+        }
+
         slug
     }
 
@@ -80,6 +59,23 @@ class GalaxyTableDao : DbService() {
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
+
+    suspend fun readGalaxy(slug: Slug, starId: StarId?) = dbQuery {
+        galaxyQuery(starId).where { GalaxyTable.slug.eq(slug) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readGalaxy(galaxyId: GalaxyId, starId: StarId?) = dbQuery {
+        galaxyQuery(starId).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readTopGalaxies(starId: StarId?, limit: Int = 10) = dbQuery {
+        galaxyQuery(starId).orderBy(GalaxyTable.starCount, SortOrder.DESC)
+            .limit(limit).map { it.toGalaxy() }
+    }
+    
+    suspend fun readGalaxies(galaxyIds: List<GalaxyId>, starId: StarId?) = dbQuery {
+        galaxyQuery(starId).where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
+    }
 }
 
 fun GalaxyEdit.toGalaxy() = Galaxy(
@@ -97,9 +93,11 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     postGuide = postGuide?.trim(),
     imageRef = imageRef,
     images = null,
-    lightCount = 0,
-    eventCount = null,
-    locationCount = null,
+    starCount = 0,
+    eventCount = 0,
+    locationCount = 0,
+    postCount = 0,
+    isLit = false,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

@@ -14,7 +14,6 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.neq
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Event
@@ -26,7 +25,7 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.EventLocationQuery
+import streetlight.server.db.tables.eventLocationQuery
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
@@ -58,8 +57,8 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.slug.eq(slug) }?.toEvent()
     }
 
-    suspend fun readEventLocationBySlug(slug: Slug) = dbQuery {
-        EventLocationQuery.where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
+    suspend fun readEventLocationBySlug(slug: Slug, starId: StarId?) = dbQuery {
+        eventLocationQuery(starId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
     }
 
     suspend fun createEvent(
@@ -96,8 +95,8 @@ class EventTableDao: DbService() {
         EventTable.deleteSingle { EventTable.starId.eq(starId) and EventTable.id.eq(eventId) }
     }
 
-    suspend fun readEventsInBounds(bounds: GeoBounds) = dbQuery { // , after: LocalDate, before: LocalDate
-        EventLocationQuery.where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
+    suspend fun readEventsInBounds(bounds: GeoBounds, starId: StarId?) = dbQuery { // , after: LocalDate, before: LocalDate
+        eventLocationQuery(starId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
     }
 
     suspend fun hasConflict(edit: EventEdit) = dbQuery {
@@ -118,8 +117,8 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt) }?.toEvent()
     }
 
-    suspend fun readEventLocations(eventIds: List<EventId>) = dbQuery {
-        EventLocationQuery.where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
+    suspend fun readEventLocations(eventIds: List<EventId>, starId: StarId?) = dbQuery {
+        eventLocationQuery(starId).where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
     }
 
     suspend fun readImageUrl(eventId: EventId) = dbQuery {

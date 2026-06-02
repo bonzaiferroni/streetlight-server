@@ -4,7 +4,6 @@ import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CommentId
@@ -17,18 +16,10 @@ object CommentTable: UuidTable("comment") {
     val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).nullable().index()
     val text = text("text")
-    val lightCount = integer("light_count").default(0)
+    val starCount = integer("star_count").default(0)
     val replyCount = integer("reply_count").default(0)
-    val visibility = lightCount + replyCount
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at").index()
-}
-
-object CommentLightTable: Table("comment_light") {
-    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
-    val commentId = reference("comment_id", CommentTable, onDelete = ReferenceOption.CASCADE).index()
-
-    override val primaryKey = PrimaryKey(starId, commentId)
 }
 
 object GalaxyCommentTable: Table("galaxy_comment") {

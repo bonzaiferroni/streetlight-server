@@ -5,7 +5,6 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
-import kampfire.api.Slug
 import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
@@ -20,7 +19,6 @@ import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.model.data.Event
 import streetlight.model.data.EventEdit
 import streetlight.server.db.tables.SavedImageSet
 
@@ -32,11 +30,6 @@ fun ApiContext.serveEvents() {
 
     getApi(Api.Events) {
         Ok(dao.event.readActiveEvents())
-    }
-
-    getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
-        val sent = it.data
-        Ok(dao.event.readEventsInBounds(sent.bounds))
     }
 
     get("/qr") {
@@ -52,18 +45,28 @@ fun ApiContext.serveEvents() {
         Ok(dao.event.readLocationEvents(it.data))
     }
 
-    postApi(Api.Events.ReadEventLocations) {
-        val ids = it.data
-        Ok(dao.event.readEventLocations(ids))
-    }
-
-    getApi(Api.Events.ReadSlug) {
-        val slug = it.data
-        responseOf(dao.event.readEventLocationBySlug(slug))
-    }
-
     getApi(Api.Events.ReadId, { it.toRecordId() }) {
         responseOf(dao.event.readEvent(it.data))
+    }
+
+    authGate(optional = true) {
+        getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
+            val sent = it.data
+            val identity = call.getIdentityOrNull()
+            Ok(dao.event.readEventsInBounds(sent.bounds, identity?.starId))
+        }
+
+        postApi(Api.Events.ReadEventLocations) {
+            val ids = it.data
+            val identity = call.getIdentityOrNull()
+            Ok(dao.event.readEventLocations(ids, identity?.starId))
+        }
+
+        getApi(Api.Events.ReadSlug) {
+            val slug = it.data
+            val identity = call.getIdentityOrNull()
+            responseOf(dao.event.readEventLocationBySlug(slug, identity?.starId))
+        }
     }
 
     authGate {

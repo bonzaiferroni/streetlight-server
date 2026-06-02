@@ -51,7 +51,7 @@ fun ApiContext.servePages() {
             StreetlightScreen.Location -> renderLocation(arg)
             StreetlightScreen.Galaxy -> renderGalaxy(arg, starId)
             StreetlightScreen.Star -> renderStar(arg, starId)
-            StreetlightScreen.Event -> renderEventProfile(arg)
+            StreetlightScreen.Event -> renderEventProfile(arg, starId)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
             StreetlightScreen.Post -> renderPost(arg, starId)
             else -> renderClientBase()
@@ -137,7 +137,7 @@ suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
 
 suspend fun ApiContext.renderGalaxy(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val galaxy = dao.galaxy.readGalaxy(slug) ?: return null
+    val galaxy = dao.galaxy.readGalaxy(slug, starId) ?: return null
     val galaxyId = galaxy.galaxyId
     val posts = dao.post.readOrderedPosts(galaxyId, starId)
 
@@ -166,9 +166,9 @@ suspend fun ApiContext.renderStar(arg: String?, starId: StarId?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderEventProfile(arg: String?): HtmlRender? {
+suspend fun ApiContext.renderEventProfile(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val event = dao.event.readEventLocationBySlug(slug) ?: return null
+    val event = dao.event.readEventLocationBySlug(slug, starId) ?: return null
 
     return HtmlRender {
         appPage("${event.title} | Streetlight", SiteStyles) {

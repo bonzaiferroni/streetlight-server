@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.point
@@ -8,22 +7,18 @@ import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.db.url
-import klutch.utils.toGeoBounds
-import klutch.utils.toGeoPoint
 import klutch.utils.toList
 import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.ReferenceOption
-import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.City
-import streetlight.model.data.CityId
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
+import streetlight.model.data.PostType
 import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
-import streetlight.server.utils.toRecordId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -39,13 +34,16 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewMode = enumeration<ReviewMode>("review_mode")
     val postGuide = text("post_guide").nullable()
-    val starCount = integer("star_count").default(0)
-    val eventCount = integer("event_count").default(0)
-    val postCount = integer("post_count").default(0)
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    // denormalized columns
+    val starCount = integer("star_count").default(0)
+    val eventCount = integer("event_count").default(0)
+    val locationCount = integer("location_count").default(0)
+    val postCount = integer("post_count").default(0)
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -58,8 +56,12 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     )
 }
 
-val galaxyLightTrigger = CounterTrigger(GalaxyTable, GalaxyLightTable, GalaxyLightTable.galaxyId, GalaxyTable.starCount)
+val galaxyLocationCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.locationCount,
+    "NEW.post_type = ${PostType.Location.ordinal}")
+val galaxyEventCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.eventCount,
+    "NEW.post_type = ${PostType.Event.ordinal}")
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
+val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
 
 fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
@@ -84,25 +86,3 @@ fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: 
     this[GalaxyTable.updatedAt] = galaxy.updatedAt
     writeImages(GalaxyTable.imageConfig, imageSet)
 }
-
-fun ResultRow.toGalaxy() = Galaxy(
-    galaxyId = toRecordId(GalaxyTable.id),
-    cityId = this[GalaxyTable.cityId]?.let { CityId(it.value) },
-    city = this[GalaxyTable.city],
-    slug = this[GalaxyTable.slug].toSlug(),
-    name = this[GalaxyTable.name],
-    tagline = this[GalaxyTable.tagline],
-    description = this[GalaxyTable.description],
-    geoPoint = this[GalaxyTable.geoPoint].toGeoPoint(),
-    geoBounds = this[GalaxyTable.geoBounds].toGeoBounds(),
-    postPermission = this[GalaxyTable.postPermission],
-    reviewMode = this[GalaxyTable.reviewMode],
-    postGuide = this[GalaxyTable.postGuide],
-    imageRef = this[GalaxyTable.imageRef],
-    images = this[GalaxyTable.images],
-    lightCount = this[GalaxyTable.starCount],
-    eventCount = this[GalaxyTable.eventCount],
-    locationCount = this[GalaxyTable.postCount],
-    updatedAt = this[GalaxyTable.updatedAt],
-    createdAt = this[GalaxyTable.createdAt],
-)

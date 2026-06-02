@@ -25,21 +25,25 @@ private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
 fun ApiContext.serveGalaxies() {
     val omni = server.get<OmniService>()
 
-    getApi(Api.Galaxies.Top) {
-        Ok(dao.galaxy.readTopGalaxies())
-    }
-
-    getApi(Api.Galaxies.ReadGalaxySlug, { it.toSlug() }) {
-        val id = it.data
-        dao.galaxy.readGalaxy(id).toResponse()
-    }
-
-    postApi(Api.Galaxies.ReadGalaxies) {
-        val galaxyIds = it.data
-        Ok(dao.galaxy.readGalaxies(galaxyIds))
-    }
 
     authGate(optional = true) {
+        getApi(Api.Galaxies.Top) {
+            val identity = call.getIdentityOrNull()
+            Ok(dao.galaxy.readTopGalaxies(identity?.starId))
+        }
+
+        getApi(Api.Galaxies.ReadGalaxySlug, { it.toSlug() }) {
+            val id = it.data
+            val identity = call.getIdentityOrNull()
+            dao.galaxy.readGalaxy(id, identity?.starId).toResponse()
+        }
+
+        postApi(Api.Galaxies.ReadGalaxies) {
+            val galaxyIds = it.data
+            val identity = call.getIdentityOrNull()
+            Ok(dao.galaxy.readGalaxies(galaxyIds, identity?.starId))
+        }
+
         postApi(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
@@ -65,8 +69,8 @@ fun ApiContext.serveGalaxies() {
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
-            val galaxy = dao.galaxy.readGalaxy(it.data) ?: return@getApi null
             val identity = call.getIdentityOrNull()
+            val galaxy = dao.galaxy.readGalaxy(it.data, identity?.starId) ?: return@getApi null
             val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.starId)
             Ok(GalaxyContent(galaxy, posts))
         }

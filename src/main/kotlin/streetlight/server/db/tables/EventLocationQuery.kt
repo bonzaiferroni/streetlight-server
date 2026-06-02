@@ -6,10 +6,14 @@ import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventLocation
+import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-val EventLocationQuery get() = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
-        .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id).select(EventLocationColumns)
+fun eventLocationQuery(starId: StarId?) = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
+    .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
+    .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
+        additionalConstraint = EventStarTable.getConstraint(starId))
+    .select(EventLocationColumns)
 
 val EventLocationColumns = listOf(
     EventTable.id,
@@ -24,10 +28,10 @@ val EventLocationColumns = listOf(
     EventTable.startsAt,
     EventTable.endsAt,
     EventTable.links,
-    EventTable.lightCount,
+    EventTable.starCount,
     EventTable.createdAt,
     EventTable.updatedAt,
-    EventLightTable.starId,
+    EventStarTable.starId,
     LocationTable.slug,
     LocationTable.images,
     LocationTable.name,
@@ -58,8 +62,8 @@ fun ResultRow.toEventLocation() = EventLocation(
     address = this[LocationTable.address],
     city = this[LocationTable.city],
     locationImages = this[LocationTable.images],
-    lightCount = this[EventTable.lightCount],
-    isLit = this.getOrNull(EventLightTable.starId) != null,
+    lightCount = this[EventTable.starCount],
+    isLit = this.getOrNull(EventStarTable.starId) != null,
     startsAt = this[EventTable.startsAt],
     endsAt = this[EventTable.endsAt],
     updatedAt = this[EventTable.updatedAt],

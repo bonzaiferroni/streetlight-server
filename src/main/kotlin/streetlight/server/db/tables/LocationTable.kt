@@ -42,7 +42,7 @@ object LocationTable : UuidTable("location"), SlugTable {
     val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
     val website = text("link").nullable()
-    val lightCount = integer("light_count").default(0)
+    val starCount = integer("star_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val eventsUrl = text("events_url").nullable()
     val aboutUrl = text("about_url").nullable()
@@ -85,7 +85,7 @@ fun ResultRow.toLocation() = Location(
     mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     website = this[LocationTable.website],
-    lightCount = this[LocationTable.lightCount],
+    lightCount = this[LocationTable.starCount],
     extraLinks = this[LocationTable.links],
     eventsUrl = this[LocationTable.eventsUrl],
     aboutUrl = this[LocationTable.aboutUrl],

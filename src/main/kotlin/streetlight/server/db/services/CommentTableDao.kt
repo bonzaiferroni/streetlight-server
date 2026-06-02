@@ -146,7 +146,7 @@ private fun ResultRow.toComment() = Comment(
     username = this[StarTable.username],
     thumb = this[StarTable.images].thumb,
     text = this[CommentTable.text],
-    lightCount = this[CommentTable.lightCount],
+    lightCount = this[CommentTable.starCount],
     replyCount = this[CommentTable.replyCount],
     updatedAt = this[CommentTable.updatedAt],
     createdAt = this[CommentTable.createdAt],
@@ -159,7 +159,7 @@ private val CommentColumns = listOf(
     CommentTable.updatedAt,
     CommentTable.createdAt,
     CommentTable.replyCount,
-    CommentTable.lightCount,
+    CommentTable.starCount,
     StarTable.username,
     StarTable.images,
 )
