@@ -193,7 +193,7 @@ suspend fun ApiContext.renderPost(arg: String?, starId: StarId?): HtmlRender? {
     val post = dao.post.readPost(slug, starId) as? BasicPost ?: return null
 
     return HtmlRender {
-        appPage("${post.title} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {
+        appPage("${post.label} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {
             postShell(post)
         }
     }
