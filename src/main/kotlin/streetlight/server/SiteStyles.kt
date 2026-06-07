@@ -75,6 +75,7 @@ private val KtStyles = listOf(
     TalkLogCss,
     FeedPostCss,
     LightControlCss,
+    MarkerElementCss,
 )
 
 private val Utilities = listOf(
