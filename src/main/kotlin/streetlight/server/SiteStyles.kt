@@ -3,6 +3,8 @@ package streetlight.server
 import koala.CssFile
 import koala.css.*
 import koala.html.*
+import koala.model.AltitudeCss
+import koala.model.MarkerElementCss
 import streetlight.web.layouts.FeedPostCss
 import streetlight.web.layouts.LightControlCss
 import streetlight.web.pages.AppBodyCss
@@ -76,6 +78,7 @@ private val KtStyles = listOf(
     FeedPostCss,
     LightControlCss,
     MarkerElementCss,
+    AltitudeCss,
 )
 
 private val Utilities = listOf(
