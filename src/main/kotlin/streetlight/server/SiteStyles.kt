@@ -5,6 +5,7 @@ import koala.css.*
 import koala.html.*
 import koala.model.AltitudeCss
 import koala.model.MarkerSheet
+import streetlight.server.utils.printToFile
 import streetlight.web.layouts.FeedPostCss
 import streetlight.web.layouts.LightControlCss
 import streetlight.web.pages.AppBodyCss
@@ -35,7 +36,7 @@ val SiteStyles by lazy {
         Utilities.forEach {
             appendLine(it.toStylesheet())
         }
-    }
+    }.also { printToFile(it, "styles.css") }
 }
 
 private val KtStyles = listOf(
