@@ -36,7 +36,7 @@ val SiteStyles by lazy {
         Utilities.forEach {
             appendLine(it.toStylesheet())
         }
-    }.also { printToFile(it, "styles.css") }
+    }.also { printToFile(it, "../debug/site-styles.css") }
 }
 
 private val KtStyles = listOf(
