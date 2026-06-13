@@ -27,6 +27,9 @@ import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.or
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.PostStarTable
@@ -89,27 +92,30 @@ class PostTableDao : DbService() {
         galaxyIds: List<GalaxyId>,
         callerId: StarId?,
         order: PostOrder = PostOrder.NewFirst,
+        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.inList(galaxyIds) }
+        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
     suspend fun readOrderedPosts(
         galaxyId: GalaxyId,
         callerId: StarId?,
         order: PostOrder = PostOrder.NewFirst,
+        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.eq(galaxyId) }
+        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.galaxyId.eq(galaxyId) }
     }
 
     suspend fun readStarPosts(
         starId: StarId,
         callerId: StarId?,
         order: PostOrder = PostOrder.NewFirst,
+        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.starId.eq(starId.value) }
+        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.starId.eq(starId.value) }
     }
 
     suspend fun readPost(postId: PostId, callerId: StarId?) = dbQuery {
@@ -127,10 +133,13 @@ class PostTableDao : DbService() {
     suspend fun readOrderedPosts(
         callerId: StarId?,
         order: PostOrder = PostOrder.NewFirst,
+        filterUpcomingEvents: Boolean = true,
         limit: Int = 100,
         filter: QueryFilter? = null,
     ) = dbQuery {
         val (orderColumn, sort) = orderOf(order)
+
+        val filter = getFilter(filterUpcomingEvents, filter)
 
         postQuery(callerId)
             .let {
@@ -142,6 +151,16 @@ class PostTableDao : DbService() {
             .orderBy(orderColumn, sort)
             .limit(limit)
             .map { it.toPost() }
+    }
+
+    private fun getFilter(filterUpcomingEvents: Boolean, filter: QueryFilter?): QueryFilter? {
+        val eventFilter: QueryFilter? = if (filterUpcomingEvents) {
+            { PostTable.postType.neq(PostType.Event) or EventTable.startsAt.greater(Clock.System.now()) }
+        } else null
+
+        if (eventFilter == null) return filter
+        if (filter == null) return eventFilter
+        return { eventFilter() and filter() }
     }
 }
 
