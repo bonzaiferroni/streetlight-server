@@ -25,12 +25,14 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
 object LocationTable : UuidTable("location"), SlugTable {
-    val ownerId = reference("owner_id", StarTable, ReferenceOption.SET_NULL).nullable()
-    val creatorId = reference("creator_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    val hostId = reference("host_id", StarTable, ReferenceOption.SET_NULL).nullable()
+    val scoutId = reference("scout_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
     val mapId = long("map_Id").nullable().uniqueIndex()
     override val slug = text("slug").uniqueIndex()
     override val pastSlug = text("past_slug").index().nullable()
+    val host = text("host").index().nullable()
+    val scout = text("scout").index().nullable()
     val name = text("name").nullable()
     val description = text("description").nullable()
     val address = text("address").nullable()
@@ -65,41 +67,16 @@ object LocationTable : UuidTable("location"), SlugTable {
 
 val locationCityTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.city, CityTable, CityTable.name)
 val locationStateTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.state, CityTable, CityTable.state)
+val locationHostTrigger = SyncValueTrigger(LocationTable.hostId, LocationTable.host, StarTable, StarTable.username)
+val locationScoutTrigger = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
 
-val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.ownerId, StarTable.id)
+val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.hostId, StarTable.id)
     .select(LocationTable.columns + StarTable.username)
-
-fun ResultRow.toLocation() = Location(
-    locationId = toRecordId(LocationTable.id),
-    mapId = this[LocationTable.mapId],
-    cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
-    slug = this[LocationTable.slug].toSlug(),
-    name = this[LocationTable.name],
-    description = this[LocationTable.description],
-    address = this[LocationTable.address],
-    city = this[LocationTable.city],
-    state = this[LocationTable.state],
-    geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
-    mapRank = this[LocationTable.mapRank],
-    mapCategory = this[LocationTable.mapCategory],
-    mapType = this[LocationTable.mapType],
-    resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
-    website = this[LocationTable.website],
-    lightCount = this[LocationTable.starCount],
-    extraLinks = this[LocationTable.links],
-    eventsUrl = this[LocationTable.eventsUrl],
-    aboutUrl = this[LocationTable.aboutUrl],
-    menuUrl = this[LocationTable.menuUrl],
-    imageRef = this[LocationTable.imageRef],
-    images = this[LocationTable.images],
-    updatedAt = this[LocationTable.updatedAt],
-    createdAt = this[LocationTable.createdAt],
-)
 
 // Updaters
 fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[LocationTable.id] = location.locationId.value
-    this[LocationTable.creatorId] = starId?.value
+    this[LocationTable.scoutId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
     updateRecord(location, slugRecord, imageSet)
 }

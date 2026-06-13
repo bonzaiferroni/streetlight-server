@@ -18,7 +18,7 @@ class ContentService(private val dao: DaoFacade) {
     }
 
     suspend fun readLocationContent(slug: Slug, callerId: StarId?): LocationContent? {
-        val location = dao.location.readLocation(slug) ?: return null
+        val location = dao.location.readLocation(slug, callerId) ?: return null
         val events = dao.event.readLocationEvents(slug, callerId)
         return LocationContent(
             location = location,

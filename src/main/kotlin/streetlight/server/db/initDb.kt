@@ -98,6 +98,8 @@ val syncValueTriggers get() = listOf(
     postGalaxySlugTrigger,
     eventLocationSlugTrigger,
     eventUsernameTrigger,
+    locationHostTrigger,
+    locationScoutTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

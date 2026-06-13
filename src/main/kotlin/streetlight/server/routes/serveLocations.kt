@@ -22,16 +22,6 @@ fun ApiContext.serveLocations() {
     val omni = server.get<OmniService>()
     val cityService = server.get<CityService>()
 
-    getApi(Api.Locations, { it.toRecordId() }) {
-        val id = it.data
-        dao.location.readLocation(id).toResponse()
-    }
-
-    getApi(Api.Locations.ReadLocation) {
-        val slug = it.data
-        dao.location.readLocation(slug).toResponse()
-    }
-
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
         val city = readParam(endpoint.city)?.takeIf { it.isNotBlank() }
@@ -104,6 +94,18 @@ fun ApiContext.serveLocations() {
             val slug = it.data
             val identity = call.getIdentityOrNull()
             contentService.readLocationContent(slug, identity?.starId).toResponse()
+        }
+
+        getApi(Api.Locations, { it.toRecordId() }) {
+            val id = it.data
+            val identity = call.getIdentityOrNull()
+            dao.location.readLocation(id, identity?.starId).toResponse()
+        }
+
+        getApi(Api.Locations.ReadLocation) {
+            val slug = it.data
+            val identity = call.getIdentityOrNull()
+            dao.location.readLocation(slug, identity?.starId).toResponse()
         }
     }
 }

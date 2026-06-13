@@ -30,7 +30,6 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
@@ -40,6 +39,7 @@ import streetlight.model.data.CityId
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
@@ -60,27 +60,32 @@ class LocationTableDao : DbService() {
     suspend fun updateLocation(
         locationId: LocationId,
         cityId: CityId,
-        starId: StarId?,
+        callerId: StarId?,
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
-        val isOwnerOrNull = LocationTable.ownerId.isNull() or LocationTable.ownerId.eq(starId?.value)
+        val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId?.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord, imageSet)
         }
-        readLocation(locationId)
+        readLocation(locationId, callerId)
     }
 
-    suspend fun createLocation(cityId: CityId, starId: StarId?, edit: LocationEdit, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createLocation(
+        cityId: CityId,
+        callerId: StarId?,
+        edit: LocationEdit,
+        imageSet: SavedImageSet?
+    ) = dbQuery {
         val locationId = LocationId.random()
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insert { it.createRecord(location, starId, SlugRecord(slug), imageSet) }
-        readLocation(locationId)
+        LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug), imageSet) }
+        readLocation(locationId, callerId)
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
@@ -100,12 +105,12 @@ class LocationTableDao : DbService() {
             .map { it.toLocation() }
     }
 
-    suspend fun readLocation(locationId: LocationId) = dbQuery {
-        LocationQuery.where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
+    suspend fun readLocation(locationId: LocationId, callerId: StarId?) = dbQuery {
+        locationQuery(callerId).where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
     }
 
-    suspend fun readLocation(slug: Slug) = dbQuery {
-        LocationQuery.where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
+    suspend fun readLocation(slug: Slug, callerId: StarId?) = dbQuery {
+        locationQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
     }
 
     suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
