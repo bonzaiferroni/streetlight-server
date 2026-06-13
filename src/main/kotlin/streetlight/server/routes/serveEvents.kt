@@ -41,15 +41,17 @@ fun ApiContext.serveEvents() {
         }
     }
 
-    getApi(Api.Events.AtLocation, { it.toRecordId()}) {
-        Ok(dao.event.readLocationEvents(it.data))
-    }
-
-    getApi(Api.Events.ReadId, { it.toRecordId() }) {
-        responseOf(dao.event.readEvent(it.data))
-    }
-
     authGate(optional = true) {
+        getApi(Api.Events.ReadId, { it.toRecordId() }) {
+            val identity = call.getIdentityOrNull()
+            responseOf(dao.event.readEvent(it.data, identity?.starId))
+        }
+
+        getApi(Api.Events.AtLocation, { it.toRecordId()}) {
+            val identity = call.getIdentityOrNull()
+            Ok(dao.event.readLocationEvents(it.data, identity?.starId))
+        }
+
         getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
             val sent = it.data
             val identity = call.getIdentityOrNull()

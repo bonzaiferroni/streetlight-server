@@ -47,29 +47,6 @@ private val console = globalConsole.getHandle(LocationTableDao::class)
 
 class LocationTableDao : DbService() {
 
-    suspend fun readLocation(locationId: LocationId) = dbQuery {
-        LocationQuery.where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
-    }
-
-    suspend fun readSlug(slug: Slug) = dbQuery {
-        LocationQuery.where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
-    }
-
-    suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
-        if (name != null && address != null) {
-            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) or it.address.lowerCase().eq(address.lowercase()) }
-                ?.toLocation()
-        } else if (name != null) {
-            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) }?.toLocation()
-        } else if (address != null) {
-            LocationTable.readFirstOrNull { it.address.lowerCase().eq(address.lowercase()) }?.toLocation()
-        } else null
-    }
-
-    suspend fun readLocationAt(point: GeoPoint) = dbQuery {
-        LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
-    }
-
 //    suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
 //        findOrCreatePlace(place, userId, isHost)
 //    }
@@ -121,6 +98,29 @@ class LocationTableDao : DbService() {
         }
             .limit(limit)
             .map { it.toLocation() }
+    }
+
+    suspend fun readLocation(locationId: LocationId) = dbQuery {
+        LocationQuery.where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
+    }
+
+    suspend fun readLocation(slug: Slug) = dbQuery {
+        LocationQuery.where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
+    }
+
+    suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
+        if (name != null && address != null) {
+            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) or it.address.lowerCase().eq(address.lowercase()) }
+                ?.toLocation()
+        } else if (name != null) {
+            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) }?.toLocation()
+        } else if (address != null) {
+            LocationTable.readFirstOrNull { it.address.lowerCase().eq(address.lowercase()) }?.toLocation()
+        } else null
+    }
+
+    suspend fun readLocationAt(point: GeoPoint) = dbQuery {
+        LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
     }
 
     suspend fun readTop(count: Int) = dbQuery {

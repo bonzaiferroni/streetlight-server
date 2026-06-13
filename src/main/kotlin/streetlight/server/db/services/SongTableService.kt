@@ -29,7 +29,7 @@ class SongTableService(): DbService() {
 
     suspend fun takeNextSong(userId: BasicUserId, eventId: EventId, since: Instant) = dbQuery {
         val nextRequest = EventTable.innerJoin(RequestTable).select(RequestTable.columns)
-            .where { EventTable.starId.eq(userId) and RequestTable.eventId.eq(eventId) }
+            .where { EventTable.scoutId.eq(userId) and RequestTable.eventId.eq(eventId) }
             .orderBy(RequestTable.createdAt)
             .limit(1)
             .firstOrNull()?.toRequest()

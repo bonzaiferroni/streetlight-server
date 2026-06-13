@@ -1,7 +1,6 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import kampfire.api.Slug
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
 import kampfire.model.toResponse
@@ -11,7 +10,6 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.model.data.CityId
-import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.CityService
 import streetlight.server.db.tables.EventTable
@@ -29,9 +27,9 @@ fun ApiContext.serveLocations() {
         dao.location.readLocation(id).toResponse()
     }
 
-    getApi(Api.Locations.ReadSlug) {
+    getApi(Api.Locations.ReadLocation) {
         val slug = it.data
-        dao.location.readSlug(slug).toResponse()
+        dao.location.readLocation(slug).toResponse()
     }
 
     getApi(Api.Locations.Search) { endpoint ->
@@ -100,6 +98,12 @@ fun ApiContext.serveLocations() {
 
         postApi(Api.Locations.ParseLocation) { request ->
             parser.parseLocation(request.data)
+        }
+
+        getApi(Api.Locations.ReadContent) {
+            val slug = it.data
+            val identity = call.getIdentityOrNull()
+            contentService.readLocationContent(slug, identity?.starId).toResponse()
         }
     }
 }

@@ -44,16 +44,16 @@ fun ApiContext.servePages() {
 
 
 
-    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, starId: StarId?): HtmlRender? {
+    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, callerId: StarId?): HtmlRender? {
         return when (screen) {
-            StreetlightScreen.Home -> renderHome(starId)
+            StreetlightScreen.Home -> renderHome(callerId)
             StreetlightScreen.AboutApp -> renderAboutApp()
-            StreetlightScreen.Location -> renderLocation(arg)
-            StreetlightScreen.Galaxy -> renderGalaxy(arg, starId)
-            StreetlightScreen.Star -> renderStar(arg, starId)
-            StreetlightScreen.Event -> renderEventProfile(arg, starId)
+            StreetlightScreen.Location -> renderLocation(arg, callerId)
+            StreetlightScreen.Galaxy -> renderGalaxy(arg, callerId)
+            StreetlightScreen.Star -> renderStar(arg, callerId)
+            StreetlightScreen.Event -> renderEventProfile(arg, callerId)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Post -> renderPost(arg, starId)
+            StreetlightScreen.Post -> renderPost(arg, callerId)
             else -> renderClientBase()
         }
     }
@@ -97,11 +97,11 @@ fun ApiContext.servePages() {
 
     // not yet implemented in web app
     get("/event-signup/{id}") {
-        val eventId: EventId = call.parameters["id"]?.toRecordId() ?: return@get
-        val event = dao.event.readEvent(eventId) ?: return@get
-        call.respondHtml {
-            eventSignUp(event, SiteStyles)
-        }
+//        val eventId: EventId = call.parameters["id"]?.toRecordId() ?: return@get
+//        val event = dao.event.readEvent(eventId) ?: return@get
+//        call.respondHtml {
+//            eventSignUp(event, SiteStyles)
+//        }
     }
 }
 
@@ -112,8 +112,8 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
-suspend fun ApiContext.renderHome(starId: StarId?): HtmlRender {
-    val content = server.get<ContentService>().readHomeContent(starId)
+suspend fun ApiContext.renderHome(callerId: StarId?): HtmlRender {
+    val content = contentService.readHomeContent(callerId)
 
     return HtmlRender {
         homePage(content, SiteStyles)
@@ -126,20 +126,20 @@ suspend fun ApiContext.renderAboutApp(): HtmlRender {
     }
 }
 
-suspend fun ApiContext.renderLocation(arg: String?): HtmlRender? {
-    val locationId = arg?.toRecordId<LocationId>() ?: return null
-    val location = dao.location.readLocation(locationId) ?: return null
+suspend fun ApiContext.renderLocation(arg: String?, callerId: StarId?): HtmlRender? {
+    val locationId = arg?.toSlug() ?: return null
+    val location = contentService.readLocationContent(locationId, callerId) ?: return null
 
     return HtmlRender {
         locationPage(location, SiteStyles)
     }
 }
 
-suspend fun ApiContext.renderGalaxy(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiContext.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val galaxy = dao.galaxy.readGalaxy(slug, starId) ?: return null
+    val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
     val galaxyId = galaxy.galaxyId
-    val posts = dao.post.readOrderedPosts(galaxyId, starId)
+    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
 
     val content = GalaxyContent(
         galaxy = galaxy,

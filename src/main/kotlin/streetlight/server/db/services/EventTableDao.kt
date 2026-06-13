@@ -33,6 +33,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.eventQuery
 import streetlight.server.db.tables.updateRecord
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -40,13 +41,61 @@ import kotlin.time.Instant
 private val console = globalConsole.getHandle(EventTableDao::class)
 
 class EventTableDao: DbService() {
+    suspend fun createEvent(
+        callerId: StarId,
+        edit: EventEdit,
+        imageSet: SavedImageSet?
+    ) = dbQuery {
+        val eventId = EventId.random()
+        val title = edit.title ?: error("title not found")
+        val slug = EventTable.nextSlugOf(title)
+        val event = edit.toEvent(eventId)
+        EventTable.insert {
+            it.createRecord(event, callerId, SlugRecord(slug), imageSet)
+        }
+        readEvent(eventId, callerId)
+    }
+
+    suspend fun updateEvent(
+        eventId: EventId,
+        callerId: StarId,
+        edit: EventEdit,
+        imageSet: SavedImageSet?
+    ) = dbQuery {
+        val title = edit.title ?: error("title not found")
+        val slugSync = EventTable.getSlugRecord(eventId, title)
+        val event = edit.toEvent(eventId)
+        EventTable.update({ EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId)}) {
+            it.updateRecord(event, slugSync, imageSet)
+        }
+        readEvent(eventId, callerId)
+    }
+
+    suspend fun hasConflict(edit: EventEdit) = dbQuery {
+        val title = edit.title ?: error("no title")
+        val startsAt = edit.startsAt ?: error("no time")
+        val locationId = edit.locationId ?: return@dbQuery false
+        // td: more precise time conflict handling
+        EventTable.count {
+            EventTable.locationId.eq(locationId) and EventTable.startsAt.eq(startsAt) and EventTable.title.eq(title)
+        } > 0
+    }
+
+    suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
+        EventTable.deleteSingle { EventTable.scoutId.eq(starId) and EventTable.id.eq(eventId) }
+    }
+
+    suspend fun readEventsInBounds(bounds: GeoBounds, starId: StarId?) = dbQuery { // , after: LocalDate, before: LocalDate
+        eventLocationQuery(starId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
+    }
+
     suspend fun readActiveEvents() = dbQuery {
         EventTable.read { it.status.neq(EventStatus.Finished) }
             .map { it.toEvent() }
     }
 
-    suspend fun readEvent(eventId: EventId) = dbQuery {
-        EventTable.read { it.id.eq(eventId) }.firstOrNull()?.toEvent()
+    suspend fun readEvent(eventId: EventId, callerId: StarId?) = dbQuery {
+        eventQuery(callerId).where { EventTable.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
     suspend fun readEventTitle(eventId: EventId) = dbQuery {
@@ -61,56 +110,8 @@ class EventTableDao: DbService() {
         eventLocationQuery(starId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
     }
 
-    suspend fun createEvent(
-        starId: StarId,
-        edit: EventEdit,
-        imageSet: SavedImageSet?
-    ) = dbQuery {
-        val eventId = EventId.random()
-        val title = edit.title ?: error("title not found")
-        val slug = EventTable.nextSlugOf(title)
-        val event = edit.toEvent(eventId)
-        EventTable.insert {
-            it.createRecord(event, starId, SlugRecord(slug), imageSet)
-        }
-        readEvent(eventId)
-    }
-
-    suspend fun updateEvent(
-        eventId: EventId,
-        starId: StarId,
-        edit: EventEdit,
-        imageSet: SavedImageSet?
-    ) = dbQuery {
-        val title = edit.title ?: error("title not found")
-        val slugSync = EventTable.getSlugRecord(eventId, title)
-        val event = edit.toEvent(eventId)
-        EventTable.update({ EventTable.starId.eq(starId) and EventTable.id.eq(eventId)}) {
-            it.updateRecord(event, slugSync, imageSet)
-        }
-        readEvent(eventId)
-    }
-
-    suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
-        EventTable.deleteSingle { EventTable.starId.eq(starId) and EventTable.id.eq(eventId) }
-    }
-
-    suspend fun readEventsInBounds(bounds: GeoBounds, starId: StarId?) = dbQuery { // , after: LocalDate, before: LocalDate
-        eventLocationQuery(starId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
-    }
-
-    suspend fun hasConflict(edit: EventEdit) = dbQuery {
-        val title = edit.title ?: error("no title")
-        val startsAt = edit.startsAt ?: error("no time")
-        val locationId = edit.locationId ?: return@dbQuery false
-        // td: more precise time conflict handling
-        EventTable.count {
-            EventTable.locationId.eq(locationId) and EventTable.startsAt.eq(startsAt) and EventTable.title.eq(title)
-        } > 0
-    }
-
-    suspend fun readLocationEvents(locationId: LocationId) = dbQuery {
-        EventTable.read { it.locationId.eq(locationId) }.map { it.toEvent() }
+    suspend fun readLocationEvents(slug: Slug, callerId: StarId?) = dbQuery {
+        eventQuery(callerId).where { EventTable.locationSlug.eq(slug) }.map { it.toEvent() }
     }
 
     suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {
@@ -131,22 +132,21 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
-    slug = Slug.Empty,
+    slug = Slug.Empty, // set with trigger
+    scout = "", // set with trigger
     title = title ?: error("no title"),
     description = description,
     contact = contact,
-    invitation = invitation,
     status = EventStatus.Pending,
     ageMin = ageMin,
     cost = cost ?: error("no cost provided"),
     visibility = null,
     links = links,
-    url = url,
+    website = url,
     imageRef = imageRef,
     images = null,
-    sourceUrl = sourceUrl,
-    sourceImageUrl = sourceImageUrl,
     streamUrl = null,
+    isLit = false, // set with join
     timeZoneId = timeZoneId ?: error("no time zone"),
     startsAt = startsAt ?: error("no starting time"),
     endsAt = endsAt,

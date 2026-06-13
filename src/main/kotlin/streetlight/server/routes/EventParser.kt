@@ -42,7 +42,7 @@ class EventParser(
         return when (val response = parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
             is Ok -> {
                 val parse = response.data
-                Ok(parse.toEventEdit(url, null, null).copy(
+                Ok(parse.toEventEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
                     description = parse.description ?: meta.description,
                     title = parse.name ?: meta.title

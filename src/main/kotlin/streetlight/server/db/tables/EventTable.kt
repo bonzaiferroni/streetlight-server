@@ -1,14 +1,13 @@
 package streetlight.server.db.tables
 
-import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
+import klutch.db.SyncValueTrigger
 import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.db.url
 import org.jetbrains.exposed.v1.core.ReferenceOption
-import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -17,27 +16,24 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.StarId
-import streetlight.server.utils.toRecordId
-import streetlight.server.utils.toRecordIdOrNull
 
 object EventTable : UuidTable("event"), SlugTable {
-    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
+    val scoutId = reference("scout_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
     override val slug = text("slug").uniqueIndex()
     override val pastSlug = text("past_slug").index().nullable()
+    val scout = text("scout").index().default("")
+    val locationSlug = text("location_slug").index().default("")
     val title = text("title")
     val description = text("description").nullable()
     val status = enumeration<EventStatus>("status")
     val contact = text("contact").nullable()
-    val invitation = text("invitation").nullable()
     val ageMin = integer("age_min").nullable()
     val cost = float("cost")
     val visibility = integer("visibility").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val website = text("url").nullable()
-    val sourceUrl = text("source_url").nullable()
-    val sourceImageUrl = text("source_image_url").nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("image_array").nullable()
     val streamUrl = text("stream_url").nullable()
@@ -60,10 +56,12 @@ object EventTable : UuidTable("event"), SlugTable {
 }
 
 val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStarTable.eventId, EventTable.starCount)
+val eventLocationSlugTrigger = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
+val eventUsernameTrigger = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
 
 fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.id] = event.eventId.value
-    this[EventTable.starId] = starId.value
+    this[EventTable.scoutId] = starId.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.createdAt] = event.createdAt
@@ -73,15 +71,12 @@ fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: Slug
 fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
     this[EventTable.slug] = slugRecord.slug.string
     this[EventTable.pastSlug] = slugRecord.pastSlug?.string
-    this[EventTable.website] = event.url
-    this[EventTable.sourceUrl] = event.sourceUrl
-    this[EventTable.sourceImageUrl] = event.sourceImageUrl
+    this[EventTable.website] = event.website
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description
     this[EventTable.status] = event.status
     this[EventTable.contact] = event.contact
-    this[EventTable.invitation] = event.invitation
     this[EventTable.ageMin] = event.ageMin
     this[EventTable.cost] = event.cost
     this[EventTable.visibility] = event.visibility
@@ -92,31 +87,3 @@ fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet
     this[EventTable.updatedAt] = event.updatedAt
     writeImages(EventTable.imageConfig, imageSet)
 }
-
-fun ResultRow.toEvent() = Event(
-    eventId = toRecordId(EventTable.id),
-    locationId = toRecordId(EventTable.locationId),
-    currentRequestId = toRecordIdOrNull(EventTable.currentRequestId),
-    slug = this[EventTable.slug].toSlug(),
-    title = this[EventTable.title],
-    description = this[EventTable.description],
-    status = this[EventTable.status],
-    contact = this[EventTable.contact],
-    invitation = this[EventTable.invitation],
-    ageMin = this[EventTable.ageMin],
-    cost = this[EventTable.cost],
-    visibility = this[EventTable.visibility],
-    links = this[EventTable.links],
-    url = this[EventTable.website],
-    sourceUrl = this[EventTable.sourceUrl],
-    sourceImageUrl = this[EventTable.sourceImageUrl],
-    imageRef = this[EventTable.imageRef],
-    images = this[EventTable.images],
-    streamUrl = this[EventTable.streamUrl],
-    timeZoneId = this[EventTable.timeZoneId],
-    lightCount = this[EventTable.starCount],
-    startsAt = this[EventTable.startsAt],
-    endsAt = this[EventTable.endsAt],
-    updatedAt = this[EventTable.updatedAt],
-    createdAt = this[EventTable.createdAt]
-)

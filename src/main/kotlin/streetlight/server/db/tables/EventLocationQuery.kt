@@ -9,7 +9,7 @@ import streetlight.model.data.EventLocation
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-fun eventLocationQuery(starId: StarId?) = EventTable.join(StarTable, JoinType.LEFT, EventTable.starId, StarTable.id)
+fun eventLocationQuery(starId: StarId?) = EventTable
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
         additionalConstraint = EventStarTable.getConstraint(starId))

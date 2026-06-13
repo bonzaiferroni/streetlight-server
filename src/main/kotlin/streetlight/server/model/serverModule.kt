@@ -45,4 +45,4 @@ val serverModule = module {
 val ApiContext.env get() = server.koin.get<Environment>()
 val ApiContext.dao get() = server.koin.get<DaoFacade>()
 val ApiContext.console get() = server.koin.get<LogHandle>()
-
+val ApiContext.contentService get() = server.koin.get<ContentService>()
