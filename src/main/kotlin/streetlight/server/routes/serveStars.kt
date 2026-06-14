@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.api.toUsername
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toResponse
@@ -20,7 +21,7 @@ import klutch.server.getApi
 fun ApiContext.serveStars() {
 
     getApi(Api.Stars.ReadByUsername) { endpoint ->
-        val username = readParamOrNull(endpoint.username) ?: return@getApi null
+        val username = readParamOrNull(endpoint.username)?.toUsername() ?: return@getApi null
         dao.star.readByUsername(username).toResponse()
     }
 

@@ -104,8 +104,8 @@ fun UpdateBuilder<*>.createRecord(post: PostRecord, imageSet: SavedImageSet?) {
 }
 
 fun UpdateBuilder<*>.updateRecord(post: PostRecord, imageSet: SavedImageSet?) {
-    this[PostTable.slug] = post.slug.string
-    this[PostTable.pastSlug] = post.pastSlug?.string
+    this[PostTable.slug] = post.slug.value
+    this[PostTable.pastSlug] = post.pastSlug?.value
     this[PostTable.title] = post.title
     this[PostTable.subtitle] = post.subtitle
     this[PostTable.text] = post.text

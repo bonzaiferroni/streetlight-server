@@ -4,6 +4,7 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.api.toSlug
+import kampfire.api.toUsername
 import klutch.server.ApiContext
 import klutch.server.authGate
 import koala.html.SlugOrNullParse
@@ -147,7 +148,7 @@ suspend fun ApiContext.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender
 }
 
 suspend fun ApiContext.renderStar(arg: String?, starId: StarId?): HtmlRender? {
-    val username = arg ?: return null
+    val username = arg?.toUsername() ?: return null
     val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
     val star = dao.star.readByUsername(username) ?: return null
     val posts = dao.post.readStarPosts(userId, starId)

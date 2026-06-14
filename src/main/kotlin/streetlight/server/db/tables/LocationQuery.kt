@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toSlug
+import kampfire.api.toUsername
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -51,8 +52,8 @@ fun ResultRow.toLocation() = Location(
     cityId = this[LocationTable.cityId]?.let { CityId(it.value) },
     mapId = this[LocationTable.mapId],
     slug = this[LocationTable.slug].toSlug(),
-    host = this[LocationTable.host],
-    scout = this[LocationTable.scout],
+    host = this[LocationTable.host]?.toUsername(),
+    scout = this[LocationTable.scout]?.toUsername(),
     name = this[LocationTable.name],
     description = this[LocationTable.description],
     address = this[LocationTable.address],

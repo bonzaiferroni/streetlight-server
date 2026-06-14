@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toUsername
 import kampfire.model.ImageSize
 import kampfire.model.UserRole
 import klutch.db.scaledImages
@@ -38,7 +39,7 @@ object StarTable: UuidTable("star") {
 }
 
 fun ResultRow.toStar() = Star(
-    username = this[StarTable.username],
+    username = this[StarTable.username].toUsername(),
     roles = this[StarTable.roles].map { UserRole.valueOf(it) }.toSet(),
     name = null, // td: allow user control over publishing name
     description = this[StarTable.description],
@@ -50,7 +51,7 @@ fun ResultRow.toStar() = Star(
 
 fun ResultRow.toStarUser() = StarUser(
     starId = StarId(this[StarTable.id].value),
-    username = this[StarTable.username],
+    username = this[StarTable.username].toUsername(),
     hashedPassword = this[StarTable.hashedPassword],
     salt = this[StarTable.salt],
     email = this[StarTable.email],
@@ -66,7 +67,7 @@ fun UpdateBuilder<*>.createRecord(user: StarUser) {
 }
 
 fun UpdateBuilder<*>.updateRecord(user: StarUser) {
-    this[StarTable.username] = user.username
+    this[StarTable.username] = user.username.value
     this[StarTable.hashedPassword] = user.hashedPassword
     this[StarTable.salt] = user.salt
     this[StarTable.email] = user.email

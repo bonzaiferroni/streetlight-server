@@ -2,12 +2,13 @@ package streetlight.server.model
 
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingCall
+import kampfire.api.Username
 import kampfire.model.UserRole
 import streetlight.model.data.StarId
 
 data class StarIdentity(
     val starId: StarId,
-    val username: String,
+    val username: Username,
     val roles: Set<UserRole>
 )
 

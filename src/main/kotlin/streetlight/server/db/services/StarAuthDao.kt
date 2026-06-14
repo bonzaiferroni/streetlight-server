@@ -1,10 +1,12 @@
 package streetlight.server.db.services
 
+import kampfire.api.Username
 import kampfire.model.PrivateInfo
 import kampfire.model.UserSeed
 import klutch.db.DbService
 import klutch.db.readFirstOrNull
 import klutch.db.services.AuthDao
+import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
@@ -37,7 +39,7 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
         }.value
     }
 
-    override suspend fun readIdByUsername(username: String) = dbQuery {
+    override suspend fun readIdByUsername(username: Username) = dbQuery {
         StarTable.select(StarTable.id).where { StarTable.username.eq(username) }
             .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
     }

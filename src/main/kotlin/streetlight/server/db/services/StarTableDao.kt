@@ -1,5 +1,7 @@
 package streetlight.server.db.services
 
+import kampfire.api.Username
+import kampfire.api.toUsername
 import kampfire.model.UserRole
 import kampfire.model.thumb
 import klutch.db.DbService
@@ -21,16 +23,16 @@ import kotlin.let
 
 class StarTableDao: DbService() {
 
-    suspend fun readByUsername(username: String) = dbQuery {
+    suspend fun readByUsername(username: Username) = dbQuery {
         StarTable.selectAll()
-            .where { StarTable.username.eqIgnoreCase(username) }
+            .where { StarTable.username.eq(username) }
             .map { it.toStar() }
             .firstOrNull()
     }
 
-    suspend fun readIdByUsername(username: String): StarId? = dbQuery {
+    suspend fun readIdByUsername(username: Username): StarId? = dbQuery {
         StarTable.select(StarTable.id)
-            .where { StarTable.username.eqIgnoreCase(username) }
+            .where { StarTable.username.eq(username) }
             .firstOrNull()?.let { it[StarTable.id].toRecordId() }
     }
 
@@ -44,7 +46,7 @@ class StarTableDao: DbService() {
         StarTable.select(StarTable.username, StarTable.roles).where { StarTable.id.eq(userId) }.map {
             StarIdentity(
                 starId = userId,
-                username = it[StarTable.username],
+                username = it[StarTable.username].toUsername(),
                 roles = it[StarTable.roles].map { role -> UserRole.valueOf(role) }.toSet()
             )
         }.firstOrNull()

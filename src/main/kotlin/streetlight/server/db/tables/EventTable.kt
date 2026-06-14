@@ -69,8 +69,8 @@ fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: Slug
 }
 
 fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
-    this[EventTable.slug] = slugRecord.slug.string
-    this[EventTable.pastSlug] = slugRecord.pastSlug?.string
+    this[EventTable.slug] = slugRecord.slug.value
+    this[EventTable.pastSlug] = slugRecord.pastSlug?.value
     this[EventTable.website] = event.website
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title

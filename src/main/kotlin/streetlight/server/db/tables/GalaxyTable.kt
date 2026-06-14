@@ -71,8 +71,8 @@ fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord:
 }
 
 fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
-    this[GalaxyTable.slug] = slugRecord.slug.string
-    this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.string
+    this[GalaxyTable.slug] = slugRecord.slug.value
+    this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.value
     this[GalaxyTable.cityId] = city?.cityId?.value
     this[GalaxyTable.city] = city?.name
     this[GalaxyTable.name] = galaxy.name

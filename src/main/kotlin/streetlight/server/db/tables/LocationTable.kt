@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import kampfire.api.toSlug
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.utils.*
@@ -9,20 +8,14 @@ import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.db.url
-import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
-import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.CityId
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.Location
-import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
-import streetlight.server.utils.toRecordId
 
 object LocationTable: UuidTable("location"), SlugTable {
     val hostId = reference("host_id", StarTable, ReferenceOption.SET_NULL).nullable()
@@ -79,8 +72,8 @@ fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecor
 }
 
 fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
-    this[LocationTable.slug] = slugRecord.slug.string
-    this[LocationTable.pastSlug] = slugRecord.pastSlug?.string
+    this[LocationTable.slug] = slugRecord.slug.value
+    this[LocationTable.pastSlug] = slugRecord.pastSlug?.value
     this[LocationTable.mapId] = location.mapId
     this[LocationTable.cityId] = location.cityId?.value
     // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline

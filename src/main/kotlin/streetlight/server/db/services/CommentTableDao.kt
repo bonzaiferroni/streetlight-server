@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.api.toUsername
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.readById
@@ -143,7 +144,7 @@ private fun Join.toCommentQuery() = join(StarTable, JoinType.LEFT, CommentTable.
 private fun ResultRow.toComment() = Comment(
     commentId = toRecordId(CommentTable.id),
     parentId = toRecordIdOrNull(CommentTable.parentId),
-    username = this[StarTable.username],
+    username = this[StarTable.username].toUsername(),
     thumb = this[StarTable.images].thumb,
     text = this[CommentTable.text],
     lightCount = this[CommentTable.starCount],
