@@ -13,11 +13,8 @@ import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
 import streetlight.model.data.BasicPost
-import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyContent
-import streetlight.model.data.LocationId
 import streetlight.model.data.StarId
-import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.web.StreetlightScreen
@@ -42,18 +39,16 @@ fun ApiContext.servePages() {
 //        }
 //    }
 
-
-
-    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, callerId: StarId?): HtmlRender? {
+    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, caller: StarIdentity?): HtmlRender? {
         return when (screen) {
-            StreetlightScreen.Home -> renderHome(callerId)
+            StreetlightScreen.Home -> renderHome(caller?.starId)
             StreetlightScreen.AboutApp -> renderAboutApp()
-            StreetlightScreen.Location -> renderLocation(arg, callerId)
-            StreetlightScreen.Galaxy -> renderGalaxy(arg, callerId)
-            StreetlightScreen.Star -> renderStar(arg, callerId)
-            StreetlightScreen.Event -> renderEventProfile(arg, callerId)
+            StreetlightScreen.Location -> renderLocation(arg, caller)
+            StreetlightScreen.Galaxy -> renderGalaxy(arg, caller?.starId)
+            StreetlightScreen.Star -> renderStar(arg, caller?.starId)
+            StreetlightScreen.Event -> renderEventProfile(arg, caller?.starId)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Post -> renderPost(arg, callerId)
+            StreetlightScreen.Post -> renderPost(arg, caller?.starId)
             else -> renderClientBase()
         }
     }
@@ -79,7 +74,7 @@ fun ApiContext.servePages() {
                     is StaticParse -> null
                 }
 
-                when (val render = renderScreen(screen, arg, identity?.starId)) {
+                when (val render = renderScreen(screen, arg, identity)) {
                     null -> {
                         call.respondHtml {
                             // td: not found
@@ -126,9 +121,9 @@ suspend fun ApiContext.renderAboutApp(): HtmlRender {
     }
 }
 
-suspend fun ApiContext.renderLocation(arg: String?, callerId: StarId?): HtmlRender? {
+suspend fun ApiContext.renderLocation(arg: String?, caller: StarIdentity?): HtmlRender? {
     val locationId = arg?.toSlug() ?: return null
-    val location = contentService.readLocationContent(locationId, callerId) ?: return null
+    val location = contentService.readLocationContent(locationId, caller) ?: return null
 
     return HtmlRender {
         locationPage(location, SiteStyles)

@@ -36,6 +36,8 @@ import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import streetlight.model.data.CityId
+import streetlight.model.data.EditType
+import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
@@ -60,23 +62,24 @@ class LocationTableDao : DbService() {
     suspend fun updateLocation(
         locationId: LocationId,
         cityId: CityId,
-        callerId: StarId?,
+        callerId: StarId,
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
-        val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId?.value)
+        val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord, imageSet)
         }
+        EditLogTable.logEdit(EditType.Update, edit, locationId, callerId)
         readLocation(locationId, callerId)
     }
 
     suspend fun createLocation(
         cityId: CityId,
-        callerId: StarId?,
+        callerId: StarId,
         edit: LocationEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
@@ -85,6 +88,7 @@ class LocationTableDao : DbService() {
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
         LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug), imageSet) }
+        EditLogTable.logEdit(EditType.Create, edit, locationId, callerId)
         readLocation(locationId, callerId)
     }
 
@@ -159,6 +163,8 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     cityId = cityId,
     mapId = mapId,
     slug = Slug.Empty,
+    host = null, // set with trigger
+    scout = null, // set with trigger
     name = name,
     geoPoint = geoPoint ?: error("no location geoPoint"),
     mapRank = mapRank,

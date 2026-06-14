@@ -74,6 +74,7 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     CountryTable,
     StateTable,
     OmniTable,
+    EditLogTable,
 )
 
 val counterTriggers get() = listOf(
@@ -100,6 +101,7 @@ val syncValueTriggers get() = listOf(
     eventUsernameTrigger,
     locationHostTrigger,
     locationScoutTrigger,
+    editUsernameTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

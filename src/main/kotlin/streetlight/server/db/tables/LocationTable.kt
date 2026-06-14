@@ -24,7 +24,7 @@ import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-object LocationTable : UuidTable("location"), SlugTable {
+object LocationTable: UuidTable("location"), SlugTable {
     val hostId = reference("host_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val scoutId = reference("scout_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
@@ -69,9 +69,6 @@ val locationCityTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.c
 val locationStateTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.state, CityTable, CityTable.state)
 val locationHostTrigger = SyncValueTrigger(LocationTable.hostId, LocationTable.host, StarTable, StarTable.username)
 val locationScoutTrigger = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
-
-val LocationQuery get() = LocationTable.join(StarTable, JoinType.LEFT, LocationTable.hostId, StarTable.id)
-    .select(LocationTable.columns + StarTable.username)
 
 // Updaters
 fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {

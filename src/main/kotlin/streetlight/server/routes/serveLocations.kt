@@ -50,36 +50,7 @@ fun ApiContext.serveLocations() {
     }
 
     authGate(optional = true) {
-        suspend fun <T> handleEdit(
-            edit: LocationEdit,
-            identity: StarIdentity?,
-            block: suspend (CityId, SavedImageSet?) -> T?
-        ): T? {
-            val imageUserId = identity?.starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
-            val cityId = cityService.readOrCreateCity(edit.city, edit.state)
-            return block(requireNotNull(cityId) { "city not found" }, imageSet)
-        }
 
-        postApi(Api.Locations.CreateLocation) { request ->
-            val edit = request.data
-            val identity = call.getIdentityOrNull()
-
-            handleEdit(edit, identity) { cityId, imageSet ->
-                console.log("creating location: ${edit.label}")
-                dao.location.createLocation(cityId, identity?.starId, edit, imageSet)
-            }.toResponse()
-        }
-
-        postApi(Api.Locations.UpdateLocation) { request ->
-            val edit = request.data
-            val identity = call.getIdentityOrNull()
-            val locationId = requireNotNull(edit.locationId)
-
-            handleEdit(edit, identity) { cityId, imageSet ->
-                dao.location.updateLocation(locationId, cityId, identity?.starId, edit, imageSet)
-            }.toResponse()
-        }
 
         // when (val locationId = edit.locationId) {
         //                null -> dao.location.createLocation(starId, edit, imageSet)
@@ -93,7 +64,7 @@ fun ApiContext.serveLocations() {
         getApi(Api.Locations.ReadContent) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            contentService.readLocationContent(slug, identity?.starId).toResponse()
+            contentService.readLocationContent(slug, identity).toResponse()
         }
 
         getApi(Api.Locations, { it.toRecordId() }) {
@@ -106,6 +77,39 @@ fun ApiContext.serveLocations() {
             val slug = it.data
             val identity = call.getIdentityOrNull()
             dao.location.readLocation(slug, identity?.starId).toResponse()
+        }
+    }
+
+    authGate(optional = false) {
+        suspend fun <T> handleEdit(
+            edit: LocationEdit,
+            identity: StarIdentity,
+            block: suspend (CityId, SavedImageSet?) -> T?
+        ): T? {
+            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
+            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
+            val cityId = cityService.readOrCreateCity(edit.city, edit.state)
+            return block(requireNotNull(cityId) { "city not found" }, imageSet)
+        }
+
+        postApi(Api.Locations.CreateLocation) { request ->
+            val edit = request.data
+            val identity = call.getIdentity()
+
+            handleEdit(edit, identity) { cityId, imageSet ->
+                console.log("creating location: ${edit.label}")
+                dao.location.createLocation(cityId, identity.starId, edit, imageSet)
+            }.toResponse()
+        }
+
+        postApi(Api.Locations.UpdateLocation) { request ->
+            val edit = request.data
+            val identity = call.getIdentity()
+            val locationId = requireNotNull(edit.locationId)
+
+            handleEdit(edit, identity) { cityId, imageSet ->
+                dao.location.updateLocation(locationId, cityId, identity.starId, edit, imageSet)
+            }.toResponse()
         }
     }
 }
