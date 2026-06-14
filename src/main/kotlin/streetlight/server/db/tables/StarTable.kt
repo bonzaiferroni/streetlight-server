@@ -14,7 +14,6 @@ import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.StarUser
 
-// this provides additional properties for User, likely will become the only table for account information
 object StarTable: UuidTable("star") {
     val username = text("username")
     val hashedPassword = text("hashed_password")
