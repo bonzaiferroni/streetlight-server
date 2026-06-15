@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toSlug
+import kampfire.api.toUsername
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -58,7 +59,7 @@ fun ResultRow.toEventPost() = EventPost(
     galaxyId = this[PostTable.galaxyId].toRecordId(),
     galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
     galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
-    username = this[PostTable.username],
+    username = this[PostTable.username]?.toUsername(),
     event = this.toEventLocation(),
     text = this[PostTable.text],
     isLit = this.getOrNull(PostStarTable.starId) != null,
@@ -73,7 +74,7 @@ fun ResultRow.toLocationPost() = LocationPost(
     galaxyId = this[PostTable.galaxyId].toRecordId(),
     galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
     galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
-    username = this[PostTable.username],
+    username = this[PostTable.username]?.toUsername(),
     location = this.toLocation(),
     text = this[PostTable.text],
     isLit = this.getOrNull(PostStarTable.starId) != null,
@@ -88,7 +89,7 @@ fun ResultRow.toBasicPost() = BasicPost(
     galaxyId = this[PostTable.galaxyId].toRecordId(),
     galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
     galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
-    username = this[PostTable.username],
+    username = this[PostTable.username]?.toUsername(),
     label = this[PostTable.title] ?: error("Title not found"),
     sublabel = this[PostTable.subtitle],
     text = this[PostTable.text],

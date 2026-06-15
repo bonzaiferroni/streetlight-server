@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toSlug
+import kampfire.api.toUsername
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
@@ -45,7 +46,7 @@ fun ResultRow.toEvent() = Event(
     locationId = toRecordId(EventTable.locationId),
     currentRequestId = toRecordIdOrNull(EventTable.currentRequestId),
     slug = this[EventTable.slug].toSlug(),
-    scout = this[EventTable.scout],
+    scout = this[EventTable.scout].toUsername(),
     title = this[EventTable.title],
     description = this[EventTable.description],
     status = this[EventTable.status],

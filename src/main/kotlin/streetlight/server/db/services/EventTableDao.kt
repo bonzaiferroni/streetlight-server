@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.api.Slug
+import kampfire.api.Username
 import kampfire.model.GeoBounds
 import klutch.db.DbService
 import klutch.db.count
@@ -133,7 +134,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
     slug = Slug.Empty, // set with trigger
-    scout = "", // set with trigger
+    scout = Username.Empty, // set with trigger
     title = title ?: error("no title"),
     description = description,
     contact = contact,

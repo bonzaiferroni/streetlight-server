@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toSlug
+import kampfire.api.toUsername
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -19,6 +20,7 @@ val EventLocationColumns = listOf(
     EventTable.id,
     EventTable.locationId,
     EventTable.slug,
+    EventTable.scout,
     EventTable.website,
     EventTable.images,
     EventTable.title,
@@ -47,7 +49,7 @@ fun ResultRow.toEventLocation() = EventLocation(
     locationId = toRecordId(EventTable.locationId),
     eventSlug = this[EventTable.slug].toSlug(),
     locationSlug = this[LocationTable.slug].toSlug(),
-    username = "[Event Username]",
+    scout = this[EventTable.scout].toUsername(),
     url = this[EventTable.website],
     eventImages = this[EventTable.images],
     title = this[EventTable.title],
