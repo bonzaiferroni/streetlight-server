@@ -35,8 +35,8 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
         )
 
         StarTable.insertAndGetId {
-            it.createRecord(user)
-        }.value
+            it.createRecord(user, seed.accountType)
+        }.let { StarId(it.value) }
     }
 
     override suspend fun readIdByUsername(username: Username) = dbQuery {

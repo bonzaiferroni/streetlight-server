@@ -76,6 +76,7 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     StateTable,
     OmniTable,
     EditLogTable,
+    StarTable,
 )
 
 val counterTriggers get() = listOf(

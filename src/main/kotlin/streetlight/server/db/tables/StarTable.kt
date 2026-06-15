@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toUsername
+import kampfire.model.AccountType
 import kampfire.model.ImageSize
 import kampfire.model.UserRole
 import klutch.db.scaledImages
@@ -22,6 +23,7 @@ object StarTable: UuidTable("star") {
     val roles = array<String>("roles")
     val name = text("name").nullable()
     val description = text("description").nullable()
+    val accountType = enumeration<AccountType>("account_type")
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val createdAt = timestamp("created_at")
@@ -59,8 +61,9 @@ fun ResultRow.toStarUser() = StarUser(
     updatedAt = this[StarTable.updatedAt],
 )
 
-fun UpdateBuilder<*>.createRecord(user: StarUser) {
+fun UpdateBuilder<*>.createRecord(user: StarUser, accountType: AccountType) {
     this[StarTable.id] = user.userId.value
+    this[StarTable.accountType] = accountType // initial value
     this[StarTable.createdAt] = user.createdAt
     updateRecord(user)
 }

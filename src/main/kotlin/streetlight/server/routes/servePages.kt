@@ -109,6 +109,7 @@ data class HtmlRender(
 )
 
 suspend fun ApiContext.renderHome(callerId: StarId?): HtmlRender {
+    console.log(callerId)
     val content = contentService.readHomeContent(callerId)
 
     return HtmlRender {
