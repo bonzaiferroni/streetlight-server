@@ -12,9 +12,7 @@ interface StarIdTable {
     val starId: Column<EntityID<Uuid>>
 }
 
-fun <T> T.getConstraint(starId: StarId?): (() -> Op<Boolean>)? where T: Table, T: StarIdTable = when (starId) {
-    null -> null
-    else -> {
-        { this.starId.eq(starId) }
-    }
-}
+fun <T> T.getConstraint(callerId: StarId?) where T: Table, T: StarIdTable = getConstraint(callerId) { starId.eq(it) }
+
+fun getConstraint(callerId: StarId?, constraint: (StarId) -> Op<Boolean>): () -> Op<Boolean> =
+    callerId?.let { { constraint(it) } } ?: { Op.FALSE }

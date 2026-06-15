@@ -21,7 +21,7 @@ import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
-    val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    // val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val city = text("city").nullable()
     override val slug = text("path").uniqueIndex() // td: rename column as slug
@@ -65,7 +65,7 @@ val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarT
 
 fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
-    this[GalaxyTable.founderId] = founderId.value
+    // this[GalaxyTable.founderId] = founderId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
     updateRecord(galaxy, slugRecord, city, imageSet)
 }

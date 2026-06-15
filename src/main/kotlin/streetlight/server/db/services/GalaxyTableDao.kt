@@ -20,25 +20,33 @@ import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import org.jetbrains.exposed.v1.core.SortOrder
+import streetlight.model.data.HostType
+import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun create(edit: GalaxyEdit, starId: StarId, city: City?, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun create(edit: GalaxyEdit, callerId: StarId, city: City?, imageSet: SavedImageSet?) = dbQuery {
         val slug = requireNotNull(edit.slug) { "Slug not found" }
         require(slug.isValid()) { "Invalid slug" }
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
         val record = edit.toGalaxy()
 
         GalaxyTable.insert {
-            it.createRecord(record, starId, SlugRecord(slug), city, imageSet)
+            it.createRecord(record, callerId, SlugRecord(slug), city, imageSet)
         }
         GalaxyStarTable.insert {
             it[GalaxyStarTable.galaxyId] = record.galaxyId.value
-            it[GalaxyStarTable.starId] = starId.value
+            it[GalaxyStarTable.starId] = callerId.value
             it[GalaxyStarTable.createdAt] = Clock.System.now()
+        }
+        GalaxyHostTable.insert {
+            it[GalaxyHostTable.galaxyId] = record.galaxyId.value
+            it[GalaxyHostTable.hostId] = callerId.value
+            it[GalaxyHostTable.hostType] = HostType.Creator
+            it[GalaxyHostTable.createdAt] = Clock.System.now()
         }
 
         slug
@@ -60,8 +68,8 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
-    suspend fun readGalaxy(slug: Slug, starId: StarId?) = dbQuery {
-        galaxyQuery(starId).where { GalaxyTable.slug.eq(slug) }.firstOrNull()?.toGalaxy()
+    suspend fun readGalaxy(slug: Slug, callerId: StarId?) = dbQuery {
+        galaxyQuery(callerId).where { GalaxyTable.slug.eq(slug) }.firstOrNull()?.toGalaxy()
     }
 
     suspend fun readGalaxy(galaxyId: GalaxyId, starId: StarId?) = dbQuery {
@@ -97,7 +105,8 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     eventCount = 0,
     locationCount = 0,
     postCount = 0,
-    isLit = false,
+    isLit = false,  // provided by join
+    isHost = false, // provided by join
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

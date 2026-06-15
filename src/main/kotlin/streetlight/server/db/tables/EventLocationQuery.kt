@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import klutch.utils.eq
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -13,7 +14,7 @@ import streetlight.server.utils.toRecordId
 fun eventLocationQuery(starId: StarId?) = EventTable
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
-        additionalConstraint = EventStarTable.getConstraint(starId))
+        additionalConstraint = getConstraint(starId) { EventStarTable.starId.eq(it) })
     .select(EventLocationColumns)
 
 val EventLocationColumns = listOf(
