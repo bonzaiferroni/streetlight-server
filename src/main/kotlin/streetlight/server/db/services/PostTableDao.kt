@@ -2,7 +2,10 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import klutch.db.DbService
+import klutch.db.any
+import klutch.db.count
 import klutch.db.inList
+import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -30,8 +33,11 @@ import klutch.db.tables.nextSlugOf
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
+import streetlight.model.data.ContentStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
+import streetlight.server.db.tables.GalaxyHostTable
+import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostStarTable
 import streetlight.server.db.tables.postQuery
 import streetlight.server.db.tables.toPost
@@ -42,36 +48,48 @@ import kotlin.time.Clock
 
 class PostTableDao : DbService() {
 
-    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity?) = dbQuery {
+    suspend fun createPost(edit: EventPostEdit, identity: StarIdentity) = dbQuery {
         val slug = PostTable.nextSlugOf(edit.eventId, EventTable, EventTable.title)
         val post = edit.toPostRecord(edit.eventId, identity, SlugRecord(slug))
         createPost(post, identity, null)
         slug
     }
 
-    suspend fun createPost(edit: LocationPostEdit, identity: StarIdentity?) = dbQuery {
+    suspend fun createPost(edit: LocationPostEdit, identity: StarIdentity) = dbQuery {
         val slug = PostTable.nextSlugOf(edit.locationId, LocationTable, LocationTable.name)
         val post = edit.toPostRecord(edit.locationId, identity, SlugRecord(slug))
         createPost(post, identity, null)
         slug
     }
 
-    suspend fun createPost(post: PostEdit, identity: StarIdentity?, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun createPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
         val slug = PostTable.nextSlugOf(post.title ?: error("title not found"))
         val post = post.toPostRecord(identity, SlugRecord(slug))
         createPost(post, identity, imageSet)
         slug
     }
 
-    private fun createPost(record: PostRecord, identity: StarIdentity?, imageSet: SavedImageSet?) {
-        PostTable.insert { it.createRecord(record, imageSet) }
-        identity?.starId?.let { starId ->
-            PostStarTable.insert {
-                it[PostStarTable.postId] = record.postId.value
-                it[PostStarTable.starId] = starId.value
-                it[PostStarTable.createdAt] = Clock.System.now()
-            }
+    private fun createPost(record: PostRecord, caller: StarIdentity, imageSet: SavedImageSet?) {
+        val status = getInitialContentStatus(record.galaxyId, caller.starId)
+
+        PostTable.insert { it.createRecord(record, status, imageSet) }
+        PostStarTable.insert {
+            it[PostStarTable.postId] = record.postId.value
+            it[PostStarTable.starId] = caller.starId.value
+            it[PostStarTable.createdAt] = Clock.System.now()
         }
+    }
+
+    private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: StarId): ContentStatus {
+        if (GalaxyHostTable.any { it.galaxyId.eq(galaxyId) and it.hostId.eq(callerId) })
+            return ContentStatus.Live
+
+        val reviewCount = GalaxyTable.readValue(GalaxyTable.reviewCount) { it.id.eq(galaxyId) }
+        val postCount = PostTable.count {
+                it.galaxyId.eq(galaxyId) and it.starId.eq(callerId) and it.status.eq(ContentStatus.Live)
+            }
+
+        return if (postCount >= reviewCount) ContentStatus.Live else ContentStatus.PendingReview
     }
 
     suspend fun editPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {
@@ -79,7 +97,7 @@ class PostTableDao : DbService() {
         val postId = post.postId ?: return@dbQuery null
         val slugSync = PostTable.getSlugRecord(postId, title)
         val post = post.toPostRecord(identity, slugSync)
-        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value)}) {
+        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value) }) {
             it.updateRecord(post, imageSet)
         }.let { if (it == 1) slugSync.slug else null }
     }

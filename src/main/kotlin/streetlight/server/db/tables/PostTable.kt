@@ -21,6 +21,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
+import streetlight.model.data.ContentStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.GalaxyId
@@ -44,6 +45,7 @@ object PostTable : UuidTable("post"), SlugTable {
     val text = text("text").nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
+    val status = enumeration<ContentStatus>("status").default(ContentStatus.Live) // td: remove default value
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
@@ -72,6 +74,29 @@ val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.loc
 val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
 val postGalaxySlugTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
+fun UpdateBuilder<*>.createRecord(post: PostRecord, status: ContentStatus, imageSet: SavedImageSet?) {
+    this[PostTable.id] = post.postId.value
+    this[PostTable.galaxyId] = post.galaxyId.value
+    this[PostTable.starId] = post.starId?.value
+    this[PostTable.eventId] = post.eventId?.value
+    this[PostTable.locationId] = post.locationId?.value
+    this[PostTable.postType] = post.postType
+    this[PostTable.status] = status // initial status
+    this[PostTable.createdAt] = post.createdAt
+    updateRecord(post, imageSet)
+}
+
+fun UpdateBuilder<*>.updateRecord(post: PostRecord, imageSet: SavedImageSet?) {
+    this[PostTable.slug] = post.slug.value
+    this[PostTable.pastSlug] = post.pastSlug?.value
+    this[PostTable.title] = post.title
+    this[PostTable.subtitle] = post.subtitle
+    this[PostTable.text] = post.text
+    this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
+    this[PostTable.updatedAt] = post.updatedAt
+    writeImages(PostTable.imageConfig, imageSet)
+}
+
 fun ResultRow.toPostRecord() = PostRecord(
     postId = this[PostTable.id].toRecordId(),
     galaxyId = this[PostTable.galaxyId].toRecordId(),
@@ -91,28 +116,6 @@ fun ResultRow.toPostRecord() = PostRecord(
     updatedAt = this[PostTable.updatedAt],
     createdAt = this[PostTable.createdAt],
 )
-
-fun UpdateBuilder<*>.createRecord(post: PostRecord, imageSet: SavedImageSet?) {
-    this[PostTable.id] = post.postId.value
-    this[PostTable.galaxyId] = post.galaxyId.value
-    this[PostTable.starId] = post.starId?.value
-    this[PostTable.eventId] = post.eventId?.value
-    this[PostTable.locationId] = post.locationId?.value
-    this[PostTable.postType] = post.postType
-    this[PostTable.createdAt] = post.createdAt
-    updateRecord(post, imageSet)
-}
-
-fun UpdateBuilder<*>.updateRecord(post: PostRecord, imageSet: SavedImageSet?) {
-    this[PostTable.slug] = post.slug.value
-    this[PostTable.pastSlug] = post.pastSlug?.value
-    this[PostTable.title] = post.title
-    this[PostTable.subtitle] = post.subtitle
-    this[PostTable.text] = post.text
-    this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
-    this[PostTable.updatedAt] = post.updatedAt
-    writeImages(PostTable.imageConfig, imageSet)
-}
 
 @Serializable
 data class PostRecord(

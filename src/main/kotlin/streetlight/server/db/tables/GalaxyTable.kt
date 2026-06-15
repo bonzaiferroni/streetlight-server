@@ -17,7 +17,6 @@ import streetlight.model.data.City
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.PostType
-import streetlight.model.data.ReviewMode
 import streetlight.model.data.StarId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
@@ -32,7 +31,7 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val geoPoint = point("geo_point")
     val geoBounds = array<Double>("geo_bounds")
     val postPermission = enumeration<PostPermission>("post_permission")
-    val reviewMode = enumeration<ReviewMode>("review_mode")
+    val reviewCount = integer("review_count").default(0) // td: remove default value
     val postGuide = text("post_guide").nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
@@ -81,7 +80,7 @@ fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: 
     this[GalaxyTable.geoPoint] = galaxy.geoPoint.toPGpoint()
     this[GalaxyTable.geoBounds] = galaxy.geoBounds.toList()
     this[GalaxyTable.postPermission] = galaxy.postPermission
-    this[GalaxyTable.reviewMode] = galaxy.reviewMode
+    this[GalaxyTable.reviewCount] = galaxy.reviewCount
     this[GalaxyTable.postGuide] = galaxy.postGuide
     this[GalaxyTable.updatedAt] = galaxy.updatedAt
     writeImages(GalaxyTable.imageConfig, imageSet)
