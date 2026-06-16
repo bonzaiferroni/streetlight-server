@@ -57,6 +57,7 @@ class StarTableDao: DbService() {
         edit: StarEdit,
         imageSet: SavedImageSet?
     ) = dbQuery {
+        println(edit.username)
         StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
             it.updateRecord(edit, imageSet)
         }
