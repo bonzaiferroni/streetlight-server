@@ -69,6 +69,7 @@ private val KtStyles = listOf(
     IconButtonCss,
     StarLightCss,
     FeatureImageCss,
+    GridColumnsCss,
 
     // web module
     StreetlightCss,
