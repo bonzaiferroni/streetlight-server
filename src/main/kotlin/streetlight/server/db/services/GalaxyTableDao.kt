@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import kampfire.api.Slug
 import kampfire.api.isValid
 import klutch.db.DbService
-import klutch.db.inList
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -19,6 +18,7 @@ import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
+import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
 import streetlight.model.data.HostType
 import streetlight.server.db.tables.GalaxyHostTable
@@ -93,12 +93,12 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     name = requireNotNull(name?.trim().takeIf { GalaxyEdit.isValidName(it) }) { "invalid name: $name" },
     slug = Slug.Empty,
     tagline = tagline?.trim(),
-    description = description?.trim(),
+    description = description,
     geoPoint = requireNotNull(geoBounds?.center) { "geo bounds not found" },
     geoBounds = requireNotNull(geoBounds) { "geo bounds not found" },
     postPermission = postPermission,
     reviewCount = requireNotNull(reviewCount) { "review count not found" },
-    postGuide = postGuide?.trim(),
+    postGuide = postGuide,
     imageRef = imageRef,
     images = null,
     starCount = 0,

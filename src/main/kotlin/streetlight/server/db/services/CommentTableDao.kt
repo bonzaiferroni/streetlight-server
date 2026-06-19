@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
+import kampfire.api.toMarkdown
 import kampfire.api.toUsername
 import kampfire.model.thumb
 import klutch.db.DbService

@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.Markdown
 import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.GeoPoint
@@ -14,6 +15,7 @@ import klutch.db.tables.SlugTable
 import klutch.db.url
 import klutch.utils.toGeoPoint
 import klutch.utils.toPGpoint
+import klutch.utils.transformMarkdown
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -42,7 +44,7 @@ object PostTable : UuidTable("post"), SlugTable {
     val title = text("title").nullable().index()
     val subtitle = text("subtitle").nullable()
     val username = text("username").nullable()
-    val text = text("text").nullable()
+    val text = text("text").transformMarkdown().nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
     val status = enumeration<ContentStatus>("status").default(ContentStatus.Live) // td: remove default value
@@ -128,7 +130,7 @@ data class PostRecord(
     val pastSlug: Slug?,
     val title: String?,
     val subtitle: String?,
-    val text: String?,
+    val text: Markdown?,
     val geoPoint: GeoPoint?,
     val lightCount: Int,
     val imageRef: Url?,

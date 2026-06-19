@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import kabinet.clients.readImageUrl
 import kabinet.console.globalConsole
+import kampfire.api.toMarkdown
 import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
@@ -19,6 +20,7 @@ import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
 import streetlight.server.model.InferenceFacade
 import streetlight.server.utils.readHtmlMetaInfo
+import streetlight.server.utils.stripHtml
 
 private val console = globalConsole.getHandle(EventParser::class)
 
@@ -38,13 +40,14 @@ class EventParser(
         val doc = parseDocument(html, request.url) ?: return Problem("Address did not serve HTML.")
 
         val meta = doc.readHtmlMetaInfo()
+        val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }
 
         return when (val response = parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEventEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
-                    description = parse.description ?: meta.description,
+                    description = parse.description ?: metaDescription,
                     title = parse.name ?: meta.title
                 ))
             }
@@ -52,7 +55,7 @@ class EventParser(
                 Ok(
                     data = EventEdit(
                         title = meta.title,
-                        description = meta.description,
+                        description = metaDescription,
                         imageRef = meta.image
                     ),
                     message = "${response.message} Returning only document meta information."

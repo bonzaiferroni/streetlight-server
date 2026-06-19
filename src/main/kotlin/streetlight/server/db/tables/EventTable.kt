@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toMarkdown
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
@@ -7,6 +8,7 @@ import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.db.url
+import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -26,7 +28,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val scout = text("scout").index().default("")
     val locationSlug = text("location_slug").index().default("")
     val title = text("title")
-    val description = text("description").nullable()
+    val description = text("description").transformMarkdown().nullable()
     val status = enumeration<EventStatus>("status")
     val contact = text("contact").nullable()
     val ageMin = integer("age_min").nullable()

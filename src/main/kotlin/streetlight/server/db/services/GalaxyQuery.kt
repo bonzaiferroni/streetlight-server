@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.api.toMarkdown
 import kampfire.api.toSlug
 import klutch.utils.eq
 import klutch.utils.toGeoBounds

@@ -27,7 +27,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val host = text("host").index().nullable()
     val scout = text("scout").index().nullable()
     val name = text("name").nullable()
-    val description = text("description").nullable()
+    val description = text("description").transformMarkdown().nullable()
     val address = text("address").nullable()
     val city = text("city").nullable()
     val state = text("state").nullable()

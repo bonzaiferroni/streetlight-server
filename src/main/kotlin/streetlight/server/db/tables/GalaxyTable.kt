@@ -9,6 +9,7 @@ import klutch.db.tables.SlugTable
 import klutch.db.url
 import klutch.utils.toList
 import klutch.utils.toPGpoint
+import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -27,12 +28,12 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     override val pastSlug = text("past_slug").index().nullable()
     val name = text("name")
     val tagline = text("tagline").nullable()
-    val description = text("description").nullable()
+    val description = text("description").transformMarkdown().nullable()
     val geoPoint = point("geo_point")
     val geoBounds = array<Double>("geo_bounds")
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewCount = integer("review_count").default(0) // td: remove default value
-    val postGuide = text("post_guide").nullable()
+    val postGuide = text("post_guide").transformMarkdown().nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")

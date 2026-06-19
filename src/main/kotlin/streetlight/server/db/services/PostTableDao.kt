@@ -4,7 +4,6 @@ import kampfire.api.Slug
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
-import klutch.db.inList
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -30,6 +29,7 @@ import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or

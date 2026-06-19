@@ -8,7 +8,6 @@ import klutch.db.DbService
 import klutch.db.count
 import klutch.db.deleteSingle
 import klutch.db.inBounds
-import klutch.db.inList
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
@@ -30,6 +29,7 @@ import streetlight.server.db.tables.eventLocationQuery
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import klutch.utils.inList
 import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation

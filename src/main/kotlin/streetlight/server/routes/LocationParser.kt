@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.clients.readImageUrl
+import kampfire.api.toMarkdown
 import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
@@ -34,13 +35,14 @@ class LocationParser(
         val doc = parseDocument(html, request.url) ?: return Problem("Address did not serve HTML.")
 
         val meta = doc.readHtmlMetaInfo()
+        val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }
 
         return when (val response = parser.readHtml<LocationParse>(url, doc, ParserText.locationInstructions)) {
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
-                    description = parse.description ?: meta.description?.stripHtml(),
+                    description = parse.description ?: metaDescription,
                     name = parse.name ?: meta.title
                 ))
             }
@@ -48,7 +50,7 @@ class LocationParser(
                 Ok(
                     data = LocationEdit(
                         name = meta.title,
-                        description = meta.description?.stripHtml(),
+                        description = metaDescription,
                         imageRef = meta.image
                     ),
                     message = "${response.message} Returning only document meta information."

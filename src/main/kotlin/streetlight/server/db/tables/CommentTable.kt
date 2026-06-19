@@ -1,5 +1,8 @@
 package streetlight.server.db.tables
 
+import kampfire.api.Markdown
+import kampfire.api.toMarkdown
+import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
@@ -15,7 +18,7 @@ import kotlin.time.Instant
 object CommentTable: UuidTable("comment") {
     val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).nullable().index()
-    val text = text("text")
+    val text = text("text").transformMarkdown()
     val starCount = integer("star_count").default(0)
     val replyCount = integer("reply_count").default(0)
     val updatedAt = timestamp("updated_at")
@@ -62,7 +65,7 @@ data class CommentRow(
     val commentId: CommentId,
     val parentId: CommentId?,
     val starId: StarId?,
-    val text: String,
+    val text: Markdown,
     val updatedAt: Instant,
     val createdAt: Instant,
 )
