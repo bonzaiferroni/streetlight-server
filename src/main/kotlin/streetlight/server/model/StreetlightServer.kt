@@ -27,7 +27,8 @@ class DaoFacade(
     val userFile: UploadFileTableDao = UploadFileTableDao(),
     val talk: CommentTableDao = CommentTableDao(),
     val omni: OmniTableDao = OmniTableDao(),
-    val light: LightTableDao = LightTableDao()
+    val light: LightTableDao = LightTableDao(),
+    val editLog: EditLogTableDao = EditLogTableDao()
 )
 
 class InferenceFacade(

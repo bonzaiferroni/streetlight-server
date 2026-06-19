@@ -5,6 +5,7 @@ import kampfire.model.UserRole
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationId
+import streetlight.model.data.LocationUpdaterContent
 import streetlight.model.data.StarId
 
 class ContentService(private val dao: DaoFacade) {
@@ -26,6 +27,15 @@ class ContentService(private val dao: DaoFacade) {
             location = location,
             events = events,
             canEdit = canEdit,
+        )
+    }
+
+    suspend fun readLocationUpdaterContent(slug: Slug): LocationUpdaterContent? {
+        val location = dao.location.readLocation(slug, null) ?: return null
+        val editLogs = dao.editLog.readEdits(location.locationId)
+        return LocationUpdaterContent(
+            location = location,
+            editLogs = editLogs
         )
     }
 }

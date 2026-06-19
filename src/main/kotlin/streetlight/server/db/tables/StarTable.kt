@@ -13,7 +13,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Star
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
-import streetlight.model.data.StarUser
+import streetlight.model.data.StarRecord
 
 object StarTable: UuidTable("star") {
     val username = text("username")
@@ -24,6 +24,7 @@ object StarTable: UuidTable("star") {
     val name = text("name").nullable()
     val description = text("description").nullable()
     val accountType = enumeration<AccountType>("account_type")
+    val scoutLevel = integer("scout_level").default(1)
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val createdAt = timestamp("created_at")
@@ -44,13 +45,14 @@ fun ResultRow.toStar() = Star(
     roles = this[StarTable.roles].map { UserRole.valueOf(it) }.toSet(),
     name = null, // td: allow user control over publishing name
     description = this[StarTable.description],
+    scoutLevel = this[StarTable.scoutLevel],
     imageRef = this[StarTable.imageRef],
     images = this[StarTable.images],
     updatedAt = this[StarTable.updatedAt],
     createdAt = this[StarTable.createdAt],
 )
 
-fun ResultRow.toStarUser() = StarUser(
+fun ResultRow.toStarUser() = StarRecord(
     starId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
     hashedPassword = this[StarTable.hashedPassword],
@@ -61,14 +63,14 @@ fun ResultRow.toStarUser() = StarUser(
     updatedAt = this[StarTable.updatedAt],
 )
 
-fun UpdateBuilder<*>.createRecord(user: StarUser, accountType: AccountType) {
+fun UpdateBuilder<*>.createRecord(user: StarRecord, accountType: AccountType) {
     this[StarTable.id] = user.userId.value
     this[StarTable.accountType] = accountType // initial value
     this[StarTable.createdAt] = user.createdAt
     updateRecord(user)
 }
 
-fun UpdateBuilder<*>.updateRecord(user: StarUser) {
+fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.username] = user.username.value
     this[StarTable.hashedPassword] = user.hashedPassword
     this[StarTable.salt] = user.salt

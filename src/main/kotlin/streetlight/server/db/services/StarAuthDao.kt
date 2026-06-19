@@ -13,17 +13,17 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.StarId
-import streetlight.model.data.StarUser
+import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStarUser
 import streetlight.server.db.tables.createRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 
-class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
+class StarAuthDao: AuthDao<StarRecord, StarId>, DbService() {
     override suspend fun createUser(seed: UserSeed) = dbQuery {
         val now = Clock.System.now()
-        val user = StarUser(
+        val user = StarRecord(
             starId = StarId.random(),
             username = seed.request.username,
             hashedPassword = seed.hashedPassword,
@@ -44,7 +44,7 @@ class StarAuthDao: AuthDao<StarUser, StarId>, DbService() {
             .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
     }
 
-    override suspend fun readByUsernameOrEmail(identity: String): StarUser? = dbQuery {
+    override suspend fun readByUsernameOrEmail(identity: String): StarRecord? = dbQuery {
         StarTable.readFirstOrNull {
             eqIdentity(identity)
         }?.toStarUser()

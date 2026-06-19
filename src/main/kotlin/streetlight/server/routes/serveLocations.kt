@@ -49,6 +49,11 @@ fun ApiContext.serveLocations() {
         dao.location.readLocationsInBounds(request.data).toResponse()
     }
 
+    getApi(Api.Locations.ReadUpdaterContent) {
+        val slug = it.data
+        contentService.readLocationUpdaterContent(slug).toResponse()
+    }
+
     authGate(optional = true) {
 
 
@@ -94,23 +99,24 @@ fun ApiContext.serveLocations() {
 
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
-            val identity = call.getIdentity()
-
-            handleEdit(edit, identity) { cityId, imageSet ->
-                console.log("creating location: ${edit.label}")
-                dao.location.createLocation(cityId, identity.starId, edit, imageSet)
-            }.toResponse()
+            requireIdentity { identity ->
+                handleEdit(edit, identity) { cityId, imageSet ->
+                    console.log("creating location: ${edit.label}")
+                    dao.location.createLocation(cityId, identity.starId, edit, imageSet)
+                }.toResponse()
+            }
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
-            val identity = call.getIdentity()
             val locationId = requireNotNull(edit.locationId)
-
-            handleEdit(edit, identity) { cityId, imageSet ->
-                dao.location.updateLocation(locationId, cityId, identity.starId, edit, imageSet)
-            }.toResponse()
+            requireIdentity { identity ->
+                handleEdit(edit, identity) { cityId, imageSet ->
+                    dao.location.updateLocation(locationId, cityId, identity.starId, edit, imageSet)
+                }.toResponse()
+            }
         }
+
     }
 }
 

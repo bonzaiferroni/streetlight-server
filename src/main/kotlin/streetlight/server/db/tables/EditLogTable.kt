@@ -27,9 +27,9 @@ object EditLogTable: UuidTable("edit_log") {
 
 val editUsernameTrigger = SyncValueTrigger(EditLogTable.starId, EditLogTable.username, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createRecord(editLog: EditLog<*>, callerId: StarId) {
+fun UpdateBuilder<*>.createRecord(editLog: EditLog, callerId: StarId) {
     this[EditLogTable.id] = editLog.editLogId.value
-    this[EditLogTable.recordId] = editLog.recordId.value
+    this[EditLogTable.recordId] = editLog.recordId
     this[EditLogTable.starId] = callerId.value
     this[EditLogTable.recordType] = editLog.recordType
     this[EditLogTable.editType] = editLog.editType
@@ -37,7 +37,7 @@ fun UpdateBuilder<*>.createRecord(editLog: EditLog<*>, callerId: StarId) {
     updateRecord(editLog)
 }
 
-fun UpdateBuilder<*>.updateRecord(editLog: EditLog<*>) {
+fun UpdateBuilder<*>.updateRecord(editLog: EditLog) {
     this[EditLogTable.recordEdit] = editLog.recordEdit
     this[EditLogTable.updatedAt] = Clock.System.now()
 }
