@@ -150,5 +150,10 @@ fun ApiContext.serveGalaxies() {
             val identity = call.getIdentity()
             Ok(dao.post.removePost(postId, identity))
         }
+
+        getApi(Api.Galaxies.ReadUserGalaxies) {
+            val starId = call.getIdentity().starId
+            dao.galaxy.readGalaxies(starId).toResponse()
+        }
     }
 }

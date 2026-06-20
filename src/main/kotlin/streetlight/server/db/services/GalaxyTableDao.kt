@@ -20,6 +20,7 @@ import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
+import streetlight.model.data.GalaxyLight
 import streetlight.model.data.HostType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyStarTable
@@ -81,8 +82,12 @@ class GalaxyTableDao : DbService() {
             .limit(limit).map { it.toGalaxy() }
     }
     
-    suspend fun readGalaxies(galaxyIds: List<GalaxyId>, starId: StarId?) = dbQuery {
-        galaxyQuery(starId).where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
+    suspend fun readGalaxies(galaxyIds: List<GalaxyId>, callerId: StarId?) = dbQuery {
+        galaxyQuery(callerId).where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
+    }
+
+    suspend fun readGalaxies(callerId: StarId) = dbQuery {
+        galaxyQuery(callerId).where { GalaxyStarTable.starId.eq(callerId) }.map { it.toGalaxy() }
     }
 }
 
