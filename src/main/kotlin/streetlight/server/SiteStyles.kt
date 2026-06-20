@@ -14,6 +14,7 @@ import streetlight.web.ui.EarthCss
 import streetlight.web.ui.StarLightCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
+import streetlight.web.ui.TextDeltaCss
 import java.io.File
 
 val SiteStyles by lazy {
@@ -82,6 +83,7 @@ private val KtStyles = listOf(
     LightControlCss,
     MarkerSheet,
     AltitudeCss,
+    TextDeltaCss,
 )
 
 private val Utilities = listOf(
