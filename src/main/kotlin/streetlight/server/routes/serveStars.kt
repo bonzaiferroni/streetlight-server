@@ -27,32 +27,32 @@ fun ApiContext.serveStars() {
 
     authGate {
         getApi(Api.Stars.ValidateLogin) {
-            requireIdentity { identity ->
-                dao.star.readByUsername(identity.username).toResponse()
-            }
+            val username = call.getIdentity().username
+            dao.star.readByUsername(username).toResponse()
         }
 
         postApi(Api.Stars.EditStar) {
             val edit = it.data
-            requireIdentity { identity ->
-                val starId = identity.starId
-                val imageSet = saveImages(starId, starId, edit.imageRef, EventTable.imageConfig)
-                dao.star.updateStar(starId, edit, imageSet).toResponse()
-            }
+            val starId = call.getIdentity().starId
+            val imageSet = saveImages(starId, starId, edit.imageRef, EventTable.imageConfig)
+            dao.star.updateStar(starId, edit, imageSet).toResponse()
         }
 
         postApi(Api.Stars.EditLight) {
-            requireIdentity { identity ->
-                val starId = identity.starId
-                when (val request = it.data) {
-                    is LightEdit -> {
-                        dao.light.editLight(request, starId)
-                    }
-                    is MultiLightEdit -> {
-                        dao.light.editLights(request.edits, starId)
-                    }
-                }.toResponse()
-            }
+            val starId = call.getIdentity().starId
+            when (val request = it.data) {
+                is LightEdit -> {
+                    dao.light.editLight(request, starId)
+                }
+                is MultiLightEdit -> {
+                    dao.light.editLights(request.edits, starId)
+                }
+            }.toResponse()
+        }
+
+        getApi(Api.Stars.PendingEdits) {
+            val callerId = call.getIdentity().starId
+            dao.editLog.readEdits(callerId).toResponse()
         }
     }
 }
