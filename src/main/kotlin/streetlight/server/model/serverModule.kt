@@ -12,6 +12,7 @@ import klutch.server.JwtService
 import klutch.server.TokenConfig
 import streetlight.agent.ParserService
 import streetlight.server.db.services.CityService
+import streetlight.server.db.services.LocationService
 import streetlight.server.external.OSMHttpClient
 import streetlight.server.plugins.StarRefreshTokenTable
 import streetlight.server.routes.EventParser
@@ -40,6 +41,7 @@ val serverModule = module {
     single { RefreshTokenService(StarRefreshTokenTable) }
     single { OSMHttpClient() }
     single { CityService(get(), get()) }
+    single { LocationService(get()) }
 }
 
 val ApiContext.env get() = server.koin.get<Environment>()

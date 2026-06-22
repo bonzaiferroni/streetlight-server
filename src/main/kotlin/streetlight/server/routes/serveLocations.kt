@@ -12,6 +12,7 @@ import klutch.server.authGate
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.CityService
+import streetlight.server.db.services.LocationService
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 
@@ -21,6 +22,7 @@ fun ApiContext.serveLocations() {
     val parser = server.get<LocationParser>()
     val omni = server.get<OmniService>()
     val cityService = server.get<CityService>()
+    val locationService = server.get<LocationService>()
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
@@ -99,22 +101,20 @@ fun ApiContext.serveLocations() {
 
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
-            requireIdentity { identity ->
-                handleEdit(edit, identity) { cityId, imageSet ->
-                    console.log("creating location: ${edit.label}")
-                    dao.location.createLocation(cityId, identity.starId, edit, imageSet)
-                }.toResponse()
-            }
+            val identity = call.getIdentity()
+            handleEdit(edit, identity) { cityId, imageSet ->
+                console.log("creating location: ${edit.label}")
+                locationService.create(cityId, identity.starId, edit, imageSet)
+            }.toResponse()
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
-            requireIdentity { identity ->
-                handleEdit(edit, identity) { cityId, imageSet ->
-                    dao.location.updateLocation(locationId, cityId, identity.starId, edit, imageSet)
-                }.toResponse()
-            }
+            val identity = call.getIdentity()
+            handleEdit(edit, identity) { cityId, imageSet ->
+                dao.location.update(locationId, cityId, identity.starId, edit, imageSet)
+            }.toResponse()
         }
 
     }

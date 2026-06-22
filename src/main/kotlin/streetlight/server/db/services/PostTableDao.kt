@@ -33,7 +33,7 @@ import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
-import streetlight.model.data.ContentStatus
+import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.GalaxyHostTable
@@ -80,16 +80,16 @@ class PostTableDao : DbService() {
         }
     }
 
-    private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: StarId): ContentStatus {
+    private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: StarId): FeedStatus {
         if (GalaxyHostTable.any { it.galaxyId.eq(galaxyId) and it.hostId.eq(callerId) })
-            return ContentStatus.Live
+            return FeedStatus.Live
 
         val reviewCount = GalaxyTable.readValue(GalaxyTable.reviewCount) { it.id.eq(galaxyId) }
         val postCount = PostTable.count {
-                it.galaxyId.eq(galaxyId) and it.starId.eq(callerId) and it.status.eq(ContentStatus.Live)
+                it.galaxyId.eq(galaxyId) and it.starId.eq(callerId) and it.status.eq(FeedStatus.Live)
             }
 
-        return if (postCount >= reviewCount) ContentStatus.Live else ContentStatus.PendingReview
+        return if (postCount >= reviewCount) FeedStatus.Live else FeedStatus.Reviewing
     }
 
     suspend fun editPost(post: PostEdit, identity: StarIdentity, imageSet: SavedImageSet?) = dbQuery {

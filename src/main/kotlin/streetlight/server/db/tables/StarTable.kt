@@ -6,6 +6,7 @@ import kampfire.model.ImageSize
 import kampfire.model.UserRole
 import klutch.db.scaledImages
 import klutch.db.url
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -16,6 +17,8 @@ import streetlight.model.data.StarId
 import streetlight.model.data.StarRecord
 
 object StarTable: UuidTable("star") {
+    // td: support hometown
+    val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username")
     val hashedPassword = text("hashed_password")
     val salt = text("salt")
@@ -24,7 +27,7 @@ object StarTable: UuidTable("star") {
     val name = text("name").nullable()
     val description = text("description").nullable()
     val accountType = enumeration<AccountType>("account_type")
-    val scoutLevel = integer("scout_level").default(1)
+    val scoutLevel = integer("scout_level").default(0)
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val createdAt = timestamp("created_at")

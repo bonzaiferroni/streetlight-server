@@ -36,8 +36,6 @@ import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import streetlight.model.data.CityId
-import streetlight.model.data.EditType
-import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
@@ -59,7 +57,7 @@ class LocationTableDao : DbService() {
 //        } == 1
 //    }
 
-    suspend fun updateLocation(
+    suspend fun update(
         locationId: LocationId,
         cityId: CityId,
         callerId: StarId,
@@ -73,11 +71,10 @@ class LocationTableDao : DbService() {
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord, imageSet)
         }
-        EditLogTable.logEdit(EditType.Update, edit, locationId, callerId)
         readLocation(locationId, callerId)
     }
 
-    suspend fun createLocation(
+    suspend fun create(
         cityId: CityId,
         callerId: StarId,
         edit: LocationEdit,
@@ -88,7 +85,6 @@ class LocationTableDao : DbService() {
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
         LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug), imageSet) }
-        EditLogTable.logEdit(EditType.Create, edit, locationId, callerId)
         readLocation(locationId, callerId)
     }
 

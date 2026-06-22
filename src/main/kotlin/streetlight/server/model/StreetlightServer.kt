@@ -28,7 +28,9 @@ class DaoFacade(
     val talk: CommentTableDao = CommentTableDao(),
     val omni: OmniTableDao = OmniTableDao(),
     val light: LightTableDao = LightTableDao(),
-    val editLog: EditLogTableDao = EditLogTableDao()
+    val editLog: EditLogTableDao = EditLogTableDao(),
+    val quorum: QuorumTableDao = QuorumTableDao(),
+    val review: ReviewTableDao = ReviewTableDao(),
 )
 
 class InferenceFacade(

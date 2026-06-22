@@ -23,7 +23,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.ContentStatus
+import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.GalaxyId
@@ -47,7 +47,7 @@ object PostTable : UuidTable("post"), SlugTable {
     val text = text("text").transformMarkdown().nullable()
     val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
-    val status = enumeration<ContentStatus>("status").default(ContentStatus.Live) // td: remove default value
+    val status = enumeration<FeedStatus>("status").default(FeedStatus.Live) // td: remove default value
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
@@ -76,7 +76,7 @@ val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.loc
 val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
 val postGalaxySlugTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
-fun UpdateBuilder<*>.createRecord(post: PostRecord, status: ContentStatus, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus, imageSet: SavedImageSet?) {
     this[PostTable.id] = post.postId.value
     this[PostTable.galaxyId] = post.galaxyId.value
     this[PostTable.starId] = post.starId?.value
