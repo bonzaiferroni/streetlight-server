@@ -62,11 +62,13 @@ class LocationService(val dao: DaoFacade): DbService() {
         )
         val quorumId = dao.quorum.create(quorum)
         val reviewerIds = findUniverseScouts(question.minSize)
+        // val starIds = StarTable.select(StarTable.id).toList().map { StarId(it[StarTable.id].value) }
         reviewerIds.forEach { reviewerId ->
             val reviewTask = BaseTask(
                 taskId = TaskId(Uuid.random()),
                 recordId = quorumId.value,
                 recordType = RecordType.Quorum,
+                // starId = starIds.random(),
                 starId = reviewerId,
                 decision = null,
                 taskStatus = TaskStatus.Requested,
@@ -78,6 +80,7 @@ class LocationService(val dao: DaoFacade): DbService() {
                 taskId = TaskId(Uuid.random()),
                 recordId = editLogId.value,
                 recordType = RecordType.EditLog,
+                // starId = starIds.random(),
                 starId = reviewerId,
                 decision = null,
                 taskStatus = TaskStatus.Requested,
@@ -85,6 +88,9 @@ class LocationService(val dao: DaoFacade): DbService() {
                 createdAt = now
             )
             dao.review.create(editTask)
+            // repeat(1000000) {
+            //     if (it % 1000 == 0) println(it)
+            // }
         }
         location
     }

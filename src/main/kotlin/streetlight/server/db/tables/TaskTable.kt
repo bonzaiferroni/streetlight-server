@@ -14,7 +14,7 @@ import streetlight.model.data.TaskStatus
 import kotlin.time.Clock
 
 object TaskTable : UuidTable("task") {
-    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
+    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
     val recordId = uuid("record_id").index()
     val recordType = enumeration<RecordType>("record_type")
     val status = enumeration<TaskStatus>("status")

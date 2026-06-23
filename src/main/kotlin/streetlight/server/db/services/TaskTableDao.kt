@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import klutch.db.DbService
+import klutch.db.analyze
 import klutch.db.explainAnalyze
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.JoinType
@@ -32,6 +33,7 @@ class TaskTableDao(): DbService() {
     }
 
     suspend fun readCallerTasks(callerId: StarId) = dbQuery {
+        // TaskTable.analyze()
         TaskTable
             .join(
                 EditLogTable, JoinType.LEFT, TaskTable.recordId, EditLogTable.id,
@@ -47,7 +49,8 @@ class TaskTableDao(): DbService() {
             )
             .selectAll()
             .where { TaskTable.starId.eq(callerId) }
-            .explainAnalyze()
+            .limit(100)
+            // .explainAnalyze()
             .map { it.toTaskContent() }
     }
 
