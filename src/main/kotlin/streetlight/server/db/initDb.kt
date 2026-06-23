@@ -76,7 +76,7 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     StateTable,
     OmniTable,
     EditLogTable,
-    ReviewTable,
+    TaskTable,
     QuorumTable,
     StarTable,
 )

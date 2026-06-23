@@ -12,12 +12,12 @@ import streetlight.server.model.getIdentity
 fun ApiContext.serveReviews() {
 
     authGate {
-        getApi(Api.Reviews.UserReviews) {
+        getApi(Api.Tasks.ReadStarTasks) {
             val callerId = call.getIdentity().starId
-            dao.review.readQuorumReviews(callerId).toResponse()
+            dao.review.readCallerTasks(callerId).toResponse()
         }
 
-        getApi(Api.Reviews.ReadReview, { it.toRecordId() }) {
+        getApi(Api.Tasks.ReadStarTask, { it.toRecordId() }) {
             val reviewId = it.data
             dao.review.readQuorumReview(reviewId).toResponse()
         }

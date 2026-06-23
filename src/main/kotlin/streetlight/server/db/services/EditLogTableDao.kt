@@ -3,6 +3,8 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.Alias
+import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
@@ -61,3 +63,18 @@ fun ResultRow.toEditLog() = EditLog(
     updatedAt = this[EditLogTable.updatedAt],
     createdAt = this[EditLogTable.createdAt],
 )
+
+fun ResultRow.toEditLog(alias: Alias<EditLogTable>? = null): EditLog {
+    fun <T> col(column: Column<T>) = alias?.get(column) ?: column
+
+    return EditLog(
+        editLogId = EditLogId(this[col(EditLogTable.id)].value),
+        recordId = this[col(EditLogTable.recordId)],
+        username = this[col(EditLogTable.username)],
+        recordType = this[col(EditLogTable.recordType)],
+        recordEdit = this[col(EditLogTable.recordEdit)],
+        editType = this[col(EditLogTable.editType)],
+        updatedAt = this[col(EditLogTable.updatedAt)],
+        createdAt = this[col(EditLogTable.createdAt)],
+    )
+}

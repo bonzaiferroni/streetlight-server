@@ -30,7 +30,7 @@ class DaoFacade(
     val light: LightTableDao = LightTableDao(),
     val editLog: EditLogTableDao = EditLogTableDao(),
     val quorum: QuorumTableDao = QuorumTableDao(),
-    val review: ReviewTableDao = ReviewTableDao(),
+    val review: TaskTableDao = TaskTableDao(),
 )
 
 class InferenceFacade(

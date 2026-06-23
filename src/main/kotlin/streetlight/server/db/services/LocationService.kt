@@ -13,11 +13,11 @@ import streetlight.model.data.Question
 import streetlight.model.data.Quorum
 import streetlight.model.data.QuorumId
 import streetlight.model.data.RecordType
-import streetlight.model.data.Review
-import streetlight.model.data.ReviewId
+import streetlight.model.data.BaseTask
+import streetlight.model.data.TaskId
 import streetlight.model.data.StarId
 import streetlight.model.data.TaskStatus
-import streetlight.server.db.tables.ReviewTable
+import streetlight.server.db.tables.TaskTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
 import streetlight.server.model.DaoFacade
@@ -63,27 +63,39 @@ class LocationService(val dao: DaoFacade): DbService() {
         val quorumId = dao.quorum.create(quorum)
         val reviewerIds = findUniverseScouts(question.minSize)
         reviewerIds.forEach { reviewerId ->
-            val review = Review(
-                reviewId = ReviewId(Uuid.random()),
-                quorumId = quorumId,
+            val reviewTask = BaseTask(
+                taskId = TaskId(Uuid.random()),
+                recordId = quorumId.value,
+                recordType = RecordType.Quorum,
                 starId = reviewerId,
                 decision = null,
                 taskStatus = TaskStatus.Requested,
                 updatedAt = now,
                 createdAt = now
             )
-            dao.review.create(review)
+            dao.review.create(reviewTask)
+            val editTask = BaseTask(
+                taskId = TaskId(Uuid.random()),
+                recordId = editLogId.value,
+                recordType = RecordType.EditLog,
+                starId = reviewerId,
+                decision = null,
+                taskStatus = TaskStatus.Requested,
+                updatedAt = now,
+                createdAt = now
+            )
+            dao.review.create(editTask)
         }
         location
     }
 
     suspend fun findUniverseScouts(limit: Int) = dbQuery {
         // td: select from pool of recently active users
-        StarTable.leftJoin(ReviewTable)
-            .select(StarTable.id, ReviewTable.createdAt.max())
+        StarTable.leftJoin(TaskTable)
+            .select(StarTable.id, TaskTable.createdAt.max())
             .where { StarTable.scoutLevel.greaterEq(1) }
             .groupBy(StarTable.id)
-            .orderBy(ReviewTable.createdAt.max() to SortOrder.ASC_NULLS_FIRST)
+            .orderBy(TaskTable.createdAt.max() to SortOrder.ASC_NULLS_FIRST)
             .limit(limit)
             .map { StarId(it[StarTable.id].value) }
     }
