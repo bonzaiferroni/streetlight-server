@@ -40,6 +40,7 @@ fun Application.serveApi(server: ServerContext) {
             serveTalk()
             serveContent()
             serveCity()
+            serveReviews()
         }
     }
 }

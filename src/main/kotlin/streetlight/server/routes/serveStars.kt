@@ -1,13 +1,9 @@
 package streetlight.server.routes
 
 import kampfire.api.toUsername
-import kampfire.model.Ok
-import kampfire.model.Problem
 import kampfire.model.toResponse
 import klutch.server.ApiContext
-import klutch.server.getEndpoint
 import klutch.server.postApi
-import klutch.server.postEndpoint
 import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.LightEdit

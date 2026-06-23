@@ -6,6 +6,7 @@ import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationUpdaterContent
+import streetlight.model.data.ReviewId
 import streetlight.model.data.StarId
 
 class ContentService(private val dao: DaoFacade) {
