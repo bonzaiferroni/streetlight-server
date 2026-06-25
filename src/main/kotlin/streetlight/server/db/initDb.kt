@@ -43,6 +43,7 @@ fun initDb(
 
     runBlocking {
         UserInitService(env, StarAuthDao()).initUsers()
+        initPolicy()
     }
 }
 
@@ -78,6 +79,8 @@ fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
     EditLogTable,
     TaskTable,
     QuorumTable,
+    PolicyTable,
+    FlagTable,
     StarTable,
 )
 
