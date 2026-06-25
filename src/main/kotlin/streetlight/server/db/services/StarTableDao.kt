@@ -5,6 +5,7 @@ import kampfire.api.toUsername
 import kampfire.model.UserRole
 import kampfire.model.thumb
 import klutch.db.DbService
+import klutch.db.read
 import klutch.db.readById
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
@@ -22,6 +23,18 @@ import streetlight.server.utils.toRecordId
 import kotlin.let
 
 class StarTableDao: DbService() {
+
+    suspend fun updateStar(
+        starId: StarId,
+        edit: StarEdit,
+        imageSet: SavedImageSet?
+    ) = dbQuery {
+        println(edit.username)
+        StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
+            it.updateRecord(edit, imageSet)
+        }
+        StarTable.readById(starId.value).toStar()
+    }
 
     suspend fun readByUsername(username: Username) = dbQuery {
         StarTable.selectAll()
@@ -52,16 +65,7 @@ class StarTableDao: DbService() {
         }.firstOrNull()
     }
 
-    suspend fun updateStar(
-        starId: StarId,
-        edit: StarEdit,
-        imageSet: SavedImageSet?
-    ) = dbQuery {
-        println(edit.username)
-        StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
-            it.updateRecord(edit, imageSet)
-        }
-        StarTable.readById(starId.value).toStar()
+    suspend fun readStar(starId: StarId) = dbQuery {
+        StarTable.read { it.id.eq(starId) }.firstOrNull()?.toStar()
     }
-
 }

@@ -9,14 +9,13 @@ import streetlight.model.data.CityId
 import streetlight.model.data.EditType
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
-import streetlight.model.data.Question
-import streetlight.model.data.Quorum
-import streetlight.model.data.QuorumId
 import streetlight.model.data.RecordType
 import streetlight.model.data.BaseTask
+import streetlight.model.data.EditLogId
 import streetlight.model.data.TaskId
 import streetlight.model.data.StarId
 import streetlight.model.data.TaskStatus
+import streetlight.model.data.toEdit
 import streetlight.server.db.tables.TaskTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
@@ -36,10 +35,9 @@ class LocationService(val dao: DaoFacade): DbService() {
             locationId, cityId, callerId, edit, imageSet
         )
         val editLogId = dao.editLog.create(EditType.Update, edit, locationId, callerId)
-
     }
 
-    suspend fun create(
+    suspend fun createWithTask(
         cityId: CityId,
         callerId: StarId,
         edit: LocationEdit,
@@ -48,34 +46,21 @@ class LocationService(val dao: DaoFacade): DbService() {
         val location = dao.location.create(
             cityId, callerId, edit, imageSet
         ) ?: return@dbQuery null
-        val editLogId = dao.editLog.create(EditType.Create, edit, location.locationId, callerId)
-        val question = Question.ValidLocation
+        val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
+        val star = dao.star.readStar(callerId) ?: error("star not found")
+        val description = edit.description
+        val needsReview = edit.imageRef == null || edit.website == null
+                || description == null || description.length < 100 || star.scoutLevel == 0
+        if (needsReview) {
+            createEditTask(editLogId)
+        }
+        location
+    }
+
+    suspend fun createEditTask(editLogId: EditLogId) {
         val now = Clock.System.now()
-        val quorum = Quorum(
-            quorumId = QuorumId(Uuid.random()),
-            recordId = editLogId.value,
-            recordType = RecordType.EditLog,
-            question = question,
-            decision = null,
-            updatedAt = now,
-            createdAt = now,
-        )
-        val quorumId = dao.quorum.create(quorum)
-        val reviewerIds = findUniverseScouts(question.minSize)
-        // val starIds = StarTable.select(StarTable.id).toList().map { StarId(it[StarTable.id].value) }
+        val reviewerIds = findUniverseScouts(1)
         reviewerIds.forEach { reviewerId ->
-            val reviewTask = BaseTask(
-                taskId = TaskId(Uuid.random()),
-                recordId = quorumId.value,
-                recordType = RecordType.Quorum,
-                // starId = starIds.random(),
-                starId = reviewerId,
-                decision = null,
-                taskStatus = TaskStatus.Requested,
-                updatedAt = now,
-                createdAt = now
-            )
-            dao.review.create(reviewTask)
             val editTask = BaseTask(
                 taskId = TaskId(Uuid.random()),
                 recordId = editLogId.value,
@@ -88,11 +73,7 @@ class LocationService(val dao: DaoFacade): DbService() {
                 createdAt = now
             )
             dao.review.create(editTask)
-            // repeat(1000000) {
-            //     if (it % 1000 == 0) println(it)
-            // }
         }
-        location
     }
 
     suspend fun findUniverseScouts(limit: Int) = dbQuery {

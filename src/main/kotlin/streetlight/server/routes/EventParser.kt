@@ -47,7 +47,7 @@ class EventParser(
                 val parse = response.data
                 Ok(parse.toEventEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
-                    description = parse.description ?: metaDescription,
+                    description = parse.description?.toMarkdown() ?: metaDescription,
                     title = parse.name ?: meta.title
                 ))
             }

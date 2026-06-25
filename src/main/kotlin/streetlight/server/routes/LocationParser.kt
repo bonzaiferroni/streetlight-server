@@ -42,7 +42,7 @@ class LocationParser(
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(
                     imageRef = meta.image ?: parse.imageUrl?.toUrl(),
-                    description = parse.description ?: metaDescription,
+                    description = parse.description?.toMarkdown() ?: metaDescription,
                     name = parse.name ?: meta.title
                 ))
             }

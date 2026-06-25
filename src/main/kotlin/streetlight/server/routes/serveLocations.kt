@@ -104,7 +104,7 @@ fun ApiContext.serveLocations() {
             val identity = call.getIdentity()
             handleEdit(edit, identity) { cityId, imageSet ->
                 console.log("creating location: ${edit.label}")
-                locationService.create(cityId, identity.starId, edit, imageSet)
+                locationService.createWithTask(cityId, identity.starId, edit, imageSet)
             }.toResponse()
         }
 
