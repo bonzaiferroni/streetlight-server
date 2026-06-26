@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import kampfire.api.toMarkdown
-import kampfire.model.ApiResponse
+import kampfire.model.Response
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
@@ -21,7 +21,7 @@ import streetlight.server.utils.stripHtml
 class LocationParser(
     private val parser: ParserClient
 ) {
-    suspend fun parseLocation(request: ParseRequest): ApiResponse<LocationEdit> {
+    suspend fun parseLocation(request: ParseRequest): Response<LocationEdit> {
         val html = when (request) {
             is UrlParseRequest -> fetchHtml(request.url)
             is HtmlParseRequest -> request.html

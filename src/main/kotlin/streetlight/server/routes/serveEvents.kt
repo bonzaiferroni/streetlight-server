@@ -5,27 +5,20 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
-import kampfire.model.ApiResponse
 import kampfire.model.Ok
-import kampfire.model.Problem
 import kampfire.model.responseOf
-import kampfire.model.toResponse
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import kotlinx.html.body
 import kotlinx.html.p
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
-import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.model.data.EventEdit
-import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiScope::serveEvents.name)
 
 fun ApiScope.serveEvents() {
-    val reader = provide<EventParser>()
     val omni = provide<OmniService>()
 
     getApi(Api.Events) {
@@ -72,30 +65,28 @@ fun ApiScope.serveEvents() {
     }
 
     authGate {
-        suspend fun <T> handleEdit(
-            edit: EventEdit,
-            identity: StarIdentity,
-            block: suspend (SavedImageSet?) -> T?
-        ): ApiResponse<T>? {
-            if (edit.eventId == null && dao.event.hasConflict(edit)) {
-                return Problem("Event already exists")
-            }
-
-            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
-            return block(imageSet).toResponse()
-        }
+//        suspend fun <T> handleEdit(
+//            edit: EventEdit,
+//            identity: StarIdentity,
+//            block: suspend (SavedImageSet?) -> T?
+//        ): Response<T>? {
+//            if (edit.eventId == null && dao.event.hasConflict(edit)) {
+//                return Problem("Event already exists")
+//            }
+//
+//            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
+//            val imageSet = saveImages(imageUserId, edit.eventId, edit.imageRef, EventTable.imageConfig)
+//            return block(imageSet).toResponse()
+//        }
 
         postApi(Api.Events.CreateEvent) { request ->
             val identity = call.getIdentity()
             val edit = request.data
             val title = requireNotNull(edit.title)
 
-            handleEdit(edit, identity) { imageSet ->
-                console.log("creating event: $title")
-                dao.event.createEvent(identity.starId, edit, imageSet)?.also { event ->
-                    omni.sendEventCreated(title, event.slug, identity.username)
-                }
+            createEvent(identity.starId, edit)?.also { response ->
+                val slug = response.data?.slug ?: return@also
+                omni.sendEventCreated(title, slug, identity.username)
             }
         }
 
@@ -103,13 +94,11 @@ fun ApiScope.serveEvents() {
             val identity = call.getIdentity()
             val edit = request.data
             val title = requireNotNull(edit.title)
+            val eventId = requireNotNull(edit.eventId)
 
-            handleEdit(edit, identity) { imageSet ->
-                val eventId = requireNotNull(edit.eventId)
-                console.log("updating event: ${edit.title}")
-                dao.event.updateEvent(eventId, identity.starId, edit, imageSet)?.also { event ->
-                    omni.sendEventUpdated(title, event.slug, identity.username)
-                }
+            updateEvent(eventId, identity.starId, edit)?.also { response ->
+                val slug = response.data?.slug ?: return@also
+                omni.sendEventUpdated(title, slug, identity.username)
             }
         }
 
@@ -122,13 +111,12 @@ fun ApiScope.serveEvents() {
         postApi(Api.Events.ParseSingleEvent) { request ->
             val request = request.data
 
-            reader.parseEvent(request)
+            parseEvent(request)
         }
 
         postApi(Api.Events.ParseEvent) {
             error("not implemented")
         }
-
 
         getApi(Api.Events.ReadLights) {
             val starId = call.getIdentity().starId

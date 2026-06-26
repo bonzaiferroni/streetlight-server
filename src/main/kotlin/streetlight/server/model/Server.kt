@@ -7,6 +7,7 @@ import kabinet.utils.Environment
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
 import klutch.server.ProviderScope
+import streetlight.agent.ParserClient
 import streetlight.server.db.services.*
 import streetlight.server.external.OSMHttpClient
 
@@ -44,6 +45,7 @@ class DaoFacade(
 class ClientFacade(
     val blob: BlobClient,
     val osm: OSMHttpClient,
+    val parser: ParserClient,
 )
 
 class InferenceFacade(

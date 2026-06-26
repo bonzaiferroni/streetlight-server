@@ -6,7 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.RoutingContext
 import kampfire.api.Username
-import kampfire.model.ApiResponse
+import kampfire.model.Response
 import kampfire.model.UserRole
 import streetlight.model.data.StarId
 
@@ -20,8 +20,8 @@ fun RoutingCall.getIdentityOrNull() = principal<StarIdentity>()
 fun RoutingCall.getIdentity() = principal<StarIdentity>() ?: error("identity not found")
 
 suspend fun <T> RoutingContext.requireIdentity(
-    block: suspend RoutingContext.(StarIdentity) -> ApiResponse<T>?
-): ApiResponse<T>? {
+    block: suspend RoutingContext.(StarIdentity) -> Response<T>?
+): Response<T>? {
     val identity = call.getIdentityOrNull()
     return if (identity != null) {
         block(identity)

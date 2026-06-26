@@ -14,7 +14,6 @@ import klutch.server.provide
 import streetlight.agent.ParserClient
 import streetlight.server.external.OSMHttpClient
 import streetlight.server.plugins.StarRefreshTokenTable
-import streetlight.server.routes.EventParser
 import streetlight.server.routes.LocationParser
 
 val serverModule = module {
@@ -31,9 +30,8 @@ val serverModule = module {
     single { OSMHttpClient() }
     single { ParserClient(get()) }
     single { BlobClient(get()) }
-    single { EventParser(get()) }
     single { LocationParser(get()) }
-    single { ClientFacade(get(), get()) }
+    single { ClientFacade(get(), get(), get()) }
 
     // services
     single { JwtService(get(), get()) }
