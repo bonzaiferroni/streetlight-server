@@ -5,7 +5,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.sse.sse
 import kampfire.model.Ok
 import kampfire.model.toResponse
-import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.readParamOrNull
@@ -22,10 +21,11 @@ import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import klutch.server.authGate
 import streetlight.model.data.toRecordId
+import streetlight.server.model.ApiScope
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.uuid.Uuid
 
-fun ApiContext.serveTalk() {
+fun ApiScope.serveTalk() {
 
     getApi(Api.Talk.ReadGalaxy, { it.toRecordId() }) {
         dao.talk.readGalaxyTalk(it.data).toResponse()

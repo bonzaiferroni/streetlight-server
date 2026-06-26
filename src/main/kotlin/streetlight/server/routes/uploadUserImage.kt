@@ -4,7 +4,8 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.toUrl
-import klutch.server.ApiContext
+import klutch.server.ProviderScope
+import klutch.server.provide
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
@@ -17,7 +18,7 @@ import java.io.File
 
 private val console = globalConsole.getHandle("uploader")
 
-suspend fun ApiContext.saveLocalImageFile(
+suspend fun DaoScope.saveLocalImageFile(
     bytes: ByteArray,
     starId: StarId?,
     filename: String? = null,
@@ -49,18 +50,17 @@ suspend fun ApiContext.saveLocalImageFile(
     return url
 }
 
-suspend fun ApiContext.saveS3ImageFile(
+suspend fun DataScope.saveS3ImageFile(
     bytes: ByteArray,
     userId: StarId?,
     size: ImageSize,
     format: FileFormat,
     filename: String? = null,
 ): Url? {
-    val storage = server.get<ObjectStorageClient>()
     val fileId = UploadFileId.random()
     val filename = filename ?: fileId.value.toString()
 
-    val url = storage.put(bytes, filename, format.contentType) ?: return null
+    val url = client.blob.put(bytes, filename, format.contentType) ?: return null
     
     dao.userFile.create(
         UploadFile(

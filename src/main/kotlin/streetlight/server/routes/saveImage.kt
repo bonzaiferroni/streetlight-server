@@ -9,17 +9,19 @@ import kampfire.model.ImageSize
 import kampfire.model.ScaledImage
 import kampfire.model.Url
 import kampfire.utils.randomUuidString
-import klutch.server.ApiContext
+import klutch.server.ProviderScope
 import streetlight.model.data.FileFormat
 import streetlight.model.data.RecordId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.TableImageConfig
+import streetlight.server.model.ClientScope
+import streetlight.server.model.DataScope
 import java.io.File
 
 private val console = globalConsole.getHandle("saveImage")
 
-suspend fun ApiContext.saveLocalImage(
+suspend fun DataScope.saveLocalImage(
     bytes: ByteArray,
     starId: StarId?,
     filename: String,
@@ -32,7 +34,7 @@ suspend fun ApiContext.saveLocalImage(
     return saveLocalImageFile(resizedBytes, starId, filename, format)
 }
 
-suspend fun ApiContext.saveRemoteImage(
+suspend fun DataScope.saveRemoteImage(
     bytes: ByteArray,
     userId: StarId?,
     filename: String,
@@ -53,12 +55,15 @@ suspend fun ApiContext.saveRemoteImage(
     return results.takeIf { it.isNotEmpty() }
 }
 
-suspend fun ApiContext.saveImages(
+suspend fun DataScope.saveImages(
     userId: StarId?,
     rowId: RecordId?,
     imageRef: Url?,
     config: TableImageConfig
 ): SavedImageSet? {
+    // associate with user when imageRef is relative
+    val userId = userId.takeIf { imageRef?.isRelative ?: false }
+
     if (imageRef == null || imageRef.value.isBlank()) {
         // removes any existing image
         return SavedImageSet(null, null)
@@ -88,7 +93,7 @@ private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode
     return FormatAndEncodingMode(format, forceEncoding)
 }
 
-suspend fun ApiContext.saveImageSizes(
+suspend fun DataScope.saveImageSizes(
     userId: StarId?,
     imageUrl: Url,
     sizes: List<ImageSize>,

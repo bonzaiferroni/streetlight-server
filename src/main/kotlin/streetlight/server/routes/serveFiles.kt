@@ -3,10 +3,10 @@ package streetlight.server.routes
 import io.ktor.http.ContentType
 import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
-import klutch.server.ApiContext
+import streetlight.server.model.ApiScope
 import java.io.File
 
-fun ApiContext.serveFiles() {
+fun ApiScope.serveFiles() {
     uploadFolder.mkdirs()
     wwwFolder.mkdirs()
 

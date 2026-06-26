@@ -6,7 +6,7 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 
-fun ApiContext.serveRenditions() {
+fun ApiScope.serveRenditions() {
     getApi(Api.RenditionFeed, { it.toRecordId() }) {
         val id = it.data
         dao.rendition.readById(id).toResponse()

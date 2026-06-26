@@ -15,7 +15,6 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.toResponse
-import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.readParam
@@ -29,13 +28,12 @@ import streetlight.model.data.AreaTransit
 import streetlight.model.data.AreaTransitState
 import streetlight.model.data.TransitVehicle
 import streetlight.server.model.*
-import streetlight.server.routes.initGtfs
 import kotlin.time.Duration.Companion.seconds
 
 private val httpClient = HttpClient(CIO)
-private val console = globalConsole.getHandle(ApiContext::serveGtfs.name)
+private val console = globalConsole.getHandle(ApiScope::serveGtfs.name)
 
-fun ApiContext.serveGtfs() {
+fun ApiScope.serveGtfs() {
     CoroutineScope(Dispatchers.IO).launch {
         initGtfs()
     }

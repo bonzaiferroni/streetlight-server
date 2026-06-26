@@ -6,7 +6,6 @@ import kampfire.api.toSlug
 import kampfire.model.Ok
 import kampfire.model.toResponse
 import kampfire.model.responseOf
-import klutch.server.ApiContext
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
@@ -15,16 +14,16 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 import klutch.server.authGate
+import klutch.server.provide
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.GalaxyEdit
 import streetlight.server.db.tables.SavedImageSet
 
-private val console = globalConsole.getHandle(ApiContext::serveGalaxies.name)
+private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
-fun ApiContext.serveGalaxies() {
-    val omni = server.get<OmniService>()
-
+fun ApiScope.serveGalaxies() {
+    val omni = provide<OmniService>()
 
     authGate(optional = true) {
         getApi(Api.Galaxies.Top) {

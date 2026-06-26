@@ -7,7 +7,7 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.send
 import kabinet.console.globalConsole
-import klutch.server.ApiContext
+import klutch.server.provide
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import streetlight.model.Api
@@ -15,13 +15,13 @@ import streetlight.model.data.OmniHistory
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniStatus
 import streetlight.server.model.OmniService
-import streetlight.server.model.dao
+import streetlight.server.model.ApiScope
 import java.util.Collections
 
-private val console = globalConsole.getHandle(ApiContext::serveOmni.name)
+private val console = globalConsole.getHandle(ApiScope::serveOmni.name)
 
-fun ApiContext.serveOmni() {
-    val omni = server.get<OmniService>()
+fun ApiScope.serveOmni() {
+    val omni = provide<OmniService>()
 
     val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(
         LinkedHashSet()

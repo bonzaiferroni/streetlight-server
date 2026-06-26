@@ -5,7 +5,6 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.api.toSlug
 import kampfire.api.toUsername
-import klutch.server.ApiContext
 import klutch.server.authGate
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
@@ -25,9 +24,9 @@ import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
 
-private val console = globalConsole.getHandle(ApiContext::servePages.name)
+private val console = globalConsole.getHandle(ApiScope::servePages.name)
 
-fun ApiContext.servePages() {
+fun ApiScope.servePages() {
 
 //    get("/event-portal/{id}") {
 //        val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
@@ -108,31 +107,31 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
-suspend fun ApiContext.renderHome(callerId: StarId?): HtmlRender {
+suspend fun ApiScope.renderHome(callerId: StarId?): HtmlRender {
     console.log(callerId)
-    val content = contentService.readHomeContent(callerId)
+    val content = readHomeContent(callerId)
 
     return HtmlRender {
         homePage(content, SiteStyles)
     }
 }
 
-suspend fun ApiContext.renderAboutApp(): HtmlRender {
+suspend fun ApiScope.renderAboutApp(): HtmlRender {
     return HtmlRender {
         aboutPage(SiteStyles)
     }
 }
 
-suspend fun ApiContext.renderLocation(arg: String?, caller: StarIdentity?): HtmlRender? {
+suspend fun ApiScope.renderLocation(arg: String?, caller: StarIdentity?): HtmlRender? {
     val locationId = arg?.toSlug() ?: return null
-    val location = contentService.readLocationContent(locationId, caller) ?: return null
+    val location = readLocationContent(locationId, caller) ?: return null
 
     return HtmlRender {
         locationPage(location, SiteStyles)
     }
 }
 
-suspend fun ApiContext.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
     val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
     val galaxyId = galaxy.galaxyId
@@ -148,7 +147,7 @@ suspend fun ApiContext.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender
     }
 }
 
-suspend fun ApiContext.renderStar(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderStar(arg: String?, starId: StarId?): HtmlRender? {
     val username = arg?.toUsername() ?: return null
     val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
     val star = dao.star.readByUsername(username) ?: return null
@@ -163,7 +162,7 @@ suspend fun ApiContext.renderStar(arg: String?, starId: StarId?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderEventProfile(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderEventProfile(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
     val event = dao.event.readEventLocationBySlug(slug, starId) ?: return null
 
@@ -174,7 +173,7 @@ suspend fun ApiContext.renderEventProfile(arg: String?, starId: StarId?): HtmlRe
     }
 }
 
-suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
+suspend fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
     val docId = arg ?: return null
     val node = SiteDocTree.nodes[docId] ?: return null
 
@@ -185,7 +184,7 @@ suspend fun ApiContext.renderSiteDoc(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderPost(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderPost(arg: String?, starId: StarId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
     val post = dao.post.readPost(slug, starId) as? BasicPost ?: return null
 
@@ -196,7 +195,7 @@ suspend fun ApiContext.renderPost(arg: String?, starId: StarId?): HtmlRender? {
     }
 }
 
-suspend fun ApiContext.renderClientBase(): HtmlRender {
+suspend fun ApiScope.renderClientBase(): HtmlRender {
     return HtmlRender {
         appPage("Streetlight", SiteStyles) { }
     }

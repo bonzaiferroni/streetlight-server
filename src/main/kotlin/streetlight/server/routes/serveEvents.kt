@@ -22,11 +22,11 @@ import klutch.server.authGate
 import streetlight.model.data.EventEdit
 import streetlight.server.db.tables.SavedImageSet
 
-private val console = globalConsole.getHandle(ApiContext::serveEvents.name)
+private val console = globalConsole.getHandle(ApiScope::serveEvents.name)
 
-fun ApiContext.serveEvents() {
-    val reader = server.get<EventParser>()
-    val omni = server.get<OmniService>()
+fun ApiScope.serveEvents() {
+    val reader = provide<EventParser>()
+    val omni = provide<OmniService>()
 
     getApi(Api.Events) {
         Ok(dao.event.readActiveEvents())

@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import streetlight.agent.ParserService
+import streetlight.agent.ParserClient
 import streetlight.model.data.ColdParse
 import streetlight.model.data.Location
 import streetlight.model.external.OSMQuery
@@ -12,7 +12,7 @@ import streetlight.server.model.DaoFacade
 private val console = globalConsole.getHandle(ColdReader::class)
 
 class ColdReader(
-    private val parser: ParserService,
+    private val parser: ParserClient,
     private val dao: DaoFacade,
 ) {
     private val osmClient by lazy { OSMHttpClient() }

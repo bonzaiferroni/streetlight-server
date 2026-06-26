@@ -11,18 +11,17 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationEdit
-import streetlight.server.db.services.CityService
-import streetlight.server.db.services.LocationService
+import streetlight.server.db.services.createLocation
+import streetlight.server.db.services.readOrCreateCity
+import streetlight.server.db.services.updateLocation
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.SavedImageSet
 
-private val console = globalConsole.getHandle(ApiContext::serveLocations.name)
+private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 
-fun ApiContext.serveLocations() {
-    val parser = server.get<LocationParser>()
-    val omni = server.get<OmniService>()
-    val cityService = server.get<CityService>()
-    val locationService = server.get<LocationService>()
+fun ApiScope.serveLocations() {
+    val parser = provide<LocationParser>()
+    val omni = provide<OmniService>()
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
@@ -53,7 +52,7 @@ fun ApiContext.serveLocations() {
 
     getApi(Api.Locations.ReadUpdaterContent) {
         val slug = it.data
-        contentService.readLocationUpdaterContent(slug).toResponse()
+        readLocationUpdaterContent(slug).toResponse()
     }
 
     authGate(optional = true) {
@@ -71,7 +70,7 @@ fun ApiContext.serveLocations() {
         getApi(Api.Locations.ReadContent) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            contentService.readLocationContent(slug, identity).toResponse()
+            readLocationContent(slug, identity).toResponse()
         }
 
         getApi(Api.Locations, { it.toRecordId() }) {
@@ -88,33 +87,28 @@ fun ApiContext.serveLocations() {
     }
 
     authGate(optional = false) {
-        suspend fun <T> handleEdit(
-            edit: LocationEdit,
-            identity: StarIdentity,
-            block: suspend (CityId, SavedImageSet?) -> T?
-        ): T? {
-            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
-            val cityId = cityService.readOrCreateCity(edit.city, edit.state)
-            return block(requireNotNull(cityId) { "city not found" }, imageSet)
-        }
+//        suspend fun <T> handleEdit(
+//            edit: LocationEdit,
+//            identity: StarIdentity,
+//            block: suspend (CityId, SavedImageSet?) -> T?
+//        ): T? {
+//            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
+//            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
+//            val cityId = readOrCreateCity(edit.city, edit.state)
+//            return block(requireNotNull(cityId) { "city not found" }, imageSet)
+//        }
 
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
             val identity = call.getIdentity()
-            handleEdit(edit, identity) { cityId, imageSet ->
-                console.log("creating location: ${edit.label}")
-                locationService.createWithTask(cityId, identity.starId, edit, imageSet)
-            }.toResponse()
+            createLocation(identity.starId, edit).toResponse()
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
             val identity = call.getIdentity()
-            handleEdit(edit, identity) { cityId, imageSet ->
-                dao.location.update(locationId, cityId, identity.starId, edit, imageSet)
-            }.toResponse()
+            updateLocation(locationId, identity.starId, edit).toResponse()
         }
 
     }

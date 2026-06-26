@@ -3,11 +3,14 @@ package streetlight.server
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.sse.SSE
-import klutch.server.ServerContext
+import klutch.server.KoinProvider
 import klutch.server.configureAuth
+import klutch.server.provide
 import org.koin.dsl.koinApplication
 import streetlight.model.data.StarId
+import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
+import streetlight.server.model.Server
 import streetlight.server.model.serverModule
 import streetlight.server.plugins.*
 
@@ -22,8 +25,10 @@ fun Application.module() {
         modules(serverModule)
     }.koin
 
-    val server = ServerContext(koin)
-    val dao = server.get<DaoFacade>()
+    val provider = KoinProvider(koin)
+    val dao = provider.provide<DaoFacade>()
+    val client = provider.provide<ClientFacade>()
+    val server = Server(provider, dao, client)
 
     install(Compression) {
         gzip {
@@ -43,7 +48,7 @@ fun Application.module() {
     configureCors()
     configureSerialization()
     configureDatabases()
-    configureAuth(server) { dao.star.readStarPrincipal(StarId(it)) }
+    configureAuth(provider) { dao.star.readStarPrincipal(StarId(it)) }
     configureWebSockets()
     install(SSE)
     serveApi(server)

@@ -2,7 +2,6 @@ package streetlight.server.routes
 
 import kampfire.api.toUsername
 import kampfire.model.toResponse
-import klutch.server.ApiContext
 import klutch.server.postApi
 import klutch.server.readParamOrNull
 import streetlight.model.Api
@@ -10,11 +9,10 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
 import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
-import streetlight.server.model.dao
 import klutch.server.authGate
 import klutch.server.getApi
 
-fun ApiContext.serveStars() {
+fun ApiScope.serveStars() {
 
     getApi(Api.Stars.ReadByUsername) { endpoint ->
         val username = readParamOrNull(endpoint.username)?.toUsername() ?: return@getApi null

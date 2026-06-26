@@ -1,13 +1,12 @@
 package streetlight.server.routes
 
-import kabinet.clients.readImageUrl
 import kabinet.console.globalConsole
 import kampfire.api.toMarkdown
 import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
-import streetlight.agent.ParserService
+import streetlight.agent.ParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventEdit
@@ -15,19 +14,16 @@ import streetlight.model.data.EventParse
 import streetlight.model.data.HtmlParseRequest
 import streetlight.model.data.ImageParseRequest
 import streetlight.model.data.ParseRequest
-import streetlight.model.data.EventParseResult
 import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEventEdit
-import streetlight.server.model.InferenceFacade
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
 private val console = globalConsole.getHandle(EventParser::class)
 
 class EventParser(
-    private val parser: ParserService
+    private val parser: ParserClient
 ) {
-
     suspend fun parseEvent(request: ParseRequest): ApiResponse<EventEdit> {
         val html = when (request) {
             is UrlParseRequest -> fetchHtml(request.url)

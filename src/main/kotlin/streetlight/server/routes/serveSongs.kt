@@ -6,7 +6,7 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 
-fun ApiContext.serveSongs() {
+fun ApiScope.serveSongs() {
     // val service = server.get<SongTableService>()
 
     getApi(Api.Songs.ReadId, { it.toRecordId() }) {

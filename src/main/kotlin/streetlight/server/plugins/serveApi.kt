@@ -2,18 +2,23 @@ package streetlight.server.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
+import klutch.db.services.RefreshTokenService
 import klutch.server.*
 import streetlight.server.db.services.StarAuthDao
-import klutch.server.routingContextOf
+import streetlight.server.model.ServerRouting
+import streetlight.server.model.ServerScope
 import streetlight.server.model.getIdentity
 import streetlight.server.routes.*
 
-fun Application.serveApi(server: ServerContext) {
+fun Application.serveApi(server: ServerScope) {
     val authDao = StarAuthDao()
     // val identity = Identity(authDao)
     routing {
-        routingContextOf(server) {
+        val scope = ServerRouting(server, this)
+        with (scope) {
             serveUserAuth(
+                refreshTokenService = provide<RefreshTokenService>(),
+                jwtService = provide<JwtService>(),
                 dao = authDao,
                 authGate = ::authGate,
                 getUsername = { it.getIdentity().username },
@@ -40,7 +45,7 @@ fun Application.serveApi(server: ServerContext) {
             serveTalk()
             serveContent()
             serveCity()
-            serveReviews()
+            serveTasks()
         }
     }
 }

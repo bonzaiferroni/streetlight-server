@@ -11,7 +11,6 @@ import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.distanceTo
 import kampfire.model.kilometers
-import klutch.server.ApiContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,9 +22,9 @@ import streetlight.model.data.SpiritId
 import streetlight.server.model.*
 import java.util.concurrent.ConcurrentHashMap
 
-private val console = globalConsole.getHandle(ApiContext::serveMap.name)
+private val console = globalConsole.getHandle(ApiScope::serveMap.name)
 
-fun ApiContext.serveMap() {
+fun ApiScope.serveMap() {
     val connections = LinkedHashSet<SpiritConnection>()
     val connectionsMutex = Mutex()
 

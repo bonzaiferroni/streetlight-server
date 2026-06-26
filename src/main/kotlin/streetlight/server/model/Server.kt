@@ -6,7 +6,15 @@ import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
+import klutch.server.ProviderScope
 import streetlight.server.db.services.*
+import streetlight.server.external.OSMHttpClient
+
+class Server(
+    provider: ProviderScope,
+    override val dao: DaoFacade,
+    override val client: ClientFacade,
+): ServerScope, ProviderScope by provider
 
 class DaoFacade(
     val location: LocationTableDao = LocationTableDao(),
@@ -31,6 +39,11 @@ class DaoFacade(
     val editLog: EditLogTableDao = EditLogTableDao(),
     val quorum: QuorumTableDao = QuorumTableDao(),
     val review: TaskTableDao = TaskTableDao(),
+)
+
+class ClientFacade(
+    val blob: BlobClient,
+    val osm: OSMHttpClient,
 )
 
 class InferenceFacade(

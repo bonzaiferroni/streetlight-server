@@ -1,15 +1,13 @@
 package streetlight.server.routes
 
-import kabinet.clients.readImageUrl
 import kampfire.api.toMarkdown
 import kampfire.model.ApiResponse
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
-import streetlight.agent.ParserService
+import streetlight.agent.ParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
-import streetlight.model.data.EventParseResult
 import streetlight.model.data.HtmlParseRequest
 import streetlight.model.data.ImageParseRequest
 import streetlight.model.data.LocationEdit
@@ -21,7 +19,7 @@ import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
 class LocationParser(
-    private val parser: ParserService
+    private val parser: ParserClient
 ) {
     suspend fun parseLocation(request: ParseRequest): ApiResponse<LocationEdit> {
         val html = when (request) {

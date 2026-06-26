@@ -6,16 +6,15 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kabinet.console.globalConsole
-import klutch.server.ApiContext
 import streetlight.model.Api
-import streetlight.server.model.*
+import streetlight.server.model.ApiScope
 import java.util.Collections
 
-private val console = globalConsole.getHandle(ApiContext::serveChat.name)
+private val console = globalConsole.getHandle(ApiScope::serveChat.name)
 
 private val history = Collections.synchronizedList(mutableListOf<String>())
 
-fun ApiContext.serveChat() {
+fun ApiScope.serveChat() {
     val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(
         LinkedHashSet()
     )

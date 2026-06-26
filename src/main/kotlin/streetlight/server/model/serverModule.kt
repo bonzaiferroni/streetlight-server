@@ -5,14 +5,13 @@ import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import klutch.db.services.RefreshTokenService
 import klutch.environment.readEnvFromPath
-import klutch.server.ApiContext
 import org.koin.dsl.module
 import streetlight.server.db.services.SongTableService
 import klutch.server.JwtService
+import klutch.server.ProviderScope
 import klutch.server.TokenConfig
-import streetlight.agent.ParserService
-import streetlight.server.db.services.CityService
-import streetlight.server.db.services.LocationService
+import klutch.server.provide
+import streetlight.agent.ParserClient
 import streetlight.server.external.OSMHttpClient
 import streetlight.server.plugins.StarRefreshTokenTable
 import streetlight.server.routes.EventParser
@@ -27,24 +26,22 @@ val serverModule = module {
         realm = "streetlight-api",
         lifetimeSeconds = 30 * 60,
     ) }
-    single { ObjectStorageClient(get()) }
-    single { globalConsole.getHandle("api") }
 
-    // services
-    single { ParserService(get()) }
+    // clients
+    single { OSMHttpClient() }
+    single { ParserClient(get()) }
+    single { BlobClient(get()) }
     single { EventParser(get()) }
     single { LocationParser(get()) }
+    single { ClientFacade(get(), get()) }
+
+    // services
     single { JwtService(get(), get()) }
-    single { SongTableService() }
-    single { OmniService(get()) }
-    single { ContentService(get()) }
     single { RefreshTokenService(StarRefreshTokenTable) }
-    single { OSMHttpClient() }
-    single { CityService(get(), get()) }
-    single { LocationService(get()) }
+    single { OmniService(get()) }
+
+    // other
+    single { SongTableService() }
 }
 
-val ApiContext.env get() = server.koin.get<Environment>()
-val ApiContext.dao get() = server.koin.get<DaoFacade>()
-val ApiContext.console get() = server.koin.get<LogHandle>()
-val ApiContext.contentService get() = server.koin.get<ContentService>()
+val ProviderScope.dao get() = provide<DaoFacade>()

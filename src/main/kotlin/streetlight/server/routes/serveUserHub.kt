@@ -2,16 +2,13 @@ package streetlight.server.routes
 
 import kampfire.model.toResponse
 import kampfire.utils.randomUuidString
-import klutch.server.ApiContext
-import klutch.server.getEndpoint
-import klutch.server.postEndpoint
 import streetlight.model.Api
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
 
-fun ApiContext.serveUserHub() {
+fun ApiScope.serveUserHub() {
     authGate {
         getApi(Api.Users.Files) {
             error("not implemented")

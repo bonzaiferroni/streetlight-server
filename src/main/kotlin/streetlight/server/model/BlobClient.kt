@@ -13,7 +13,7 @@ import kabinet.utils.Environment
 import kampfire.model.Url
 import kampfire.model.toUrl
 
-class ObjectStorageClient(env: Environment) {
+class BlobClient(env: Environment) {
     private val bucket = env.read("S3_BUCKET")
     private val endpoint = env.read("S3_ENDPOINT")
     private val region = env.read("S3_REGION")
@@ -23,7 +23,7 @@ class ObjectStorageClient(env: Environment) {
     private val host = "$bucket.$endpoint"
 
     private val client = S3Client {
-        this@S3Client.region = this@ObjectStorageClient.region
+        this@S3Client.region = this@BlobClient.region
         endpointUrl = AwsUrl.parse("https://$endpoint")
         credentialsProvider = StaticCredentialsProvider {
             accessKeyId = accessKey
@@ -34,7 +34,7 @@ class ObjectStorageClient(env: Environment) {
     suspend fun put(bytes: ByteArray, filename: String, contentType: String): Url? {
         return try {
             client.putObject {
-                this@putObject.bucket = this@ObjectStorageClient.bucket
+                this@putObject.bucket = this@BlobClient.bucket
                 key = filename
                 body = ByteStream.fromBytes(bytes)
                 this.contentType = contentType
@@ -53,7 +53,7 @@ class ObjectStorageClient(env: Environment) {
         val filename = url.filename ?: error("no filename: $url")
         return try {
             client.deleteObject {
-                this@deleteObject.bucket = this@ObjectStorageClient.bucket
+                this@deleteObject.bucket = this@BlobClient.bucket
                 key = filename
             }
             true
@@ -64,4 +64,4 @@ class ObjectStorageClient(env: Environment) {
     }
 }
 
-private val console = globalConsole.getHandle(ObjectStorageClient::class)
+private val console = globalConsole.getHandle(BlobClient::class)
