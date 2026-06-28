@@ -43,7 +43,7 @@ class BlobClient(env: Environment) {
 
             "https://$host/$filename".toUrl()
         } catch (e: S3Exception) {
-            console.logThrowable(e)
+            console.error(e)
             null
         }
     }
@@ -58,7 +58,7 @@ class BlobClient(env: Environment) {
             }
             true
         } catch (e: S3Exception) {
-            console.logThrowable(e)
+            console.error(e)
             false
         }
     }

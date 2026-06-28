@@ -18,7 +18,7 @@ import streetlight.server.model.OmniService
 import streetlight.server.model.ApiScope
 import java.util.Collections
 
-private val console = globalConsole.getHandle(ApiScope::serveOmni.name)
+// private val console = globalConsole.getHandle(ApiScope::serveOmni.name)
 
 fun ApiScope.serveOmni() {
     val omni = provide<OmniService>()

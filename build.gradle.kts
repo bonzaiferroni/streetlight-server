@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
 
     implementation(libs.logback.classic)
+    implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     testImplementation(libs.kotlin.test.junit)
 
     implementation(project(":model"))

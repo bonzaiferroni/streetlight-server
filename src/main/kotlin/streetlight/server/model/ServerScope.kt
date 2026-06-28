@@ -1,5 +1,6 @@
 package streetlight.server.model
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.ProviderScope
@@ -7,7 +8,9 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
-interface ServerScope: DataScope, ProviderScope
+interface ServerScope: DataScope, ProviderScope {
+    // fun log(message: String)
+}
 
 interface DataScope: DaoScope, ClientScope
 
@@ -26,10 +29,10 @@ interface DaoScope {
         block()
     }
 
-    fun log(message: String) = daoConsole.log(message)
+    fun log(message: String) = daoLogger.info { message }
 }
 
-private val daoConsole = globalConsole.getHandle("data")
+private val daoLogger = KotlinLogging.logger("dao")
 
 
 interface ClientScope {

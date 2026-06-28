@@ -102,7 +102,7 @@ private inline fun resizeStaticImage(
 
     val scaled = image.cover(targetWidth, targetHeight)
     encode(scaled)
-}.onFailure { console.logThrowable(it) }
+}.onFailure { console.error(it) }
     .getOrNull()
 
 private fun resizeGif(
@@ -146,7 +146,7 @@ private fun resizeGif(
         }
 
         out.toByteArray()
-    }.onFailure { console.logThrowable(it) }
+    }.onFailure { console.error(it) }
         .getOrNull()
 }
 

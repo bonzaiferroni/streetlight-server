@@ -2,7 +2,6 @@ package streetlight.server.db.services
 
 import streetlight.model.data.CityId
 import streetlight.server.external.OSMHttpClient
-import streetlight.server.log
 import streetlight.server.model.DaoScope
 import streetlight.server.model.DataScope
 import streetlight.server.model.dao

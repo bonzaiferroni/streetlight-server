@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
@@ -24,7 +25,7 @@ import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
 
-private val console = globalConsole.getHandle(ApiScope::servePages.name)
+private val console = KotlinLogging.logger("server") //globalConsole.getHandle(ApiScope::servePages.name)
 
 fun ApiScope.servePages() {
 
@@ -108,7 +109,7 @@ data class HtmlRender(
 )
 
 suspend fun ApiScope.renderHome(callerId: StarId?): HtmlRender {
-    console.log(callerId)
+    // console.log(callerId)
     val content = readHomeContent(callerId)
 
     return HtmlRender {

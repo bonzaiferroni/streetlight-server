@@ -10,7 +10,6 @@ import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.external.OSMCity
 import streetlight.server.external.OSMHttpClient
-import streetlight.server.log
 import streetlight.server.model.ApiScope
 
 fun ApiScope.serveCity() {
@@ -28,7 +27,7 @@ fun ApiScope.serveCity() {
             if (dbLocalities.isNotEmpty() || query.length < 2) {
                 dbLocalities
             } else {
-                ::serveCity.log("querying osm: $query")
+                log("querying osm: $query")
                 val cities = osm.searchCity(query, country)?.filter { city ->
                     dbLocalities.none { it.name == city.name && it.state == city.state && it.country == city.country }
                 }?.map { it.toCity() }?.takeIf { it.isNotEmpty() }

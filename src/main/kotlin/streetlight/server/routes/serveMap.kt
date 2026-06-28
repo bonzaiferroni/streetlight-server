@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.CloseReason
@@ -22,7 +23,8 @@ import streetlight.model.data.SpiritId
 import streetlight.server.model.*
 import java.util.concurrent.ConcurrentHashMap
 
-private val console = globalConsole.getHandle(ApiScope::serveMap.name)
+// private val console = globalConsole.getHandle(ApiScope::serveMap.name)
+private val console = KotlinLogging.logger(ApiScope::serveMap.name)
 
 fun ApiScope.serveMap() {
     val connections = LinkedHashSet<SpiritConnection>()
@@ -99,7 +101,7 @@ fun ApiScope.serveMap() {
                             connections.add(connection)
                         }
 
-                        console.logInfo("Spirit connected: ${msg.spirit.name} (${msg.spirit.spiritId.value})")
+                        console.info { "Spirit connected: ${msg.spirit.name} (${msg.spirit.spiritId.value})" }
                         moveSpirit(msg.spirit.position)
                     }
                     is SpiritFrame.Position -> {
@@ -108,15 +110,14 @@ fun ApiScope.serveMap() {
                 }
             }
         } catch (e: Exception) {
-            console.logThrowable(e)
-            console.logError("Error in serveMap websocket")
+            console.error(e) {"Error in serveMap websocket" }
         } finally {
             val conn = connection
             if (conn != null) {
                 connectionsMutex.withLock {
                     connections.remove(conn)
                 }
-                console.logInfo("Spirit disconnected: ${conn.spirit.name}")
+                console.error { "Spirit disconnected: ${conn.spirit.name}" }
             }
         }
     }

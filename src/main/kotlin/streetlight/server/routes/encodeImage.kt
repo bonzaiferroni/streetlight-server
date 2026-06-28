@@ -63,7 +63,7 @@ private fun resizeStaticImage(
             val argb = ensureArgb(scaled.awt())
             val output = ImmutableImage.fromAwt(argb, BufferedImage.TYPE_INT_ARGB)
             ImageEncoding(size, output.bytes(writer))
-        }.onFailure { console.logThrowable(it) }
+        }.onFailure { console.error(it) }
             .getOrNull()
     }
 }
@@ -117,7 +117,7 @@ private fun resizeAnimatedImage(
             val webpBytes = resizedGif.bytes(Gif2WebpWriter.DEFAULT)
 
             ImageEncoding(size, webpBytes)
-        }.onFailure { console.logThrowable(it) }
+        }.onFailure { console.error(it) }
             .getOrNull()
     }
 }

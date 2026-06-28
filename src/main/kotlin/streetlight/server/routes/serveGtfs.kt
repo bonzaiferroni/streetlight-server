@@ -57,7 +57,7 @@ fun ApiScope.serveGtfs() {
                     lastGtfsAt = Clock.System.now()
                 }
             } catch (e: Exception) {
-                console.logWarning("unable to get gtfs: ${e.message}")
+                console.warn("unable to get gtfs: ${e.message}")
                 null
             }
         } ?: return@get
@@ -96,7 +96,7 @@ fun ApiScope.serveGtfs() {
                     ).also { cachedState = it }
                 }
             } catch (e: Exception) {
-                console.logWarning("unable to get gtfs: ${e.message}")
+                console.warn("unable to get gtfs: ${e.message}")
                 null
             }
         }

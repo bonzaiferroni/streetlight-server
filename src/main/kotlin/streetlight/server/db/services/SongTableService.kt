@@ -58,7 +58,7 @@ class SongTableService(): DbService() {
                 ?.let { it[SongTable.id].value }
 
             if (leastPlayedSongId == null) {
-                console.logError("Unable to find song")
+                console.error("Unable to find song")
                 null
             } else {
                 val song = SongTable.readById(leastPlayedSongId).toSong()

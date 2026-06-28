@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
@@ -20,12 +21,12 @@ import java.io.File
 import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.days
 
-private val console = globalConsole.getHandle("initGtfs")
+private val console = KotlinLogging.logger("initGtfs")
 private val httpClient = HttpClient(CIO)
 
 suspend fun DataScope.initGtfs() {
     if (dao.transitRoute.readAllRoutes().isNotEmpty()) return
-    console.log("initializin' gtfs")
+    console.info { "initializing gtfs" }
     val cacheDir = File("gtfs")
     if (!cacheDir.exists()) cacheDir.mkdirs()
 
@@ -36,14 +37,14 @@ suspend fun DataScope.initGtfs() {
             (Clock.System.now() - Instant.fromEpochMilliseconds(gtfsFile.lastModified()) > oneMonth)
 
     val zipBytes = if (needsDownload) {
-        console.log("fetchin' fresh gtfs from the horizon...")
+        console.info { "fetching fresh gtfs data" }
         val url = "https://www.rtd-denver.com/files/gtfs/google_transit.zip"
         val upstreamResponse: HttpResponse = httpClient.get(url)
         val bytes = upstreamResponse.readRawBytes()
         gtfsFile.writeBytes(bytes)
         bytes
     } else {
-        console.log("usin' the maps we already got in the hold.")
+        console.info { "using cached gtfs data" }
         gtfsFile.readBytes()
     }
 
@@ -55,23 +56,23 @@ suspend fun DataScope.initGtfs() {
     unzipSelected(zipBytes, setOf("routes.txt", "stops.txt", "stop_times.txt", "trips.txt", "shapes.txt")) { name, text ->
         if (name == "routes.txt") {
             routes = parseCsv(text) { TransitRoute.fromCsv(it) }
-            console.log("found ${routes.size} routes")
+            console.info { "found ${routes.size} routes" }
         }
         if (name == "stops.txt") {
             stops = parseCsv(text) { TransitStop.fromCsv(it) }
-            console.log("found ${stops.size} stops")
+            console.info { "found ${stops.size} stops" }
         }
         if (name == "stop_times.txt") {
             stopTimes = parseCsv(text) { TransitStopTime.fromCsv(it) }
-            console.log("found ${stopTimes.size} stop times")
+            console.info { "found ${stopTimes.size} stop times" }
         }
         if (name == "trips.txt") {
             trips = parseCsv(text) { TransitTrip.fromCsv(it) }
-            console.log("found ${trips.size} trips")
+            console.info { "found ${trips.size} trips" }
         }
         if (name == "shapes.txt") {
             shapes = parseCsv(text) { TransitShape.fromCsv(it) }
-            console.log("found ${shapes.size} shapes")
+            console.info { "found ${shapes.size} shapes" }
         }
     }
 
@@ -95,16 +96,16 @@ suspend fun DataScope.initGtfs() {
         )
     }
 
-    console.log("upserting ${routesModified.size} routes")
+    console.info { "upserting ${routesModified.size} routes" }
     dao.transitRoute.batchUpsert(routesModified)
-    console.log("upserting ${stops.size} size")
+    console.info { "upserting ${stops.size} size" }
     dao.transitStop.batchUpsert(stops)
 
     val routeStops = routeTrips.entries.associate { (routeId, trips) ->
         routeId to stopTimes.filter { stopTime -> trips.any { stopTime.tripId == it.tripId } }.map { it.transitStopId }.toSet()
     }
 
-    console.log("upserting routeStops for ${routeStops.size} routes")
+    console.info { "upserting routeStops for ${routeStops.size} routes" }
     routeStops.forEach { (transitRouteId, transitStopIds) ->
         dao.transitRoute.upsertRouteStops(transitRouteId, transitStopIds)
     }

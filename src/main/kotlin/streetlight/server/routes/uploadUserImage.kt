@@ -16,7 +16,7 @@ import streetlight.model.data.UploadFileId
 import streetlight.server.model.*
 import java.io.File
 
-private val console = globalConsole.getHandle("uploader")
+// private val console = globalConsole.getHandle("uploader")
 
 suspend fun DaoScope.saveLocalImageFile(
     bytes: ByteArray,
