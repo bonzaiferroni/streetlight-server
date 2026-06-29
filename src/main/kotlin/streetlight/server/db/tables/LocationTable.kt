@@ -13,7 +13,9 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
+import streetlight.model.data.BusinessHours
 import streetlight.model.data.ExtraLink
+import streetlight.model.data.HoursSchedule
 import streetlight.model.data.Location
 import streetlight.model.data.StarId
 
@@ -22,6 +24,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val scoutId = reference("scout_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
     val mapId = long("map_Id").nullable().uniqueIndex()
+    val timezoneId = text("timezone_id").default("America/Denver") // td: remove default
     override val slug = text("slug").uniqueIndex()
     override val pastSlug = text("past_slug").index().nullable()
     val host = text("host").index().nullable()
@@ -36,12 +39,11 @@ object LocationTable: UuidTable("location"), SlugTable {
     val mapCategory = text("map_category").nullable()
     val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
+    val hours = jsonb<HoursSchedule>("hours", tableJsonDefault).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val eventsUrl = text("events_url").nullable()
-    val aboutUrl = text("about_url").nullable()
-    val menuUrl = text("menu_url").nullable()
     val imageRef = url("image_ref").nullable()
     val images = scaledImages("images").nullable()
     val updatedAt = timestamp("updated_at")
@@ -75,6 +77,7 @@ fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, im
     this[LocationTable.slug] = slugRecord.slug.value
     this[LocationTable.pastSlug] = slugRecord.pastSlug?.value
     this[LocationTable.mapId] = location.mapId
+    this[LocationTable.timezoneId] = location.timezoneId
     this[LocationTable.cityId] = location.cityId?.value
     // this[LocationTable.ownerId] = ownerId?.toUUID() // td: set owner identity with special pipeline
     this[LocationTable.name] = location.name
@@ -85,10 +88,10 @@ fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, im
     this[LocationTable.mapType] = location.mapType
     this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
+    this[LocationTable.hours] = location.hours
     this[LocationTable.website] = location.website
     this[LocationTable.eventsUrl] = location.eventsUrl
-    this[LocationTable.aboutUrl] = location.aboutUrl
-    this[LocationTable.menuUrl] = location.menuUrl
+    this[LocationTable.links] = location.extraLinks
     this[LocationTable.updatedAt] = location.updatedAt
     writeImages(LocationTable.imageConfig, imageSet)
 }
