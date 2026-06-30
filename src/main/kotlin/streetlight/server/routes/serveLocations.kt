@@ -50,11 +50,6 @@ fun ApiScope.serveLocations() {
         dao.location.readLocationsInBounds(request.data).toResponse()
     }
 
-    getApi(Api.Locations.ReadUpdaterContent) {
-        val slug = it.data
-        readLocationUpdaterContent(slug).toResponse()
-    }
-
     authGate(optional = true) {
 
 
@@ -111,6 +106,10 @@ fun ApiScope.serveLocations() {
             updateLocation(locationId, identity.starId, edit).toResponse()
         }
 
+        getApi(Api.Locations.ReadUpdaterContent) {
+            val slug = it.data
+            readLocationUpdaterContent(slug).toResponse()
+        }
     }
 }
 

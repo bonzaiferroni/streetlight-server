@@ -1,6 +1,7 @@
 package streetlight.server.model
 
 import kampfire.api.Slug
+import streetlight.model.data.EventUpdaterContent
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
@@ -31,6 +32,15 @@ suspend fun DaoScope.readLocationUpdaterContent(slug: Slug): LocationUpdaterCont
     val editLogs = dao.editLog.readEdits(location.locationId)
     return LocationUpdaterContent(
         location = location,
+        editLogs = editLogs
+    )
+}
+
+suspend fun DaoScope.readEventUpdaterContent(slug: Slug): EventUpdaterContent? {
+    val event = dao.event.readEvent(slug, null) ?: return null
+    val editLogs = dao.editLog.readEdits(event.eventId)
+    return EventUpdaterContent(
+        event = event,
         editLogs = editLogs
     )
 }

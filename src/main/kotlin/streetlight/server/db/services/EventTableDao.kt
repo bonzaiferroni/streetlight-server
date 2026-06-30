@@ -99,6 +99,10 @@ class EventTableDao: DbService() {
         eventQuery(callerId).where { EventTable.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
+    suspend fun readEvent(slug: Slug, callerId: StarId?) = dbQuery {
+        eventQuery(callerId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEvent()
+    }
+
     suspend fun readEventTitle(eventId: EventId) = dbQuery {
         EventTable.select(EventTable.title).where { EventTable.id.eq(eventId) }.firstOrNull()?.getOrNull(EventTable.title)
     }

@@ -11,6 +11,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import streetlight.model.data.EditLog
 import streetlight.model.data.EditLogId
 import streetlight.model.data.EditType
+import streetlight.model.data.EventEdit
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.RecordEdit
 import streetlight.model.data.RecordId
@@ -40,18 +41,16 @@ class EditLogTableDao: DbService() {
     }
 }
 
-fun RecordEdit.toEditLog(recordId: RecordId, editType: EditType) = when(this) {
-    is LocationEdit -> EditLog(
-        editLogId = EditLogId(Uuid.random()),
-        recordId = recordId.value,
-        username = "", // set by trigger
-        recordType = RecordType.Location,
-        recordEdit = this,
-        editType = editType,
-        updatedAt = Clock.System.now(),
-        createdAt = Clock.System.now(),
-    )
-}
+fun RecordEdit.toEditLog(recordId: RecordId, editType: EditType) = EditLog(
+    editLogId = EditLogId(Uuid.random()),
+    recordId = recordId.value,
+    username = "", // set by trigger
+    recordType = recordType,
+    recordEdit = this,
+    editType = editType,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now(),
+)
 
 fun ResultRow.toEditLog() = EditLog(
     editLogId = EditLogId(this[EditLogTable.id].value),

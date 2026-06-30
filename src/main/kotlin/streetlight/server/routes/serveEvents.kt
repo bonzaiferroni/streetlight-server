@@ -7,6 +7,7 @@ import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.Ok
 import kampfire.model.responseOf
+import kampfire.model.toResponse
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import kotlinx.html.body
@@ -121,6 +122,11 @@ fun ApiScope.serveEvents() {
         getApi(Api.Events.ReadLights) {
             val starId = call.getIdentity().starId
             Ok(dao.light.readEventLights(starId))
+        }
+
+        getApi(Api.Events.ReadUpdaterContent) {
+            val slug = it.data
+            readEventUpdaterContent(slug).toResponse()
         }
     }
 }
