@@ -31,9 +31,7 @@ suspend fun DataScope.createLocation(
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
 
     log("creating location: ${edit.label}")
-    val location = dao.location.create(
-        cityId, callerId, edit, imageSet
-    ) ?: return@transaction null
+    val location = dao.location.create(cityId, callerId, edit, imageSet) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
     val star = dao.star.readStar(callerId) ?: error("star not found")
 
@@ -57,36 +55,6 @@ suspend fun DataScope.updateLocation(
     )
     val editLogId = dao.editLog.create(EditType.Update, edit, locationId, callerId)
     location
-}
-
-private suspend fun DaoScope.createEditTask(editLogId: EditLogId) {
-    val now = Clock.System.now()
-    val reviewerIds = findUniverseScouts(1)
-    reviewerIds.forEach { reviewerId ->
-        val editTask = BaseTask(
-            taskId = TaskId(Uuid.random()),
-            recordId = editLogId.value,
-            recordType = RecordType.EditLog,
-            // starId = starIds.random(),
-            starId = reviewerId,
-            decision = null,
-            taskStatus = TaskStatus.Requested,
-            updatedAt = now,
-            createdAt = now
-        )
-        dao.review.create(editTask)
-    }
-}
-
-private suspend fun DaoScope.findUniverseScouts(limit: Int) = transaction {
-    // td: select from pool of recently active users
-    StarTable.leftJoin(TaskTable)
-        .select(StarTable.id, TaskTable.createdAt.max())
-        .where { StarTable.scoutLevel.greaterEq(1) }
-        .groupBy(StarTable.id)
-        .orderBy(TaskTable.createdAt.max() to SortOrder.ASC_NULLS_FIRST)
-        .limit(limit)
-        .map { StarId(it[StarTable.id].value) }
 }
 
 //private suspend fun <T> DataScope.handleEdit(
