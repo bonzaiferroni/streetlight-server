@@ -4,8 +4,8 @@ import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.Ok
-import kampfire.model.toResponse
-import kampfire.model.responseOf
+import kampfire.model.toOutcome
+import kampfire.model.outcomeOf
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
@@ -34,7 +34,7 @@ fun ApiScope.serveGalaxies() {
         getApi(Api.Galaxies.ReadGalaxySlug, { it.toSlug() }) {
             val id = it.data
             val identity = call.getIdentityOrNull()
-            dao.galaxy.readGalaxy(id, identity?.starId).toResponse()
+            dao.galaxy.readGalaxy(id, identity?.starId).toOutcome()
         }
 
         postApi(Api.Galaxies.ReadGalaxies) {
@@ -52,13 +52,13 @@ fun ApiScope.serveGalaxies() {
         getApi(Api.Galaxies.ReadPostSlug, { it.toSlug() }) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            dao.post.readPost(slug, identity?.starId).toResponse()
+            dao.post.readPost(slug, identity?.starId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
             val postId = it.data
             val identity = call.getIdentityOrNull()
-            dao.post.readPost(postId, identity?.starId).toResponse()
+            dao.post.readPost(postId, identity?.starId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
@@ -97,7 +97,7 @@ fun ApiScope.serveGalaxies() {
                     val name = requireNotNull(edit.name) { "name not found" }
                     omni.sendGalaxyFounded(name, slug, identity.username)
                 }
-            }.toResponse()
+            }.toOutcome()
         }
 
         postApi(Api.Galaxies.UpdateGalaxy) {
@@ -105,13 +105,13 @@ fun ApiScope.serveGalaxies() {
             val identity = call.getIdentity()
             handleEdit(edit, identity) { city, imageSet ->
                 dao.galaxy.update(edit, city, imageSet)
-            }.toResponse()
+            }.toOutcome()
         }
 
         postApi(Api.Galaxies.CreateEventPost) {
             val request = it.data
             val identity = call.getIdentity()
-            responseOf(dao.post.createPost(request, identity))
+            outcomeOf(dao.post.createPost(request, identity))
         }
 
         postApi(Api.Galaxies.CreatePost) {
@@ -120,7 +120,7 @@ fun ApiScope.serveGalaxies() {
 
             val imageSet = saveImages(identity.starId, null, edit.imageRef, PostTable.imageConfig)
 
-            responseOf(dao.post.createPost(edit, identity, imageSet))
+            outcomeOf(dao.post.createPost(edit, identity, imageSet))
         }
 
         postApi(Api.Galaxies.EditPost) {
@@ -130,13 +130,13 @@ fun ApiScope.serveGalaxies() {
 
             val imageSet = saveImages(identity.starId, postId, edit.imageRef, PostTable.imageConfig)
 
-            responseOf(dao.post.editPost(edit, identity, imageSet))
+            outcomeOf(dao.post.editPost(edit, identity, imageSet))
         }
 
         postApi(Api.Galaxies.CreateLocationPost) {
             val request = it.data
             val identity = call.getIdentity()
-            responseOf(dao.post.createPost(request, identity))
+            outcomeOf(dao.post.createPost(request, identity))
         }
 
         getApi(Api.Galaxies.ReadLights) {
@@ -152,7 +152,7 @@ fun ApiScope.serveGalaxies() {
 
         getApi(Api.Galaxies.ReadUserGalaxies) {
             val starId = call.getIdentity().starId
-            dao.galaxy.readGalaxies(starId).toResponse()
+            dao.galaxy.readGalaxies(starId).toOutcome()
         }
     }
 }

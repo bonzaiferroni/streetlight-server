@@ -55,16 +55,6 @@ class StarTableDao: DbService() {
         }
     }
 
-    suspend fun readStarPrincipal(userId: StarId) = dbQuery {
-        StarTable.select(StarTable.username, StarTable.roles).where { StarTable.id.eq(userId) }.map {
-            StarIdentity(
-                starId = userId,
-                username = it[StarTable.username].toUsername(),
-                roles = it[StarTable.roles].map { role -> UserRole.valueOf(role) }.toSet()
-            )
-        }.firstOrNull()
-    }
-
     suspend fun readStar(starId: StarId) = dbQuery {
         StarTable.read { it.id.eq(starId) }.firstOrNull()?.toStar()
     }

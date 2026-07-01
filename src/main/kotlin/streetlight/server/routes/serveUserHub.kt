@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import kampfire.utils.randomUuidString
 import streetlight.model.Api
 import streetlight.server.model.*
@@ -18,7 +18,7 @@ fun ApiScope.serveUserHub() {
 
         getApi(Api.Users.Talents) { _ ->
             val userId = call.getIdentity().starId
-            dao.talent.readUserTalents(userId).toResponse()
+            dao.talent.readUserTalents(userId).toOutcome()
         }
 
         postApi(Api.Users.EditTalent) {
@@ -28,7 +28,7 @@ fun ApiScope.serveUserHub() {
                 dao.talent.edit(talentId, it.data, userId)
             } else {
                 dao.talent.create(it.data, userId)
-            }.toResponse()
+            }.toOutcome()
         }
 
         postApi(Api.Users.UploadAvatar) {
@@ -41,7 +41,7 @@ fun ApiScope.serveUserHub() {
 
         postApi(Api.Users.UploadImage) {
             val userId = call.getIdentity().starId
-            saveLocalImageFile(it.data, userId, randomUuidString()).toResponse()
+            saveLocalImageFile(it.data, userId, randomUuidString()).toOutcome()
         }
     }
 }

@@ -14,7 +14,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.getApi
 import klutch.server.getEndpoint
 import klutch.server.readParam
@@ -116,7 +116,7 @@ fun ApiScope.serveGtfs() {
         AreaTransit(
             routes = routes,
             stops = stops
-        ).toResponse()
+        ).toOutcome()
     }
 }
 

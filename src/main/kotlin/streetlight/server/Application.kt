@@ -11,6 +11,7 @@ import klutch.utils.Log
 import org.koin.dsl.koinApplication
 import org.slf4j.LoggerFactory
 import streetlight.model.data.StarId
+import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.Server
@@ -22,7 +23,6 @@ import streetlight.server.plugins.*
 fun main(args: Array<String>): Unit = io.ktor.server.cio.EngineMain.main(args)
 
 fun Application.module() {
-    // val app = createStreetlight()
 
     val koin = koinApplication {
         modules(serverModule)
@@ -31,31 +31,18 @@ fun Application.module() {
     val provider = KoinProvider(koin)
     val dao = provider.provide<DaoFacade>()
     val client = provider.provide<ClientFacade>()
-    val logger = KotlinLogging.logger("server")
-    // val serverLog = Log(LoggerFactory.getLogger("server"))
-    logger.info { "eh" }
+    val session = provider.provide<StarSessionService>()
     val server = Server(provider, dao, client)
 
     install(Compression) {
-        gzip {
-            priority = 0.9
-//            matchContentType(
-//                ContentType.Application.JavaScript
-//            )
-        }
-//        deflate {
-//            priority = 1.0
-//            matchContentType(
-//                ContentType.Text.Any
-//            )
-//        }
+        gzip { priority = 1.0 }
     }
 
     configureLogging()
     configureCors()
     configureSerialization()
-    configureDatabases()
-    configureAuth(provider) { dao.star.readStarPrincipal(StarId(it)) }
+    configureDatabases(server)
+    configureAuth(session)
     configureWebSockets()
     install(SSE)
     serveApi(server)

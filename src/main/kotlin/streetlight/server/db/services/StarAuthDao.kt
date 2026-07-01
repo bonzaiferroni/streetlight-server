@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import kampfire.api.Username
 import kampfire.model.PrivateInfo
+import kampfire.model.UserRecord
 import kampfire.model.UserSeed
 import klutch.db.DbService
 import klutch.db.readFirstOrNull
@@ -15,55 +16,55 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.StarId
 import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.toStarUser
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.toUserRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 
-class StarAuthDao: AuthDao<StarRecord, StarId>, DbService() {
-    override suspend fun createUser(seed: UserSeed) = dbQuery {
-        val now = Clock.System.now()
-        val user = StarRecord(
-            starId = StarId.random(),
-            username = seed.request.username,
-            hashedPassword = seed.hashedPassword,
-            salt = seed.salt,
-            email = seed.request.email,
-            roles = seed.roles.toSet(),
-            createdAt = now,
-            updatedAt = now,
-        )
-
-        StarTable.insertAndGetId {
-            it.createRecord(user, seed.accountType)
-        }.let { StarId(it.value) }
-    }
-
-    override suspend fun readIdByUsername(username: Username) = dbQuery {
-        StarTable.select(StarTable.id).where { StarTable.username.eq(username) }
-            .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
-    }
-
-    override suspend fun readByUsernameOrEmail(identity: String): StarRecord? = dbQuery {
-        StarTable.readFirstOrNull {
-            eqIdentity(identity)
-        }?.toStarUser()
-    }
-
-    override suspend fun readPrivateInfo(identity: String) = dbQuery {
-        StarTable.select(StarTable.name, StarTable.email)
-            .where { eqIdentity(identity) }
-            .firstOrNull()
-            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]) }
-    }
-
-    override suspend fun readSaltExists(salt: String) = dbQuery {
-        StarTable
-            .select(StarTable.salt)
-            .where { StarTable.salt.eq(salt) }
-            .firstOrNull() != null
-    }
-}
-
-private fun eqIdentity(identity: String) =
-    (StarTable.username.lowerCase() eq identity.lowercase()) or (StarTable.email.lowerCase() eq identity.lowercase())
+//class StarAuthDao: AuthDao<StarRecord, StarId>, DbService() {
+//    override suspend fun createUser(seed: UserSeed) = dbQuery {
+//        val now = Clock.System.now()
+//        val user = StarRecord(
+//            starId = StarId.random(),
+//            username = seed.request.username,
+//            hashedPassword = seed.hashedPassword,
+//            salt = seed.salt,
+//            email = seed.request.email,
+//            roles = seed.roles.toSet(),
+//            createdAt = now,
+//            updatedAt = now,
+//        )
+//
+//        StarTable.insertAndGetId {
+//            it.createRecord(user, seed.accountType)
+//        }.let { StarId(it.value) }
+//    }
+//
+//    override suspend fun readIdByUsername(username: Username) = dbQuery {
+//        StarTable.select(StarTable.id).where { StarTable.username.eq(username) }
+//            .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
+//    }
+//
+//    override suspend fun readByUsernameOrEmail(identity: String): UserRecord? = dbQuery {
+//        StarTable.readFirstOrNull {
+//            eqIdentity(identity)
+//        }?.toUserRecord()
+//    }
+//
+//    override suspend fun readPrivateInfo(identity: String) = dbQuery {
+//        StarTable.select(StarTable.name, StarTable.email)
+//            .where { eqIdentity(identity) }
+//            .firstOrNull()
+//            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]) }
+//    }
+//
+//    override suspend fun readSaltExists(salt: String) = dbQuery {
+//        StarTable
+//            .select(StarTable.salt)
+//            .where { StarTable.salt.eq(salt) }
+//            .firstOrNull() != null
+//    }
+//}
+//
+//private fun eqIdentity(identity: String) =
+//    (StarTable.username.lowerCase() eq identity.lowercase()) or (StarTable.email.lowerCase() eq identity.lowercase())

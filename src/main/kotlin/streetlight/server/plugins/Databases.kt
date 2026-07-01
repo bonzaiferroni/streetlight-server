@@ -5,9 +5,9 @@ import klutch.db.tables.RefreshTokenTable
 import streetlight.model.data.StarId
 import streetlight.server.db.initDb
 import streetlight.server.db.tables.StarTable
+import streetlight.server.model.ServerScope
 
-fun Application.configureDatabases() {
-    initDb(StarRefreshTokenTable)
+fun Application.configureDatabases(server: ServerScope) {
+    initDb(server)
 }
 
-val StarRefreshTokenTable = RefreshTokenTable(StarTable) { StarId(it) }

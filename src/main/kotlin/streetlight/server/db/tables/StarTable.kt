@@ -3,6 +3,7 @@ package streetlight.server.db.tables
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.ImageSize
+import kampfire.model.UserRecord
 import kampfire.model.UserRole
 import klutch.db.scaledImages
 import klutch.db.url
@@ -19,11 +20,14 @@ import streetlight.model.data.StarRecord
 object StarTable: UuidTable("star") {
     // td: support hometown
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val username = text("username")
+    val username = text("username").index()
     val hashedPassword = text("hashed_password")
     val salt = text("salt")
     val email = text("email").nullable()
-    val roles = array<String>("roles")
+    val roles = array<Int>("roles").transform(
+        { it.map { ordinal -> UserRole.entries[ordinal] }.toSet() },
+        { it.map { role -> role.ordinal }.toList() }
+    )
     val name = text("name").nullable()
     val description = text("description").nullable()
     val accountType = enumeration<AccountType>("account_type")
@@ -45,7 +49,7 @@ object StarTable: UuidTable("star") {
 
 fun ResultRow.toStar() = Star(
     username = this[StarTable.username].toUsername(),
-    roles = this[StarTable.roles].map { UserRole.valueOf(it) }.toSet(),
+    roles = this[StarTable.roles],
     name = null, // td: allow user control over publishing name
     description = this[StarTable.description],
     scoutLevel = this[StarTable.scoutLevel],
@@ -55,13 +59,13 @@ fun ResultRow.toStar() = Star(
     createdAt = this[StarTable.createdAt],
 )
 
-fun ResultRow.toStarUser() = StarRecord(
-    starId = StarId(this[StarTable.id].value),
+fun ResultRow.toUserRecord() = UserRecord(
+    userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
     hashedPassword = this[StarTable.hashedPassword],
     salt = this[StarTable.salt],
     email = this[StarTable.email],
-    roles = this[StarTable.roles].map { UserRole.valueOf(it) }.toSet(),
+    roles = this[StarTable.roles],
     createdAt = this[StarTable.createdAt],
     updatedAt = this[StarTable.updatedAt],
 )
@@ -78,7 +82,7 @@ fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.hashedPassword] = user.hashedPassword
     this[StarTable.salt] = user.salt
     this[StarTable.email] = user.email
-    this[StarTable.roles] = user.roles.map { it.name }
+    this[StarTable.roles] = user.roles
     this[StarTable.updatedAt] = user.updatedAt
 }
 

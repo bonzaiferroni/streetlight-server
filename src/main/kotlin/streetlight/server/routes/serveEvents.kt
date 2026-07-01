@@ -6,8 +6,8 @@ import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.Ok
-import kampfire.model.responseOf
-import kampfire.model.toResponse
+import kampfire.model.outcomeOf
+import kampfire.model.toOutcome
 import streetlight.model.data.MapQuery
 import klutch.server.*
 import kotlinx.html.body
@@ -38,7 +38,7 @@ fun ApiScope.serveEvents() {
     authGate(optional = true) {
         getApi(Api.Events.ReadId, { it.toRecordId() }) {
             val identity = call.getIdentityOrNull()
-            responseOf(dao.event.readEvent(it.data, identity?.starId))
+            outcomeOf(dao.event.readEvent(it.data, identity?.starId))
         }
 
         getApi(Api.Events.AtLocation, { it.toRecordId()}) {
@@ -61,7 +61,7 @@ fun ApiScope.serveEvents() {
         getApi(Api.Events.ReadSlug) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            responseOf(dao.event.readEventLocationBySlug(slug, identity?.starId))
+            outcomeOf(dao.event.readEventLocationBySlug(slug, identity?.starId))
         }
     }
 
@@ -85,9 +85,11 @@ fun ApiScope.serveEvents() {
             val edit = request.data
             val title = requireNotNull(edit.title)
 
-            createEvent(identity.starId, edit)?.also { response ->
-                val slug = response.data?.slug ?: return@also
-                omni.sendEventCreated(title, slug, identity.username)
+            createEvent(identity.starId, edit)?.also { outcome ->
+                if (outcome is Ok) {
+                    val slug = outcome.data.slug
+                    omni.sendEventCreated(title, slug, identity.username)
+                }
             }
         }
 
@@ -97,9 +99,11 @@ fun ApiScope.serveEvents() {
             val title = requireNotNull(edit.title)
             val eventId = requireNotNull(edit.eventId)
 
-            updateEvent(eventId, identity.starId, edit)?.also { response ->
-                val slug = response.data?.slug ?: return@also
-                omni.sendEventUpdated(title, slug, identity.username)
+            updateEvent(eventId, identity.starId, edit)?.also { outcome ->
+                if (outcome is Ok) {
+                    val slug = outcome.data.slug
+                    omni.sendEventUpdated(title, slug, identity.username)
+                }
             }
         }
 
@@ -126,7 +130,7 @@ fun ApiScope.serveEvents() {
 
         getApi(Api.Events.ReadUpdaterContent) {
             val slug = it.data
-            readEventUpdaterContent(slug).toResponse()
+            readEventUpdaterContent(slug).toOutcome()
         }
     }
 }

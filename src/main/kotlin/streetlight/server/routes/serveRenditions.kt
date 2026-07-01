@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
@@ -9,12 +9,12 @@ import streetlight.server.model.*
 fun ApiScope.serveRenditions() {
     getApi(Api.RenditionFeed, { it.toRecordId() }) {
         val id = it.data
-        dao.rendition.readById(id).toResponse()
+        dao.rendition.readById(id).toOutcome()
     }
 
     getApi(Api.RenditionFeed.BySong, { it.toRecordId() }) {
         val songId = it.data
-        dao.rendition.readAllBySongId(songId).toResponse()
+        dao.rendition.readAllBySongId(songId).toOutcome()
     }
 
 //    authenticateJwt {

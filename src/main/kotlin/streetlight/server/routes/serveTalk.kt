@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.sse.sse
 import kampfire.model.Ok
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.readParamOrNull
@@ -16,7 +16,6 @@ import streetlight.model.Api
 import streetlight.model.data.SpaceType
 import streetlight.model.data.TalkMessage
 import streetlight.model.data.TalkRequest
-import streetlight.server.model.dao
 import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import klutch.server.authGate
@@ -28,7 +27,7 @@ import kotlin.uuid.Uuid
 fun ApiScope.serveTalk() {
 
     getApi(Api.Talk.ReadGalaxy, { it.toRecordId() }) {
-        dao.talk.readGalaxyTalk(it.data).toResponse()
+        dao.talk.readGalaxyTalk(it.data).toOutcome()
     }
 
     getApi(Api.Talk.ReadHistory) {

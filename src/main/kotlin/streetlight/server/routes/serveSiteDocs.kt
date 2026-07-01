@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.getApi
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
@@ -11,10 +11,10 @@ fun ApiScope.serveSiteDocs() {
 
     getApi(Api.Docs) {
         val docId = it.data
-        SiteDocTree.nodes[docId].toResponse()
+        SiteDocTree.nodes[docId].toOutcome()
     }
 
     getApi(Api.SiteDocTable) {
-        SiteDocTable.toResponse()
+        SiteDocTable.toOutcome()
     }
 }

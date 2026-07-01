@@ -3,28 +3,26 @@ package streetlight.server.db
 import kabinet.utils.Environment
 import klutch.db.createCounterTrigger
 import klutch.db.createSyncValueTrigger
-import klutch.db.services.UserInitService
+import klutch.db.services.initUsers
 import klutch.db.tables.RefreshTokenTable
 import klutch.environment.readEnvFromPath
+import klutch.server.provide
 import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
-import streetlight.server.db.services.StarAuthDao
 import streetlight.server.db.tables.*
+import streetlight.server.model.ServerScope
 
-fun initDb(
-    // app: ServerProvider = RuntimeProvider
-    refreshTokenTable: RefreshTokenTable
-) {
+fun initDb(server: ServerScope) {
     dbLog.logInfo("initializing db")
-    val env = readEnvFromPath()
+    val env = server.provide<Environment>()
     val db = connectDb(env)
 
     transaction(db) {
         // replaced: SchemaUtils.create(*dbTables.toTypedArray())
-        val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables(refreshTokenTable).toTypedArray())
+        val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray())
         statements.forEach { statement ->
             exec(statement)
         }
@@ -42,18 +40,18 @@ fun initDb(
     }
 
     runBlocking {
-        UserInitService(env, StarAuthDao()).initUsers()
+        initUsers(server)
         initPolicy()
     }
 }
 
-fun dbTables(refreshTokenTable: RefreshTokenTable) = listOf(
+private val dbTables = listOf(
     LocationTable,
     EventTable,
     SongTable,
     RenditionTable,
     RequestTable,
-    refreshTokenTable,
+    SessionTable,
     PerformerTable,
     TransitRouteTable,
     TransitStopTable,

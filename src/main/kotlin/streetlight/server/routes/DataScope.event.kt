@@ -1,8 +1,8 @@
 package streetlight.server.routes
 
-import kampfire.model.Response
+import kampfire.model.Outcome
 import kampfire.model.Problem
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import streetlight.model.data.EditType
 import streetlight.model.data.Event
 import streetlight.model.data.EventEdit
@@ -16,7 +16,7 @@ import streetlight.server.model.DataScope
 suspend fun DataScope.createEvent(
     callerId: StarId,
     edit: EventEdit,
-): Response<Event>? = transaction {
+): Outcome<Event>? = transaction {
     if (dao.event.hasConflict(edit)) return@transaction Problem("Event already exists")
     val imageSet = saveImages(callerId, edit.eventId, edit.imageRef, EventTable.imageConfig)
 
@@ -29,19 +29,19 @@ suspend fun DataScope.createEvent(
         createEditTask(editLogId)
     }
 
-    event.toResponse()
+    event.toOutcome()
 }
 
 suspend fun DataScope.updateEvent(
     eventId: EventId,
     callerId: StarId,
     edit: EventEdit,
-): Response<Event>? = transaction {
+): Outcome<Event>? = transaction {
     val imageSet = saveImages(callerId, edit.eventId, edit.imageRef, EventTable.imageConfig)
 
     log("updating event: ${edit.title}")
     val event = dao.event.updateEvent(eventId, callerId, edit, imageSet) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Update, edit, eventId, callerId)
 
-    event.toResponse()
+    event.toOutcome()
 }

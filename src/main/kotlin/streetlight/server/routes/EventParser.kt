@@ -1,12 +1,10 @@
 package streetlight.server.routes
 
-import kabinet.console.globalConsole
 import kampfire.api.toMarkdown
-import kampfire.model.Response
+import kampfire.model.Outcome
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
-import streetlight.agent.ParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventEdit
@@ -20,7 +18,7 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
-suspend fun DataScope.parseEvent(request: ParseRequest): Response<EventEdit> {
+suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
     log("parsing event")
     val html = when (request) {
         is UrlParseRequest -> fetchHtml(request.url)

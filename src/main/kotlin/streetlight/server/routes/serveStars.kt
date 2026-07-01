@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
 import kampfire.api.toUsername
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.postApi
 import klutch.server.readParamOrNull
 import streetlight.model.Api
@@ -16,20 +16,20 @@ fun ApiScope.serveStars() {
 
     getApi(Api.Stars.ReadByUsername) { endpoint ->
         val username = readParamOrNull(endpoint.username)?.toUsername() ?: return@getApi null
-        dao.star.readByUsername(username).toResponse()
+        dao.star.readByUsername(username).toOutcome()
     }
 
     authGate {
         getApi(Api.Stars.ValidateLogin) {
             val username = call.getIdentity().username
-            dao.star.readByUsername(username).toResponse()
+            dao.star.readByUsername(username).toOutcome()
         }
 
         postApi(Api.Stars.EditStar) {
             val edit = it.data
             val starId = call.getIdentity().starId
             val imageSet = saveImages(starId, starId, edit.imageRef, EventTable.imageConfig)
-            dao.star.updateStar(starId, edit, imageSet).toResponse()
+            dao.star.updateStar(starId, edit, imageSet).toOutcome()
         }
 
         postApi(Api.Stars.EditLight) {
@@ -41,12 +41,12 @@ fun ApiScope.serveStars() {
                 is MultiLightEdit -> {
                     dao.light.editLights(request.edits, starId)
                 }
-            }.toResponse()
+            }.toOutcome()
         }
 
         getApi(Api.Stars.PendingEdits) {
             val callerId = call.getIdentity().starId
-            dao.editLog.readEdits(callerId).toResponse()
+            dao.editLog.readEdits(callerId).toOutcome()
         }
     }
 }

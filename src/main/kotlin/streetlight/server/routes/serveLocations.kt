@@ -3,19 +3,14 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
 import kampfire.model.kilometers
-import kampfire.model.toResponse
+import kampfire.model.toOutcome
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.model.data.CityId
-import streetlight.model.data.LocationEdit
 import streetlight.server.db.services.createLocation
-import streetlight.server.db.services.readOrCreateCity
 import streetlight.server.db.services.updateLocation
-import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 
@@ -33,21 +28,21 @@ fun ApiScope.serveLocations() {
             emptyList()
         } else {
             dao.location.searchLocations(query, city, state, limit)
-        }.toResponse()
+        }.toOutcome()
     }
 
     getApi(Api.Locations.ReadTop) { endpoint ->
         val count = readParam(endpoint.count)
-        dao.location.readTop(count).toResponse()
+        dao.location.readTop(count).toOutcome()
     }
 
     getApi(Api.Locations.QueryPoint, GeoPoint::fromQuery) {
         val sent = it.data
-        dao.location.readNearbyLocations(sent, 1.kilometers).toResponse()
+        dao.location.readNearbyLocations(sent, 1.kilometers).toOutcome()
     }
 
     postApi(Api.Locations.QueryBounds) { request ->
-        dao.location.readLocationsInBounds(request.data).toResponse()
+        dao.location.readLocationsInBounds(request.data).toOutcome()
     }
 
     authGate(optional = true) {
@@ -65,19 +60,19 @@ fun ApiScope.serveLocations() {
         getApi(Api.Locations.ReadContent) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            readLocationContent(slug, identity).toResponse()
+            readLocationContent(slug, identity).toOutcome()
         }
 
         getApi(Api.Locations, { it.toRecordId() }) {
             val id = it.data
             val identity = call.getIdentityOrNull()
-            dao.location.readLocation(id, identity?.starId).toResponse()
+            dao.location.readLocation(id, identity?.starId).toOutcome()
         }
 
         getApi(Api.Locations.ReadLocation) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            dao.location.readLocation(slug, identity?.starId).toResponse()
+            dao.location.readLocation(slug, identity?.starId).toOutcome()
         }
     }
 
@@ -96,19 +91,19 @@ fun ApiScope.serveLocations() {
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
             val identity = call.getIdentity()
-            createLocation(identity.starId, edit).toResponse()
+            createLocation(identity.starId, edit).toOutcome()
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
             val identity = call.getIdentity()
-            updateLocation(locationId, identity.starId, edit).toResponse()
+            updateLocation(locationId, identity.starId, edit).toOutcome()
         }
 
         getApi(Api.Locations.ReadUpdaterContent) {
             val slug = it.data
-            readLocationUpdaterContent(slug).toResponse()
+            readLocationUpdaterContent(slug).toOutcome()
         }
     }
 }
