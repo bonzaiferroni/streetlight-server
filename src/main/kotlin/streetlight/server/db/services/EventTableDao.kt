@@ -50,9 +50,9 @@ class EventTableDao: DbService() {
         val eventId = EventId.random()
         val title = edit.title ?: error("title not found")
         val slug = EventTable.nextSlugOf(title)
-        val event = edit.toEvent(eventId)
+        val event = edit.toEvent(eventId, imageSet)
         EventTable.insert {
-            it.createRecord(event, callerId, SlugRecord(slug), imageSet)
+            it.createRecord(event, callerId, SlugRecord(slug))
         }
         readEvent(eventId, callerId)
     }
@@ -65,9 +65,9 @@ class EventTableDao: DbService() {
     ) = dbQuery {
         val title = edit.title ?: error("title not found")
         val slugSync = EventTable.getSlugRecord(eventId, title)
-        val event = edit.toEvent(eventId)
+        val event = edit.toEvent(eventId, imageSet)
         EventTable.update({ EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId)}) {
-            it.updateRecord(event, slugSync, imageSet)
+            it.updateRecord(event, slugSync)
         }
         readEvent(eventId, callerId)
     }
@@ -133,7 +133,7 @@ class EventTableDao: DbService() {
     }
 }
 
-private fun EventEdit.toEvent(eventId: EventId) = Event(
+private fun EventEdit.toEvent(eventId: EventId, imageSet: SavedImageSet?) = Event(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
@@ -148,8 +148,8 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     visibility = null,
     links = links,
     website = website,
-    imageRef = imageRef,
-    images = null,
+    imageRef = imageSet?.imageRef,
+    images = imageSet?.array,
     streamUrl = null,
     isLit = false, // set with join
     timeZoneId = timeZoneId ?: error("no time zone"),

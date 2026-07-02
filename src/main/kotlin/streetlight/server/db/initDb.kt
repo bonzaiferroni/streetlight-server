@@ -4,8 +4,6 @@ import kabinet.utils.Environment
 import klutch.db.createCounterTrigger
 import klutch.db.createSyncValueTrigger
 import klutch.db.services.initUsers
-import klutch.db.tables.RefreshTokenTable
-import klutch.environment.readEnvFromPath
 import klutch.server.provide
 import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
@@ -67,7 +65,7 @@ private val dbTables = listOf(
     PostStarTable,
     CommentTable,
     CommentStarTable,
-    PostCommentTable,
+    MediumCommentTable,
     EventStarTable,
     LocationStarTable,
     CityTable,
@@ -76,6 +74,7 @@ private val dbTables = listOf(
     OmniTable,
     EditLogTable,
     TaskTable,
+    MediumTable,
     QuorumTable,
     PolicyTable,
     FlagTable,
@@ -107,6 +106,7 @@ val syncValueTriggers get() = listOf(
     locationHostTrigger,
     locationScoutTrigger,
     editUsernameTrigger,
+    mediumUsernameTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

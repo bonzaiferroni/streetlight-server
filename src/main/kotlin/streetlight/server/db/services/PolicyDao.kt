@@ -7,12 +7,12 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.model.data.Policy
 import streetlight.server.db.tables.PolicyTable
 import streetlight.server.db.tables.toPolicy
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 
 class PolicyDao: DbService() {
     suspend fun create(policy: Policy) = dbQuery {
         PolicyTable.insert {
-            it.writeFull(policy)
+            it.createRecord(policy)
         }
     }
 

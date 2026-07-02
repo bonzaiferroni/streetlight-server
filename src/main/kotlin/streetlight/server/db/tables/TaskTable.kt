@@ -23,7 +23,7 @@ object TaskTable : UuidTable("task") {
     val createdAt = timestamp("created_at")
 }
 
-fun UpdateBuilder<*>.writeFull(task: BaseTask) {
+fun UpdateBuilder<*>.createRecord(task: BaseTask) {
     this[TaskTable.id] = task.taskId.value
     this[TaskTable.recordId] = task.recordId
     this[TaskTable.recordType] = task.recordType

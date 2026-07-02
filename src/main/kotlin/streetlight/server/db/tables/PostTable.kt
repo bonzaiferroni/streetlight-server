@@ -1,20 +1,8 @@
 package streetlight.server.db.tables
 
 import kampfire.api.Markdown
-import kampfire.api.Slug
-import kampfire.api.toSlug
-import kampfire.model.GeoPoint
-import kampfire.model.ImageSize
-import kampfire.model.ScaledImageArray
-import kampfire.model.Url
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
-import klutch.db.point
-import klutch.db.scaledImages
-import klutch.db.tables.SlugTable
-import klutch.db.url
-import klutch.utils.toGeoPoint
-import klutch.utils.toPGpoint
 import klutch.utils.transformMarkdown
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -22,35 +10,28 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
-import streetlight.model.data.ExtraLink
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
+import streetlight.model.data.MediumId
 import streetlight.model.data.PostId
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import kotlin.time.Instant
 
-object PostTable : UuidTable("post"), SlugTable {
+object PostTable : UuidTable("post") {
     val galaxyId = reference("galaxy_id", GalaxyTable.id, onDelete = ReferenceOption.CASCADE).index()
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
-    override val slug = text("slug").uniqueIndex()
-    override val pastSlug = text("past_slug").uniqueIndex().nullable()
+    val mediumId = reference("medium_id", MediumTable.id, ReferenceOption.CASCADE).index().nullable()
     val title = text("title").nullable().index()
-    val subtitle = text("subtitle").nullable()
     val username = text("username").nullable()
     val text = text("text").transformMarkdown().nullable()
-    val geoPoint = point("geo_point").nullable()
     val postType = enumeration<PostType>("post_type")
     val status = enumeration<FeedStatus>("status").default(FeedStatus.Live) // td: remove default value
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("images").nullable()
-    val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val updatedAt = timestamp("updated_at").index()
     val createdAt = timestamp("created_at").index()
 
@@ -58,16 +39,6 @@ object PostTable : UuidTable("post"), SlugTable {
     val galaxySlug = text("galaxy_slug").nullable()
     val galaxyName = text("galaxy_name").nullable()
     val starCount = integer("star_count").default(0).index()
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
-        ImageSize.Large,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
-    )
 }
 
 val postStarCountTrigger = CounterTrigger(PostTable, PostStarTable, PostStarTable.postId, PostTable.starCount)
@@ -76,27 +47,23 @@ val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.loc
 val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
 val postGalaxySlugTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
-fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus) {
     this[PostTable.id] = post.postId.value
     this[PostTable.galaxyId] = post.galaxyId.value
     this[PostTable.starId] = post.starId?.value
     this[PostTable.eventId] = post.eventId?.value
     this[PostTable.locationId] = post.locationId?.value
+    this[PostTable.mediumId] = post.mediumId?.value
     this[PostTable.postType] = post.postType
     this[PostTable.status] = status // initial status
     this[PostTable.createdAt] = post.createdAt
-    updateRecord(post, imageSet)
+    updateRecord(post)
 }
 
-fun UpdateBuilder<*>.updateRecord(post: PostRecord, imageSet: SavedImageSet?) {
-    this[PostTable.slug] = post.slug.value
-    this[PostTable.pastSlug] = post.pastSlug?.value
+fun UpdateBuilder<*>.updateRecord(post: PostRecord) {
     this[PostTable.title] = post.title
-    this[PostTable.subtitle] = post.subtitle
     this[PostTable.text] = post.text
-    this[PostTable.geoPoint] = post.geoPoint?.toPGpoint()
     this[PostTable.updatedAt] = post.updatedAt
-    writeImages(PostTable.imageConfig, imageSet)
 }
 
 fun ResultRow.toPostRecord() = PostRecord(
@@ -105,15 +72,10 @@ fun ResultRow.toPostRecord() = PostRecord(
     starId = this[PostTable.starId]?.toRecordId(),
     eventId = this[PostTable.eventId]?.toRecordId(),
     locationId = this[PostTable.locationId]?.toRecordId(),
-    slug = this[PostTable.slug].toSlug(),
-    pastSlug = this[PostTable.pastSlug]?.toSlug(),
+    mediumId = this[PostTable.mediumId]?.toRecordId(),
     title = this[PostTable.title],
-    subtitle = this[PostTable.subtitle],
     text = this[PostTable.text],
-    geoPoint = this[PostTable.geoPoint]?.toGeoPoint(),
     lightCount = this[PostTable.starCount],
-    imageRef = this[PostTable.imageRef],
-    images = this[PostTable.images],
     postType = this[PostTable.postType],
     updatedAt = this[PostTable.updatedAt],
     createdAt = this[PostTable.createdAt],
@@ -125,16 +87,11 @@ data class PostRecord(
     val galaxyId: GalaxyId,
     val eventId: EventId?,
     val locationId: LocationId?,
+    val mediumId: MediumId?,
     val starId: StarId?,
-    val slug: Slug,
-    val pastSlug: Slug?,
     val title: String?,
-    val subtitle: String?,
     val text: Markdown?,
-    val geoPoint: GeoPoint?,
     val lightCount: Int,
-    val imageRef: Url?,
-    val images: ScaledImageArray?,
     val postType: PostType,
     val updatedAt: Instant,
     val createdAt: Instant,

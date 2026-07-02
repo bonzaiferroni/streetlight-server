@@ -28,7 +28,7 @@ fun ResultRow.toQuorum() = Quorum(
     createdAt = this[QuorumTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(quorum: Quorum) {
+fun UpdateBuilder<*>.createRecord(quorum: Quorum) {
     this[QuorumTable.id] = quorum.quorumId.value
     this[QuorumTable.createdAt] = quorum.createdAt
     writeUpdate(quorum)

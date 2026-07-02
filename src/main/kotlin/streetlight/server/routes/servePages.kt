@@ -3,7 +3,6 @@ package streetlight.server.routes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
-import kabinet.console.globalConsole
 import kampfire.api.toSlug
 import kampfire.api.toUsername
 import klutch.server.authGate
@@ -13,7 +12,6 @@ import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
-import streetlight.model.data.BasicPost
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.StarId
 import streetlight.server.model.*
@@ -49,7 +47,7 @@ fun ApiScope.servePages() {
             StreetlightScreen.Star -> renderStar(arg, caller?.starId)
             StreetlightScreen.Event -> renderEventProfile(arg, caller?.starId)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Post -> renderPost(arg, caller?.starId)
+            StreetlightScreen.Medium -> renderMedia(arg)
             else -> renderClientBase()
         }
     }
@@ -185,13 +183,13 @@ suspend fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiScope.renderPost(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val post = dao.post.readPost(slug, starId) as? BasicPost ?: return null
+    val post = dao.medium.readMedium(slug) ?: return null
 
     return HtmlRender {
-        appPage("${post.label} by ${post.username ?: "Someone"} | Streetlight", SiteStyles) {
-            postShell(post)
+        appPage("${post.title} by ${post.username} | Streetlight", SiteStyles) {
+            mediumShell(post)
         }
     }
 }

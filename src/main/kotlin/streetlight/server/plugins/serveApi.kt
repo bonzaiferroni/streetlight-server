@@ -32,6 +32,7 @@ fun Application.serveApi(server: ServerScope) {
             serveContent()
             serveCity()
             serveTasks()
+            serveMedium()
         }
     }
 }

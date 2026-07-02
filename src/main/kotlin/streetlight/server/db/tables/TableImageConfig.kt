@@ -40,6 +40,7 @@ fun <T: UuidTable> imageConfigOf(
     sizes = sizes.toList()
 )
 
+@Deprecated("assign in dao")
 fun UpdateBuilder<*>.writeImages(
     config: TableImageConfig,
     set: SavedImageSet?,

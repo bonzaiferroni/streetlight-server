@@ -49,12 +49,6 @@ fun ApiScope.serveGalaxies() {
             Ok(dao.post.readOrderedPosts(galaxyIds, identity?.starId))
         }
 
-        getApi(Api.Galaxies.ReadPostSlug, { it.toSlug() }) {
-            val slug = it.data
-            val identity = call.getIdentityOrNull()
-            dao.post.readPost(slug, identity?.starId).toOutcome()
-        }
-
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
             val postId = it.data
             val identity = call.getIdentityOrNull()
@@ -108,35 +102,12 @@ fun ApiScope.serveGalaxies() {
             }.toOutcome()
         }
 
-        postApi(Api.Galaxies.CreateEventPost) {
-            val request = it.data
-            val identity = call.getIdentity()
-            outcomeOf(dao.post.createPost(request, identity))
-        }
-
-        postApi(Api.Galaxies.CreatePost) {
-            val edit = it.data
-            val identity = call.getIdentity()
-
-            val imageSet = saveImages(identity.starId, null, edit.imageRef, PostTable.imageConfig)
-
-            outcomeOf(dao.post.createPost(edit, identity, imageSet))
-        }
-
         postApi(Api.Galaxies.EditPost) {
             val edit = it.data
             val identity = call.getIdentity()
             val postId = edit.postId ?: error("postId not found")
 
-            val imageSet = saveImages(identity.starId, postId, edit.imageRef, PostTable.imageConfig)
-
-            outcomeOf(dao.post.editPost(edit, identity, imageSet))
-        }
-
-        postApi(Api.Galaxies.CreateLocationPost) {
-            val request = it.data
-            val identity = call.getIdentity()
-            outcomeOf(dao.post.createPost(request, identity))
+            outcomeOf(dao.post.editPost(postId, edit, identity))
         }
 
         getApi(Api.Galaxies.ReadLights) {

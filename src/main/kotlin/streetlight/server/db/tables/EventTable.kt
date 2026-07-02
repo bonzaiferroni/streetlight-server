@@ -61,16 +61,16 @@ val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStar
 val eventLocationSlugTrigger = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
 val eventUsernameTrigger = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord) {
     this[EventTable.id] = event.eventId.value
     this[EventTable.scoutId] = starId.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.createdAt] = event.createdAt
-    updateRecord(event, slugRecord, imageSet)
+    updateRecord(event, slugRecord)
 }
 
-fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord) {
     this[EventTable.slug] = slugRecord.slug.value
     this[EventTable.pastSlug] = slugRecord.pastSlug?.value
     this[EventTable.website] = event.website
@@ -83,9 +83,11 @@ fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord, imageSet
     this[EventTable.cost] = event.cost
     this[EventTable.visibility] = event.visibility
     this[EventTable.links] = event.links
+    this[EventTable.imageRef] = event.imageRef
+    this[EventTable.images] = event.images
     this[EventTable.timeZoneId] = event.timeZone.id
     this[EventTable.startsAt] = event.startsAt
     this[EventTable.endsAt] = event.endsAt
     this[EventTable.updatedAt] = event.updatedAt
-    writeImages(EventTable.imageConfig, imageSet)
+    // writeImages(EventTable.imageConfig, imageSet)
 }

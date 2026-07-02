@@ -1,8 +1,6 @@
 package streetlight.server.db.services
 
 import klutch.db.DbService
-import klutch.db.analyze
-import klutch.db.explainAnalyze
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -23,12 +21,12 @@ import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.QuorumTable
 import streetlight.server.db.tables.TaskTable
 import streetlight.server.db.tables.toQuorum
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createRecord
 
 class TaskTableDao(): DbService() {
     suspend fun create(task: BaseTask) = dbQuery {
         TaskTable.insert {
-            it.writeFull(task)
+            it.createRecord(task)
         }
     }
 

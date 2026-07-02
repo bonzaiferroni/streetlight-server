@@ -32,7 +32,7 @@ fun ResultRow.toPolicy() = Policy(
     createdAt = this[PolicyTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(policy: Policy) {
+fun UpdateBuilder<*>.createRecord(policy: Policy) {
     this[PolicyTable.id] = policy.policyId.value
     this[PolicyTable.createdAt] = policy.createdAt
     this[PolicyTable.isDefault] = policy.isDefault

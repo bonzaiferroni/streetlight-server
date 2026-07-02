@@ -28,7 +28,7 @@ fun ResultRow.toFlag() = Flag(
     createdAt = this[FlagTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(flag: Flag) {
+fun UpdateBuilder<*>.createRecord(flag: Flag) {
     this[FlagTable.id] = flag.flagId.value
     this[FlagTable.createdAt] = flag.createdAt
     writeUpdate(flag)

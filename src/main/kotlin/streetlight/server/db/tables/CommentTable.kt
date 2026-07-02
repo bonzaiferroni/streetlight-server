@@ -1,7 +1,6 @@
 package streetlight.server.db.tables
 
 import kampfire.api.Markdown
-import kampfire.api.toMarkdown
 import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -16,8 +15,8 @@ import streetlight.server.utils.toRecordIdOrNull
 import kotlin.time.Instant
 
 object CommentTable: UuidTable("comment") {
-    val parentId = reference("parent_id", CommentTable, onDelete = ReferenceOption.SET_NULL).index().nullable()
-    val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).nullable().index()
+    val parentId = reference("parent_id", CommentTable, ReferenceOption.SET_NULL).index().nullable()
+    val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).nullable().index()
     val text = text("text").transformMarkdown()
     val starCount = integer("star_count").default(0)
     val replyCount = integer("reply_count").default(0)
@@ -26,17 +25,17 @@ object CommentTable: UuidTable("comment") {
 }
 
 object GalaxyCommentTable: Table("galaxy_comment") {
-    val galaxyId = reference("galaxy_id", GalaxyTable, onDelete = ReferenceOption.CASCADE).index()
-    val commentId = reference("comment_id", CommentTable, onDelete = ReferenceOption.CASCADE).index()
+    val galaxyId = reference("galaxy_id", GalaxyTable, ReferenceOption.CASCADE).index()
+    val commentId = reference("comment_id", CommentTable, ReferenceOption.CASCADE).index()
 
     override val primaryKey = PrimaryKey(galaxyId, commentId)
 }
 
-object PostCommentTable: Table("post_comment") {
-    val postId = reference("post_id", PostTable, onDelete = ReferenceOption.CASCADE).index()
-    val commentId = reference("comment_id", CommentTable, onDelete = ReferenceOption.CASCADE).index()
+object MediumCommentTable: Table("medium_comment") {
+    val mediaId = reference("medium_id", MediumTable, ReferenceOption.CASCADE).index()
+    val commentId = reference("comment_id", CommentTable, ReferenceOption.CASCADE).index()
 
-    override val primaryKey = PrimaryKey(postId, commentId)
+    override val primaryKey = PrimaryKey(mediaId, commentId)
 }
 
 fun ResultRow.toCommentRow() = CommentRow(
