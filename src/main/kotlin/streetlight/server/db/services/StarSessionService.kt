@@ -6,12 +6,15 @@ import kampfire.api.Username
 import kampfire.api.toUsername
 import kampfire.model.HashedToken
 import kampfire.model.PrivateInfo
-import kampfire.model.SessionPrincipal
+import kampfire.model.Session
+import kampfire.model.SessionIdentity
+import kampfire.model.Token
 import kampfire.model.UserRecord
 import kampfire.model.UserSeed
 import klutch.db.DbService
 import klutch.db.readFirstOrNull
 import klutch.db.services.SessionService
+import klutch.server.hashToken
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -22,6 +25,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.StarId
 import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.SessionTable
@@ -32,28 +36,24 @@ import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class StarSessionService: DbService(), SessionService {
-    // suspend fun readToken(value: String): RefreshToken? = dbQuery {
-    //     table.select(table.columns)
-    //         .where { table.token eq value }
-    //         .firstOrNull()?.toSessionToken(table)
-    // }
-
     override suspend fun createSessionRecord(
         userId: TableId<Uuid>,
         token: HashedToken,
-        isTemp: Boolean,
-        ttl: Duration
+        ttl: Duration,
+        expiresAt: Instant,
     ) = dbQuery {
         SessionTable.insert {
             it[id] = Uuid.random()
             it[starId] = userId.value
-            it[tokenHash] = token.value
-            it[this.isTemp] = isTemp
+            it[tokenHash] = token.hash
+            it[ttlSeconds] = ttl.inWholeSeconds.toInt()
             it[createdAt] = Clock.System.now()
-            it[expiresAt] = Clock.System.now() + ttl
+            it[this.expiresAt] = expiresAt
         }
         true
     }
@@ -62,8 +62,9 @@ class StarSessionService: DbService(), SessionService {
         SessionTable.deleteWhere { SessionTable.starId.eq(userId) }
     }
 
-    override suspend fun deleteSession(token: HashedToken) = dbQuery {
-        SessionTable.deleteWhere { SessionTable.tokenHash.eq(token.value) }
+    override suspend fun deleteSession(token: Token) = dbQuery {
+        val hashedToken = hashToken(token)
+        SessionTable.deleteWhere { SessionTable.tokenHash.eq(hashedToken.hash) }
     }
 
     override suspend fun createUserRecord(seed: UserSeed) = dbQuery {
@@ -111,21 +112,36 @@ class StarSessionService: DbService(), SessionService {
 
     override suspend fun generateUsername() = "${getAdjective()}${getNoun()}".toUsername()
 
-    override suspend fun readSessionPrincipal(token: HashedToken) = dbQuery {
-        SessionTable.leftJoin(StarTable).select(identityColumns).where {
-            SessionTable.tokenHash.eq(token.value) and SessionTable.expiresAt.greater(Clock.System.now())
+    override suspend fun readSessionIdentity(token: Token) = dbQuery {
+        val hashedToken = hashToken(token)
+        SessionTable.innerJoin(StarTable).select(identityColumns).where {
+            SessionTable.tokenHash.eq(hashedToken.hash) and SessionTable.expiresAt.greater(Clock.System.now())
         }.firstOrNull()?.let {
-            SessionPrincipal(
+            SessionIdentity(
+                Session(
+                    token = token,
+                    ttlSeconds = it[SessionTable.ttlSeconds],
+                    expiresAt = it[SessionTable.expiresAt],
+                ),
                 StarIdentity(
                     starId = StarId(it[StarTable.id].value),
                     roles = it[StarTable.roles],
                     username = it[StarTable.username].toUsername(),
-                    token = token,
                 ),
-                createdAt = it[SessionTable.createdAt],
-                expiresAt = it[SessionTable.expiresAt],
             )
         }
+    }
+
+    override suspend fun extendSession(session: Session) = dbQuery {
+        val hashedToken = hashToken(session.token)
+        val expiresAt = Clock.System.now() + session.ttlSeconds.seconds
+        val updated = SessionTable.update({
+            SessionTable.tokenHash.eq(hashedToken.hash)
+        }) {
+            it[SessionTable.expiresAt] = expiresAt
+        }
+        if (updated == 0) throw IllegalStateException("Session not found")
+        Session(session.token, session.ttlSeconds, expiresAt)
     }
 
     private fun getAdjective() = "TheWhole"
@@ -133,8 +149,7 @@ class StarSessionService: DbService(), SessionService {
 }
 
 private val identityColumns = listOf(
-    SessionTable.tokenHash,
-    SessionTable.createdAt,
+    SessionTable.ttlSeconds,
     SessionTable.expiresAt,
     StarTable.username,
     StarTable.id,
