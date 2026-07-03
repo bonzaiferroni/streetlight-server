@@ -14,7 +14,7 @@ fun ApiScope.serveSiteDocs() {
         SiteDocTree.nodes[docId].toOutcome()
     }
 
-    getApi(Api.SiteDocTable) {
+    getApi(Api.DocsTable) {
         SiteDocTable.toOutcome()
     }
 }
