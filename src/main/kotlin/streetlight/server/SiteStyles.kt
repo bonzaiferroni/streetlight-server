@@ -13,6 +13,7 @@ import streetlight.web.layouts.LightControlCss
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
+import streetlight.web.ui.NavMenuCss
 import streetlight.web.ui.StarLightCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
@@ -75,6 +76,7 @@ private val KtStyles = listOf(
     GridColumnsCss,
     SwapCss,
     TextUtilitySheet,
+    NavMenuCss,
 
     // web module
     StreetlightCss,
