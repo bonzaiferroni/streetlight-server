@@ -47,7 +47,7 @@ fun ApiScope.servePages() {
             StreetlightScreen.Star -> renderStar(arg, caller?.starId)
             StreetlightScreen.Event -> renderEventProfile(arg, caller?.starId)
             StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Medium -> renderMedia(arg)
+            StreetlightScreen.Media -> renderMedia(arg)
             else -> renderClientBase()
         }
     }
@@ -185,11 +185,11 @@ suspend fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
 
 suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val post = dao.medium.readMedium(slug) ?: return null
+    val post = dao.media.readMedia(slug) ?: return null
 
     return HtmlRender {
         appPage("${post.title} by ${post.username} | Streetlight", SiteStyles) {
-            mediumShell(post)
+            mediaShell(post)
         }
     }
 }

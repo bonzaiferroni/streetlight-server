@@ -65,7 +65,7 @@ private val dbTables = listOf(
     PostStarTable,
     CommentTable,
     CommentStarTable,
-    MediumCommentTable,
+    MediaCommentTable,
     EventStarTable,
     LocationStarTable,
     CityTable,
@@ -74,7 +74,7 @@ private val dbTables = listOf(
     OmniTable,
     EditLogTable,
     TaskTable,
-    MediumTable,
+    MediaTable,
     QuorumTable,
     PolicyTable,
     FlagTable,
@@ -106,7 +106,7 @@ val syncValueTriggers get() = listOf(
     locationHostTrigger,
     locationScoutTrigger,
     editUsernameTrigger,
-    mediumUsernameTrigger,
+    mediaUsernameTrigger,
 )
 
 fun connectDb(env: Environment) = Database.connect(

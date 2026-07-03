@@ -7,36 +7,36 @@ import klutch.db.read
 import klutch.db.tables.nextSlugOf
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.jdbc.insert
-import streetlight.model.data.Medium
-import streetlight.model.data.MediumEdit
-import streetlight.model.data.MediumId
+import streetlight.model.data.Media
+import streetlight.model.data.MediaEdit
+import streetlight.model.data.MediaId
 import streetlight.model.data.MediaType
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.MediumTable
+import streetlight.server.db.tables.MediaTable
 import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.toMedium
+import streetlight.server.db.tables.toMedia
 import kotlin.time.Clock
 
-class MediumTableDao: DbService() {
+class MediaTableDao: DbService() {
 
-    suspend fun createMedium(edit: MediumEdit, callerId: StarId, images: SavedImageSet?) = dbQuery {
-        val mediumId = MediumId.random()
-        val slug = MediumTable.nextSlugOf(edit.title ?: mediumId.value.toString())
-        val media = edit.toMedium(mediumId, slug, images)
-        MediumTable.insert {
+    suspend fun createMedia(edit: MediaEdit, callerId: StarId, images: SavedImageSet?) = dbQuery {
+        val mediaId = MediaId.random()
+        val slug = MediaTable.nextSlugOf(edit.title ?: mediaId.value.toString())
+        val media = edit.toMedia(mediaId, slug, images)
+        MediaTable.insert {
             it.createRecord(media, callerId)
         }
         slug
     }
 
-    suspend fun readMedium(slug: Slug) = dbQuery {
-        MediumTable.read { it.slug.eq(slug) }.firstOrNull()?.toMedium()
+    suspend fun readMedia(slug: Slug) = dbQuery {
+        MediaTable.read { it.slug.eq(slug) }.firstOrNull()?.toMedia()
     }
 }
 
-private fun MediumEdit.toMedium(mediumId: MediumId, slug: Slug, images: SavedImageSet?) = Medium(
-    mediumId = mediumId,
+private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug, images: SavedImageSet?) = Media(
+    mediaId = mediaId,
     slug = slug,
     username = Username.Empty, // set with join
     mediaType = MediaType.Text,

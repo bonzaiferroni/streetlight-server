@@ -14,7 +14,7 @@ import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LocationId
-import streetlight.model.data.MediumId
+import streetlight.model.data.MediaId
 import streetlight.model.data.PostId
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
@@ -26,7 +26,7 @@ object PostTable : UuidTable("post") {
     val starId = reference("user_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).index().nullable()
     val eventId = reference("event_id", EventTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
     val locationId = reference("location_id", LocationTable.id, onDelete = ReferenceOption.CASCADE).index().nullable()
-    val mediumId = reference("medium_id", MediumTable.id, ReferenceOption.CASCADE).index().nullable()
+    val mediaId = reference("media_id", MediaTable.id, ReferenceOption.CASCADE).index().nullable()
     val title = text("title").nullable().index()
     val username = text("username").nullable()
     val text = text("text").transformMarkdown().nullable()
@@ -53,7 +53,7 @@ fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus) {
     this[PostTable.starId] = post.starId?.value
     this[PostTable.eventId] = post.eventId?.value
     this[PostTable.locationId] = post.locationId?.value
-    this[PostTable.mediumId] = post.mediumId?.value
+    this[PostTable.mediaId] = post.mediaId?.value
     this[PostTable.postType] = post.postType
     this[PostTable.status] = status // initial status
     this[PostTable.createdAt] = post.createdAt
@@ -72,7 +72,7 @@ fun ResultRow.toPostRecord() = PostRecord(
     starId = this[PostTable.starId]?.toRecordId(),
     eventId = this[PostTable.eventId]?.toRecordId(),
     locationId = this[PostTable.locationId]?.toRecordId(),
-    mediumId = this[PostTable.mediumId]?.toRecordId(),
+    mediaId = this[PostTable.mediaId]?.toRecordId(),
     title = this[PostTable.title],
     text = this[PostTable.text],
     lightCount = this[PostTable.starCount],
@@ -87,7 +87,7 @@ data class PostRecord(
     val galaxyId: GalaxyId,
     val eventId: EventId?,
     val locationId: LocationId?,
-    val mediumId: MediumId?,
+    val mediaId: MediaId?,
     val starId: StarId?,
     val title: String?,
     val text: Markdown?,

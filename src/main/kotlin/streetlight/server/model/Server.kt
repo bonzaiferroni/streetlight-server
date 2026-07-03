@@ -40,7 +40,7 @@ class DaoFacade(
     val editLog: EditLogTableDao = EditLogTableDao(),
     val quorum: QuorumTableDao = QuorumTableDao(),
     val review: TaskTableDao = TaskTableDao(),
-    val medium: MediumTableDao = MediumTableDao(),
+    val media: MediaTableDao = MediaTableDao(),
 )
 
 class ClientFacade(

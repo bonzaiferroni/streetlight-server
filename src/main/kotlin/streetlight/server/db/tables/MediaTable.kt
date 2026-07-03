@@ -16,12 +16,12 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import streetlight.model.data.Medium
+import streetlight.model.data.Media
 import streetlight.model.data.MediaType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-object MediumTable: UuidTable("medium"), SlugTable {
+object MediaTable: UuidTable("media"), SlugTable {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     override val slug = text("slug").index()
     val username = text("username").transform({ it.toUsername() }, { it.value }) .index()
@@ -47,42 +47,42 @@ object MediumTable: UuidTable("medium"), SlugTable {
     )
 }
 
-val mediumUsernameTrigger = SyncValueTrigger(MediumTable.starId, MediumTable.username, StarTable, StarTable.username)
+val mediaUsernameTrigger = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)
 
-fun ResultRow.toMedium() = Medium(
-    mediumId = toRecordId(MediumTable.id),
-    slug = this[MediumTable.slug].toSlug(),
-    username = this[MediumTable.username],
-    mediaType = this[MediumTable.mediaType],
-    title = this[MediumTable.title],
-    subtitle = this[MediumTable.subtitle],
-    text = this[MediumTable.text],
-    link = this[MediumTable.link],
-    geoPoint = this[MediumTable.geoPoint]?.toGeoPoint(),
-    imageRef = this[MediumTable.imageRef],
-    images = this[MediumTable.images],
-    updatedAt = this[MediumTable.updatedAt],
-    createdAt = this[MediumTable.createdAt],
+fun ResultRow.toMedia() = Media(
+    mediaId = toRecordId(MediaTable.id),
+    slug = this[MediaTable.slug].toSlug(),
+    username = this[MediaTable.username],
+    mediaType = this[MediaTable.mediaType],
+    title = this[MediaTable.title],
+    subtitle = this[MediaTable.subtitle],
+    text = this[MediaTable.text],
+    link = this[MediaTable.link],
+    geoPoint = this[MediaTable.geoPoint]?.toGeoPoint(),
+    imageRef = this[MediaTable.imageRef],
+    images = this[MediaTable.images],
+    updatedAt = this[MediaTable.updatedAt],
+    createdAt = this[MediaTable.createdAt],
 )
 
-fun UpdateBuilder<*>.createRecord(medium: Medium, callerId: StarId) {
-    this[MediumTable.id] = medium.mediumId.value
-    this[MediumTable.starId] = callerId.value
-    this[MediumTable.mediaType] = medium.mediaType
-    this[MediumTable.createdAt] = medium.createdAt
-    writeUpdate(medium)
+fun UpdateBuilder<*>.createRecord(media: Media, callerId: StarId) {
+    this[MediaTable.id] = media.mediaId.value
+    this[MediaTable.starId] = callerId.value
+    this[MediaTable.mediaType] = media.mediaType
+    this[MediaTable.createdAt] = media.createdAt
+    writeUpdate(media)
 }
 
-fun UpdateBuilder<*>.writeUpdate(medium: Medium) {
-    this[MediumTable.slug] = medium.slug.value
-    this[MediumTable.title] = medium.title
-    this[MediumTable.subtitle] = medium.subtitle
-    this[MediumTable.username] = medium.username
-    this[MediumTable.text] = medium.text
-    this[MediumTable.link] = medium.link
-    this[MediumTable.geoPoint] = medium.geoPoint?.toPGpoint()
-    this[MediumTable.imageRef] = medium.imageRef
-    this[MediumTable.images] = medium.images
-    this[MediumTable.updatedAt] = medium.updatedAt
+fun UpdateBuilder<*>.writeUpdate(media: Media) {
+    this[MediaTable.slug] = media.slug.value
+    this[MediaTable.title] = media.title
+    this[MediaTable.subtitle] = media.subtitle
+    this[MediaTable.username] = media.username
+    this[MediaTable.text] = media.text
+    this[MediaTable.link] = media.link
+    this[MediaTable.geoPoint] = media.geoPoint?.toPGpoint()
+    this[MediaTable.imageRef] = media.imageRef
+    this[MediaTable.images] = media.images
+    this[MediaTable.updatedAt] = media.updatedAt
     // writeImages(MediaTable.imageConfig, imageSet)
 }

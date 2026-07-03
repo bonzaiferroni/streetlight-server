@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.core.or
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
-import streetlight.model.data.MediumId
+import streetlight.model.data.MediaId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostStarTable
@@ -168,7 +168,7 @@ fun PostEdit.toPostRecord(identity: StarIdentity?) = PostRecord(
     galaxyId = galaxyId,
     eventId = recordId.takeIf { postType == PostType.Event }?.let { EventId(recordId) },
     locationId = recordId.takeIf { postType == PostType.Location }?.let { LocationId(recordId) },
-    mediumId = recordId.takeIf { postType == PostType.Medium }?.let { MediumId(recordId) },
+    mediaId = recordId.takeIf { postType == PostType.Media }?.let { MediaId(recordId) },
     starId = identity?.starId,
     title = title,
     text = text,

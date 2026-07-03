@@ -5,7 +5,7 @@ import kampfire.api.toUsername
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.MediumPost
+import streetlight.model.data.MediaPost
 import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.Post
@@ -16,7 +16,7 @@ import streetlight.server.utils.toRecordId
 val PostColumns = listOf(
     PostTable.id,
     PostTable.galaxyId,
-    PostTable.mediumId,
+    PostTable.mediaId,
     PostTable.galaxySlug,
     PostTable.galaxyName,
     PostTable.postType,
@@ -29,12 +29,12 @@ val PostColumns = listOf(
     PostStarTable.starId
 )
 
-val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns + MediumColumns).distinct()
+val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns + MediaColumns).distinct()
 
 fun postQuery(starId: StarId?) = PostTable
     .leftJoin(EventTable)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
-    .leftJoin(MediumTable)
+    .leftJoin(MediaTable)
     .join(PostStarTable, JoinType.LEFT, PostTable.id, PostStarTable.postId,
         additionalConstraint = PostStarTable.getConstraint(starId))
     .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId,
@@ -52,8 +52,8 @@ fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {
         base = this.toPost(),
         location = this.toLocation(),
     )
-    PostType.Medium -> MediumPost(
-        medium = this.toMedium(),
+    PostType.Media -> MediaPost(
+        media = this.toMedia(),
         base = this.toPost()
     )
 }

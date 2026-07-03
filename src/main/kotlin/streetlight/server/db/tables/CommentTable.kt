@@ -31,8 +31,8 @@ object GalaxyCommentTable: Table("galaxy_comment") {
     override val primaryKey = PrimaryKey(galaxyId, commentId)
 }
 
-object MediumCommentTable: Table("medium_comment") {
-    val mediaId = reference("medium_id", MediumTable, ReferenceOption.CASCADE).index()
+object MediaCommentTable: Table("media_comment") {
+    val mediaId = reference("media_id", MediaTable, ReferenceOption.CASCADE).index()
     val commentId = reference("comment_id", CommentTable, ReferenceOption.CASCADE).index()
 
     override val primaryKey = PrimaryKey(mediaId, commentId)

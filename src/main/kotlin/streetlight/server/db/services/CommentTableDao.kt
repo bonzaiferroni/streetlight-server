@@ -28,7 +28,7 @@ import streetlight.model.data.UpdatedComment
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
-import streetlight.server.db.tables.MediumCommentTable
+import streetlight.server.db.tables.MediaCommentTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
@@ -73,9 +73,9 @@ class CommentTableDao : DbService() {
 
     suspend fun writePostComment(comment: NewComment, starId: StarId?) = dbQuery {
         val commentId = insertComment(comment, starId)
-        MediumCommentTable.insert {
-            it[MediumCommentTable.mediaId] = comment.postId.value
-            it[MediumCommentTable.commentId] = commentId.value
+        MediaCommentTable.insert {
+            it[MediaCommentTable.mediaId] = comment.postId.value
+            it[MediaCommentTable.commentId] = commentId.value
         }
         commentId
     }
@@ -109,7 +109,7 @@ class CommentTableDao : DbService() {
     }
 
     suspend fun readPostTalk(postId: PostId, limit: Int = 100) = dbQuery {
-        PostCommentQuery.where { MediumCommentTable.mediaId.eq(postId) }
+        PostCommentQuery.where { MediaCommentTable.mediaId.eq(postId) }
             .orderBy(CommentTable.createdAt, SortOrder.DESC)
             .limit(limit)
             .map { it.toComment() }
@@ -131,8 +131,8 @@ private val GalaxyCommentQuery get() = GalaxyCommentTable
     .join(CommentTable, JoinType.LEFT, GalaxyCommentTable.commentId, CommentTable.id)
     .toCommentQuery()
 
-private val PostCommentQuery get() = MediumCommentTable
-    .join(CommentTable, JoinType.LEFT, MediumCommentTable.commentId, CommentTable.id)
+private val PostCommentQuery get() = MediaCommentTable
+    .join(CommentTable, JoinType.LEFT, MediaCommentTable.commentId, CommentTable.id)
     .toCommentQuery()
 
 private val CommentQuery get() = CommentTable.join(StarTable, JoinType.LEFT, CommentTable.starId, StarTable.id)
