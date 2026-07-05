@@ -32,7 +32,7 @@ import streetlight.model.data.MediaId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostStarTable
-import streetlight.server.db.tables.postQuery
+import streetlight.server.db.tables.galaxyPostQuery
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
@@ -122,7 +122,7 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readPost(postId: PostId, callerId: StarId?) = dbQuery {
-        postQuery(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
+        galaxyPostQuery(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
     }
 
     suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
@@ -140,7 +140,7 @@ class PostTableDao : DbService() {
 
         val filter = getFilter(filterUpcomingEvents, filter)
 
-        postQuery(callerId)
+        galaxyPostQuery(callerId)
             .let {
                 when (filter) {
                     null -> it

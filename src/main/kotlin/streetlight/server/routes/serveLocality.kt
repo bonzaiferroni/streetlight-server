@@ -1,6 +1,9 @@
 package streetlight.server.routes
 
+import kampfire.api.Slug
 import kampfire.model.Ok
+import kampfire.model.toOutcome
+import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.getApi
 import klutch.server.readParam
@@ -11,9 +14,18 @@ import streetlight.model.data.CityId
 import streetlight.model.external.OSMCity
 import streetlight.server.external.OSMHttpClient
 import streetlight.server.model.ApiScope
+import streetlight.server.model.getIdentityOrNull
 
 fun ApiScope.serveCity() {
     val osm = provide<OSMHttpClient>()
+
+    getApi(Api.Cities.ReadTopCities) {
+        dao.city.readTopCities().toOutcome()
+    }
+
+    getApi(Api.Cities.ReadCity) {
+        dao.city.readCity(it.data).toOutcome()
+    }
 
     getApi(Api.Cities.Search) { endpoint ->
         val query = readParam(endpoint.query)
@@ -42,10 +54,19 @@ fun ApiScope.serveCity() {
 
         Ok(localities)
     }
+
+    authGate(optional = true) {
+        getApi(Api.Cities.ReadCityPosts) {
+            val identity = call.getIdentityOrNull()
+
+            dao.city.readCityPosts(it.data, identity?.starId).toOutcome()
+        }
+    }
 }
 
 fun OSMCity.toCity() = City(
     cityId = CityId.empty,
+    slug = Slug.Empty,
     name = name,
     state = state,
     country = country,

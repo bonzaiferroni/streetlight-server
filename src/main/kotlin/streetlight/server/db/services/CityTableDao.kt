@@ -1,6 +1,11 @@
 package streetlight.server.db.services
 
+import kampfire.api.Slug
+import kampfire.utils.pascalToSnakeCase
+import kampfire.utils.titleToKebabCase
 import klutch.db.DbService
+import klutch.db.tables.nextSlugOf
+import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -16,6 +21,7 @@ import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.data.Country
 import streetlight.model.data.CountryId
+import streetlight.model.data.StarId
 import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
@@ -28,6 +34,8 @@ import streetlight.server.db.tables.updateRecord
 class CityTableDao : DbService() {
 
     suspend fun createCity(city: City): CityId = dbQuery {
+        val slug = CityTable.nextSlugOf("${city.name} ${city.state}")
+        val city = city.copy(slug = slug)
         val countryId = CountryTable.select(CountryTable.id).where {
             CountryTable.name.eq(city.country)
         }.firstOrNull()?.let { it[CountryTable.id].value } ?: CountryTable.insertAndGetId {
@@ -78,7 +86,9 @@ class CityTableDao : DbService() {
         // 3. Cities
         CityTable.batchInsert(cities, ignore = true) {
             val stateId = stateIds.getValue(it.state to it.country)
-            this.createRecord(it, StateId(stateId))
+            val slug = CityTable.nextSlugOf("${it.name} ${it.state}")
+            val city = it.copy(slug = slug)
+            this.createRecord(city, StateId(stateId))
         }
 
         val cityNames = cities.map { it.name }.distinct()
@@ -88,7 +98,11 @@ class CityTableDao : DbService() {
     }
 
     suspend fun readCity(cityId: CityId) = dbQuery {
-        CityTable.selectAll().where { CityTable.id eq cityId.value }.firstOrNull()?.toCity()
+        CityTable.selectAll().where { CityTable.id.eq(cityId.value) }.firstOrNull()?.toCity()
+    }
+
+    suspend fun readCity(slug: Slug) = dbQuery {
+        CityTable.selectAll().where { CityTable.slug.eq(slug) }.firstOrNull()?.toCity()
     }
 
     suspend fun readCities() = dbQuery {
@@ -96,13 +110,13 @@ class CityTableDao : DbService() {
     }
 
     suspend fun update(city: City) = dbQuery {
-        CityTable.update({ CityTable.id eq city.cityId.value }) {
+        CityTable.update({ CityTable.id.eq(city.cityId.value)  }) {
             it.updateRecord(city)
         } > 0
     }
 
     suspend fun delete(cityId: CityId) = dbQuery {
-        CityTable.deleteWhere { CityTable.id eq cityId.value } > 0
+        CityTable.deleteWhere { CityTable.id.eq(cityId.value) } > 0
     }
 
 //    suspend fun readOrCreateCity(name: String) = dbQuery {
@@ -137,6 +151,12 @@ class CityTableDao : DbService() {
         CityTable.select(CityTable.id).where {
             CityTable.name.eq(city) and CityTable.state.eq(state)
         }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
+    }
+
+    suspend fun readCityPosts(slug: Slug, callerId: StarId?) = dbQuery {
+        cityPostQuery(callerId) {
+            CityTable.slug.eq(slug)
+        }
     }
 }
 

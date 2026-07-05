@@ -1,6 +1,7 @@
 package streetlight.server.model
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.Level
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.ProviderScope
@@ -29,7 +30,7 @@ interface DaoScope {
         block()
     }
 
-    fun log(message: String) = daoLogger.info { message }
+    fun log(message: String, level: Level = Level.INFO) = daoLogger.at(level) { this.message = message }
 }
 
 private val daoLogger = KotlinLogging.logger("dao")

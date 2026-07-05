@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import io.github.oshai.kotlinlogging.Level
 import streetlight.model.data.CityId
 import streetlight.server.external.OSMHttpClient
 import streetlight.server.model.DaoScope
@@ -16,8 +17,13 @@ suspend fun DataScope.readOrCreateCity(name: String?, state: String?): CityId? {
         return it
     }
 
-    val city = client.osm.readCity(name, state)?.toCity() ?: return null.also {
-        log("osm unable to find city: $name, $state")
+    val osmCity = client.osm.readCity(name, state) ?: return null.also {
+        log("osm unable to find city: $name, $state", Level.ERROR)
     }
+
+
+
+    // td: handle multiple name/state cities
+    val city = client.osm.readCity(name, state)?.toCity() ?: return null
     return dao.city.createCity(city)
 }

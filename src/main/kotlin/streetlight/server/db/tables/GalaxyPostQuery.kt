@@ -29,9 +29,9 @@ val PostColumns = listOf(
     PostStarTable.starId
 )
 
-val PostQueryColumns = (EventLocationColumns + LocationColumns + PostColumns + MediaColumns).distinct()
+val GalaxyPostColumns = (EventLocationColumns + LocationColumns + PostColumns + MediaColumns).distinct()
 
-fun postQuery(starId: StarId?) = PostTable
+fun galaxyPostQuery(starId: StarId?) = PostTable
     .leftJoin(EventTable)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
     .leftJoin(MediaTable)
@@ -41,7 +41,7 @@ fun postQuery(starId: StarId?) = PostTable
         additionalConstraint = EventStarTable.getConstraint(starId))
     .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
         additionalConstraint = LocationStarTable.getConstraint(starId))
-    .select(PostQueryColumns)
+    .select(GalaxyPostColumns)
 
 fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {
     PostType.Event -> EventPost(

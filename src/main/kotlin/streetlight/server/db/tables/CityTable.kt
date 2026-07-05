@@ -1,8 +1,10 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toSlug
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.point
+import klutch.db.tables.SlugTable
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
 import klutch.utils.toList
@@ -16,14 +18,15 @@ import streetlight.model.data.CityId
 import streetlight.model.data.StateId
 import kotlin.time.Clock
 
-object CityTable : IntIdTable("city") {
-    val stateId = reference("state_id", StateTable.id)
+object CityTable : IntIdTable("city"), SlugTable {
+    val stateId = reference("state_id", StateTable.id).index()
+    override val slug = text("slug").index()
     val name = text("name")
     val aliases = array<String>("aliases").default(emptyList())
     val galaxyCount = integer("galaxy_count").default(0)
     val state = text("state")
     val country = text("country")
-    val geoPoint = point("geo_point")
+    val geoPoint = point("geo_point") // index
     val geoBounds = array<Double>("geo_bounds")
     val mapRank = float("map_rank").nullable()
     val updatedAt = timestamp("updated_at")
@@ -40,6 +43,7 @@ val cityCountryTrigger = SyncValueTrigger(CityTable.stateId, CityTable.country, 
 
 fun ResultRow.toCity() = City(
     cityId = CityId(this[CityTable.id].value),
+    slug = this[CityTable.slug].toSlug(),
     name = this[CityTable.name],
     state = this[CityTable.state],
     country = this[CityTable.country],
@@ -51,6 +55,7 @@ fun ResultRow.toCity() = City(
 
 fun UpdateBuilder<*>.createRecord(city: City, stateId: StateId) {
     this[CityTable.stateId] = stateId.value
+    this[CityTable.slug] = city.slug.value
     this[CityTable.state] = city.state
     this[CityTable.country] = city.country
     this[CityTable.createdAt] = Clock.System.now()
