@@ -27,6 +27,66 @@ import streetlight.server.db.tables.updateRecord
 
 class CityTableDao : DbService() {
 
+    suspend fun createCity(city: City): CityId = dbQuery {
+        val countryId = CountryTable.select(CountryTable.id).where {
+            CountryTable.name.eq(city.country)
+        }.firstOrNull()?.let { it[CountryTable.id].value } ?: CountryTable.insertAndGetId {
+            val country = countryOf(city.country)
+            it.createRecord(country)
+        }.value
+
+        val stateId = StateTable.select(StateTable.id).where {
+            StateTable.name.eq(city.state) and StateTable.countryId.eq(countryId)
+        }.firstOrNull()?.let { it[StateTable.id].value } ?: StateTable.insertAndGetId {
+            val state = stateOf(city.state, city.country, CountryId(countryId))
+            it.createRecord(state)
+        }.value
+
+        val cityId = CityTable.select(CityTable.id).where {
+            CityTable.name.eq(city.name) and CityTable.stateId.eq(stateId)
+        }.firstOrNull()?.let { it[CityTable.id].value } ?: CityTable.insertAndGetId {
+            it.createRecord(city, StateId(stateId))
+        }.value
+
+        CityId(cityId)
+    }
+
+    suspend fun createCities(cities: List<City>) = dbQuery {
+        // 1. Countries
+        val uniqueCountries = cities.map { it.country }.distinct()
+        CountryTable.batchInsert(uniqueCountries, ignore = true) {
+            val country = countryOf(it)
+            this.createRecord(country)
+        }
+        val countryIds: Map<String, Int> = CountryTable
+            .selectAll()
+            .where { CountryTable.name.inList(uniqueCountries) }
+            .associate { it[CountryTable.name] to it[CountryTable.id].value }
+
+        // 2. States
+        val uniqueStates = cities.map { it.state to it.country }.distinct()
+        StateTable.batchInsert(uniqueStates, ignore = true) { (state, country) ->
+            val state = stateOf(state, country, CountryId(countryIds.getValue(country)))
+            this.createRecord(state)
+        }
+        val stateIds: Map<Pair<String, String>, Int> = StateTable
+            .innerJoin(CountryTable)
+            .select(StateTable.id, StateTable.name, CountryTable.name)
+            .where { CountryTable.name.inList(uniqueCountries) }
+            .associate { (it[StateTable.name] to it[CountryTable.name]) to it[StateTable.id].value }
+
+        // 3. Cities
+        CityTable.batchInsert(cities, ignore = true) {
+            val stateId = stateIds.getValue(it.state to it.country)
+            this.createRecord(it, StateId(stateId))
+        }
+
+        val cityNames = cities.map { it.name }.distinct()
+        CityTable.selectAll()
+            .where { CityTable.name.inList(cityNames) and CityTable.stateId.inList(stateIds.values) }
+            .map { it.toCity() }
+    }
+
     suspend fun readCity(cityId: CityId) = dbQuery {
         CityTable.selectAll().where { CityTable.id eq cityId.value }.firstOrNull()?.toCity()
     }
@@ -73,70 +133,10 @@ class CityTableDao : DbService() {
             .map { it.toCity() }
     }
 
-    suspend fun createCities(cities: List<City>) = dbQuery {
-        // 1. Countries
-        val uniqueCountries = cities.map { it.country }.distinct()
-        CountryTable.batchInsert(uniqueCountries, ignore = true) {
-            val country = countryOf(it)
-            this.createRecord(country)
-        }
-        val countryIds: Map<String, Int> = CountryTable
-            .selectAll()
-            .where { CountryTable.name.inList(uniqueCountries) }
-            .associate { it[CountryTable.name] to it[CountryTable.id].value }
-
-        // 2. States
-        val uniqueStates = cities.map { it.state to it.country }.distinct()
-        StateTable.batchInsert(uniqueStates, ignore = true) { (state, country) ->
-            val state = stateOf(state, country, CountryId(countryIds.getValue(country)))
-            this.createRecord(state)
-        }
-        val stateIds: Map<Pair<String, String>, Int> = StateTable
-            .innerJoin(CountryTable)
-            .select(StateTable.id, StateTable.name, CountryTable.name)
-            .where { CountryTable.name.inList(uniqueCountries) }
-            .associate { (it[StateTable.name] to it[CountryTable.name]) to it[StateTable.id].value }
-
-        // 3. Cities
-        CityTable.batchInsert(cities, ignore = true) {
-            val stateId = stateIds.getValue(it.state to it.country)
-            this.createRecord(it, StateId(stateId))
-        }
-
-        val cityNames = cities.map { it.name }.distinct()
-        CityTable.selectAll()
-            .where { CityTable.name.inList(cityNames) and CityTable.stateId.inList(stateIds.values) }
-            .map { it.toCity() }
-    }
-
     suspend fun readCityId(city: String, state: String) = dbQuery {
         CityTable.select(CityTable.id).where {
             CityTable.name.eq(city) and CityTable.state.eq(state)
         }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
-    }
-
-    suspend fun createCity(city: City): CityId = dbQuery {
-        val countryId = CountryTable.select(CountryTable.id).where {
-            CountryTable.name.eq(city.country)
-        }.firstOrNull()?.let { it[CountryTable.id].value } ?: CountryTable.insertAndGetId {
-            val country = countryOf(city.country)
-            it.createRecord(country)
-        }.value
-
-        val stateId = StateTable.select(StateTable.id).where {
-            StateTable.name.eq(city.state) and StateTable.countryId.eq(countryId)
-        }.firstOrNull()?.let { it[StateTable.id].value } ?: StateTable.insertAndGetId {
-            val state = stateOf(city.state, city.country, CountryId(countryId))
-            it.createRecord(state)
-        }.value
-
-        val cityId = CityTable.select(CityTable.id).where {
-            CityTable.name.eq(city.name) and CityTable.stateId.eq(stateId)
-        }.firstOrNull()?.let { it[CityTable.id].value } ?: CityTable.insertAndGetId {
-            it.createRecord(city, StateId(stateId))
-        }.value
-
-        CityId(cityId)
     }
 }
 
