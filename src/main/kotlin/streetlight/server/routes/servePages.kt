@@ -8,6 +8,7 @@ import kampfire.api.toUsername
 import klutch.server.authGate
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
+import koala.html.SegmentParse
 import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UuidParse
@@ -55,33 +56,37 @@ fun ApiScope.servePages() {
     authGate(optional = true) {
         StreetlightScreen.entries.forEach { screen ->
 
-            val path = when (val parse = screen.routeParse) {
-                is SlugParse -> "/${screen.pathRoot}/{${parse.label}?}"
-                is SlugOrNullParse -> "/${screen.pathRoot}/{${parse.label}?}"
-                is IdParse -> "/${screen.pathRoot}/{${parse.label}}"
-                is UuidParse -> "/${screen.pathRoot}/{${parse.label}}"
-                is StaticParse -> screen.pathRoot
+            val paths = when (val parse = screen.routeParse) {
+                is SlugParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
+                is SlugOrNullParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
+                is IdParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
+                is UuidParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
+                is StaticParse -> listOf("/${screen.pathRoot}")
+                is SegmentParse -> parse.roots.map { "/${screen.pathRoot}/$it/{id?}" }
             }
 
-            get(path) {
-                val identity = call.getIdentityOrNull()
-                val arg = when (val parse = screen.routeParse) {
-                    is SlugParse -> call.parameters[parse.label]
-                    is SlugOrNullParse -> call.parameters[parse.label]
-                    is IdParse -> call.parameters[parse.label]
-                    is UuidParse -> call.parameters[parse.label]
-                    is StaticParse -> null
-                }
-
-                when (val render = renderScreen(screen, arg, identity)) {
-                    null -> {
-                        call.respondHtml {
-                            // td: not found
-                        }
+            paths.forEach { path ->
+                get(path) {
+                    val identity = call.getIdentityOrNull()
+                    val arg = when (val parse = screen.routeParse) {
+                        is SlugParse -> call.parameters[parse.label]
+                        is SlugOrNullParse -> call.parameters[parse.label]
+                        is IdParse -> call.parameters[parse.label]
+                        is UuidParse -> call.parameters[parse.label]
+                        is StaticParse -> null
+                        else -> null
                     }
-                    else -> {
-                        call.respondHtml {
-                            render.block(this)
+
+                    when (val render = renderScreen(screen, arg, identity)) {
+                        null -> {
+                            call.respondHtml {
+                                // td: not found
+                            }
+                        }
+                        else -> {
+                            call.respondHtml {
+                                render.block(this)
+                            }
                         }
                     }
                 }
