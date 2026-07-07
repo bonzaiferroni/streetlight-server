@@ -41,6 +41,7 @@ class DaoFacade(
     val quorum: QuorumTableDao = QuorumTableDao(),
     val review: TaskTableDao = TaskTableDao(),
     val media: MediaTableDao = MediaTableDao(),
+    val feedback: FeedbackTableDao = FeedbackTableDao(),
 )
 
 class ClientFacade(

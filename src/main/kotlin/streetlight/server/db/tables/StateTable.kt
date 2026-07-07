@@ -22,7 +22,7 @@ object StateTable : IntIdTable("state") {
     }
 }
 
-val stateCountryTrigger = SyncValueTrigger(StateTable.countryId, StateTable.country, CountryTable, CountryTable.name)
+val stateCountrySync = SyncValueTrigger(StateTable.countryId, StateTable.country, CountryTable, CountryTable.name)
 
 fun ResultRow.toState() = State(
     stateId = StateId(this[StateTable.id].value),

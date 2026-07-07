@@ -13,7 +13,6 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.BusinessHours
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.HoursSchedule
 import streetlight.model.data.Location
@@ -60,10 +59,10 @@ object LocationTable: UuidTable("location"), SlugTable {
     )
 }
 
-val locationCityTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.city, CityTable, CityTable.name)
-val locationStateTrigger = SyncValueTrigger(LocationTable.cityId, LocationTable.state, CityTable, CityTable.state)
-val locationHostTrigger = SyncValueTrigger(LocationTable.hostId, LocationTable.host, StarTable, StarTable.username)
-val locationScoutTrigger = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
+val locationCitySync = SyncValueTrigger(LocationTable.cityId, LocationTable.city, CityTable, CityTable.name)
+val locationStateSync = SyncValueTrigger(LocationTable.cityId, LocationTable.state, CityTable, CityTable.state)
+val locationHostSync = SyncValueTrigger(LocationTable.hostId, LocationTable.host, StarTable, StarTable.username)
+val locationScoutSync = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
 
 // Updaters
 fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {

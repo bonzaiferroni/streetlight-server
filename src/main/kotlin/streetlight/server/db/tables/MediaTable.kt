@@ -47,7 +47,7 @@ object MediaTable: UuidTable("media"), SlugTable {
     )
 }
 
-val mediaUsernameTrigger = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)
+val mediaUsernameSync = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)
 
 fun ResultRow.toMedia() = Media(
     mediaId = toRecordId(MediaTable.id),

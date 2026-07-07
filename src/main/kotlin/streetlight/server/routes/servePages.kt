@@ -17,7 +17,7 @@ import streetlight.model.data.GalaxyContent
 import streetlight.model.data.StarId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
-import streetlight.web.StreetlightScreen
+import streetlight.web.Screen
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
 import streetlight.web.pages.*
@@ -39,22 +39,22 @@ fun ApiScope.servePages() {
 //        }
 //    }
 
-    suspend fun renderScreen(screen: StreetlightScreen, arg: String?, caller: StarIdentity?): HtmlRender? {
+    suspend fun renderScreen(screen: Screen, arg: String?, caller: StarIdentity?): HtmlRender? {
         return when (screen) {
-            StreetlightScreen.Home -> renderHome(caller?.starId)
-            StreetlightScreen.AboutApp -> renderAboutApp()
-            StreetlightScreen.Location -> renderLocation(arg, caller)
-            StreetlightScreen.Galaxy -> renderGalaxy(arg, caller?.starId)
-            StreetlightScreen.Star -> renderStar(arg, caller?.starId)
-            StreetlightScreen.Event -> renderEventProfile(arg, caller?.starId)
-            StreetlightScreen.Docs -> renderSiteDoc(arg)
-            StreetlightScreen.Media -> renderMedia(arg)
+            Screen.Home -> renderHome(caller?.starId)
+            Screen.AboutApp -> renderAboutApp()
+            Screen.Location -> renderLocation(arg, caller)
+            Screen.Galaxy -> renderGalaxy(arg, caller?.starId)
+            Screen.Star -> renderStar(arg, caller?.starId)
+            Screen.Event -> renderEventProfile(arg, caller?.starId)
+            Screen.Docs -> renderSiteDoc(arg)
+            Screen.Media -> renderMedia(arg)
             else -> renderClientBase()
         }
     }
 
     authGate(optional = true) {
-        StreetlightScreen.entries.forEach { screen ->
+        Screen.entries.forEach { screen ->
 
             val paths = when (val parse = screen.routeParse) {
                 is SlugParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")

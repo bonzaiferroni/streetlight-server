@@ -33,6 +33,7 @@ fun Application.serveApi(server: ServerScope) {
             serveCity()
             serveTasks()
             serveMedia()
+            serveFeedback()
         }
     }
 }

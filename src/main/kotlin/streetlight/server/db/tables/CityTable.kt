@@ -38,8 +38,8 @@ object CityTable : IntIdTable("city"), SlugTable {
 }
 
 val cityGalaxyTrigger = CounterTrigger(CityTable, GalaxyTable, GalaxyTable.cityId, CityTable.galaxyCount)
-val cityStateTrigger = SyncValueTrigger(CityTable.stateId, CityTable.state, StateTable, StateTable.name)
-val cityCountryTrigger = SyncValueTrigger(CityTable.stateId, CityTable.country, StateTable, StateTable.country)
+val cityStateSync = SyncValueTrigger(CityTable.stateId, CityTable.state, StateTable, StateTable.name)
+val cityCountrySync = SyncValueTrigger(CityTable.stateId, CityTable.country, StateTable, StateTable.country)
 
 fun ResultRow.toCity() = City(
     cityId = CityId(this[CityTable.id].value),

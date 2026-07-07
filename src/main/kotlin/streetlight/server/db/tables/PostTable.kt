@@ -42,10 +42,10 @@ object PostTable : UuidTable("post") {
 }
 
 val postStarCountTrigger = CounterTrigger(PostTable, PostStarTable, PostStarTable.postId, PostTable.starCount)
-val postUsernameTrigger = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
-val postEventLocationTrigger = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
-val postGalaxyNameTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
-val postGalaxySlugTrigger = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
+val postUsernameSync = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
+val postEventLocationSync = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
+val postGalaxyNameSync = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
+val postGalaxySlugSync = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
 fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus) {
     this[PostTable.id] = post.postId.value

@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import kampfire.api.toMarkdown
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
@@ -58,8 +57,8 @@ object EventTable : UuidTable("event"), SlugTable {
 }
 
 val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStarTable.eventId, EventTable.starCount)
-val eventLocationSlugTrigger = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
-val eventUsernameTrigger = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
+val eventLocationSlugSync = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
+val eventUsernameSync = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
 
 fun UpdateBuilder<*>.createRecord(event: Event, starId: StarId, slugRecord: SlugRecord) {
     this[EventTable.id] = event.eventId.value

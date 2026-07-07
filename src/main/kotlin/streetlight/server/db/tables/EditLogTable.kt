@@ -25,7 +25,7 @@ object EditLogTable: UuidTable("edit_log") {
     val createdAt = timestamp("created_at")
 }
 
-val editUsernameTrigger = SyncValueTrigger(EditLogTable.starId, EditLogTable.username, StarTable, StarTable.username)
+val editUsernameSync = SyncValueTrigger(EditLogTable.starId, EditLogTable.username, StarTable, StarTable.username)
 
 fun UpdateBuilder<*>.createRecord(editLog: EditLog, callerId: StarId) {
     this[EditLogTable.id] = editLog.editLogId.value
