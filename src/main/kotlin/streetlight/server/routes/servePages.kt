@@ -6,6 +6,7 @@ import io.ktor.server.routing.get
 import kampfire.api.toSlug
 import kampfire.api.toUsername
 import klutch.server.authGate
+import koala.html.AppScreen
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
 import koala.html.SegmentParse
@@ -49,7 +50,7 @@ fun ApiScope.servePages() {
             Screen.Event -> renderEventProfile(arg, caller?.starId)
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
-            else -> renderClientBase()
+            else -> renderClientBase(screen)
         }
     }
 
@@ -147,7 +148,7 @@ suspend fun ApiScope.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender? 
     )
 
     return HtmlRender {
-        galaxyProfilePage(content, SiteStyles)
+        galaxyPage(content, SiteStyles)
     }
 }
 
@@ -171,7 +172,7 @@ suspend fun ApiScope.renderEventProfile(arg: String?, starId: StarId?): HtmlRend
     val event = dao.event.readEventLocationBySlug(slug, starId) ?: return null
 
     return HtmlRender {
-        appPage("${event.title} | Streetlight", SiteStyles) {
+        appPage("${event.title} | Streetlight", SiteStyles, Screen.Event) {
             eventShell(event)
         }
     }
@@ -182,7 +183,7 @@ suspend fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
     val node = SiteDocTree.nodes[docId] ?: return null
 
     return HtmlRender {
-        appPage("${node.doc.title} | Streetlight", SiteStyles) {
+        appPage("${node.doc.title} | Streetlight", SiteStyles, Screen.Docs) {
             siteDocShell(node, SiteDocTable)
         }
     }
@@ -193,14 +194,15 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     val post = dao.media.readMedia(slug) ?: return null
 
     return HtmlRender {
-        appPage("${post.title} by ${post.username} | Streetlight", SiteStyles) {
+        appPage("${post.title} by ${post.username} | Streetlight", SiteStyles, Screen.Media) {
             mediaShell(post)
         }
     }
 }
 
-suspend fun ApiScope.renderClientBase(): HtmlRender {
+suspend fun ApiScope.renderClientBase(screen: AppScreen): HtmlRender {
     return HtmlRender {
-        appPage("Streetlight", SiteStyles) { }
+        // td: add loading message
+        appPage("Streetlight", SiteStyles, screen) { }
     }
 }
