@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -8,9 +9,10 @@ import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.MetricResolution
 import streetlight.model.data.SiteMetric
 import streetlight.model.data.SiteStatus
+import streetlight.model.data.SiteStatusId
 import streetlight.server.utils.toRecordId
 
-object SiteStatusTable : UuidTable("site_status") {
+object SiteStatusTable : LongIdTable("site_status") {
     val integers = jsonb<Map<SiteMetric, Int>>("integers", tableJsonDefault)
     val doubles = jsonb<Map<SiteMetric, Double>>("doubles", tableJsonDefault)
     val resolution = enumeration<MetricResolution>("resolution")
@@ -21,7 +23,7 @@ object SiteStatusTable : UuidTable("site_status") {
 }
 
 fun ResultRow.toSiteStatus() = SiteStatus(
-    siteStatusId = toRecordId(SiteStatusTable.id),
+    siteStatusId = SiteStatusId(this[SiteStatusTable.id].value),
     integers = this[SiteStatusTable.integers],
     doubles = this[SiteStatusTable.doubles],
     resolution = this[SiteStatusTable.resolution],
@@ -32,7 +34,6 @@ fun ResultRow.toSiteStatus() = SiteStatus(
 )
 
 fun UpdateBuilder<*>.writeFull(siteStatus: SiteStatus) {
-    this[SiteStatusTable.id] = siteStatus.siteStatusId.value
     this[SiteStatusTable.integers] = siteStatus.integers
     this[SiteStatusTable.doubles] = siteStatus.doubles
     this[SiteStatusTable.resolution] = siteStatus.resolution

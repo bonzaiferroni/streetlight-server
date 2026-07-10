@@ -86,7 +86,7 @@ class SiteStatusDaemon(
 
         dao.siteStatus.create(
             SiteStatus(
-                siteStatusId = SiteStatusId.random(),
+                siteStatusId = SiteStatusId.Empty,
                 integers = integers,
                 doubles = doubles,
                 resolution = resolution,
@@ -143,7 +143,7 @@ class SiteStatusDaemon(
 
         dao.siteStatus.create(
             SiteStatus(
-                siteStatusId = SiteStatusId.random(),
+                siteStatusId = SiteStatusId.Empty,
                 integers = integers,
                 doubles = doubles,
                 resolution = resolution,

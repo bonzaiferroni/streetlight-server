@@ -5,6 +5,7 @@ import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.mapFirstOrNull
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
@@ -44,11 +45,21 @@ class SiteStatusTableDao : DbService() {
         resolution: MetricResolution,
         startedAt: Instant,
         endedAt: Instant
-    ): List<SiteStatus> = dbQuery {
+    ) = dbQuery {
         SiteStatusTable.selectAll().where {
             SiteStatusTable.resolution.eq(resolution) and
                     SiteStatusTable.startedAt.greaterEq(startedAt) and
                     SiteStatusTable.endedAt.lessEq(endedAt)
         }.map { it.toSiteStatus() }
+    }
+
+    suspend fun readByResolution(
+        resolution: MetricResolution,
+        limit: Int = 60
+    ) = dbQuery {
+        SiteStatusTable.selectAll().where {
+            SiteStatusTable.resolution.eq(resolution)
+        }.orderBy(SiteStatusTable.id, SortOrder.DESC).limit(limit)
+            .map { it.toSiteStatus() }
     }
 }
