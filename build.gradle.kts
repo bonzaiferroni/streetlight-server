@@ -44,6 +44,9 @@ dependencies {
     implementation(libs.ktor.server.compression)
     implementation(libs.ktor.server.status.pages)
 
+    implementation(libs.ktor.server.metrics.micrometer)
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.3")
+
     implementation(libs.logback.classic)
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     testImplementation(libs.kotlin.test.junit)

@@ -38,6 +38,7 @@ fun Application.module() {
         gzip { priority = 1.0 }
     }
 
+    configureMetrics(server)
     configureLogging()
     configureCors()
     configureSerialization()

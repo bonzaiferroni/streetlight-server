@@ -20,6 +20,7 @@ object CommentTable: UuidTable("comment") {
     val text = text("text").transformMarkdown()
     val starCount = integer("star_count").default(0)
     val replyCount = integer("reply_count").default(0)
+    // td: hide, comment remains visible to user but not to other users
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at").index()
 }

@@ -6,6 +6,7 @@ import kampfire.api.toSlug
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import kampfire.model.outcomeOf
+import kampfire.utils.requireNotNull
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
@@ -76,11 +77,12 @@ fun ApiScope.serveGalaxies() {
             block: suspend (City, SavedImageSet) -> Slug?
         ): Slug? {
             val starId = identity.starId
-            val city = edit.cityId?.let { dao.city.readCity(it) }
+            val city = edit.cityId?.let { dao.city.readCity(it) }.requireNotNull()
             val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
             val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
+                .requireNotNull()
 
-            return block(requireNotNull(city), requireNotNull(imageSet))
+            return block(city, imageSet)
         }
 
         postApi(Api.Galaxies.CreateGalaxy) {

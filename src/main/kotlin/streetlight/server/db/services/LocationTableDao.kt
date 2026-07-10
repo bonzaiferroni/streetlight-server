@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.model.Distance
@@ -43,7 +44,7 @@ import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
-private val console = globalConsole.getHandle(LocationTableDao::class)
+private val log = KotlinLogging.logger(LocationTableDao::class.simpleName!!)
 
 class LocationTableDao : DbService() {
 

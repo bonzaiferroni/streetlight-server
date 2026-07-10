@@ -80,6 +80,7 @@ private val dbTables = listOf(
     PolicyTable,
     FlagTable,
     StarTable,
+    SiteStatusTable,
 )
 
 val counterTriggers get() = listOf(

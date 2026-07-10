@@ -42,6 +42,7 @@ class DaoFacade(
     val review: TaskTableDao = TaskTableDao(),
     val media: MediaTableDao = MediaTableDao(),
     val feedback: FeedbackTableDao = FeedbackTableDao(),
+    val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
 )
 
 class ClientFacade(
