@@ -21,6 +21,7 @@ class SiteStatusDaemon(
     private val registry: MeterRegistry
 ) {
     private val previousCounters = mutableMapOf<SiteMetric, Long>()
+    private val previousSnapshots = mutableMapOf<SiteMetric, TimerSnapshot>()
 
     suspend fun start() {
         val finest = MetricResolution.entries.first()
@@ -72,10 +73,15 @@ class SiteStatusDaemon(
                 }
                 MetricType.Average -> {
                     val timers = registry.find(metric.meterName).timers()
-                    val totalCount = timers.sumOf { it.count() }
-                    doubles[metric] = if (totalCount > 0) {
-                        timers.sumOf { it.totalTime(TimeUnit.MILLISECONDS) } / totalCount
-                    } else 0.0
+                    val current = TimerSnapshot(
+                        count = timers.sumOf { it.count() },
+                        totalTimeMs = timers.sumOf { it.totalTime(TimeUnit.MILLISECONDS) }
+                    )
+                    val previous = previousSnapshots.put(metric, current)
+                        ?: return
+                    val deltaCount = current.count - previous.count
+                    val deltaTime = current.totalTimeMs - previous.totalTimeMs
+                    doubles[metric] = if (deltaCount > 0) deltaTime / deltaCount else 0.0
                 }
                 MetricType.Max -> {
                     val timers = registry.find(metric.meterName).timers()
@@ -165,3 +171,5 @@ class SiteStatusDaemon(
         return epochSeconds % resolution.duration.inWholeSeconds == 0L
     }
 }
+
+private data class TimerSnapshot(val count: Long, val totalTimeMs: Double)
