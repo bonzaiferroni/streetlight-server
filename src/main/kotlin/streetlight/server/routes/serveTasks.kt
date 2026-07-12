@@ -14,7 +14,7 @@ fun ApiScope.serveTasks() {
 
     authGate {
         getApi(Api.Tasks.ReadStarTasks) {
-            val callerId = call.getIdentity().starId
+            val callerId = call.getIdentity().callerId
             dao.review.readCallerTasks(callerId).toOutcome()
         }
 

@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.JoinType
@@ -30,7 +31,7 @@ class TaskTableDao(): DbService() {
         }
     }
 
-    suspend fun readCallerTasks(callerId: StarId) = dbQuery {
+    suspend fun readCallerTasks(callerId: CallerId) = dbQuery {
         // TaskTable.analyze()
         TaskTable
             .join(

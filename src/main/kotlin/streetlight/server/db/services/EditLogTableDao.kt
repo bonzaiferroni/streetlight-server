@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -13,7 +14,6 @@ import streetlight.model.data.EditLogId
 import streetlight.model.data.EditType
 import streetlight.model.data.RecordEdit
 import streetlight.model.data.RecordId
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.createRecord
 import kotlin.time.Clock
@@ -21,7 +21,7 @@ import kotlin.uuid.Uuid
 
 class EditLogTableDao: DbService() {
 
-    suspend fun create(editType: EditType, edit: RecordEdit, recordId: RecordId, callerId: StarId) = dbQuery {
+    suspend fun create(editType: EditType, edit: RecordEdit, recordId: RecordId, callerId: CallerId) = dbQuery {
         val editLog = edit.toEditLog(recordId, editType)
         val editLogId = EditLogTable.insertAndGetId {
             it.createRecord(editLog, callerId)
@@ -33,8 +33,8 @@ class EditLogTableDao: DbService() {
         EditLogTable.read { it.recordId.eq(recordId.value) }.map { it.toEditLog() }
     }
 
-    suspend fun readEdits(starId: StarId) = dbQuery {
-        EditLogTable.read { it.starId.eq(starId) }.map { it.toEditLog() }
+    suspend fun readEdits(callerId: CallerId) = dbQuery {
+        EditLogTable.read { it.starId.eq(callerId) }.map { it.toEditLog() }
     }
 }
 

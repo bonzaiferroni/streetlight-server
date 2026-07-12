@@ -72,7 +72,7 @@ fun ApiScope.serveTalk() {
         postApi(Api.Talk.CreateComment) {
             val identity = call.getIdentityOrNull()
             val comment = it.data
-            val commentId = dao.talk.writeComment(comment, identity?.starId)
+            val commentId = dao.talk.writeComment(comment, identity?.callerId)
             // td: move off thread
             spaceLocks.withLock {
                 val space = clientSpaces[comment.spaceId] ?: return@withLock
@@ -86,7 +86,7 @@ fun ApiScope.serveTalk() {
         postApi(Api.Talk.UpdateComment) {
             val identity = call.getIdentity()
             val comment = it.data
-            val result = dao.talk.updateComment(comment, identity.starId)
+            val result = dao.talk.updateComment(comment, identity.callerId)
             // td: move off thread
             spaceLocks.withLock {
                 val space = clientSpaces[comment.spaceId] ?: return@withLock

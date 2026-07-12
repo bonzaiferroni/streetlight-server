@@ -66,13 +66,13 @@ fun ApiScope.serveLocations() {
         getApi(Api.Locations, { it.toRecordId() }) {
             val id = it.data
             val identity = call.getIdentityOrNull()
-            dao.location.readLocation(id, identity?.starId).toOutcome()
+            dao.location.readLocation(id, identity?.callerId).toOutcome()
         }
 
         getApi(Api.Locations.ReadLocation) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            dao.location.readLocation(slug, identity?.starId).toOutcome()
+            dao.location.readLocation(slug, identity?.callerId).toOutcome()
         }
     }
 
@@ -91,14 +91,14 @@ fun ApiScope.serveLocations() {
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
             val identity = call.getIdentity()
-            createLocation(identity.starId, edit).toOutcome()
+            createLocation(identity.callerId, edit).toOutcome()
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
             val identity = call.getIdentity()
-            updateLocation(locationId, identity.starId, edit).toOutcome()
+            updateLocation(locationId, identity.callerId, edit).toOutcome()
         }
 
         getApi(Api.Locations.ReadUpdaterContent) {

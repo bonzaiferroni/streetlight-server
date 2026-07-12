@@ -3,10 +3,10 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
+import kampfire.model.Identity
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import kampfire.model.outcomeOf
-import kampfire.utils.requireNotNull
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
@@ -27,43 +27,43 @@ fun ApiScope.serveGalaxies() {
     authGate(optional = true) {
         getApi(Api.Galaxies.Top) {
             val identity = call.getIdentityOrNull()
-            Ok(dao.galaxy.readTopGalaxies(identity?.starId))
+            Ok(dao.galaxy.readTopGalaxies(identity?.callerId))
         }
 
         getApi(Api.Galaxies.ReadGalaxySlug, { it.toSlug() }) {
             val id = it.data
             val identity = call.getIdentityOrNull()
-            dao.galaxy.readGalaxy(id, identity?.starId).toOutcome()
+            dao.galaxy.readGalaxy(id, identity?.callerId).toOutcome()
         }
 
         postApi(Api.Galaxies.ReadGalaxies) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.galaxy.readGalaxies(galaxyIds, identity?.starId))
+            Ok(dao.galaxy.readGalaxies(galaxyIds, identity?.callerId))
         }
 
         postApi(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.post.readOrderedPosts(galaxyIds, identity?.starId))
+            Ok(dao.post.readOrderedPosts(galaxyIds, identity?.callerId))
         }
 
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
             val postId = it.data
             val identity = call.getIdentityOrNull()
-            dao.post.readPost(postId, identity?.starId).toOutcome()
+            dao.post.readPost(postId, identity?.callerId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
             val galaxyId = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.post.readOrderedPosts(galaxyId, identity?.starId))
+            Ok(dao.post.readOrderedPosts(galaxyId, identity?.callerId))
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
             val identity = call.getIdentityOrNull()
-            val galaxy = dao.galaxy.readGalaxy(it.data, identity?.starId) ?: return@getApi null
-            val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.starId)
+            val galaxy = dao.galaxy.readGalaxy(it.data, identity?.callerId) ?: return@getApi null
+            val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.callerId)
             Ok(GalaxyContent(galaxy, posts))
         }
     }
@@ -71,10 +71,10 @@ fun ApiScope.serveGalaxies() {
     authGate {
         suspend fun handleEdit(
             edit: GalaxyEdit,
-            identity: StarIdentity,
+            identity: Identity,
             block: suspend (City?, GalaxyEdit) -> Slug?
         ): Slug? {
-            val starId = identity.starId
+            val starId = identity.callerId
             val city = edit.cityId?.let { dao.city.readCity(it) }
             val imageUserId = starId.takeIf { edit.image?.isRelative ?: false }
             val image = checkImageAndStore(imageUserId, edit.galaxyId, edit.image, GalaxyTable.imageConfig)
@@ -86,7 +86,7 @@ fun ApiScope.serveGalaxies() {
             val edit = it.data
             val identity = call.getIdentity()
             handleEdit(edit, identity) { city, edit ->
-                dao.galaxy.create(edit, identity.starId, city).also { slug ->
+                dao.galaxy.create(edit, identity.callerId, city).also { slug ->
                     val name = requireNotNull(edit.name) { "name not found" }
                     omni.sendGalaxyFounded(name, slug, identity.username)
                 }
@@ -110,7 +110,7 @@ fun ApiScope.serveGalaxies() {
         }
 
         getApi(Api.Galaxies.ReadLights) {
-            val userId = call.getIdentity().starId
+            val userId = call.getIdentity().callerId
             Ok(dao.light.readGalaxyLights(userId))
         }
 
@@ -121,7 +121,7 @@ fun ApiScope.serveGalaxies() {
         }
 
         getApi(Api.Galaxies.ReadUserGalaxies) {
-            val starId = call.getIdentity().starId
+            val starId = call.getIdentity().callerId
             dao.galaxy.readGalaxies(starId).toOutcome()
         }
     }

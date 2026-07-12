@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kampfire.api.Slug
+import kampfire.model.CallerId
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
@@ -59,7 +60,7 @@ class LocationTableDao : DbService() {
     suspend fun update(
         locationId: LocationId,
         cityId: CityId,
-        callerId: StarId,
+        callerId: CallerId,
         edit: LocationEdit,
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
@@ -74,7 +75,7 @@ class LocationTableDao : DbService() {
 
     suspend fun create(
         cityId: CityId,
-        callerId: StarId,
+        callerId: CallerId,
         edit: LocationEdit,
     ) = dbQuery {
         val locationId = LocationId.random()
@@ -102,11 +103,11 @@ class LocationTableDao : DbService() {
             .map { it.toLocation() }
     }
 
-    suspend fun readLocation(locationId: LocationId, callerId: StarId?) = dbQuery {
+    suspend fun readLocation(locationId: LocationId, callerId: CallerId?) = dbQuery {
         locationQuery(callerId).where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
     }
 
-    suspend fun readLocation(slug: Slug, callerId: StarId?) = dbQuery {
+    suspend fun readLocation(slug: Slug, callerId: CallerId?) = dbQuery {
         locationQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
     }
 

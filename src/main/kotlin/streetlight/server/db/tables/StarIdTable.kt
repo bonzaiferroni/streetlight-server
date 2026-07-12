@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Op
@@ -12,7 +13,7 @@ interface StarIdTable {
     val starId: Column<EntityID<Uuid>>
 }
 
-fun <T> T.getConstraint(callerId: StarId?) where T: Table, T: StarIdTable = getConstraint(callerId) { starId.eq(it) }
+fun <T> T.getConstraint(callerId: CallerId?) where T: Table, T: StarIdTable = getConstraint(callerId) { starId.eq(it) }
 
-fun getConstraint(callerId: StarId?, constraint: (StarId) -> Op<Boolean>): () -> Op<Boolean> =
+fun getConstraint(callerId: CallerId?, constraint: (CallerId) -> Op<Boolean>): () -> Op<Boolean> =
     callerId?.let { { constraint(it) } } ?: { Op.FALSE }

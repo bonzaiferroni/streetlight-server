@@ -4,7 +4,9 @@ import kampfire.api.TableId
 import kampfire.api.TableUuid
 import kampfire.api.Username
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import kampfire.model.HashedToken
+import kampfire.model.Identity
 import kampfire.model.PrivateInfo
 import kampfire.model.Session
 import kampfire.model.SessionIdentity
@@ -32,7 +34,6 @@ import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toUserRecord
-import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -123,8 +124,8 @@ class StarSessionService: DbService(), SessionService {
                     ttlSeconds = it[SessionTable.ttlSeconds],
                     expiresAt = it[SessionTable.expiresAt],
                 ),
-                StarIdentity(
-                    starId = StarId(it[StarTable.id].value),
+                Identity(
+                    callerId = CallerId(it[StarTable.id].value),
                     roles = it[StarTable.roles],
                     username = it[StarTable.username].toUsername(),
                 ),

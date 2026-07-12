@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.toSlug
+import kampfire.model.CallerId
 import klutch.utils.eq
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
@@ -16,7 +17,7 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.getConstraint
 import streetlight.server.utils.toRecordId
 
-fun galaxyQuery(callerId: StarId?) = GalaxyTable
+fun galaxyQuery(callerId: CallerId?) = GalaxyTable
     .join(GalaxyStarTable, JoinType.LEFT, GalaxyTable.id, GalaxyStarTable.galaxyId,
         additionalConstraint = GalaxyStarTable.getConstraint(callerId))
     .join(GalaxyHostTable, JoinType.LEFT, GalaxyTable.id, GalaxyHostTable.galaxyId,

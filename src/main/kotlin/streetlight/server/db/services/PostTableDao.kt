@@ -1,5 +1,7 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
+import kampfire.model.Identity
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
@@ -29,6 +31,7 @@ import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.MediaId
+import streetlight.model.data.toStarId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostStarTable
@@ -36,7 +39,6 @@ import streetlight.server.db.tables.galaxyPostQuery
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
-import streetlight.server.model.StarIdentity
 import kotlin.time.Clock
 
 class PostTableDao : DbService() {
@@ -55,19 +57,19 @@ class PostTableDao : DbService() {
     //     slug
     // }
 
-    suspend fun createPost(post: PostEdit, caller: StarIdentity) = dbQuery {
+    suspend fun createPost(post: PostEdit, caller: Identity) = dbQuery {
         val record = post.toPostRecord(caller)
-        val status = getInitialContentStatus(record.galaxyId, caller.starId)
+        val status = getInitialContentStatus(record.galaxyId, caller.callerId)
 
         PostTable.insert { it.createRecord(record, status) }
         PostStarTable.insert {
             it[PostStarTable.postId] = record.postId.value
-            it[PostStarTable.starId] = caller.starId.value
+            it[PostStarTable.starId] = caller.callerId.value
             it[PostStarTable.createdAt] = Clock.System.now()
         }
     }
 
-    private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: StarId): FeedStatus {
+    private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: CallerId): FeedStatus {
         if (GalaxyHostTable.any { it.galaxyId.eq(galaxyId) and it.hostId.eq(callerId) })
             return FeedStatus.Live
 
@@ -79,9 +81,9 @@ class PostTableDao : DbService() {
         return if (postCount >= reviewCount) FeedStatus.Live else FeedStatus.Reviewing
     }
 
-    suspend fun editPost(postId: PostId, post: PostEdit, identity: StarIdentity) = dbQuery {
+    suspend fun editPost(postId: PostId, post: PostEdit, identity: Identity) = dbQuery {
         val post = post.toPostRecord(identity)
-        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value) }) {
+        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) }) {
             it.updateRecord(post)
         }
         postId
@@ -93,7 +95,7 @@ class PostTableDao : DbService() {
 
     suspend fun readOrderedPosts(
         galaxyIds: List<GalaxyId>,
-        callerId: StarId?,
+        callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
         filterUpcomingEvents: Boolean = true,
         limit: Int = 100
@@ -103,7 +105,7 @@ class PostTableDao : DbService() {
 
     suspend fun readOrderedPosts(
         galaxyId: GalaxyId,
-        callerId: StarId?,
+        callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
         filterUpcomingEvents: Boolean = true,
         limit: Int = 100
@@ -113,7 +115,7 @@ class PostTableDao : DbService() {
 
     suspend fun readStarPosts(
         starId: StarId,
-        callerId: StarId?,
+        callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
         filterUpcomingEvents: Boolean = true,
         limit: Int = 100
@@ -121,16 +123,16 @@ class PostTableDao : DbService() {
         readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.starId.eq(starId.value) }
     }
 
-    suspend fun readPost(postId: PostId, callerId: StarId?) = dbQuery {
+    suspend fun readPost(postId: PostId, callerId: CallerId?) = dbQuery {
         galaxyPostQuery(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
     }
 
-    suspend fun removePost(postId: PostId, identity: StarIdentity) = dbQuery {
-        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.starId.value) } == 1 // td: or admin, or moderator
+    suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
+        PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) } == 1 // td: or admin, or moderator
     }
 
     suspend fun readOrderedPosts(
-        callerId: StarId?,
+        callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
         filterUpcomingEvents: Boolean = true,
         limit: Int = 100,
@@ -163,13 +165,13 @@ class PostTableDao : DbService() {
     }
 }
 
-fun PostEdit.toPostRecord(identity: StarIdentity?) = PostRecord(
+fun PostEdit.toPostRecord(identity: Identity?) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = recordId.takeIf { postType == PostType.Event }?.let { EventId(recordId) },
     locationId = recordId.takeIf { postType == PostType.Location }?.let { LocationId(recordId) },
     mediaId = recordId.takeIf { postType == PostType.Media }?.let { MediaId(recordId) },
-    starId = identity?.starId,
+    starId = identity?.callerId?.toStarId(),
     title = title,
     text = text,
     lightCount = 0,

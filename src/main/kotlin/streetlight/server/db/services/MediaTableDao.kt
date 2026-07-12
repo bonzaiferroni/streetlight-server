@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import kampfire.api.Username
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.db.tables.nextSlugOf
@@ -19,7 +20,7 @@ import kotlin.time.Clock
 
 class MediaTableDao: DbService() {
 
-    suspend fun createMedia(edit: MediaEdit, callerId: StarId) = dbQuery {
+    suspend fun createMedia(edit: MediaEdit, callerId: CallerId) = dbQuery {
         val mediaId = MediaId.random()
         val slug = MediaTable.nextSlugOf(edit.title ?: mediaId.value.toString())
         val media = edit.toMedia(mediaId, slug)

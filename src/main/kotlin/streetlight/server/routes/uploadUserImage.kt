@@ -1,11 +1,9 @@
 package streetlight.server.routes
 
-import kabinet.console.globalConsole
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.toUrl
-import klutch.server.ProviderScope
-import klutch.server.provide
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
@@ -13,6 +11,7 @@ import streetlight.model.data.StarId
 import streetlight.model.data.StorageType
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
+import streetlight.model.data.toStarId
 import streetlight.server.model.*
 import java.io.File
 
@@ -20,7 +19,7 @@ import java.io.File
 
 suspend fun DaoScope.saveLocalImageFile(
     bytes: ByteArray,
-    starId: StarId?,
+    callerId: CallerId?,
     filename: String? = null,
     format: FileFormat? = null,
 ): Url? {
@@ -37,7 +36,7 @@ suspend fun DaoScope.saveLocalImageFile(
     dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
-            starId = starId,
+            starId = callerId?.toStarId(),
             url = url,
             fileType = FileType.Image,
             size = null,
@@ -52,7 +51,7 @@ suspend fun DaoScope.saveLocalImageFile(
 
 suspend fun DataScope.saveS3ImageFile(
     bytes: ByteArray,
-    userId: StarId?,
+    callerId: CallerId?,
     size: ImageSize,
     format: FileFormat,
     filename: String? = null,
@@ -65,7 +64,7 @@ suspend fun DataScope.saveS3ImageFile(
     dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,
-            starId = userId,
+            starId = callerId?.toStarId(),
             url = url,
             fileType = FileType.Image,
             size = size,

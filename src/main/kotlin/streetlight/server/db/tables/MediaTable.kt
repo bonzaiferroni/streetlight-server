@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
@@ -63,7 +64,7 @@ fun ResultRow.toMedia() = Media(
     createdAt = this[MediaTable.createdAt],
 )
 
-fun UpdateBuilder<*>.createRecord(media: Media, callerId: StarId) {
+fun UpdateBuilder<*>.createRecord(media: Media, callerId: CallerId) {
     this[MediaTable.id] = media.mediaId.value
     this[MediaTable.starId] = callerId.value
     this[MediaTable.mediaType] = media.mediaType

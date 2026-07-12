@@ -1,6 +1,6 @@
 package streetlight.server.routes
 
-import kampfire.api.StringId
+import kampfire.model.Identity
 import kampfire.model.Url
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +15,8 @@ import streetlight.model.data.SpaceType
 import streetlight.model.data.StarId
 import streetlight.model.data.CommentUpdated
 import streetlight.model.data.UpdatedComment
+import streetlight.model.data.starId
 import streetlight.server.model.DaoFacade
-import streetlight.server.model.StarIdentity
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -46,7 +46,7 @@ class TalkSpace(
         return --clientCount == 0
     }
 
-    suspend fun sendNewComment(commentId: CommentId, comment: NewComment, identity: StarIdentity?) {
+    suspend fun sendNewComment(commentId: CommentId, comment: NewComment, identity: Identity?) {
         val comment = Comment(
             commentId = commentId,
             parentId = comment.parentId,

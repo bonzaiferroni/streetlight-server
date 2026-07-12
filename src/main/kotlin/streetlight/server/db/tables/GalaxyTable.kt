@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.image
@@ -17,10 +18,9 @@ import streetlight.model.data.City
 import streetlight.model.data.Galaxy
 import streetlight.model.data.PostPermission
 import streetlight.model.data.PostType
-import streetlight.model.data.StarId
 
 object GalaxyTable: UuidTable("galaxy"), SlugTable {
-    // val founderId = reference("founder_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
+    val starId = reference("star_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val city = text("city").nullable()
     override val slug = text("path").uniqueIndex() // td: rename column as slug
@@ -60,9 +60,9 @@ val galaxyEventCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.g
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
 
-fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?) {
+fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, callerId: CallerId, slugRecord: SlugRecord, city: City?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
-    // this[GalaxyTable.founderId] = founderId.value
+    this[GalaxyTable.starId] = callerId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
     updateRecord(galaxy, slugRecord, city)
 }

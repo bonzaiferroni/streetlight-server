@@ -59,7 +59,7 @@ fun ApiScope.serveCity() {
         getApi(Api.Cities.ReadCityPosts) {
             val identity = call.getIdentityOrNull()
 
-            dao.city.readCityPosts(it.data, identity?.starId).toOutcome()
+            dao.city.readCityPosts(it.data, identity?.callerId).toOutcome()
         }
     }
 }

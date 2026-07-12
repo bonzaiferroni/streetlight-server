@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toMarkdown
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.ImageSize
@@ -48,7 +49,7 @@ fun ResultRow.toStar() = Star(
     username = this[StarTable.username].toUsername(),
     roles = this[StarTable.roles],
     name = null, // td: allow user control over publishing name
-    description = this[StarTable.description],
+    description = this[StarTable.description]?.toMarkdown(),
     scoutLevel = this[StarTable.scoutLevel],
     image = this[StarTable.image],
     updatedAt = this[StarTable.updatedAt],
@@ -84,6 +85,6 @@ fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
 
 fun UpdateBuilder<*>.updateRecord(edit: StarEdit) {
     this[StarTable.name] = edit.name
-    this[StarTable.description] = edit.description
+    this[StarTable.description] = edit.description?.value
     this[StarTable.image] = edit.image
 }

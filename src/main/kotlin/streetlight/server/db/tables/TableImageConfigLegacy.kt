@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.TableId
 import kampfire.model.ImageSize
 import klutch.db.DbService
 import klutch.utils.eq
@@ -9,6 +10,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.RecordId
+import kotlin.uuid.Uuid
 
 class TableImageConfig(
     val table: UuidTable,
@@ -16,7 +18,7 @@ class TableImageConfig(
     val sizes: List<ImageSize>
 ): DbService() {
 
-    suspend fun readImageRef(id: RecordId) = dbQuery {
+    suspend fun readImageRef(id: TableId<Uuid>) = dbQuery {
         table.select(column).where { table.id.eq(id) }.firstOrNull()?.getOrNull(column)
     }
 }

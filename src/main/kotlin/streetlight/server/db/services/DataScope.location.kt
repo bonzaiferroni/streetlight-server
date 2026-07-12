@@ -1,16 +1,18 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
 import streetlight.model.data.EditType
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.StarId
 import streetlight.model.data.toEdit
+import streetlight.model.data.toStarId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 import streetlight.server.routes.checkImageAndStore
 
 suspend fun DataScope.createLocation(
-    callerId: StarId,
+    callerId: CallerId,
     edit: LocationEdit,
 ) = transaction {
     val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
@@ -19,7 +21,7 @@ suspend fun DataScope.createLocation(
     log("creating location: ${edit.label}")
     val location = dao.location.create(cityId, callerId, edit.copy(image = image)) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
-    val star = dao.star.readStar(callerId) ?: error("star not found")
+    val star = dao.star.readStar(callerId.toStarId()) ?: error("star not found")
 
     if (edit.needsReview || star.scoutLevel == 0) {
         createEditTask(editLogId)
@@ -29,7 +31,7 @@ suspend fun DataScope.createLocation(
 
 suspend fun DataScope.updateLocation(
     locationId: LocationId,
-    callerId: StarId,
+    callerId: CallerId,
     edit: LocationEdit,
 ) = transaction {
     val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)

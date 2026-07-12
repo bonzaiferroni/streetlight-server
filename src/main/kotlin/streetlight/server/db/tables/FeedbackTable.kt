@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import klutch.db.SyncValueTrigger
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -34,7 +35,7 @@ fun ResultRow.toFeedback() = Feedback(
     createdAt = this[FeedbackTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(feedback: Feedback, callerId: StarId?) {
+fun UpdateBuilder<*>.writeFull(feedback: Feedback, callerId: CallerId?) {
     this[FeedbackTable.id] = feedback.feedbackId.value
     this[FeedbackTable.starId] = callerId?.value
     this[FeedbackTable.createdAt] = feedback.createdAt

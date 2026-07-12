@@ -5,6 +5,8 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.CallerId
+import kampfire.model.Identity
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -14,8 +16,6 @@ import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
-import streetlight.model.data.GalaxyContent
-import streetlight.model.data.StarId
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.web.Screen
@@ -40,14 +40,14 @@ fun ApiScope.servePages() {
 //        }
 //    }
 
-    suspend fun renderScreen(screen: Screen, arg: String?, caller: StarIdentity?): HtmlRender? {
+    suspend fun renderScreen(screen: Screen, arg: String?, caller: Identity?): HtmlRender? {
         return when (screen) {
-            Screen.Home -> renderHome(caller?.starId)
+            Screen.Home -> renderHome(caller?.callerId)
             Screen.AboutApp -> renderAboutApp()
             Screen.Location -> renderLocation(arg, caller)
-            Screen.Galaxy -> renderGalaxy(arg, caller?.starId)
-            Screen.Star -> renderStar(arg, caller?.starId)
-            Screen.Event -> renderEventProfile(arg, caller?.starId)
+            Screen.Galaxy -> renderGalaxy(arg, caller?.callerId)
+            Screen.Star -> renderStar(arg, caller?.callerId)
+            Screen.Event -> renderEvent(arg, caller?.callerId)
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
             else -> renderClientBase(screen)
@@ -112,7 +112,7 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
-suspend fun ApiScope.renderHome(callerId: StarId?): HtmlRender {
+suspend fun ApiScope.renderHome(callerId: CallerId?): HtmlRender {
     // console.log(callerId)
     val content = readHomeContent(callerId)
 
@@ -127,7 +127,7 @@ suspend fun ApiScope.renderAboutApp(): HtmlRender {
     }
 }
 
-suspend fun ApiScope.renderLocation(arg: String?, caller: StarIdentity?): HtmlRender? {
+suspend fun ApiScope.renderLocation(arg: String?, caller: Identity?): HtmlRender? {
     val locationId = arg?.toSlug() ?: return null
     val location = readLocationContent(locationId, caller) ?: return null
 
@@ -136,27 +136,20 @@ suspend fun ApiScope.renderLocation(arg: String?, caller: StarIdentity?): HtmlRe
     }
 }
 
-suspend fun ApiScope.renderGalaxy(arg: String?, callerId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderGalaxy(arg: String?, callerId: CallerId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
-    val galaxyId = galaxy.galaxyId
-    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
-
-    val content = GalaxyContent(
-        galaxy = galaxy,
-        posts = posts,
-    )
+    val content = readGalaxyContent(slug, callerId) ?: return null
 
     return HtmlRender {
         galaxyPage(content, SiteStyles)
     }
 }
 
-suspend fun ApiScope.renderStar(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderStar(arg: String?, callerId: CallerId?): HtmlRender? {
     val username = arg?.toUsername() ?: return null
     val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
     val star = dao.star.readByUsername(username) ?: return null
-    val posts = dao.post.readStarPosts(userId, starId)
+    val posts = dao.post.readStarPosts(userId, callerId)
     val content = StarProfileContent(
         star = star,
         posts = posts
@@ -167,9 +160,9 @@ suspend fun ApiScope.renderStar(arg: String?, starId: StarId?): HtmlRender? {
     }
 }
 
-suspend fun ApiScope.renderEventProfile(arg: String?, starId: StarId?): HtmlRender? {
+suspend fun ApiScope.renderEvent(arg: String?, callerId: CallerId?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val event = dao.event.readEventLocationBySlug(slug, starId) ?: return null
+    val event = dao.event.readEventLocationBySlug(slug, callerId) ?: return null
 
     return HtmlRender {
         appPage("${event.title} | Streetlight", SiteStyles, Screen.Event) {

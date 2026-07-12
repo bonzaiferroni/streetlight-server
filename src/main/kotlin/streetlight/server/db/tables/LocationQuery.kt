@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -12,7 +13,7 @@ import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-fun locationQuery(callerId: StarId?) = LocationTable
+fun locationQuery(callerId: CallerId?) = LocationTable
     .join(LocationStarTable, JoinType.LEFT, LocationTable.id, LocationStarTable.locationId,
         additionalConstraint = LocationStarTable.getConstraint(callerId))
     .select(LocationColumns)

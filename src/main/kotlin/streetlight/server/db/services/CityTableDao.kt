@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.Slug
+import kampfire.model.CallerId
 import kampfire.utils.pascalToSnakeCase
 import kampfire.utils.titleToKebabCase
 import klutch.db.DbService
@@ -153,7 +154,7 @@ class CityTableDao : DbService() {
         }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
     }
 
-    suspend fun readCityPosts(slug: Slug, callerId: StarId?) = dbQuery {
+    suspend fun readCityPosts(slug: Slug, callerId: CallerId?) = dbQuery {
         cityPostQuery(callerId) {
             CityTable.slug.eq(slug)
         }

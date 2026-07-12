@@ -7,8 +7,8 @@ import io.ktor.server.application.call
 import io.ktor.server.auth.principal
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
+import kampfire.model.Identity
 import org.slf4j.MDC
-import streetlight.server.model.StarIdentity
 import kotlin.reflect.KClass
 import kotlin.uuid.Uuid
 
@@ -27,8 +27,8 @@ fun Application.configureLogging() {
     }
 
     intercept(ApplicationCallPipeline.Plugins) {
-        val principal = call.principal<StarIdentity>()
-        principal?.let { MDC.put("userId", it.starId.toString()) }
+        val principal = call.principal<Identity>()
+        principal?.let { MDC.put("userId", it.callerId.toString()) }
         proceed()
     }
 }

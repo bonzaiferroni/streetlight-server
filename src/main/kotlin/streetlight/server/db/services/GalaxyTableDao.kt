@@ -2,6 +2,7 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import kampfire.api.isValid
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -27,7 +28,7 @@ import streetlight.server.db.tables.updateRecord
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun create(edit: GalaxyEdit, callerId: StarId, city: City?) = dbQuery {
+    suspend fun create(edit: GalaxyEdit, callerId: CallerId, city: City?) = dbQuery {
         val slug = requireNotNull(edit.slug) { "Slug not found" }
         require(slug.isValid()) { "Invalid slug" }
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
@@ -67,24 +68,24 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
-    suspend fun readGalaxy(slug: Slug, callerId: StarId?) = dbQuery {
+    suspend fun readGalaxy(slug: Slug, callerId: CallerId?) = dbQuery {
         galaxyQuery(callerId).where { GalaxyTable.slug.eq(slug) }.firstOrNull()?.toGalaxy()
     }
 
-    suspend fun readGalaxy(galaxyId: GalaxyId, starId: StarId?) = dbQuery {
-        galaxyQuery(starId).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
+    suspend fun readGalaxy(galaxyId: GalaxyId, callerId: CallerId?) = dbQuery {
+        galaxyQuery(callerId).where { GalaxyTable.id.eq(galaxyId) }.firstOrNull()?.toGalaxy()
     }
 
-    suspend fun readTopGalaxies(starId: StarId?, limit: Int = 10) = dbQuery {
-        galaxyQuery(starId).orderBy(GalaxyTable.starCount, SortOrder.DESC)
+    suspend fun readTopGalaxies(callerId: CallerId?, limit: Int = 10) = dbQuery {
+        galaxyQuery(callerId).orderBy(GalaxyTable.starCount, SortOrder.DESC)
             .limit(limit).map { it.toGalaxy() }
     }
     
-    suspend fun readGalaxies(galaxyIds: List<GalaxyId>, callerId: StarId?) = dbQuery {
+    suspend fun readGalaxies(galaxyIds: List<GalaxyId>, callerId: CallerId?) = dbQuery {
         galaxyQuery(callerId).where { GalaxyTable.id.inList(galaxyIds) }.map { it.toGalaxy() }
     }
 
-    suspend fun readGalaxies(callerId: StarId) = dbQuery {
+    suspend fun readGalaxies(callerId: CallerId) = dbQuery {
         galaxyQuery(callerId).where { GalaxyStarTable.starId.eq(callerId) }.map { it.toGalaxy() }
     }
 }

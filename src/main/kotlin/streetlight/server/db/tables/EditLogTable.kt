@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.model.CallerId
 import klutch.db.SyncValueTrigger
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -27,7 +28,7 @@ object EditLogTable: UuidTable("edit_log") {
 
 val editUsernameSync = SyncValueTrigger(EditLogTable.starId, EditLogTable.username, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createRecord(editLog: EditLog, callerId: StarId) {
+fun UpdateBuilder<*>.createRecord(editLog: EditLog, callerId: CallerId) {
     this[EditLogTable.id] = editLog.editLogId.value
     this[EditLogTable.recordId] = editLog.recordId
     this[EditLogTable.starId] = callerId.value

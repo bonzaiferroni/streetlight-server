@@ -38,30 +38,30 @@ fun ApiScope.serveEvents() {
     authGate(optional = true) {
         getApi(Api.Events.ReadId, { it.toRecordId() }) {
             val identity = call.getIdentityOrNull()
-            outcomeOf(dao.event.readEvent(it.data, identity?.starId))
+            outcomeOf(dao.event.readEvent(it.data, identity?.callerId))
         }
 
         getApi(Api.Events.AtLocation, { it.toRecordId()}) {
             val identity = call.getIdentityOrNull()
-            Ok(dao.event.readLocationEvents(it.data, identity?.starId))
+            Ok(dao.event.readLocationEvents(it.data, identity?.callerId))
         }
 
         getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
             val sent = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.event.readEventsInBounds(sent.bounds, identity?.starId))
+            Ok(dao.event.readEventsInBounds(sent.bounds, identity?.callerId))
         }
 
         postApi(Api.Events.ReadEventLocations) {
             val ids = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.event.readEventLocations(ids, identity?.starId))
+            Ok(dao.event.readEventLocations(ids, identity?.callerId))
         }
 
         getApi(Api.Events.ReadSlug) {
             val slug = it.data
             val identity = call.getIdentityOrNull()
-            outcomeOf(dao.event.readEventLocationBySlug(slug, identity?.starId))
+            outcomeOf(dao.event.readEventLocationBySlug(slug, identity?.callerId))
         }
     }
 
@@ -85,7 +85,7 @@ fun ApiScope.serveEvents() {
             val edit = request.data
             val title = requireNotNull(edit.title)
 
-            createEvent(identity.starId, edit)?.also { outcome ->
+            createEvent(identity.callerId, edit)?.also { outcome ->
                 if (outcome is Ok) {
                     val slug = outcome.data.slug
                     omni.sendEventCreated(title, slug, identity.username)
@@ -99,7 +99,7 @@ fun ApiScope.serveEvents() {
             val title = requireNotNull(edit.title)
             val eventId = requireNotNull(edit.eventId)
 
-            updateEvent(eventId, identity.starId, edit)?.also { outcome ->
+            updateEvent(eventId, identity.callerId, edit)?.also { outcome ->
                 if (outcome is Ok) {
                     val slug = outcome.data.slug
                     omni.sendEventUpdated(title, slug, identity.username)
@@ -109,7 +109,7 @@ fun ApiScope.serveEvents() {
 
         deleteApi(Api.Events.Delete) {
             val eventId = it.data
-            val starId = call.getIdentity().starId
+            val starId = call.getIdentity().callerId
             Ok(dao.event.deleteEvent(starId, eventId))
         }
 
@@ -124,8 +124,8 @@ fun ApiScope.serveEvents() {
         }
 
         getApi(Api.Events.ReadLights) {
-            val starId = call.getIdentity().starId
-            Ok(dao.light.readEventLights(starId))
+            val callerId = call.getIdentity().callerId
+            Ok(dao.light.readEventLights(callerId))
         }
 
         getApi(Api.Events.ReadUpdaterContent) {

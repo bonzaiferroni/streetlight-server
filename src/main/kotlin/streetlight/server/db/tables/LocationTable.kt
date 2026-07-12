@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
@@ -64,7 +65,7 @@ val locationHostSync = SyncValueTrigger(LocationTable.hostId, LocationTable.host
 val locationScoutSync = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
 
 // Updaters
-fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.createRecord(location: Location, starId: CallerId?, slugRecord: SlugRecord) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.scoutId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt

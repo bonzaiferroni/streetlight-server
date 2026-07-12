@@ -2,7 +2,7 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.api.toUsername
-import kampfire.model.thumb
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.db.readById
 import klutch.utils.eq
@@ -22,9 +22,9 @@ import streetlight.model.data.CommentId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.NewComment
 import streetlight.model.data.PostId
-import streetlight.model.data.StarId
 import streetlight.model.data.SpaceType
 import streetlight.model.data.UpdatedComment
+import streetlight.model.data.toStarId
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
@@ -57,13 +57,13 @@ class CommentTableDao : DbService() {
         SpaceType.Post -> readPostTalk(PostId(id), limit)
     }
 
-    suspend fun writeComment(comment: NewComment, starId: StarId?) = when (comment.spaceType) {
-        SpaceType.Galaxy -> writeGalaxyComment(comment, starId)
-        SpaceType.Post -> writePostComment(comment, starId)
+    suspend fun writeComment(comment: NewComment, callerId: CallerId?) = when (comment.spaceType) {
+        SpaceType.Galaxy -> writeGalaxyComment(comment, callerId)
+        SpaceType.Post -> writePostComment(comment, callerId)
     }
 
-    suspend fun writeGalaxyComment(comment: NewComment, starId: StarId?) = dbQuery {
-        val commentId = insertComment(comment, starId)
+    suspend fun writeGalaxyComment(comment: NewComment, callerId: CallerId?) = dbQuery {
+        val commentId = insertComment(comment, callerId)
         GalaxyCommentTable.insert {
             it[GalaxyCommentTable.galaxyId] = comment.galaxyId.value
             it[GalaxyCommentTable.commentId] = commentId.value
@@ -71,8 +71,8 @@ class CommentTableDao : DbService() {
         commentId
     }
 
-    suspend fun writePostComment(comment: NewComment, starId: StarId?) = dbQuery {
-        val commentId = insertComment(comment, starId)
+    suspend fun writePostComment(comment: NewComment, callerId: CallerId?) = dbQuery {
+        val commentId = insertComment(comment, callerId)
         MediaCommentTable.insert {
             it[MediaCommentTable.mediaId] = comment.postId.value
             it[MediaCommentTable.commentId] = commentId.value
@@ -80,13 +80,13 @@ class CommentTableDao : DbService() {
         commentId
     }
 
-    private fun insertComment(comment: NewComment, starId: StarId?): CommentId {
+    private fun insertComment(comment: NewComment, callerId: CallerId?): CommentId {
         val commentId = CommentId.random()
         CommentTable.insert {
             it.createRecord(CommentRow(
                 commentId = commentId,
                 parentId = comment.parentId,
-                starId = starId,
+                starId = callerId?.toStarId(),
                 text = comment.text,
                 updatedAt = Clock.System.now(),
                 createdAt = Clock.System.now()
@@ -95,8 +95,8 @@ class CommentTableDao : DbService() {
         return commentId
     }
 
-    suspend fun updateComment(comment: UpdatedComment, starId: StarId?) = dbQuery {
-        CommentTable.update({ CommentTable.id.eq(comment.commentId) and CommentTable.starId.eq(starId?.value) }) {
+    suspend fun updateComment(comment: UpdatedComment, callerId: CallerId?) = dbQuery {
+        CommentTable.update({ CommentTable.id.eq(comment.commentId) and CommentTable.starId.eq(callerId?.value) }) {
             it[CommentTable.text] = comment.text
         } == 1
     }

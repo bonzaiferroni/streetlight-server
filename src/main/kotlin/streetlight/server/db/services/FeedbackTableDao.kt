@@ -1,6 +1,8 @@
 package streetlight.server.db.services
 
 import kampfire.api.Username
+import kampfire.model.CallerId
+import kampfire.model.Identity
 import kampfire.model.UserRole
 import klutch.db.DbService
 import klutch.utils.eq
@@ -12,12 +14,11 @@ import streetlight.model.data.FeedbackEdit
 import streetlight.model.data.FeedbackId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.*
-import streetlight.server.model.StarIdentity
 import kotlin.time.Clock
 
 class FeedbackTableDao: DbService() {
 
-    suspend fun create(edit: FeedbackEdit, callerId: StarId? = null) = dbQuery {
+    suspend fun create(edit: FeedbackEdit, callerId: CallerId? = null) = dbQuery {
         val record = edit.toRecord()
         FeedbackTable.insert { it.writeFull(record, callerId) }.insertedCount == 1
     }
@@ -37,7 +38,7 @@ class FeedbackTableDao: DbService() {
             .map { it.toFeedback() }.singleOrNull()
     }
 
-    suspend fun feed(caller: StarIdentity?) = dbQuery {
+    suspend fun feed(caller: Identity?) = dbQuery {
         FeedbackTable.selectAll().apply {
             if (caller != null && !caller.roles.contains(UserRole.Admin)) {
                 andWhere { FeedbackTable.isPrivate.eq(false) }

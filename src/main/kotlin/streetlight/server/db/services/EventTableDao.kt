@@ -3,6 +3,7 @@ package streetlight.server.db.services
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.Username
+import kampfire.model.CallerId
 import kampfire.model.GeoBounds
 import klutch.db.DbService
 import klutch.db.count
@@ -21,7 +22,6 @@ import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
 import streetlight.model.data.LocationId
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventLocationQuery
@@ -42,7 +42,7 @@ private val console = globalConsole.getHandle(EventTableDao::class)
 
 class EventTableDao: DbService() {
     suspend fun createEvent(
-        callerId: StarId,
+        callerId: CallerId,
         edit: EventEdit,
     ) = dbQuery {
         val eventId = EventId.random()
@@ -57,7 +57,7 @@ class EventTableDao: DbService() {
 
     suspend fun updateEvent(
         eventId: EventId,
-        callerId: StarId,
+        callerId: CallerId,
         edit: EventEdit,
     ) = dbQuery {
         val title = edit.title ?: error("title not found")
@@ -79,12 +79,12 @@ class EventTableDao: DbService() {
         } > 0
     }
 
-    suspend fun deleteEvent(starId: StarId, eventId: EventId): Boolean = dbQuery {
-        EventTable.deleteSingle { EventTable.scoutId.eq(starId) and EventTable.id.eq(eventId) }
+    suspend fun deleteEvent(callerId: CallerId, eventId: EventId): Boolean = dbQuery {
+        EventTable.deleteSingle { EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId) }
     }
 
-    suspend fun readEventsInBounds(bounds: GeoBounds, starId: StarId?) = dbQuery { // , after: LocalDate, before: LocalDate
-        eventLocationQuery(starId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
+    suspend fun readEventsInBounds(bounds: GeoBounds, callerId: CallerId?) = dbQuery { // , after: LocalDate, before: LocalDate
+        eventLocationQuery(callerId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
     }
 
     suspend fun readActiveEvents() = dbQuery {
@@ -92,11 +92,11 @@ class EventTableDao: DbService() {
             .map { it.toEvent() }
     }
 
-    suspend fun readEvent(eventId: EventId, callerId: StarId?) = dbQuery {
+    suspend fun readEvent(eventId: EventId, callerId: CallerId?) = dbQuery {
         eventQuery(callerId).where { EventTable.id.eq(eventId) }.firstOrNull()?.toEvent()
     }
 
-    suspend fun readEvent(slug: Slug, callerId: StarId?) = dbQuery {
+    suspend fun readEvent(slug: Slug, callerId: CallerId?) = dbQuery {
         eventQuery(callerId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEvent()
     }
 
@@ -108,11 +108,11 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.slug.eq(slug) }?.toEvent()
     }
 
-    suspend fun readEventLocationBySlug(slug: Slug, starId: StarId?) = dbQuery {
-        eventLocationQuery(starId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
+    suspend fun readEventLocationBySlug(slug: Slug, callerId: CallerId?) = dbQuery {
+        eventLocationQuery(callerId).where { EventTable.slug.eq(slug) }.firstOrNull()?.toEventLocation()
     }
 
-    suspend fun readLocationEvents(slug: Slug, callerId: StarId?) = dbQuery {
+    suspend fun readLocationEvents(slug: Slug, callerId: CallerId?) = dbQuery {
         eventQuery(callerId).where { EventTable.locationSlug.eq(slug) }.map { it.toEvent() }
     }
 
@@ -120,8 +120,8 @@ class EventTableDao: DbService() {
         EventTable.readFirstOrNull { it.locationId.eq(locationId) and it.startsAt.eq(startsAt) }?.toEvent()
     }
 
-    suspend fun readEventLocations(eventIds: List<EventId>, starId: StarId?) = dbQuery {
-        eventLocationQuery(starId).where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
+    suspend fun readEventLocations(eventIds: List<EventId>, callerId: CallerId?) = dbQuery {
+        eventLocationQuery(callerId).where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
     }
 
     suspend fun readImageUrl(eventId: EventId) = dbQuery {

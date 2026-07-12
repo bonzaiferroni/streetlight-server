@@ -1,11 +1,11 @@
 package streetlight.server.db.tables
 
+import kampfire.model.CallerId
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import streetlight.model.data.StarId
 import kotlin.time.Clock
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
@@ -40,9 +40,9 @@ fun ResultRow.toTalent() = Talent(
 )
 
 // Updaters
-fun UpdateBuilder<*>.createRecord(talent: Talent, starId: StarId) {
+fun UpdateBuilder<*>.createRecord(talent: Talent, callerId: CallerId) {
     this[TalentTable.id] = talent.talentId.value
-    this[TalentTable.starId] = starId.value
+    this[TalentTable.starId] = callerId.value
     this[TalentTable.createdAt] = talent.createdAt
     updateRecord(talent)
 }

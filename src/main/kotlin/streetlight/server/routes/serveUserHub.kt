@@ -17,12 +17,12 @@ fun ApiScope.serveUserHub() {
         }
 
         getApi(Api.Users.Talents) { _ ->
-            val userId = call.getIdentity().starId
+            val userId = call.getIdentity().callerId
             dao.talent.readUserTalents(userId).toOutcome()
         }
 
         postApi(Api.Users.EditTalent) {
-            val userId = call.getIdentity().starId
+            val userId = call.getIdentity().callerId
             val talentId = it.data.talentId
             if (talentId != null) {
                 dao.talent.edit(talentId, it.data, userId)
@@ -40,7 +40,7 @@ fun ApiScope.serveUserHub() {
 
 
         postApi(Api.Users.UploadImage) {
-            val userId = call.getIdentity().starId
+            val userId = call.getIdentity().callerId
             saveLocalImageFile(it.data, userId, randomUuidString()).toOutcome()
         }
     }

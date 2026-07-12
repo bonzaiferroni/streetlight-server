@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariant
 import kampfire.model.Url
@@ -12,7 +13,7 @@ private val console = globalConsole.getHandle("storeImage")
 
 suspend fun DataScope.storeLocalImage(
     bytes: ByteArray,
-    starId: StarId?,
+    starId: CallerId?,
     filename: String,
     size: ImageSize = ImageSize.Large
 ): Url? {
@@ -25,7 +26,7 @@ suspend fun DataScope.storeLocalImage(
 
 suspend fun DataScope.encodeImageAndStore(
     bytes: ByteArray,
-    userId: StarId?,
+    userId: CallerId?,
     filename: String,
     sizes: List<ImageSize>,
 ): ImageSizerResult? {

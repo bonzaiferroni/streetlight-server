@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -8,7 +9,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import streetlight.model.data.StarId
 import kotlin.time.Clock
 import streetlight.model.data.TalentEdit
 import streetlight.model.data.Talent
@@ -30,17 +30,17 @@ class TalentTableDao : DbService() {
         TalentTable.selectAll().map { it.toTalent() }
     }
 
-    suspend fun readUserTalents(starId: StarId) = dbQuery {
-        TalentTable.read { it.starId.eq(starId) }.map { it.toTalent() }
+    suspend fun readUserTalents(callerId: CallerId) = dbQuery {
+        TalentTable.read { it.starId.eq(callerId) }.map { it.toTalent() }
     }
 
-    suspend fun create(talent: Talent, starId: StarId): TalentId = dbQuery {
+    suspend fun create(talent: Talent, callerId: CallerId): TalentId = dbQuery {
         TalentTable.insertAndGetId {
-            it.createRecord(talent, starId)
+            it.createRecord(talent, callerId)
         }.value.toRecordId()
     }
 
-    suspend fun create(talent: TalentEdit, userId: StarId): Talent? = dbQuery {
+    suspend fun create(talent: TalentEdit, callerId: CallerId): Talent? = dbQuery {
         val id: TalentId = TalentTable.insertAndGetId {
             it.createRecord(Talent(
                 talentId = TalentId.random(),
@@ -53,13 +53,13 @@ class TalentTableDao : DbService() {
                 yearStarted = talent.yearStarted,
                 updatedAt = Clock.System.now(),
                 createdAt = Clock.System.now(),
-            ), userId)
+            ), callerId)
         }.toRecordId()
         TalentTable.read { it.id.eq(id) }.firstOrNull()?.toTalent()
     }
 
-    suspend fun edit(talentId: TalentId, talent: TalentEdit, userId: StarId) = dbQuery {
-        val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.starId.eq(userId) }) {
+    suspend fun edit(talentId: TalentId, talent: TalentEdit, callerId: CallerId) = dbQuery {
+        val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.starId.eq(callerId) }) {
             it.updateRecord(Talent(
                 talentId = talentId,
                 name = talent.name,

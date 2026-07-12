@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
@@ -10,7 +11,7 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 
-fun eventQuery(callerId: StarId?) = EventTable
+fun eventQuery(callerId: CallerId?) = EventTable
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
         additionalConstraint = EventStarTable.getConstraint(callerId))
     .select(EventColumns)

@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.CallerId
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
@@ -10,7 +11,6 @@ import streetlight.model.data.EventPost
 import streetlight.model.data.LocationPost
 import streetlight.model.data.Post
 import streetlight.model.data.PostType
-import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
 val PostColumns = listOf(
@@ -31,16 +31,16 @@ val PostColumns = listOf(
 
 val GalaxyPostColumns = (EventLocationColumns + LocationColumns + PostColumns + MediaColumns).distinct()
 
-fun galaxyPostQuery(starId: StarId?) = PostTable
+fun galaxyPostQuery(callerId: CallerId?) = PostTable
     .leftJoin(EventTable)
     .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
     .leftJoin(MediaTable)
     .join(PostStarTable, JoinType.LEFT, PostTable.id, PostStarTable.postId,
-        additionalConstraint = PostStarTable.getConstraint(starId))
+        additionalConstraint = PostStarTable.getConstraint(callerId))
     .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId,
-        additionalConstraint = EventStarTable.getConstraint(starId))
+        additionalConstraint = EventStarTable.getConstraint(callerId))
     .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
-        additionalConstraint = LocationStarTable.getConstraint(starId))
+        additionalConstraint = LocationStarTable.getConstraint(callerId))
     .select(GalaxyPostColumns)
 
 fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {

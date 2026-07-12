@@ -1,13 +1,17 @@
 package streetlight.server.model
 
 import kampfire.api.Slug
+import kampfire.model.CallerId
+import kampfire.model.Identity
 import streetlight.model.data.EventUpdaterContent
+import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
 import streetlight.model.data.StarId
+import streetlight.model.data.starId
 
-suspend fun DaoScope.readHomeContent(callerId: StarId?): HomeContent {
+suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     val posts = dao.post.readOrderedPosts(callerId)
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
     return HomeContent(
@@ -16,10 +20,10 @@ suspend fun DaoScope.readHomeContent(callerId: StarId?): HomeContent {
     )
 }
 
-suspend fun DaoScope.readLocationContent(slug: Slug, callerId: StarIdentity?): LocationContent? {
-    val location = dao.location.readLocation(slug, callerId?.starId) ?: return null
-    val events = dao.event.readLocationEvents(slug, callerId?.starId)
-    val canEdit = location.host == null || location.host == callerId?.username // || callerId?.roles?.contains(UserRole.Admin) == true
+suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): LocationContent? {
+    val location = dao.location.readLocation(slug, identity?.callerId) ?: return null
+    val events = dao.event.readLocationEvents(slug, identity?.callerId)
+    val canEdit = location.host == null || location.host == identity?.username // || callerId?.roles?.contains(UserRole.Admin) == true
     return LocationContent(
         location = location,
         events = events,
@@ -42,5 +46,15 @@ suspend fun DaoScope.readEventUpdaterContent(slug: Slug): EventUpdaterContent? {
     return EventUpdaterContent(
         event = event,
         editLogs = editLogs
+    )
+}
+
+suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyContent? {
+    val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
+    val galaxyId = galaxy.galaxyId
+    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
+    return GalaxyContent(
+        galaxy = galaxy,
+        posts = posts,
     )
 }

@@ -1,5 +1,6 @@
 package streetlight.server.db.services
 
+import kampfire.model.CallerId
 import kotlin.time.Instant
 import klutch.db.DbService
 import klutch.utils.eq
@@ -17,7 +18,6 @@ import streetlight.model.data.LightEdit
 import streetlight.model.data.LightType
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostId
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventStarTable
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.LocationStarTable
@@ -64,43 +64,43 @@ class LightTableDao : DbService() {
 
     // -- public API --
 
-    suspend fun readEventLights(starId: StarId) = readLights(eventLight, starId) { EventId(it) }
-    suspend fun readGalaxyLights(starId: StarId) = readLights(galaxyLight, starId) { GalaxyId(it) }
-    suspend fun readLocationLights(starId: StarId) = readLights(locationLight, starId) { LocationId(it) }
-    suspend fun readPostLights(starId: StarId) = readLights(postLight, starId) { PostId(it) }
+    suspend fun readEventLights(callerId: CallerId) = readLights(eventLight, callerId) { EventId(it) }
+    suspend fun readGalaxyLights(callerId: CallerId) = readLights(galaxyLight, callerId) { GalaxyId(it) }
+    suspend fun readLocationLights(callerId: CallerId) = readLights(locationLight, callerId) { LocationId(it) }
+    suspend fun readPostLights(callerId: CallerId) = readLights(postLight, callerId) { PostId(it) }
 
-    suspend fun editLight(edit: LightEdit, starId: StarId) = when (edit.lightType) {
-        LightType.Event -> editLight(eventLight, edit, starId)
-        LightType.Galaxy -> editLight(galaxyLight, edit, starId)
-        LightType.Location -> editLight(locationLight, edit, starId)
-        LightType.Post -> editLight(postLight, edit, starId)
+    suspend fun editLight(edit: LightEdit, callerId: CallerId) = when (edit.lightType) {
+        LightType.Event -> editLight(eventLight, edit, callerId)
+        LightType.Galaxy -> editLight(galaxyLight, edit, callerId)
+        LightType.Location -> editLight(locationLight, edit, callerId)
+        LightType.Post -> editLight(postLight, edit, callerId)
     }
 
-    suspend fun editLights(edits: List<LightEdit>, starId: StarId): Boolean {
-        edits.forEach { editLight(it, starId) }
+    suspend fun editLights(edits: List<LightEdit>, callerId: CallerId): Boolean {
+        edits.forEach { editLight(it, callerId) }
         return true
     }
 
     // -- generic engine --
-    private suspend fun <T> readLights(config: LightConfig, starId: StarId, toId: (Uuid) -> T) = dbQuery {
+    private suspend fun <T> readLights(config: LightConfig, callerId: CallerId, toId: (Uuid) -> T) = dbQuery {
         config.lightTable.select(config.lightForeignId)
-            .where { config.lightStarId.eq(starId) }
+            .where { config.lightStarId.eq(callerId) }
             .map { toId(it[config.lightForeignId].value) }
     }
 
     private suspend fun editLight(
         config: LightConfig,
         edit: LightEdit,
-        starId: StarId,
+        callerId: CallerId,
     ) = dbQuery {
         when (edit.isLit) {
             true -> config.lightTable.insertIgnore {
-                it[config.lightStarId] = starId.value
+                it[config.lightStarId] = callerId.value
                 it[config.lightForeignId] = edit.targetId
                 it[config.createdAt] = Clock.System.now()
             }
             else -> config.lightTable.deleteWhere {
-                config.lightForeignId.eq(edit.targetId) and config.lightStarId.eq(starId)
+                config.lightForeignId.eq(edit.targetId) and config.lightStarId.eq(callerId)
             }
         }
         true

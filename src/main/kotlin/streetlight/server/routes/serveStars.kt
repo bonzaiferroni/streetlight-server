@@ -27,25 +27,25 @@ fun ApiScope.serveStars() {
 
         postApi(Api.Stars.EditStar) {
             val edit = it.data
-            val starId = call.getIdentity().starId
-            val image = checkImageAndStore(starId, starId, edit.image, StarTable.imageConfig)
-            dao.star.updateStar(starId, edit.copy(image = image)).toOutcome()
+            val callerId = call.getIdentity().callerId
+            val image = checkImageAndStore(callerId, callerId, edit.image, StarTable.imageConfig)
+            dao.star.updateStar(callerId, edit.copy(image = image)).toOutcome()
         }
 
         postApi(Api.Stars.EditLight) {
-            val starId = call.getIdentity().starId
+            val callerId = call.getIdentity().callerId
             when (val request = it.data) {
                 is LightEdit -> {
-                    dao.light.editLight(request, starId)
+                    dao.light.editLight(request, callerId)
                 }
                 is MultiLightEdit -> {
-                    dao.light.editLights(request.edits, starId)
+                    dao.light.editLights(request.edits, callerId)
                 }
             }.toOutcome()
         }
 
         getApi(Api.Stars.PendingEdits) {
-            val callerId = call.getIdentity().starId
+            val callerId = call.getIdentity().callerId
             dao.editLog.readEdits(callerId).toOutcome()
         }
     }

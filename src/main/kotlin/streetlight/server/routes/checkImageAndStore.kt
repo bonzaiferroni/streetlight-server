@@ -5,6 +5,8 @@ import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 import kabinet.console.globalConsole
+import kampfire.api.TableId
+import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariants
 import kampfire.utils.randomUuidString
@@ -15,17 +17,18 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.DataScope
 import java.io.File
+import kotlin.uuid.Uuid
 
 private val console = globalConsole.getHandle("saveImage")
 
 suspend fun DataScope.checkImageAndStore(
-    userId: StarId?,
-    rowId: RecordId?,
+    callerId: CallerId?,
+    rowId: TableId<Uuid>?,
     image: Image?,
     config: TableImageConfig
 ): Image? {
     // associate with user when imageRef is relative
-    val userId = userId.takeIf { image?.isRelative ?: false }
+    val userId = callerId.takeIf { image?.isRelative ?: false }
 
     if (image == null || image.value.isBlank()) {
         // removes any existing image
@@ -41,7 +44,7 @@ suspend fun DataScope.checkImageAndStore(
 
 
 suspend fun DataScope.provisionImageAndStore(
-    userId: StarId?,
+    userId: CallerId?,
     image: Image,
     sizes: List<ImageSize>,
 ): ImageSizerResult? {

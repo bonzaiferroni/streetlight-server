@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.Username
+import kampfire.model.CallerId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.read
@@ -20,14 +21,14 @@ import kotlin.let
 class StarTableDao: DbService() {
 
     suspend fun updateStar(
-        starId: StarId,
+        callerId: CallerId,
         edit: StarEdit,
     ) = dbQuery {
         println(edit.username)
-        StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
+        StarTable.updateSingleWhere({ StarTable.id.eq(callerId)}) {
             it.updateRecord(edit)
         }
-        StarTable.readById(starId.value).toStar()
+        StarTable.readById(callerId.value).toStar()
     }
 
     suspend fun readByUsername(username: Username) = dbQuery {
