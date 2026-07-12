@@ -54,6 +54,7 @@ fun UpdateBuilder<*>.updateRecord(song: Song) {
     this[SongTable.updatedAt] = song.updatedAt
 }
 
+@Deprecated("use klutch reference jsonColumnConfig")
 val tableJsonDefault = Json {
     encodeDefaults = true
     explicitNulls = false

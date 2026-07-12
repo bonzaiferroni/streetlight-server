@@ -5,6 +5,7 @@ import kampfire.model.Outcome
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
+import koala.toImage
 import streetlight.agent.ParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
@@ -39,7 +40,7 @@ class LocationParser(
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(
-                    imageRef = meta.image ?: parse.imageUrl?.toUrl(),
+                    image = meta.image?.toImage() ?: parse.imageUrl?.toUrl()?.toImage(),
                     description = parse.description?.toMarkdown() ?: metaDescription,
                     name = parse.name ?: meta.title
                 ))
@@ -49,7 +50,7 @@ class LocationParser(
                     data = LocationEdit(
                         name = meta.title,
                         description = metaDescription,
-                        imageRef = meta.image
+                        image = meta.image?.toImage()
                     ),
                     message = "${response.message} Returning only document meta information."
                 )

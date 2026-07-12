@@ -14,13 +14,11 @@ import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
-import streetlight.model.data.GalaxyLight
 import streetlight.model.data.HostType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyStarTable
@@ -29,14 +27,14 @@ import streetlight.server.db.tables.updateRecord
 
 class GalaxyTableDao : DbService() {
 
-    suspend fun create(edit: GalaxyEdit, callerId: StarId, city: City?, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun create(edit: GalaxyEdit, callerId: StarId, city: City?) = dbQuery {
         val slug = requireNotNull(edit.slug) { "Slug not found" }
         require(slug.isValid()) { "Invalid slug" }
         require(GalaxyTable.isSlugAvailable(slug)) { "Slug is taken" }
         val record = edit.toGalaxy()
 
         GalaxyTable.insert {
-            it.createRecord(record, callerId, SlugRecord(slug), city, imageSet)
+            it.createRecord(record, callerId, SlugRecord(slug), city)
         }
         GalaxyStarTable.insert {
             it[GalaxyStarTable.galaxyId] = record.galaxyId.value
@@ -53,14 +51,14 @@ class GalaxyTableDao : DbService() {
         slug
     }
 
-    suspend fun update(edit: GalaxyEdit, city: City?, imageSet: SavedImageSet?) = dbQuery {
+    suspend fun update(edit: GalaxyEdit, city: City?) = dbQuery {
         val slug = requireNotNull(edit.slug) { "Slug not found" }
         val galaxyId = requireNotNull(edit.galaxyId) { "galaxy id not found" }
         val slugRecord = GalaxyTable.getDefinedSlugRecord(galaxyId, slug)
 
         val galaxy = edit.toGalaxy()
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
-            it.updateRecord(galaxy, slugRecord, city, imageSet)
+            it.updateRecord(galaxy, slugRecord, city)
         }
         slug
     }
@@ -104,8 +102,7 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     postPermission = postPermission,
     reviewCount = requireNotNull(reviewCount) { "review count not found" },
     postGuide = postGuide,
-    imageRef = imageRef,
-    images = null,
+    image = image,
     starCount = 0,
     eventCount = 0,
     locationCount = 0,

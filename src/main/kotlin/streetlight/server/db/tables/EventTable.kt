@@ -3,10 +3,10 @@ package streetlight.server.db.tables
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
+import klutch.db.image
 import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
-import klutch.db.url
 import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -35,8 +35,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val visibility = integer("visibility").nullable()
     val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
     val website = text("url").nullable()
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("image_array").nullable()
+    val image = image("image").nullable()
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
     val starCount = integer("star_count").default(0)
@@ -48,8 +47,7 @@ object EventTable : UuidTable("event"), SlugTable {
 
     val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
+        column = image,
         ImageSize.Medium,
         ImageSize.Small,
         ImageSize.Thumb,
@@ -82,11 +80,9 @@ fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord) {
     this[EventTable.cost] = event.cost
     this[EventTable.visibility] = event.visibility
     this[EventTable.links] = event.links
-    this[EventTable.imageRef] = event.imageRef
-    this[EventTable.images] = event.images
+    this[EventTable.image] = event.image
     this[EventTable.timeZoneId] = event.timeZone.id
     this[EventTable.startsAt] = event.startsAt
     this[EventTable.endsAt] = event.endsAt
     this[EventTable.updatedAt] = event.updatedAt
-    // writeImages(EventTable.imageConfig, imageSet)
 }

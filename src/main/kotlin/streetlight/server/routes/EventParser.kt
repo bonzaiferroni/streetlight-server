@@ -5,6 +5,7 @@ import kampfire.model.Outcome
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
+import koala.toImage
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventEdit
@@ -37,7 +38,7 @@ suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
         is Ok -> {
             val parse = response.data
             Ok(parse.toEventEdit(null).copy(
-                imageRef = meta.image ?: parse.imageUrl?.toUrl(),
+                image = meta.image?.toImage() ?: parse.imageUrl?.toImage(),
                 description = parse.description?.toMarkdown() ?: metaDescription,
                 title = parse.name ?: meta.title
             ))
@@ -47,7 +48,7 @@ suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
                 data = EventEdit(
                     title = meta.title,
                     description = metaDescription,
-                    imageRef = meta.image
+                    image = meta.image?.toImage()
                 ),
                 message = "${response.message} Returning only document meta information."
             )

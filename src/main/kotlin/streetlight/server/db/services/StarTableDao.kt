@@ -1,24 +1,19 @@
 package streetlight.server.db.services
 
 import kampfire.api.Username
-import kampfire.api.toUsername
-import kampfire.model.UserRole
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.db.read
 import klutch.db.readById
 import klutch.db.updateSingleWhere
 import klutch.utils.eq
-import klutch.utils.eqIgnoreCase
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.updateRecord
-import streetlight.server.model.StarIdentity
 import streetlight.server.utils.toRecordId
 import kotlin.let
 
@@ -27,11 +22,10 @@ class StarTableDao: DbService() {
     suspend fun updateStar(
         starId: StarId,
         edit: StarEdit,
-        imageSet: SavedImageSet?
     ) = dbQuery {
         println(edit.username)
         StarTable.updateSingleWhere({ StarTable.id.eq(starId)}) {
-            it.updateRecord(edit, imageSet)
+            it.updateRecord(edit)
         }
         StarTable.readById(starId.value).toStar()
     }
@@ -50,8 +44,8 @@ class StarTableDao: DbService() {
     }
 
     suspend fun readThumb(starId: StarId) = dbQuery {
-        StarTable.select(StarTable.images).where { StarTable.id.eq(starId) }.firstOrNull()?.let {
-            it[StarTable.images]?.thumb
+        StarTable.select(StarTable.image).where { StarTable.id.eq(starId) }.firstOrNull()?.let {
+            it[StarTable.image]?.variants?.thumb
         }
     }
 

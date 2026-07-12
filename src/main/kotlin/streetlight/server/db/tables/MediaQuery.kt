@@ -10,8 +10,7 @@ val MediaColumns = listOf(
     MediaTable.text,
     MediaTable.link,
     MediaTable.geoPoint,
-    MediaTable.imageRef,
-    MediaTable.images,
+    MediaTable.image,
     MediaTable.updatedAt,
     MediaTable.createdAt,
 )

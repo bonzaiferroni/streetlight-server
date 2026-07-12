@@ -7,10 +7,10 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
-import streetlight.server.db.tables.EventTable
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
+import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
 
@@ -28,8 +28,8 @@ fun ApiScope.serveStars() {
         postApi(Api.Stars.EditStar) {
             val edit = it.data
             val starId = call.getIdentity().starId
-            val imageSet = saveImages(starId, starId, edit.imageRef, EventTable.imageConfig)
-            dao.star.updateStar(starId, edit, imageSet).toOutcome()
+            val image = checkImageAndStore(starId, starId, edit.image, StarTable.imageConfig)
+            dao.star.updateStar(starId, edit.copy(image = image)).toOutcome()
         }
 
         postApi(Api.Stars.EditLight) {

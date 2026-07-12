@@ -7,10 +7,12 @@ import streetlight.model.data.EditType
 import streetlight.model.data.Event
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventId
+import streetlight.model.data.LocationEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.toEdit
 import streetlight.server.db.services.createEditTask
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 
 suspend fun DataScope.createEvent(
@@ -18,10 +20,10 @@ suspend fun DataScope.createEvent(
     edit: EventEdit,
 ): Outcome<Event>? = transaction {
     if (dao.event.hasConflict(edit)) return@transaction Problem("Event already exists")
-    val imageSet = saveImages(callerId, edit.eventId, edit.imageRef, EventTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)
 
     log("creating event: ${edit.title}")
-    val event = dao.event.createEvent(callerId, edit, imageSet) ?: return@transaction null
+    val event = dao.event.createEvent(callerId, edit.copy(image = image)) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Create, event.toEdit(), event.eventId, callerId)
     val star = dao.star.readStar(callerId) ?: error("star not found")
 
@@ -37,10 +39,10 @@ suspend fun DataScope.updateEvent(
     callerId: StarId,
     edit: EventEdit,
 ): Outcome<Event>? = transaction {
-    val imageSet = saveImages(callerId, edit.eventId, edit.imageRef, EventTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)
 
     log("updating event: ${edit.title}")
-    val event = dao.event.updateEvent(eventId, callerId, edit, imageSet) ?: return@transaction null
+    val event = dao.event.updateEvent(eventId, callerId, edit.copy(image = image)) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Update, edit, eventId, callerId)
 
     event.toOutcome()

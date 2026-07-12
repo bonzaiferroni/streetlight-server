@@ -12,14 +12,12 @@ import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.PostTable
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.GalaxyEdit
-import streetlight.server.db.tables.SavedImageSet
 
 private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
@@ -74,22 +72,21 @@ fun ApiScope.serveGalaxies() {
         suspend fun handleEdit(
             edit: GalaxyEdit,
             identity: StarIdentity,
-            block: suspend (City, SavedImageSet) -> Slug?
+            block: suspend (City?, GalaxyEdit) -> Slug?
         ): Slug? {
             val starId = identity.starId
-            val city = edit.cityId?.let { dao.city.readCity(it) }.requireNotNull()
-            val imageUserId = starId.takeIf { edit.imageRef?.isRelative ?: false }
-            val imageSet = saveImages(imageUserId, edit.galaxyId, edit.imageRef, GalaxyTable.imageConfig)
-                .requireNotNull()
+            val city = edit.cityId?.let { dao.city.readCity(it) }
+            val imageUserId = starId.takeIf { edit.image?.isRelative ?: false }
+            val image = checkImageAndStore(imageUserId, edit.galaxyId, edit.image, GalaxyTable.imageConfig)
 
-            return block(city, imageSet)
+            return block(city, edit.copy(image = image))
         }
 
         postApi(Api.Galaxies.CreateGalaxy) {
             val edit = it.data
             val identity = call.getIdentity()
-            handleEdit(edit, identity) { city, imageSet ->
-                dao.galaxy.create(edit, identity.starId, city, imageSet).also { slug ->
+            handleEdit(edit, identity) { city, edit ->
+                dao.galaxy.create(edit, identity.starId, city).also { slug ->
                     val name = requireNotNull(edit.name) { "name not found" }
                     omni.sendGalaxyFounded(name, slug, identity.username)
                 }
@@ -99,8 +96,8 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.UpdateGalaxy) {
             val edit = it.data
             val identity = call.getIdentity()
-            handleEdit(edit, identity) { city, imageSet ->
-                dao.galaxy.update(edit, city, imageSet)
+            handleEdit(edit, identity) { city, edit ->
+                dao.galaxy.update(edit, city)
             }.toOutcome()
         }
 

@@ -1,37 +1,23 @@
 package streetlight.server.db.services
 
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.greaterEq
-import org.jetbrains.exposed.v1.core.max
-import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EditType
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
-import streetlight.model.data.RecordType
-import streetlight.model.data.BaseTask
-import streetlight.model.data.EditLogId
-import streetlight.model.data.TaskId
 import streetlight.model.data.StarId
-import streetlight.model.data.TaskStatus
 import streetlight.model.data.toEdit
 import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.TaskTable
-import streetlight.server.db.tables.StarTable
-import streetlight.server.model.DaoScope
 import streetlight.server.model.DataScope
-import streetlight.server.routes.saveImages
-import kotlin.time.Clock
-import kotlin.uuid.Uuid
+import streetlight.server.routes.checkImageAndStore
 
 suspend fun DataScope.createLocation(
     callerId: StarId,
     edit: LocationEdit,
 ) = transaction {
-    val imageSet = saveImages(callerId, edit.locationId, edit.imageRef, LocationTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
 
     log("creating location: ${edit.label}")
-    val location = dao.location.create(cityId, callerId, edit, imageSet) ?: return@transaction null
+    val location = dao.location.create(cityId, callerId, edit.copy(image = image)) ?: return@transaction null
     val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
     val star = dao.star.readStar(callerId) ?: error("star not found")
 
@@ -46,14 +32,12 @@ suspend fun DataScope.updateLocation(
     callerId: StarId,
     edit: LocationEdit,
 ) = transaction {
-    val imageSet = saveImages(callerId, edit.locationId, edit.imageRef, LocationTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
 
     log("updating location: ${edit.label}")
-    val location = dao.location.update(
-        locationId, cityId, callerId, edit, imageSet
-    )
-    val editLogId = dao.editLog.create(EditType.Update, edit, locationId, callerId)
+    val location = dao.location.update(locationId, cityId, callerId, edit)
+    val editLogId = dao.editLog.create(EditType.Update, edit.copy(image = image), locationId, callerId)
     location
 }
 

@@ -13,17 +13,16 @@ import streetlight.model.data.MediaId
 import streetlight.model.data.MediaType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.MediaTable
-import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toMedia
 import kotlin.time.Clock
 
 class MediaTableDao: DbService() {
 
-    suspend fun createMedia(edit: MediaEdit, callerId: StarId, images: SavedImageSet?) = dbQuery {
+    suspend fun createMedia(edit: MediaEdit, callerId: StarId) = dbQuery {
         val mediaId = MediaId.random()
         val slug = MediaTable.nextSlugOf(edit.title ?: mediaId.value.toString())
-        val media = edit.toMedia(mediaId, slug, images)
+        val media = edit.toMedia(mediaId, slug)
         MediaTable.insert {
             it.createRecord(media, callerId)
         }
@@ -35,7 +34,7 @@ class MediaTableDao: DbService() {
     }
 }
 
-private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug, images: SavedImageSet?) = Media(
+private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug) = Media(
     mediaId = mediaId,
     slug = slug,
     username = Username.Empty, // set with join
@@ -45,8 +44,7 @@ private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug, images: SavedImageSe
     text = text,
     link = link,
     geoPoint = geoPoint,
-    imageRef = images?.imageRef,
-    images = images?.array,
+    image = image,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )

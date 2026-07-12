@@ -5,8 +5,7 @@ import kampfire.model.AccountType
 import kampfire.model.ImageSize
 import kampfire.model.UserRecord
 import kampfire.model.UserRole
-import klutch.db.scaledImages
-import klutch.db.url
+import klutch.db.image
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -32,15 +31,13 @@ object StarTable: UuidTable("star") {
     val description = text("description").nullable()
     val accountType = enumeration<AccountType>("account_type")
     val scoutLevel = integer("scout_level").default(0)
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("images").nullable()
+    val image = image("image").nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
     val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
+        column = image,
         ImageSize.Medium,
         ImageSize.Small,
         ImageSize.Thumb
@@ -53,8 +50,7 @@ fun ResultRow.toStar() = Star(
     name = null, // td: allow user control over publishing name
     description = this[StarTable.description],
     scoutLevel = this[StarTable.scoutLevel],
-    imageRef = this[StarTable.imageRef],
-    images = this[StarTable.images],
+    image = this[StarTable.image],
     updatedAt = this[StarTable.updatedAt],
     createdAt = this[StarTable.createdAt],
 )
@@ -86,8 +82,8 @@ fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.updatedAt] = user.updatedAt
 }
 
-fun UpdateBuilder<*>.updateRecord(edit: StarEdit, images: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(edit: StarEdit) {
     this[StarTable.name] = edit.name
     this[StarTable.description] = edit.description
-    writeImages(StarTable.imageConfig, images)
+    this[StarTable.image] = edit.image
 }

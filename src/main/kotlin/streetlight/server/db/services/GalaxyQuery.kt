@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.api.toMarkdown
 import kampfire.api.toSlug
 import klutch.utils.eq
 import klutch.utils.toGeoBounds
@@ -37,8 +36,7 @@ val GalaxyColumns = listOf(
     GalaxyTable.postPermission,
     GalaxyTable.reviewCount,
     GalaxyTable.postGuide,
-    GalaxyTable.imageRef,
-    GalaxyTable.images,
+    GalaxyTable.image,
     GalaxyTable.starCount,
     GalaxyTable.eventCount,
     GalaxyTable.locationCount,
@@ -62,8 +60,7 @@ fun ResultRow.toGalaxy() = Galaxy(
     postPermission = this[GalaxyTable.postPermission],
     reviewCount = this[GalaxyTable.reviewCount],
     postGuide = this[GalaxyTable.postGuide],
-    imageRef = this[GalaxyTable.imageRef],
-    images = this[GalaxyTable.images],
+    image = this[GalaxyTable.image],
     isLit = this.getOrNull(GalaxyStarTable.starId) != null,
     isHost = this.getOrNull(GalaxyHostTable.hostId) != null,
     starCount = this[GalaxyTable.starCount],

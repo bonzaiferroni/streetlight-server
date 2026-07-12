@@ -2,11 +2,10 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
+import klutch.db.image
 import klutch.db.point
-import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
-import klutch.db.url
 import klutch.utils.toList
 import klutch.utils.toPGpoint
 import klutch.utils.transformMarkdown
@@ -34,8 +33,7 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewCount = integer("review_count").default(0) // td: remove default value
     val postGuide = text("post_guide").transformMarkdown().nullable()
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("images").nullable()
+    val image = image("image").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
@@ -47,8 +45,7 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
 
     val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
+        column = image,
         ImageSize.Large,
         ImageSize.Medium,
         ImageSize.Small,
@@ -63,14 +60,14 @@ val galaxyEventCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.g
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
 
-fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(galaxy: Galaxy, founderId: StarId, slugRecord: SlugRecord, city: City?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
     // this[GalaxyTable.founderId] = founderId.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
-    updateRecord(galaxy, slugRecord, city, imageSet)
+    updateRecord(galaxy, slugRecord, city)
 }
 
-fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: City?, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: City?) {
     this[GalaxyTable.slug] = slugRecord.slug.value
     this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.value
     this[GalaxyTable.cityId] = city?.cityId?.value
@@ -84,5 +81,5 @@ fun UpdateBuilder<*>.updateRecord(galaxy: Galaxy, slugRecord: SlugRecord, city: 
     this[GalaxyTable.reviewCount] = galaxy.reviewCount
     this[GalaxyTable.postGuide] = galaxy.postGuide
     this[GalaxyTable.updatedAt] = galaxy.updatedAt
-    writeImages(GalaxyTable.imageConfig, imageSet)
+    this[GalaxyTable.image] = galaxy.image
 }

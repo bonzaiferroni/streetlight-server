@@ -2,12 +2,13 @@ package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
+import klutch.db.image
+import klutch.db.jsonColumnConfig
 import klutch.utils.*
 import klutch.db.point
-import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
-import klutch.db.url
+import koala.Image
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -38,20 +39,18 @@ object LocationTable: UuidTable("location"), SlugTable {
     val mapCategory = text("map_category").nullable()
     val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
-    val hours = jsonb<HoursSchedule>("hours", tableJsonDefault).nullable()
+    val hours = jsonb<HoursSchedule>("hours", jsonColumnConfig).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)
-    val links = jsonb<List<ExtraLink>>("links", tableJsonDefault).nullable()
+    val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
     val eventsUrl = text("events_url").nullable()
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("images").nullable()
+    val image = image("image").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
     val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
+        column = image,
         ImageSize.Large,
         ImageSize.Medium,
         ImageSize.Small,
@@ -65,14 +64,14 @@ val locationHostSync = SyncValueTrigger(LocationTable.hostId, LocationTable.host
 val locationScoutSync = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
 
 // Updaters
-fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.createRecord(location: Location, starId: StarId?, slugRecord: SlugRecord) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.scoutId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
-    updateRecord(location, slugRecord, imageSet)
+    updateRecord(location, slugRecord)
 }
 
-fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, imageSet: SavedImageSet?) {
+fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord) {
     this[LocationTable.slug] = slugRecord.slug.value
     this[LocationTable.pastSlug] = slugRecord.pastSlug?.value
     this[LocationTable.mapId] = location.mapId
@@ -92,5 +91,5 @@ fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord, im
     this[LocationTable.eventsUrl] = location.eventsUrl
     this[LocationTable.links] = location.extraLinks
     this[LocationTable.updatedAt] = location.updatedAt
-    writeImages(LocationTable.imageConfig, imageSet)
+    this[LocationTable.image] = location.image
 }

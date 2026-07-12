@@ -4,6 +4,7 @@ import kampfire.api.toSlug
 import kampfire.api.toUsername
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
+import klutch.db.image
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.tables.SlugTable
@@ -31,15 +32,13 @@ object MediaTable: UuidTable("media"), SlugTable {
     val text = text("text").transformMarkdown().nullable()
     val link = url("link").nullable()
     val geoPoint = point("geo_point").nullable()
-    val imageRef = url("image_ref").nullable()
-    val images = scaledImages("images").nullable()
+    val image = image("image").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
     val imageConfig = imageConfigOf(
         table = this,
-        refColumn = imageRef,
-        arrayColumn = images,
+        column = image,
         ImageSize.Large,
         ImageSize.Medium,
         ImageSize.Small,
@@ -59,8 +58,7 @@ fun ResultRow.toMedia() = Media(
     text = this[MediaTable.text],
     link = this[MediaTable.link],
     geoPoint = this[MediaTable.geoPoint]?.toGeoPoint(),
-    imageRef = this[MediaTable.imageRef],
-    images = this[MediaTable.images],
+    image = this[MediaTable.image],
     updatedAt = this[MediaTable.updatedAt],
     createdAt = this[MediaTable.createdAt],
 )
@@ -81,8 +79,7 @@ fun UpdateBuilder<*>.writeUpdate(media: Media) {
     this[MediaTable.text] = media.text
     this[MediaTable.link] = media.link
     this[MediaTable.geoPoint] = media.geoPoint?.toPGpoint()
-    this[MediaTable.imageRef] = media.imageRef
-    this[MediaTable.images] = media.images
+    this[MediaTable.image] = media.image
     this[MediaTable.updatedAt] = media.updatedAt
     // writeImages(MediaTable.imageConfig, imageSet)
 }

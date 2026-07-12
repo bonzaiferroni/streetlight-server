@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kampfire.model.outcomeOf
+import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.postApi
 import streetlight.model.Api
@@ -14,9 +15,9 @@ fun ApiScope.serveMedia() {
             val edit = it.data
             val identity = call.getIdentity()
 
-            val imageSet = saveImages(identity.starId, null, edit.imageRef, MediaTable.imageConfig)
+            val image = checkImageAndStore(identity.starId, null, edit.image, MediaTable.imageConfig)
 
-            outcomeOf(dao.media.createMedia(edit, identity.starId, imageSet))
+            dao.media.createMedia(edit.copy(image = image), identity.starId).toOutcome()
         }
     }
 }

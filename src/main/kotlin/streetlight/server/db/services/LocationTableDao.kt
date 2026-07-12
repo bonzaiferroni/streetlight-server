@@ -1,7 +1,6 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
@@ -32,7 +31,6 @@ import streetlight.model.data.LocationInfo
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
-import streetlight.server.db.tables.SavedImageSet
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
@@ -63,14 +61,13 @@ class LocationTableDao : DbService() {
         cityId: CityId,
         callerId: StarId,
         edit: LocationEdit,
-        imageSet: SavedImageSet?
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId.value)
         LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.updateRecord(location, slugRecord, imageSet)
+            it.updateRecord(location, slugRecord)
         }
         readLocation(locationId, callerId)
     }
@@ -79,13 +76,12 @@ class LocationTableDao : DbService() {
         cityId: CityId,
         callerId: StarId,
         edit: LocationEdit,
-        imageSet: SavedImageSet?
     ) = dbQuery {
         val locationId = LocationId.random()
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug), imageSet) }
+        LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug)) }
         readLocation(locationId, callerId)
     }
 
@@ -178,8 +174,7 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     lightCount = null,
     eventsUrl = eventsUrl,
     extraLinks = extraLinks,
-    imageRef = imageRef,
-    images = null,
+    image = image,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now()
 )

@@ -23,7 +23,6 @@ import streetlight.model.data.EventStatus
 import streetlight.model.data.LocationId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
-import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventLocationQuery
 import klutch.db.tables.SlugRecord
@@ -45,12 +44,11 @@ class EventTableDao: DbService() {
     suspend fun createEvent(
         callerId: StarId,
         edit: EventEdit,
-        imageSet: SavedImageSet?
     ) = dbQuery {
         val eventId = EventId.random()
         val title = edit.title ?: error("title not found")
         val slug = EventTable.nextSlugOf(title)
-        val event = edit.toEvent(eventId, imageSet)
+        val event = edit.toEvent(eventId)
         EventTable.insert {
             it.createRecord(event, callerId, SlugRecord(slug))
         }
@@ -61,11 +59,10 @@ class EventTableDao: DbService() {
         eventId: EventId,
         callerId: StarId,
         edit: EventEdit,
-        imageSet: SavedImageSet?
     ) = dbQuery {
         val title = edit.title ?: error("title not found")
         val slugSync = EventTable.getSlugRecord(eventId, title)
-        val event = edit.toEvent(eventId, imageSet)
+        val event = edit.toEvent(eventId)
         EventTable.update({ EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId)}) {
             it.updateRecord(event, slugSync)
         }
@@ -128,12 +125,12 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readImageUrl(eventId: EventId) = dbQuery {
-        EventTable.select(EventTable.imageRef).where { EventTable.id.eq(eventId) }
-            .firstOrNull()?.getOrNull(EventTable.imageRef)
+        EventTable.select(EventTable.image).where { EventTable.id.eq(eventId) }
+            .firstOrNull()?.getOrNull(EventTable.image)
     }
 }
 
-private fun EventEdit.toEvent(eventId: EventId, imageSet: SavedImageSet?) = Event(
+private fun EventEdit.toEvent(eventId: EventId) = Event(
     eventId = eventId,
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
@@ -148,8 +145,7 @@ private fun EventEdit.toEvent(eventId: EventId, imageSet: SavedImageSet?) = Even
     visibility = null,
     links = links,
     website = website,
-    imageRef = imageSet?.imageRef,
-    images = imageSet?.array,
+    image = image,
     streamUrl = null,
     isLit = false, // set with join
     timeZoneId = timeZoneId ?: error("no time zone"),

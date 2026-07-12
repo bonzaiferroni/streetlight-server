@@ -27,10 +27,15 @@ data class ImageEncoding(
     val format: FileFormat = FileFormat.WEBP,
 )
 
+data class ResizeResult(
+    val encodings: List<ImageEncoding>,
+    val aspectRatio: Float
+)
+
 fun encodeImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): List<ImageEncoding> {
+): ResizeResult? {
     println("Received ${bytes.size} bytes, first 8: ${bytes.take(8).map { it.toUByte() }}")
     val format = FormatDetector.detect(bytes.inputStream()).orElse(null)
 
@@ -44,11 +49,13 @@ fun encodeImage(
 private fun resizeStaticImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): List<ImageEncoding> {
+): ResizeResult? {
     val image = ImmutableImage.loader().fromBytes(bytes)
+    if (image.height == 0) return null
     val writer = WebpWriter.DEFAULT.withQ(80)
+    val aspectRatio = image.width / image.height.toFloat()
 
-    return sizes.mapNotNull { size ->
+    val encodings = sizes.mapNotNull { size ->
         runCatching {
             if (image.width < size.minWidthPx) return@mapNotNull null
 
@@ -65,7 +72,9 @@ private fun resizeStaticImage(
             ImageEncoding(size, output.bytes(writer))
         }.onFailure { console.error(it) }
             .getOrNull()
-    }
+    }.takeIf { it.isNotEmpty() } ?: return null
+
+    return ResizeResult(encodings, aspectRatio)
 }
 
 /**
@@ -78,16 +87,18 @@ private fun resizeStaticImage(
 private fun resizeAnimatedImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): List<ImageEncoding> {
+): ResizeResult? {
     val gif = AnimatedGifReader.read(ImageSource.of(bytes))
     val frameCount = gif.frameCount
-    if (frameCount <= 0) return emptyList()
+    if (frameCount <= 0) return null
 
     val firstFrame = gif.getFrame(0)
+    if (firstFrame.height == 0) return null
+    val aspectRatio = firstFrame.width / firstFrame.height.toFloat()
     val delay = runCatching { gif.getDelay(0) }
         .getOrDefault(Duration.ofMillis(200))
 
-    return sizes.mapNotNull { size ->
+    val encodings = sizes.mapNotNull { size ->
         runCatching {
             if (firstFrame.width < size.minWidthPx) return@mapNotNull null
 
@@ -119,7 +130,9 @@ private fun resizeAnimatedImage(
             ImageEncoding(size, webpBytes)
         }.onFailure { console.error(it) }
             .getOrNull()
-    }
+    }.takeIf { it.isNotEmpty() } ?: return null
+
+    return ResizeResult(encodings, aspectRatio)
 }
 
 private fun targetDimensions(

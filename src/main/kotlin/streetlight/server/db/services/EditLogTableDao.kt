@@ -11,11 +11,8 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import streetlight.model.data.EditLog
 import streetlight.model.data.EditLogId
 import streetlight.model.data.EditType
-import streetlight.model.data.EventEdit
-import streetlight.model.data.LocationEdit
 import streetlight.model.data.RecordEdit
 import streetlight.model.data.RecordId
-import streetlight.model.data.RecordType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.createRecord

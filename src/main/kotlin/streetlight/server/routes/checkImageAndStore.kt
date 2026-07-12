@@ -6,109 +6,56 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 import kabinet.console.globalConsole
 import kampfire.model.ImageSize
-import kampfire.model.ScaledImage
-import kampfire.model.Url
+import kampfire.model.ImageVariants
 import kampfire.utils.randomUuidString
-import klutch.server.ProviderScope
+import koala.Image
 import streetlight.model.data.FileFormat
 import streetlight.model.data.RecordId
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.SavedImageSet
 import streetlight.server.db.tables.TableImageConfig
-import streetlight.server.model.ClientScope
 import streetlight.server.model.DataScope
 import java.io.File
 
 private val console = globalConsole.getHandle("saveImage")
 
-suspend fun DataScope.saveLocalImage(
-    bytes: ByteArray,
-    starId: StarId?,
-    filename: String,
-    size: ImageSize = ImageSize.Large
-): Url? {
-    val result = detectFormatAndEncodingMode(bytes) ?: return null
-    val format = result.format; val forceEncoding = result.forceEncoding
-
-    val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return null
-    return saveLocalImageFile(resizedBytes, starId, filename, format)
-}
-
-suspend fun DataScope.saveRemoteImage(
-    bytes: ByteArray,
-    userId: StarId?,
-    filename: String,
-    sizes: List<ImageSize>,
-): List<ScaledImage>? {
-    val filenameRoot = filename.takeIf { !it.contains('.') } ?: filename.split('.').dropLast(1).joinToString(".")
-
-    val encodings = encodeImage(bytes, sizes)
-    val results = encodings.map {
-        val encodedBytes = it.bytes; val format = it.format; val size = it.size
-        val filename = "$filenameRoot-${size.label}.${format.ext}"
-        val url = saveS3ImageFile(encodedBytes, userId, size, format, filename)
-            ?: error("unable to save image: $filename")
-        console.log("saved remote image: $filename")
-        ScaledImage(size, url)
-    }
-
-    return results.takeIf { it.isNotEmpty() }
-}
-
-suspend fun DataScope.saveImages(
+suspend fun DataScope.checkImageAndStore(
     userId: StarId?,
     rowId: RecordId?,
-    imageRef: Url?,
+    image: Image?,
     config: TableImageConfig
-): SavedImageSet? {
+): Image? {
     // associate with user when imageRef is relative
-    val userId = userId.takeIf { imageRef?.isRelative ?: false }
+    val userId = userId.takeIf { image?.isRelative ?: false }
 
-    if (imageRef == null || imageRef.value.isBlank()) {
+    if (image == null || image.value.isBlank()) {
         // removes any existing image
-        return SavedImageSet(null, null)
+        return null
     }
     val currentRef = rowId?.let {
         config.readImageRef(it)
     }
-    if (currentRef == imageRef) return null
-    val results = saveImageSizes(userId, imageRef, config.sizes) ?: return null
-    return SavedImageSet(imageRef, results)
+    if (currentRef == image) return null
+    val result = provisionImageAndStore(userId, image, config.sizes) ?: return null
+    return image.copy(aspectRatio = result.aspectRatio, variants = result.sizes)
 }
 
-private data class FormatAndEncodingMode(
-    val format: FileFormat,
-    val forceEncoding: Boolean
-)
 
-private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode? {
-    var forceEncoding = false
-    val format = detectFormatFromImage(bytes).let { format ->
-        // save BMP as PNG
-        if (format == FileFormat.BMP) {
-            forceEncoding = true
-            FileFormat.JPEG
-        } else format
-    } ?: return null
-    return FormatAndEncodingMode(format, forceEncoding)
-}
-
-suspend fun DataScope.saveImageSizes(
+suspend fun DataScope.provisionImageAndStore(
     userId: StarId?,
-    imageUrl: Url,
+    image: Image,
     sizes: List<ImageSize>,
-): List<ScaledImage>? {
+): ImageSizerResult? {
     if (sizes.isEmpty()) error("image sizes must be defined")
-    return when (imageUrl.isAbsolute) {
+    return when (image.isAbsolute) {
         true -> {
-            val bytes = downloadImage(imageUrl) ?: return null
+            val bytes = downloadImage(image.url) ?: return null
             val filename = randomUuidString()
-            saveRemoteImage(bytes, userId, filename, sizes)
+            encodeImageAndStore(bytes, userId, filename, sizes)
         }
         else -> {
-            val filename = imageUrl.filename ?: error("filename not found: ${imageUrl.filename}")
-            val bytes = File("..${imageUrl}").takeIf { it.isFile }?.readBytes() ?: error("file not found: $imageUrl")
-            saveRemoteImage(bytes, userId, filename, sizes)
+            val filename = image.filename ?: error("filename not found: ${image.filename}")
+            val bytes = File("..${image}").takeIf { it.isFile }?.readBytes() ?: error("file not found: $image")
+            encodeImageAndStore(bytes, userId, filename, sizes)
         }
     }
 }
@@ -168,3 +115,5 @@ suspend fun RoutingContext.validateImage(
 
     return fileFormat
 }
+
+data class ImageSizerResult(val sizes: ImageVariants, val aspectRatio: Float)
