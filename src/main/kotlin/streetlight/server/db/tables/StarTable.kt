@@ -24,11 +24,9 @@ object StarTable: UuidTable("star") {
     val hashedPassword = text("hashed_password")
     val salt = text("salt")
     val email = text("email").nullable()
-    val roles = array<Int>("roles").transform(
-        { it.map { ordinal -> UserRole.entries[ordinal] }.toSet() },
-        { it.map { role -> role.ordinal }.toList() }
-    )
+    val roles = array<Int>("roles")
     val name = text("name").nullable()
+    val tagline = text("tagline").nullable()
     val description = text("description").nullable()
     val accountType = enumeration<AccountType>("account_type")
     val scoutLevel = integer("scout_level").default(0)
@@ -47,8 +45,9 @@ object StarTable: UuidTable("star") {
 
 fun ResultRow.toStar() = Star(
     username = this[StarTable.username].toUsername(),
-    roles = this[StarTable.roles],
-    name = null, // td: allow user control over publishing name
+    roles = this[StarTable.roles].map { ordinal -> UserRole.entries[ordinal] }.toSet(),
+    name = null, // td: allow user control over name visibility
+    tagline = this[StarTable.tagline],
     description = this[StarTable.description]?.toMarkdown(),
     scoutLevel = this[StarTable.scoutLevel],
     image = this[StarTable.image],
@@ -62,7 +61,7 @@ fun ResultRow.toUserRecord() = UserRecord(
     hashedPassword = this[StarTable.hashedPassword],
     salt = this[StarTable.salt],
     email = this[StarTable.email],
-    roles = this[StarTable.roles],
+    roles = this[StarTable.roles].map { ordinal -> UserRole.entries[ordinal] }.toSet(),
     createdAt = this[StarTable.createdAt],
     updatedAt = this[StarTable.updatedAt],
 )
@@ -79,12 +78,13 @@ fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.hashedPassword] = user.hashedPassword
     this[StarTable.salt] = user.salt
     this[StarTable.email] = user.email
-    this[StarTable.roles] = user.roles
+    this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
     this[StarTable.updatedAt] = user.updatedAt
 }
 
 fun UpdateBuilder<*>.updateRecord(edit: StarEdit) {
     this[StarTable.name] = edit.name
     this[StarTable.description] = edit.description?.value
+    this[StarTable.tagline] = edit.tagline
     this[StarTable.image] = edit.image
 }
