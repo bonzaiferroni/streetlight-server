@@ -34,6 +34,7 @@ object MediaTable: UuidTable("media"), SlugTable {
     val link = url("link").nullable()
     val geoPoint = point("geo_point").nullable()
     val image = image("image").nullable()
+    // td: add unpublished status
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 

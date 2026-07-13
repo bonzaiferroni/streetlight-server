@@ -10,19 +10,23 @@ import streetlight.model.data.MultiLightEdit
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
+import klutch.server.readParam
 import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
 
-    getApi(Api.Stars.ReadByUsername) { endpoint ->
-        val username = readParamOrNull(endpoint.username)?.toUsername() ?: return@getApi null
-        dao.star.readByUsername(username).toOutcome()
+    authGate(optional = true) {
+        getApi(Api.Stars.ReadStarContent) {
+            val username = readParam(it.username)
+            val identity = call.getIdentityOrNull()
+            readStarContent(username, identity?.callerId)?.toOutcome()
+        }
     }
 
     authGate {
         getApi(Api.Stars.ValidateLogin) {
             val username = call.getIdentity().username
-            dao.star.readByUsername(username).toOutcome()
+            dao.star.readStar(username, null).toOutcome()
         }
 
         postApi(Api.Stars.EditStar) {

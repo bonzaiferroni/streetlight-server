@@ -13,7 +13,6 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.PostEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.PostId
@@ -27,6 +26,8 @@ import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
@@ -38,6 +39,7 @@ import streetlight.server.db.tables.PostStarTable
 import streetlight.server.db.tables.galaxyPostQuery
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.updateRecord
 import kotlin.time.Clock
 
@@ -57,16 +59,24 @@ class PostTableDao : DbService() {
     //     slug
     // }
 
-    suspend fun createPost(post: PostEdit, caller: Identity) = dbQuery {
-        val record = post.toPostRecord(caller)
-        val status = getInitialContentStatus(record.galaxyId, caller.callerId)
+    suspend fun create(post: PostEdit, callerId: CallerId) = dbQuery {
+        val record = post.toPostRecord(callerId)
+        val status = getInitialContentStatus(record.galaxyId, callerId)
 
         PostTable.insert { it.createRecord(record, status) }
         PostStarTable.insert {
             it[PostStarTable.postId] = record.postId.value
-            it[PostStarTable.starId] = caller.callerId.value
+            it[PostStarTable.starId] = callerId.value
             it[PostStarTable.createdAt] = Clock.System.now()
         }
+        PostTable.selectAll().where { PostTable.id.eq(record.postId) }.singleOrNull()?.toPost()
+    }
+
+    suspend fun update(postId: PostId, post: PostEdit, callerId: CallerId) = dbQuery {
+        val post = post.toPostRecord(callerId)
+        PostTable.updateReturning(where = { PostTable.id.eq(postId) and PostTable.starId.eq(callerId) }) {
+            it.updateRecord(post)
+        }.singleOrNull()?.toPost()
     }
 
     private fun getInitialContentStatus(galaxyId: GalaxyId, callerId: CallerId): FeedStatus {
@@ -79,14 +89,6 @@ class PostTableDao : DbService() {
             }
 
         return if (postCount >= reviewCount) FeedStatus.Live else FeedStatus.Reviewing
-    }
-
-    suspend fun editPost(postId: PostId, post: PostEdit, identity: Identity) = dbQuery {
-        val post = post.toPostRecord(identity)
-        PostTable.update({ PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) }) {
-            it.updateRecord(post)
-        }
-        postId
     }
 
     suspend fun delete(postId: PostId) = dbQuery {
@@ -165,13 +167,13 @@ class PostTableDao : DbService() {
     }
 }
 
-fun PostEdit.toPostRecord(identity: Identity?) = PostRecord(
+fun PostEdit.toPostRecord(callerId: CallerId) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = recordId.takeIf { postType == PostType.Event }?.let { EventId(recordId) },
     locationId = recordId.takeIf { postType == PostType.Location }?.let { LocationId(recordId) },
     mediaId = recordId.takeIf { postType == PostType.Media }?.let { MediaId(recordId) },
-    starId = identity?.callerId?.toStarId(),
+    starId = callerId.toStarId(),
     title = title,
     text = text,
     lightCount = 0,

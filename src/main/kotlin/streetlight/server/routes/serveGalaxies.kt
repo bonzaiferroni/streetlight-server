@@ -101,17 +101,17 @@ fun ApiScope.serveGalaxies() {
             }.toOutcome()
         }
 
-        postApi(Api.Galaxies.EditPost) {
+        postApi(Api.Galaxies.UpdatePost) {
             val edit = it.data
             val identity = call.getIdentity()
             val postId = edit.postId ?: error("postId not found")
 
-            outcomeOf(dao.post.editPost(postId, edit, identity))
+            dao.post.update(postId, edit, identity.callerId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadLights) {
-            val userId = call.getIdentity().callerId
-            Ok(dao.light.readGalaxyLights(userId))
+            val callerId = call.getIdentity().callerId
+            Ok(dao.light.readGalaxyLights(callerId))
         }
 
         postApi(Api.Galaxies.RemovePost) {
@@ -121,8 +121,13 @@ fun ApiScope.serveGalaxies() {
         }
 
         getApi(Api.Galaxies.ReadUserGalaxies) {
-            val starId = call.getIdentity().callerId
-            dao.galaxy.readGalaxies(starId).toOutcome()
+            val callerId = call.getIdentity().callerId
+            dao.galaxy.readGalaxies(callerId).toOutcome()
+        }
+
+        postApi(Api.Galaxies.CreatePost) {
+            val callerId = call.getIdentity().callerId
+            dao.post.create(it.data, callerId).toOutcome()
         }
     }
 }

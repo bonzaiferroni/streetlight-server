@@ -24,14 +24,14 @@ class StarTableDao: DbService() {
         callerId: CallerId,
         edit: StarEdit,
     ) = dbQuery {
-        println(edit.username)
         StarTable.updateSingleWhere({ StarTable.id.eq(callerId)}) {
             it.updateRecord(edit)
         }
         StarTable.readById(callerId.value).toStar()
     }
 
-    suspend fun readByUsername(username: Username) = dbQuery {
+    suspend fun readStar(username: Username, callerId: CallerId?) = dbQuery {
+        // td: add starlight
         StarTable.selectAll()
             .where { StarTable.username.eq(username) }
             .map { it.toStar() }

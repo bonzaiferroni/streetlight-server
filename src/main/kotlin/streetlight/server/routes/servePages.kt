@@ -11,9 +11,11 @@ import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
+import koala.html.RouteParse
 import koala.html.SegmentParse
 import koala.html.SlugParse
 import koala.html.StaticParse
+import koala.html.UsernameParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
 import streetlight.server.model.*
@@ -59,6 +61,7 @@ fun ApiScope.servePages() {
 
             val paths = when (val parse = screen.routeParse) {
                 is SlugParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
+                is UsernameParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
                 is SlugOrNullParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
                 is IdParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
                 is UuidParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
@@ -70,12 +73,8 @@ fun ApiScope.servePages() {
                 get(path) {
                     val identity = call.getIdentityOrNull()
                     val arg = when (val parse = screen.routeParse) {
-                        is SlugParse -> call.parameters[parse.label]
-                        is SlugOrNullParse -> call.parameters[parse.label]
-                        is IdParse -> call.parameters[parse.label]
-                        is UuidParse -> call.parameters[parse.label]
                         is StaticParse -> null
-                        else -> null
+                        else -> call.parameters[parse.label]
                     }
 
                     when (val render = renderScreen(screen, arg, identity)) {
@@ -146,17 +145,14 @@ suspend fun ApiScope.renderGalaxy(arg: String?, callerId: CallerId?): HtmlRender
 }
 
 suspend fun ApiScope.renderStar(arg: String?, callerId: CallerId?): HtmlRender? {
+    println(arg)
     val username = arg?.toUsername() ?: return null
-    val userId = dao.star.readIdByUsername(username) ?: return null // td: serve not found content
-    val star = dao.star.readByUsername(username) ?: return null
-    val posts = dao.post.readStarPosts(userId, callerId)
-    val content = StarProfileContent(
-        star = star,
-        posts = posts
-    )
+    val content = readStarContent(username, callerId) ?: return null
 
     return HtmlRender {
-        starProfilePage(content, SiteStyles)
+        appPage("$username", SiteStyles, Screen.Star) {
+            starShell(content)
+        }
     }
 }
 

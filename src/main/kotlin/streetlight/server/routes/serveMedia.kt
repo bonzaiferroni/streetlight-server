@@ -14,9 +14,17 @@ fun ApiScope.serveMedia() {
             val edit = it.data
             val identity = call.getIdentity()
 
-            val image = checkImageAndStore(identity.callerId, null, edit.image, MediaTable.imageConfig)
+            val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable.imageConfig)
 
-            dao.media.createMedia(edit.copy(image = image), identity.callerId).toOutcome()
+            dao.media.create(edit.copy(image = image), identity.callerId).toOutcome()
+        }
+
+        postApi(Api.Medias.UpdateMedia) {
+            val edit = it.data
+            val identity = call.getIdentity()
+            val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable.imageConfig)
+
+            dao.media.update(edit.copy(image = image), identity.callerId).toOutcome()
         }
     }
 }

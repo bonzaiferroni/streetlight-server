@@ -35,6 +35,7 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
@@ -67,10 +68,9 @@ class LocationTableDao : DbService() {
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId.value)
-        LocationTable.update(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
+        LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord)
-        }
-        readLocation(locationId, callerId)
+        }.singleOrNull()?.toLocation()
     }
 
     suspend fun create(
@@ -83,7 +83,7 @@ class LocationTableDao : DbService() {
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
         LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug)) }
-        readLocation(locationId, callerId)
+            .resultedValues?.singleOrNull()?.toLocation()
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {

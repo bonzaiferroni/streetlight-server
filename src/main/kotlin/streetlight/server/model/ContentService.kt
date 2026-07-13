@@ -1,6 +1,7 @@
 package streetlight.server.model
 
 import kampfire.api.Slug
+import kampfire.api.Username
 import kampfire.model.CallerId
 import kampfire.model.Identity
 import streetlight.model.data.EventUpdaterContent
@@ -8,8 +9,7 @@ import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
-import streetlight.model.data.StarId
-import streetlight.model.data.starId
+import streetlight.model.data.StarContent
 
 suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     val posts = dao.post.readOrderedPosts(callerId)
@@ -56,5 +56,14 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
     return GalaxyContent(
         galaxy = galaxy,
         posts = posts,
+    )
+}
+
+suspend fun DaoScope.readStarContent(username: Username, callerId: CallerId?): StarContent? {
+    val star = dao.star.readStar(username, callerId) ?: return null
+    val posts = dao.media.readMedia(username, callerId)
+    return StarContent(
+        star = star,
+        posts = posts
     )
 }
