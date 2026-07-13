@@ -11,7 +11,6 @@ import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
-import koala.html.RouteParse
 import koala.html.SegmentParse
 import koala.html.SlugParse
 import koala.html.StaticParse
@@ -20,7 +19,7 @@ import koala.html.UuidParse
 import kotlinx.html.HTML
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
-import streetlight.web.Screen
+import streetlight.model.ui.Screen
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
 import streetlight.web.pages.*

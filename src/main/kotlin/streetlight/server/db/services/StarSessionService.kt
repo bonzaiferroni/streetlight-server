@@ -33,6 +33,7 @@ import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.toRoleSet
 import streetlight.server.db.tables.toUserRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Clock
@@ -126,7 +127,7 @@ class StarSessionService: DbService(), SessionService {
                 ),
                 Identity(
                     callerId = CallerId(it[StarTable.id].value),
-                    roles = it[StarTable.roles],
+                    roles = it[StarTable.roles].toRoleSet(),
                     username = it[StarTable.username].toUsername(),
                 ),
             )

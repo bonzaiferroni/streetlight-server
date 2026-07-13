@@ -45,7 +45,7 @@ object StarTable: UuidTable("star") {
 
 fun ResultRow.toStar() = Star(
     username = this[StarTable.username].toUsername(),
-    roles = this[StarTable.roles].map { ordinal -> UserRole.entries[ordinal] }.toSet(),
+    roles = this[StarTable.roles].toRoleSet(),
     name = null, // td: allow user control over name visibility
     tagline = this[StarTable.tagline],
     description = this[StarTable.description]?.toMarkdown(),
@@ -55,13 +55,15 @@ fun ResultRow.toStar() = Star(
     createdAt = this[StarTable.createdAt],
 )
 
+fun List<Int>.toRoleSet() = map { ordinal -> UserRole.entries[ordinal] }.toSet()
+
 fun ResultRow.toUserRecord() = UserRecord(
     userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
     hashedPassword = this[StarTable.hashedPassword],
     salt = this[StarTable.salt],
     email = this[StarTable.email],
-    roles = this[StarTable.roles].map { ordinal -> UserRole.entries[ordinal] }.toSet(),
+    roles = this[StarTable.roles].toRoleSet(),
     createdAt = this[StarTable.createdAt],
     updatedAt = this[StarTable.updatedAt],
 )
