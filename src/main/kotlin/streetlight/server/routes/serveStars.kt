@@ -1,9 +1,7 @@
 package streetlight.server.routes
 
-import kampfire.api.toUsername
 import kampfire.model.toOutcome
 import klutch.server.postApi
-import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.LightEdit
 import streetlight.model.data.MultiLightEdit
@@ -51,6 +49,11 @@ fun ApiScope.serveStars() {
         getApi(Api.Stars.PendingEdits) {
             val callerId = call.getIdentity().callerId
             dao.editLog.readEdits(callerId).toOutcome()
+        }
+
+        getApi(Api.Stars.ReadIdentityInfo) {
+            val callerId = call.getIdentity().callerId
+            dao.star.readIdentityInfo(callerId).toOutcome()
         }
     }
 }

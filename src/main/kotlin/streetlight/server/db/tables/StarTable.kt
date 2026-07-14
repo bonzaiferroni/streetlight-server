@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.api.HashedPassword
 import kampfire.api.toMarkdown
 import kampfire.api.toUsername
 import kampfire.model.AccountType
@@ -12,6 +13,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.IdentityVisibility
 import streetlight.model.data.Star
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
@@ -28,6 +30,7 @@ object StarTable: UuidTable("star") {
     val name = text("name").nullable()
     val tagline = text("tagline").nullable()
     val description = text("description").nullable()
+    val identityVisibility = enumeration<IdentityVisibility>("identity_visibility").default(IdentityVisibility.Private)
     val accountType = enumeration<AccountType>("account_type")
     val scoutLevel = integer("scout_level").default(0)
     val image = image("image").nullable()
@@ -43,24 +46,12 @@ object StarTable: UuidTable("star") {
     )
 }
 
-fun ResultRow.toStar() = Star(
-    username = this[StarTable.username].toUsername(),
-    roles = this[StarTable.roles].toRoleSet(),
-    name = null, // td: allow user control over name visibility
-    tagline = this[StarTable.tagline],
-    description = this[StarTable.description]?.toMarkdown(),
-    scoutLevel = this[StarTable.scoutLevel],
-    image = this[StarTable.image],
-    updatedAt = this[StarTable.updatedAt],
-    createdAt = this[StarTable.createdAt],
-)
-
 fun List<Int>.toRoleSet() = map { ordinal -> UserRole.entries[ordinal] }.toSet()
 
 fun ResultRow.toUserRecord() = UserRecord(
     userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
-    hashedPassword = this[StarTable.hashedPassword],
+    hashedPassword = HashedPassword(this[StarTable.hashedPassword]),
     salt = this[StarTable.salt],
     email = this[StarTable.email],
     roles = this[StarTable.roles].toRoleSet(),
@@ -77,9 +68,9 @@ fun UpdateBuilder<*>.createRecord(user: StarRecord, accountType: AccountType) {
 
 fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.username] = user.username.value
-    this[StarTable.hashedPassword] = user.hashedPassword
+    this[StarTable.hashedPassword] = user.hashedPassword.value
     this[StarTable.salt] = user.salt
-    this[StarTable.email] = user.email
+    this[StarTable.email] = user.email?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
     this[StarTable.updatedAt] = user.updatedAt
 }

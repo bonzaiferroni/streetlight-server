@@ -1,21 +1,15 @@
 package streetlight.server.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.Cookie
-import io.ktor.server.application.call
 import io.ktor.server.auth.principal
-import io.ktor.server.routing.RoutingCall
-import io.ktor.util.date.GMTDate
 import kampfire.api.UserApi
 import kampfire.model.Ok
 import kampfire.model.Problem
-import kampfire.model.Session
 import kampfire.model.SessionIdentity
 import kampfire.model.UserRole
 import kampfire.model.outcomeOf
 import klutch.db.services.SessionService
 import klutch.server.Authorizer
-import klutch.server.SESSION_COOKIE_NAME
 import klutch.server.appendSessionCookie
 import klutch.server.authGate
 import klutch.server.getApi
@@ -46,8 +40,8 @@ fun ApiScope.serveSession() {
         Ok(service.generateUsername())
     }
 
-    postApi(UserApi.CheckUsername) {
-        Ok(service.readByUsernameOrEmail(it.data.value) == null)
+    postApi(UserApi.CheckUsernameExists) {
+        Ok(service.checkUsernameExists(it.data))
     }
 
     postApi(UserApi.Login) {

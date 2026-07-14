@@ -1,8 +1,11 @@
 package streetlight.server.db.services
 
+import kampfire.api.Email
+import kampfire.api.LoginIdentity
 import kampfire.api.TableId
 import kampfire.api.TableUuid
 import kampfire.api.Username
+import kampfire.api.toEmail
 import kampfire.api.toUsername
 import kampfire.model.CallerId
 import kampfire.model.HashedToken
@@ -27,6 +30,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.StarId
 import streetlight.model.data.StarRecord
@@ -92,7 +96,7 @@ class StarSessionService: DbService(), SessionService {
             .firstOrNull()?.getOrNull(StarTable.id)?.toRecordId<StarId>()
     }
 
-    override suspend fun readByUsernameOrEmail(identity: String): UserRecord? = dbQuery {
+    override suspend fun readByUsernameOrEmail(identity: LoginIdentity): UserRecord? = dbQuery {
         StarTable.readFirstOrNull {
             eqIdentity(identity)
         }?.toUserRecord()
@@ -102,7 +106,7 @@ class StarSessionService: DbService(), SessionService {
         StarTable.select(StarTable.name, StarTable.email)
             .where { StarTable.username.eq(username) }
             .firstOrNull()
-            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]) }
+            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]?.toEmail()) }
     }
 
     override suspend fun readSaltExists(salt: String) = dbQuery {
@@ -110,6 +114,10 @@ class StarSessionService: DbService(), SessionService {
             .select(StarTable.salt)
             .where { StarTable.salt.eq(salt) }
             .firstOrNull() != null
+    }
+
+    override suspend fun checkUsernameExists(username: Username) = dbQuery {
+        StarTable.select(StarTable.username).where { StarTable.username.eq(username) }.any()
     }
 
     override suspend fun generateUsername() = "${getAdjective()}${getNoun()}".toUsername()
@@ -158,5 +166,7 @@ private val identityColumns = listOf(
     StarTable.roles,
 )
 
-private fun eqIdentity(identity: String) =
-    (StarTable.username.lowerCase() eq identity.lowercase()) or (StarTable.email.lowerCase() eq identity.lowercase())
+private fun eqIdentity(identity: LoginIdentity) = when (identity) {
+    is Email -> StarTable.email.lowerCase() eq identity.value.lowercase()
+    is Username -> StarTable.username.lowerCase() eq identity.value.lowercase()
+}

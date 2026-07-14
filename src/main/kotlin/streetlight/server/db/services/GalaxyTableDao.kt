@@ -13,7 +13,6 @@ import kotlin.time.Clock
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.GalaxyTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getDefinedSlugRecord
