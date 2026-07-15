@@ -79,7 +79,6 @@ class StarSessionService: DbService(), SessionService {
             starId = StarId.random(),
             username = seed.request.username,
             hashedPassword = seed.hashedPassword,
-            salt = seed.salt,
             email = seed.request.email,
             roles = seed.roles.toSet(),
             createdAt = now,
@@ -107,13 +106,6 @@ class StarSessionService: DbService(), SessionService {
             .where { StarTable.username.eq(username) }
             .firstOrNull()
             ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]?.toEmail()) }
-    }
-
-    override suspend fun readSaltExists(salt: String) = dbQuery {
-        StarTable
-            .select(StarTable.salt)
-            .where { StarTable.salt.eq(salt) }
-            .firstOrNull() != null
     }
 
     override suspend fun checkUsernameExists(username: Username) = dbQuery {

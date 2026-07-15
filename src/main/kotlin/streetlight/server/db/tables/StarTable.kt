@@ -24,7 +24,6 @@ object StarTable: UuidTable("star") {
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").index()
     val hashedPassword = text("hashed_password")
-    val salt = text("salt")
     val email = text("email").nullable()
     val roles = array<Int>("roles")
     val name = text("name").nullable()
@@ -52,7 +51,6 @@ fun ResultRow.toUserRecord() = UserRecord(
     userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
     hashedPassword = HashedPassword(this[StarTable.hashedPassword]),
-    salt = this[StarTable.salt],
     email = this[StarTable.email],
     roles = this[StarTable.roles].toRoleSet(),
     createdAt = this[StarTable.createdAt],
@@ -69,7 +67,6 @@ fun UpdateBuilder<*>.createRecord(user: StarRecord, accountType: AccountType) {
 fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
     this[StarTable.username] = user.username.value
     this[StarTable.hashedPassword] = user.hashedPassword.value
-    this[StarTable.salt] = user.salt
     this[StarTable.email] = user.email?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
     this[StarTable.updatedAt] = user.updatedAt
