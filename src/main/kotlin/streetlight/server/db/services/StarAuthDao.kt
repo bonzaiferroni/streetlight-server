@@ -14,7 +14,6 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.StarId
-import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toUserRecord

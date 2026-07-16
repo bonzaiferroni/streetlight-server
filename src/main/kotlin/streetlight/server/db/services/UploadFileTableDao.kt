@@ -1,12 +1,12 @@
 package streetlight.server.db.services
 
-import kampfire.model.BasicUserId
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import streetlight.model.data.StarId
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
 import streetlight.model.data.toRecordId
@@ -20,11 +20,11 @@ class UploadFileTableDao : DbService() {
         UploadFileTable.read { it.id.eq(uploadFileId) }.firstOrNull()?.toUploadFile()
     }
 
-    suspend fun readUserFiles(userId: BasicUserId) = dbQuery {
+    suspend fun readUserFiles(userId: StarId) = dbQuery {
         UploadFileTable.read { UploadFileTable.starId.eq(userId.value) }.map { it.toUploadFile() }
     }
 
-    suspend fun readUserFiles(userId: BasicUserId, count: Int) = dbQuery {
+    suspend fun readUserFiles(userId: StarId, count: Int) = dbQuery {
         UploadFileTable.read { UploadFileTable.starId.eq(userId.value) }
             .orderBy(UploadFileTable.createdAt, SortOrder.DESC_NULLS_LAST)
             .limit(count)

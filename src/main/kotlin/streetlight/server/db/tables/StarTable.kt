@@ -1,9 +1,11 @@
 package streetlight.server.db.tables
 
 import kampfire.api.HashedPassword
+import kampfire.api.toEmail
 import kampfire.api.toMarkdown
 import kampfire.api.toUsername
 import kampfire.model.AccountType
+import kampfire.model.HashedToken
 import kampfire.model.ImageSize
 import kampfire.model.UserRecord
 import kampfire.model.UserRole
@@ -17,13 +19,13 @@ import streetlight.model.data.IdentityVisibility
 import streetlight.model.data.Star
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
-import streetlight.model.data.StarRecord
+import kotlin.time.Clock
 
 object StarTable: UuidTable("star") {
     // td: support hometown
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val username = text("username").index()
-    val hashedPassword = text("hashed_password")
+    val hashedPassword = text("hashed_password").nullable()
     val email = text("email").nullable()
     val roles = array<Int>("roles")
     val name = text("name").nullable()
@@ -33,6 +35,8 @@ object StarTable: UuidTable("star") {
     val accountType = enumeration<AccountType>("account_type")
     val scoutLevel = integer("scout_level").default(0)
     val image = image("image").nullable()
+    val guestToken = char("guest_token", 64).uniqueIndex().nullable()
+    val activeAt = timestamp("active_at").default(Clock.System.now())
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
@@ -50,25 +54,29 @@ fun List<Int>.toRoleSet() = map { ordinal -> UserRole.entries[ordinal] }.toSet()
 fun ResultRow.toUserRecord() = UserRecord(
     userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
-    hashedPassword = HashedPassword(this[StarTable.hashedPassword]),
-    email = this[StarTable.email],
+    hashedPassword = this[StarTable.hashedPassword]?.let { HashedPassword(it) } ,
+    email = this[StarTable.email]?.toEmail(),
     roles = this[StarTable.roles].toRoleSet(),
+    accountType = this[StarTable.accountType],
+    guestToken = this[StarTable.guestToken]?.let { HashedToken(it) },
+    activeAt = this[StarTable.activeAt],
     createdAt = this[StarTable.createdAt],
     updatedAt = this[StarTable.updatedAt],
 )
 
-fun UpdateBuilder<*>.createRecord(user: StarRecord, accountType: AccountType) {
+fun UpdateBuilder<*>.createRecord(user: UserRecord) {
     this[StarTable.id] = user.userId.value
-    this[StarTable.accountType] = accountType // initial value
+    this[StarTable.accountType] = user.accountType
     this[StarTable.createdAt] = user.createdAt
     updateRecord(user)
 }
 
-fun UpdateBuilder<*>.updateRecord(user: StarRecord) {
+fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
     this[StarTable.username] = user.username.value
-    this[StarTable.hashedPassword] = user.hashedPassword.value
+    this[StarTable.hashedPassword] = user.hashedPassword?.value
     this[StarTable.email] = user.email?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
+    this[StarTable.guestToken] = user.guestToken?.value
     this[StarTable.updatedAt] = user.updatedAt
 }
 

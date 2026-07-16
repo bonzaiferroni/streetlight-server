@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.model.BasicUserId
+import kampfire.api.TableUuid
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Performer
 import streetlight.model.data.PerformerId
+import streetlight.model.data.StarId
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.PerformerTable
 import streetlight.server.db.tables.toSpark
@@ -21,7 +22,7 @@ class SparkTableDao: DbService() {
         PerformerTable.read { it.id.eq(performerId) }.firstOrNull()?.toSpark()
     }
 
-    suspend fun readByUserId(userId: BasicUserId) = dbQuery {
+    suspend fun readByUserId(userId: StarId) = dbQuery {
         PerformerTable.read { it.starId.eq(userId) }.firstOrNull()?.toSpark()
     }
 

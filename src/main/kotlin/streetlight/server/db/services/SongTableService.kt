@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
 import kabinet.console.globalConsole
-import kampfire.model.BasicUserId
+import kampfire.api.TableUuid
 import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.readById
@@ -27,7 +27,7 @@ private val console = globalConsole.getHandle(SongTableService::class)
 
 class SongTableService(): DbService() {
 
-    suspend fun takeNextSong(userId: BasicUserId, eventId: EventId, since: Instant) = dbQuery {
+    suspend fun takeNextSong(userId: TableUuid, eventId: EventId, since: Instant) = dbQuery {
         val nextRequest = EventTable.innerJoin(RequestTable).select(RequestTable.columns)
             .where { EventTable.scoutId.eq(userId) and RequestTable.eventId.eq(eventId) }
             .orderBy(RequestTable.createdAt)

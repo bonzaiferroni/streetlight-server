@@ -3,15 +3,20 @@ package streetlight.server.routes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import kampfire.api.UserApi
+import kampfire.model.AccountType
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.SessionIdentity
+import kampfire.model.Token
 import kampfire.model.UserRole
 import kampfire.model.outcomeOf
 import klutch.db.services.SessionService
 import klutch.server.Authorizer
+import klutch.server.GUEST_COOKIE_NAME
+import klutch.server.appendGuestCooke
 import klutch.server.appendSessionCookie
 import klutch.server.authGate
+import klutch.server.generateToken
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
@@ -25,7 +30,22 @@ fun ApiScope.serveSession() {
     val service = provide<SessionService>()
 
     postApi(UserApi.Create) {
-        when (val outcome = authorizer.createUser(it.data, setOf(UserRole.User))) {
+        val request = it.data
+        val outcome = when (request.accountType) {
+            AccountType.Guest -> {
+                val token = generateToken()
+                when (val outcome = authorizer.createGuestUser(request, token)) {
+                    is Ok -> {
+                        call.appendGuestCooke(token)
+                        outcome
+                    }
+                    is Problem -> outcome
+                }
+            }
+            AccountType.Registered -> authorizer.createRegisteredUser(it.data, setOf(UserRole.User))
+        }
+
+        when (outcome) {
             is Ok -> {
                 val authId = outcome.data
                 val session = authorizer.authorizeNewAccount(authId, it.data.stayLoggedIn)
@@ -44,9 +64,27 @@ fun ApiScope.serveSession() {
         Ok(service.checkUsernameExists(it.data))
     }
 
-    postApi(UserApi.Login) {
+    getApi(UserApi.Login.CheckGuest) {
+        val outcome = when (val token = call.request.cookies[GUEST_COOKIE_NAME]) {
+            null -> Ok(null)
+            else -> {
+                val outcome = authorizer.checkGuest(Token(token))
+                if (outcome is Ok && outcome.data != null) {
+                    call.appendGuestCooke(Token(token))
+                }
+                outcome
+            }
+        }
+        if (outcome is Problem || outcome is Ok && outcome.data == null) {
+            call.appendGuestCooke(null)
+        }
+        outcome
+    }
+
+    postApi(UserApi.Login) { request ->
         log.debug { "logging in" }
-        when(val outcome = authorizer.authorize(it.data)) {
+        val token = call.request.cookies[GUEST_COOKIE_NAME]?.let { Token(it) }
+        when(val outcome = authorizer.authorize(request.data, token)) {
             is Ok -> {
                 val session = outcome.data
                 call.appendSessionCookie(session)

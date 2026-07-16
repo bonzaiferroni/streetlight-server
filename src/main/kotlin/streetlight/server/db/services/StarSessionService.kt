@@ -7,6 +7,7 @@ import kampfire.api.TableUuid
 import kampfire.api.Username
 import kampfire.api.toEmail
 import kampfire.api.toUsername
+import kampfire.model.AccountType
 import kampfire.model.CallerId
 import kampfire.model.HashedToken
 import kampfire.model.Identity
@@ -19,21 +20,21 @@ import kampfire.model.UserSeed
 import klutch.db.DbService
 import klutch.db.readFirstOrNull
 import klutch.db.services.SessionService
+import klutch.server.GUEST_ACTIVITY_PERIOD
 import klutch.server.hashToken
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lowerCase
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.StarId
-import streetlight.model.data.StarRecord
 import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createRecord
@@ -56,7 +57,7 @@ class StarSessionService: DbService(), SessionService {
         SessionTable.insert {
             it[id] = Uuid.random()
             it[starId] = userId.value
-            it[tokenHash] = token.hash
+            it[tokenHash] = token.value
             it[ttlSeconds] = ttl.inWholeSeconds.toInt()
             it[createdAt] = Clock.System.now()
             it[this.expiresAt] = expiresAt
@@ -70,23 +71,26 @@ class StarSessionService: DbService(), SessionService {
 
     override suspend fun deleteSession(token: Token) = dbQuery {
         val hashedToken = hashToken(token)
-        SessionTable.deleteWhere { SessionTable.tokenHash.eq(hashedToken.hash) }
+        SessionTable.deleteWhere { SessionTable.tokenHash.eq(hashedToken.value) }
     }
 
     override suspend fun createUserRecord(seed: UserSeed) = dbQuery {
         val now = Clock.System.now()
-        val user = StarRecord(
-            starId = StarId.random(),
+        val user = UserRecord(
+            userId = StarId.random(),
             username = seed.request.username,
             hashedPassword = seed.hashedPassword,
             email = seed.request.email,
             roles = seed.roles.toSet(),
+            accountType = seed.accountType,
+            guestToken = seed.guestToken,
+            activeAt = now,
             createdAt = now,
             updatedAt = now,
         )
 
         StarTable.insertAndGetId {
-            it.createRecord(user, seed.accountType)
+            it.createRecord(user)
         }.let { StarId(it.value) }
     }
 
@@ -117,18 +121,20 @@ class StarSessionService: DbService(), SessionService {
     override suspend fun readSessionIdentity(token: Token) = dbQuery {
         val hashedToken = hashToken(token)
         SessionTable.innerJoin(StarTable).select(identityColumns).where {
-            SessionTable.tokenHash.eq(hashedToken.hash) and SessionTable.expiresAt.greater(Clock.System.now())
+            SessionTable.tokenHash.eq(hashedToken.value) and SessionTable.expiresAt.greater(Clock.System.now())
         }.firstOrNull()?.let {
             SessionIdentity(
                 Session(
                     token = token,
                     ttlSeconds = it[SessionTable.ttlSeconds],
+                    activeAt = it[StarTable.activeAt],
                     expiresAt = it[SessionTable.expiresAt],
                 ),
                 Identity(
                     callerId = CallerId(it[StarTable.id].value),
                     roles = it[StarTable.roles].toRoleSet(),
                     username = it[StarTable.username].toUsername(),
+                    accountType = it[StarTable.accountType],
                 ),
             )
         }
@@ -138,12 +144,29 @@ class StarSessionService: DbService(), SessionService {
         val hashedToken = hashToken(session.token)
         val expiresAt = Clock.System.now() + session.ttlSeconds.seconds
         val updated = SessionTable.update({
-            SessionTable.tokenHash.eq(hashedToken.hash)
+            SessionTable.tokenHash.eq(hashedToken.value)
         }) {
             it[SessionTable.expiresAt] = expiresAt
         }
         if (updated == 0) throw IllegalStateException("Session not found")
-        Session(session.token, session.ttlSeconds, expiresAt)
+        Session(session.token, session.ttlSeconds, session.activeAt, expiresAt)
+    }
+
+    override suspend fun refreshActivity(callerId: CallerId) = dbQuery {
+        StarTable.update({ StarTable.id.eq(callerId)}) {
+            it[StarTable.activeAt] = Clock.System.now()
+        }
+        Unit
+    }
+
+    override suspend fun checkGuest(token: Token) = dbQuery {
+        val hashedToken = hashToken(token)
+        StarTable.select(StarTable.username).where {
+            StarTable.guestToken.eq(hashedToken.value) and StarTable.accountType.eq(AccountType.Guest) and
+                    StarTable.activeAt.greaterEq(Clock.System.now() - GUEST_ACTIVITY_PERIOD)
+        }.singleOrNull()?.let {
+            it[StarTable.username].toUsername()
+        }
     }
 
     private fun getAdjective() = "TheWhole"
@@ -156,6 +179,8 @@ private val identityColumns = listOf(
     StarTable.username,
     StarTable.id,
     StarTable.roles,
+    StarTable.activeAt,
+    StarTable.accountType
 )
 
 private fun eqIdentity(identity: LoginIdentity) = when (identity) {
