@@ -47,7 +47,7 @@ fun ApiScope.servePages() {
             Screen.AboutApp -> renderAboutApp()
             Screen.Location -> renderLocation(arg, caller)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId)
-            Screen.Star -> renderStar(arg, caller?.callerId)
+            Screen.Star -> renderStar(arg, caller)
             Screen.Event -> renderEvent(arg, caller?.callerId)
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
@@ -143,10 +143,9 @@ suspend fun ApiScope.renderGalaxy(arg: String?, callerId: CallerId?): HtmlRender
     }
 }
 
-suspend fun ApiScope.renderStar(arg: String?, callerId: CallerId?): HtmlRender? {
-    println(arg)
+suspend fun ApiScope.renderStar(arg: String?, caller: Identity?): HtmlRender? {
     val username = arg?.toUsername() ?: return null
-    val content = readStarContent(username, callerId) ?: return null
+    val content = readStarContent(username, caller) ?: return null
 
     return HtmlRender {
         appPage("$username", SiteStyles, Screen.Star) {

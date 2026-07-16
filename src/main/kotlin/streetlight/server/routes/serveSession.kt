@@ -4,12 +4,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import kampfire.api.UserApi
 import kampfire.model.AccountType
+import kampfire.model.AccountUpgradeRequest
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.SessionIdentity
 import kampfire.model.Token
 import kampfire.model.UserRole
 import kampfire.model.outcomeOf
+import kampfire.model.toOutcome
 import klutch.db.services.SessionService
 import klutch.server.Authorizer
 import klutch.server.GUEST_COOKIE_NAME
@@ -105,7 +107,22 @@ fun ApiScope.serveSession() {
 
         getApi(UserApi.Private) {
             val identity = call.getIdentity()
-            outcomeOf(service.readPrivateInfo(identity.username))
+            service.readPrivateInfo(identity.username).toOutcome()
+        }
+    }
+
+    authGate {
+        postApi(UserApi.AccountUpgrade) {
+            val identity = call.getIdentity()
+            if (identity.accountType != AccountType.Guest) return@postApi Problem("Account is not a guest.")
+            val request = it.data
+            when (val outcome = authorizer.upgradeAccount(identity.callerId, request.password, request.email)) {
+                is Ok -> {
+                    call.appendGuestCooke(null)
+                    outcome
+                }
+                else -> outcome
+            }
         }
     }
 }

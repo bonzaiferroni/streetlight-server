@@ -17,7 +17,7 @@ fun ApiScope.serveStars() {
         getApi(Api.Stars.ReadStarContent) {
             val username = readParam(it.username)
             val identity = call.getIdentityOrNull()
-            readStarContent(username, identity?.callerId)?.toOutcome()
+            readStarContent(username, identity)?.toOutcome()
         }
     }
 

@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.Email
+import kampfire.api.HashedPassword
 import kampfire.api.LoginIdentity
 import kampfire.api.TableId
 import kampfire.api.TableUuid
@@ -92,6 +93,15 @@ class StarSessionService: DbService(), SessionService {
         StarTable.insertAndGetId {
             it.createRecord(user)
         }.let { StarId(it.value) }
+    }
+
+    override suspend fun upgradeAccount(callerId: CallerId, hashedPassword: HashedPassword, email: Email?) = dbQuery {
+        StarTable.update({ StarTable.id.eq(callerId) and StarTable.accountType.eq(AccountType.Guest) }) {
+            it[StarTable.hashedPassword] = hashedPassword.value
+            it[StarTable.email] = email?.value
+            it[StarTable.guestToken] = null
+            it[StarTable.accountType] = AccountType.Registered
+        } == 1
     }
 
     override suspend fun readIdByUsername(username: Username) = dbQuery {
