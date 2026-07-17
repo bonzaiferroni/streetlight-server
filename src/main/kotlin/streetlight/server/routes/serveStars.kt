@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.postApi
 import streetlight.model.Api
@@ -19,14 +20,14 @@ fun ApiScope.serveStars() {
             val identity = call.getIdentityOrNull()
             readStarContent(username, identity)?.toOutcome()
         }
+
+        getApi(Api.Stars.ValidateLogin) {
+            val identity = call.getIdentityOrNull() ?: return@getApi Ok(null)
+            dao.star.readStar(identity.username, null).toOutcome()
+        }
     }
 
     authGate {
-        getApi(Api.Stars.ValidateLogin) {
-            val username = call.getIdentity().username
-            dao.star.readStar(username, null).toOutcome()
-        }
-
         postApi(Api.Stars.EditStar) {
             val edit = it.data
             val callerId = call.getIdentity().callerId
