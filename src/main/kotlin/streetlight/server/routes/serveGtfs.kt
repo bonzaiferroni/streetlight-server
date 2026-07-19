@@ -14,6 +14,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.getApi
 import klutch.server.getEndpoint
@@ -71,7 +72,7 @@ fun ApiScope.serveGtfs() {
     var cachedState: AreaTransitState? = null
     var lastReadAt: Instant = Instant.DISTANT_PAST
 
-    getEndpoint(Api.Gtfs.TransitState) { endpoint ->
+    getApi(Api.Gtfs.TransitState) { endpoint ->
         val requestTimestamp = readParam(endpoint.timestamp)
         val lastState = cachedState
 
@@ -102,10 +103,9 @@ fun ApiScope.serveGtfs() {
         }
 
         if (state != null && requestTimestamp < state.timestamp) {
-            state
+            state.toOutcome()
         } else {
-            call.respond(HttpStatusCode.NoContent)
-            null
+            Ok(null)
         }
     }
 
