@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import kampfire.model.Ok
+import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.getApi
 import streetlight.model.Api
@@ -13,7 +14,7 @@ fun ApiScope.serveContent() {
     authGate(optional = true) {
         getApi(Api.Content.Home) {
             val identity = call.getIdentityOrNull()
-            Ok(readHomeContent(identity?.callerId))
+            readHomeContent(identity?.callerId).toOutcome()
         }
     }
 }
