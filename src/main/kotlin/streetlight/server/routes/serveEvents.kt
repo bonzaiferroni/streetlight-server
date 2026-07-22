@@ -41,7 +41,7 @@ fun ApiScope.serveEvents() {
             outcomeOf(dao.event.readEvent(it.data, identity?.callerId))
         }
 
-        getApi(Api.Events.AtLocation, { it.toRecordId()}) {
+        getApi(Api.Events.AtLocation) {
             val identity = call.getIdentityOrNull()
             Ok(dao.event.readLocationEvents(it.data, identity?.callerId))
         }
