@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.Level
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
 import klutch.server.ProviderScope
+import klutch.utils.logger
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -31,9 +32,10 @@ interface DaoScope {
     }
 
     fun log(message: String, level: Level = Level.INFO) = daoLogger.at(level) { this.message = message }
+    val log get() = daoLogger
 }
 
-private val daoLogger = KotlinLogging.logger("dao")
+private val daoLogger = KotlinLogging.logger(DaoScope::class)
 
 
 interface ClientScope {

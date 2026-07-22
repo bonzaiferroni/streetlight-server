@@ -20,7 +20,7 @@ import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
 suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
-    log("parsing event")
+    log.info { "parsing event" }
     val html = when (request) {
         is UrlParseRequest -> fetchHtml(request.url)
         is HtmlParseRequest -> request.html
