@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
@@ -10,6 +11,7 @@ import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariants
 import kampfire.utils.randomUuidString
+import klutch.utils.logger
 import koala.Image
 import streetlight.model.data.FileFormat
 import streetlight.model.data.RecordId
@@ -18,8 +20,6 @@ import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.DataScope
 import java.io.File
 import kotlin.uuid.Uuid
-
-private val console = globalConsole.getHandle("saveImage")
 
 suspend fun DataScope.checkImageAndStore(
     callerId: CallerId?,
@@ -37,7 +37,7 @@ suspend fun DataScope.checkImageAndStore(
     val currentRef = rowId?.let {
         config.readImageRef(it)
     }
-    if (currentRef == image) return null
+    if (currentRef == image) return currentRef
     val result = provisionImageAndStore(userId, image, config.sizes) ?: return null
     return image.copy(aspectRatio = result.aspectRatio, variants = result.sizes)
 }
@@ -120,3 +120,5 @@ suspend fun RoutingContext.validateImage(
 }
 
 data class ImageSizerResult(val sizes: ImageVariants, val aspectRatio: Float)
+
+private val console = KotlinLogging.logger(DataScope::checkImageAndStore)
