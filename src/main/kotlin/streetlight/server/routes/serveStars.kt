@@ -28,11 +28,17 @@ fun ApiScope.serveStars() {
     }
 
     authGate {
-        postApi(Api.Stars.EditStar) {
+        postApi(Api.Stars.UpdateProfile) {
             val edit = it.data
             val callerId = call.getIdentity().callerId
             val image = checkImageAndStore(callerId, callerId, edit.image, StarTable.imageConfig)
-            dao.star.updateStar(callerId, edit.copy(image = image)).toOutcome()
+            dao.star.updateProfile(callerId, edit.copy(image = image)).toOutcome()
+        }
+
+        postApi(Api.Stars.UpdateAccount) {
+            val edit = it.data
+            val callerId = call.getIdentity().callerId
+            dao.star.updateAccount(callerId, edit).toOutcome()
         }
 
         postApi(Api.Stars.EditLight) {
@@ -52,9 +58,9 @@ fun ApiScope.serveStars() {
             dao.editLog.readEdits(callerId).toOutcome()
         }
 
-        getApi(Api.Stars.ReadIdentityInfo) {
+        getApi(Api.Stars.ReadAccount) {
             val callerId = call.getIdentity().callerId
-            dao.star.readIdentityInfo(callerId).toOutcome()
+            dao.star.readAccount(callerId).toOutcome()
         }
     }
 }

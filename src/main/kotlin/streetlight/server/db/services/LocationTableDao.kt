@@ -23,13 +23,11 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationInfo
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord

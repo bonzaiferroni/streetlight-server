@@ -2,8 +2,6 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import kampfire.model.CallerId
-import kampfire.utils.pascalToSnakeCase
-import kampfire.utils.titleToKebabCase
 import klutch.db.DbService
 import klutch.db.tables.nextSlugOf
 import klutch.utils.eq
@@ -22,7 +20,6 @@ import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.data.Country
 import streetlight.model.data.CountryId
-import streetlight.model.data.StarId
 import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable

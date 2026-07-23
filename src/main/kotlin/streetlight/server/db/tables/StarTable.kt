@@ -2,7 +2,6 @@ package streetlight.server.db.tables
 
 import kampfire.api.HashedPassword
 import kampfire.api.toEmail
-import kampfire.api.toMarkdown
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.HashedToken
@@ -15,8 +14,8 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.Account
 import streetlight.model.data.IdentityVisibility
-import streetlight.model.data.Star
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
 import kotlin.time.Clock
@@ -80,9 +79,13 @@ fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
     this[StarTable.updatedAt] = user.updatedAt
 }
 
-fun UpdateBuilder<*>.updateRecord(edit: StarEdit) {
-    this[StarTable.name] = edit.name
+fun UpdateBuilder<*>.updateProfile(edit: StarEdit) {
     this[StarTable.description] = edit.description?.value
     this[StarTable.tagline] = edit.tagline
     this[StarTable.image] = edit.image
+}
+
+fun UpdateBuilder<*>.updateAccount(edit: Account) {
+    this[StarTable.name] = edit.name
+    this[StarTable.email] = edit.email?.value
 }

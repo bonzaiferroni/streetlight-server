@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.api.TableUuid
 import klutch.db.DbService
 import klutch.db.read
 import klutch.utils.eq
