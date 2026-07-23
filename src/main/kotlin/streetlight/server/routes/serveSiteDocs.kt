@@ -4,6 +4,7 @@ import kampfire.model.toOutcome
 import klutch.server.getApi
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
+import streetlight.server.model.readDocContent
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
 
@@ -11,7 +12,7 @@ fun ApiScope.serveSiteDocs() {
 
     getApi(Api.Docs) {
         val docId = it.data
-        SiteDocTree.nodes[docId].toOutcome()
+        readDocContent(docId).toOutcome()
     }
 
     getApi(Api.DocsTable) {

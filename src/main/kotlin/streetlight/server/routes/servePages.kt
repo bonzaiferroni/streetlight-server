@@ -21,7 +21,6 @@ import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.model.ui.Screen
 import streetlight.web.doc.SiteDocTable
-import streetlight.web.doc.SiteDocTree
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -165,13 +164,13 @@ suspend fun ApiScope.renderEvent(arg: String?, callerId: CallerId?): HtmlRender?
     }
 }
 
-suspend fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
+fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
     val docId = arg ?: return null
-    val node = SiteDocTree.nodes[docId] ?: return null
+    val content = readDocContent(docId) ?: return null
 
     return HtmlRender {
-        appPage("${node.doc.title} | Streetlight", SiteStyles, Screen.Docs) {
-            siteDocShell(node, SiteDocTable)
+        appPage("${content.node.doc.title} | Streetlight", SiteStyles, Screen.Docs) {
+            siteDocShell(content)
         }
     }
 }
