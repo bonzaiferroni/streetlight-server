@@ -20,9 +20,8 @@ import streetlight.server.db.tables.SiteStatusTable
 import streetlight.server.db.tables.toSiteStatus
 import streetlight.server.db.tables.writeFull
 import streetlight.server.db.tables.writeUpdate
+import streetlight.server.plugins.logger
 import kotlin.time.Instant
-
-private val log = KotlinLogging.logger(SiteStatusTableDao::class.simpleName!!)
 
 class SiteStatusTableDao : DbService() {
 
@@ -63,3 +62,5 @@ class SiteStatusTableDao : DbService() {
             .map { it.toSiteStatus() }
     }
 }
+
+private val log = KotlinLogging.logger(SiteStatusTableDao::class)

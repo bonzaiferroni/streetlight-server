@@ -10,6 +10,8 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
+import streetlight.model.data.toStarId
+import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
@@ -60,7 +62,12 @@ fun ApiScope.serveStars() {
 
         getApi(Api.Stars.ReadAccount) {
             val callerId = call.getIdentity().callerId
-            dao.star.readAccount(callerId).toOutcome()
+            dao.star.readAccount(callerId.toStarId()).toOutcome()
+        }
+
+        getApi(Api.Stars.VerifyEmail) {
+            val callerId = call.getIdentity().callerId
+            requestEmailVerification(callerId)
         }
     }
 }

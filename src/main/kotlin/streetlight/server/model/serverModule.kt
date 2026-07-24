@@ -11,6 +11,7 @@ import org.koin.dsl.bind
 import streetlight.agent.ParserClient
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.external.OSMHttpClient
+import streetlight.server.external.PostmarkClient
 import streetlight.server.routes.LocationParser
 
 val serverModule = module {
@@ -22,7 +23,8 @@ val serverModule = module {
     single { ParserClient(get()) }
     single { BlobClient(get()) }
     single { LocationParser(get()) }
-    single { ClientFacade(get(), get(), get()) }
+    single { PostmarkClient(get()) }
+    single { ClientFacade(get(), get(), get(), get()) }
 
     // services
     single { StarSessionService() } bind SessionService::class

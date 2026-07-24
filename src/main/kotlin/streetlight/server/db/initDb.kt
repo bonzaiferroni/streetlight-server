@@ -81,6 +81,8 @@ private val dbTables = listOf(
     FlagTable,
     StarTable,
     SiteStatusTable,
+    AuthTokenTable,
+    BouncedEmailTable,
 )
 
 val counterTriggers get() = listOf(

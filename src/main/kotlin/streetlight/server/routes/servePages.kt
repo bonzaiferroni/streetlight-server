@@ -7,6 +7,7 @@ import kampfire.api.toSlug
 import kampfire.api.toUsername
 import kampfire.model.CallerId
 import kampfire.model.Identity
+import kampfire.model.Token
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -20,6 +21,7 @@ import kotlinx.html.HTML
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.model.ui.Screen
+import streetlight.server.db.services.authEmailVerification
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.pages.*
 import streetlight.web.shells.*
@@ -50,6 +52,7 @@ fun ApiScope.servePages() {
             Screen.Event -> renderEvent(arg, caller?.callerId)
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
+            Screen.VerifyEmail -> renderVerifyEmail(arg)
             else -> renderClientBase(screen)
         }
     }
@@ -108,6 +111,13 @@ val wwwFolder = File("../www")
 data class HtmlRender(
     val block: HTML.() -> Unit
 )
+
+suspend fun ApiScope.renderClientBase(screen: AppScreen): HtmlRender {
+    return HtmlRender {
+        // td: add loading message
+        appPage("Streetlight", SiteStyles, screen) { }
+    }
+}
 
 suspend fun ApiScope.renderHome(callerId: CallerId?): HtmlRender {
     // console.log(callerId)
@@ -186,9 +196,13 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     }
 }
 
-suspend fun ApiScope.renderClientBase(screen: AppScreen): HtmlRender {
+suspend fun ApiScope.renderVerifyEmail(arg: String?): HtmlRender? {
+    val token = arg?.let { Token(it) } ?: return null
+    val result = authEmailVerification(token)
+
     return HtmlRender {
-        // td: add loading message
-        appPage("Streetlight", SiteStyles, screen) { }
+        staticPage("Verify Email | Streetlight", SiteStyles) {
+            verifyEmailShell(result)
+        }
     }
 }

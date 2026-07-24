@@ -9,8 +9,10 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.Account
+import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
+import streetlight.model.data.toStarId
 import streetlight.server.db.tables.AccountQuery
 import streetlight.server.db.tables.StarQuery
 import streetlight.server.db.tables.StarTable
@@ -33,6 +35,12 @@ class StarTableDao: DbService() {
         StarTable.update(where = { StarTable.id.eq(callerId) }) {
             it.updateAccount(edit)
         } == 1
+    }
+
+    suspend fun setEmailStatus(callerId: CallerId, emailStatus: EmailStatus) = dbQuery {
+        StarTable.update({ StarTable.id.eq(callerId) }) {
+            it[StarTable.emailStatus] = emailStatus
+        }
     }
 
     suspend fun readStar(username: Username, callerId: CallerId?) = dbQuery {
@@ -59,9 +67,9 @@ class StarTableDao: DbService() {
         StarTable.select(StarQuery.columns).where { StarTable.id.eq(starId) }.singleOrNull()?.toStar()
     }
 
-    suspend fun readAccount(callerId: CallerId) = dbQuery {
+    suspend fun readAccount(starId: StarId) = dbQuery {
         StarTable.select(AccountQuery.columns).where {
-            StarTable.id.eq(callerId)
+            StarTable.id.eq(starId)
         }.singleOrNull()?.toAccount()
     }
 }

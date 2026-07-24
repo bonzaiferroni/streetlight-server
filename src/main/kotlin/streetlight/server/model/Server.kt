@@ -10,6 +10,7 @@ import klutch.server.ProviderScope
 import streetlight.agent.ParserClient
 import streetlight.server.db.services.*
 import streetlight.server.external.OSMHttpClient
+import streetlight.server.external.PostmarkClient
 
 class Server(
     provider: ProviderScope,
@@ -43,12 +44,14 @@ class DaoFacade(
     val media: MediaTableDao = MediaTableDao(),
     val feedback: FeedbackTableDao = FeedbackTableDao(),
     val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
+    val authToken: AuthTokenTableDao = AuthTokenTableDao(),
 )
 
 class ClientFacade(
     val blob: BlobClient,
     val osm: OSMHttpClient,
     val parser: ParserClient,
+    val postmark: PostmarkClient
 )
 
 class InferenceFacade(

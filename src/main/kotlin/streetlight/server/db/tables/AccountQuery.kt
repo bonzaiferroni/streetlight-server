@@ -12,6 +12,7 @@ object AccountQuery {
         StarTable.identityVisibility,
         StarTable.cityId,
         StarTable.accountType,
+        StarTable.emailStatus,
     )
 }
 
@@ -20,5 +21,6 @@ fun ResultRow.toAccount() = Account(
     name = this[StarTable.name],
     identityVisibility = this[StarTable.identityVisibility],
     cityId = this[StarTable.cityId]?.let { CityId(it.value) },
-    accountType = this[StarTable.accountType]
+    accountType = this[StarTable.accountType],
+    emailStatus = this[StarTable.emailStatus]
 )
