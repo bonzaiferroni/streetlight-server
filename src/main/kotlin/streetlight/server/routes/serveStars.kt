@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import kampfire.model.Ok
 import kampfire.model.toOutcome
+import klutch.db.services.SessionService
 import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.data.LightEdit
@@ -11,22 +12,12 @@ import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
 import streetlight.model.data.toStarId
+import streetlight.server.db.services.redeemPasswordReset
 import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.db.services.requestPasswordReset
 import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
-
-    postApi(Api.Stars.ResetPassword) {
-        val email = it.data
-        requestPasswordReset(email)
-    }
-
-    postApi(Api.Stars.ResetPassword.Redemption) {
-        val request = it.data
-        redeemPasswordReset(request)
-    }
-
     authGate(optional = true) {
         getApi(Api.Stars.ReadStarContent) {
             val username = readParam(it.username)

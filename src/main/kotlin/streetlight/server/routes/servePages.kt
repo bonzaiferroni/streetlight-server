@@ -7,7 +7,6 @@ import kampfire.api.toSlug
 import kampfire.api.toUsername
 import kampfire.model.CallerId
 import kampfire.model.Identity
-import kampfire.model.Token
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -21,7 +20,6 @@ import kotlinx.html.HTML
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.model.ui.Screen
-import streetlight.server.db.services.redeemEmailVerification
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -52,6 +50,8 @@ fun ApiScope.servePages() {
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
             Screen.VerifyEmail -> renderVerifyEmail(arg)
+            Screen.AccountNotOwned -> renderAccountNotOwned(arg)
+            Screen.ActionReport -> renderActionReport(arg)
             else -> renderClientBase(screen)
         }
     }
@@ -191,17 +191,6 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     return HtmlRender {
         appPage("${post.title} by ${post.username} | Streetlight", SiteStyles, Screen.Media) {
             mediaShell(post)
-        }
-    }
-}
-
-suspend fun ApiScope.renderVerifyEmail(arg: String?): HtmlRender? {
-    val token = arg?.let { Token(it) } ?: return null
-    val result = redeemEmailVerification(token)
-
-    return HtmlRender {
-        staticPage("Verify Email | Streetlight", SiteStyles) {
-            verifyEmailShell(result)
         }
     }
 }

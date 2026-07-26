@@ -17,7 +17,7 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.title
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.toStarId
-import streetlight.model.ui.NotOwnedEmailRoute
+import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
 import streetlight.server.db.tables.AuthTokenType
 import streetlight.server.model.DataScope
@@ -34,7 +34,7 @@ suspend fun DataScope.requestEmailVerification(callerId: CallerId): Outcome<Unit
     val verifyToken = generateToken()
     val disavowToken = generateToken()
     val verifyUrl = VerifyEmailRoute(verifyToken).toAbsolutePath()
-    val notOwnedUrl = NotOwnedEmailRoute(disavowToken).toAbsolutePath()
+    val notOwnedUrl = AccountNotOwnedRoute(disavowToken).toAbsolutePath()
 
     val response = client.postmark.sendEmail(
         to = email.value,
