@@ -12,9 +12,20 @@ import klutch.server.getApi
 import klutch.server.readParam
 import streetlight.model.data.toStarId
 import streetlight.server.db.services.requestEmailVerification
+import streetlight.server.db.services.requestPasswordReset
 import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
+
+    postApi(Api.Stars.ResetPassword) {
+        val email = it.data
+        requestPasswordReset(email)
+    }
+
+    postApi(Api.Stars.ResetPassword.Redemption) {
+        val request = it.data
+        redeemPasswordReset(request)
+    }
 
     authGate(optional = true) {
         getApi(Api.Stars.ReadStarContent) {

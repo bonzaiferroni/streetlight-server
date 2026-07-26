@@ -30,7 +30,7 @@ private val defaultMaxAttempts: Int = 1
 private val log = KotlinLogging.logger(DbService::class)
 
 suspend fun <T> tryOutcome(
-    problemOnError: Problem = Problem("There was an internal error"),
+    outcomeOnError: Outcome<T> = Problem("There was an internal error"),
     block: suspend () -> Outcome<T>
 ): Outcome<T> = try {
     block()
@@ -38,5 +38,5 @@ suspend fun <T> tryOutcome(
     throw e
 } catch(e: Exception) {
     log.error(e) { "tryOutcome exception: ${e.message}" }
-    problemOnError
+    outcomeOnError
 }

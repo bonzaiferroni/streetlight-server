@@ -1,10 +1,15 @@
 package streetlight.server.db.services
 
+import kampfire.api.Email
+import kampfire.api.PasswordHash
 import kampfire.api.Username
 import kampfire.model.CallerId
 import kampfire.model.thumb
 import klutch.db.DbService
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
@@ -12,7 +17,6 @@ import streetlight.model.data.Account
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
-import streetlight.model.data.toStarId
 import streetlight.server.db.tables.AccountQuery
 import streetlight.server.db.tables.StarQuery
 import streetlight.server.db.tables.StarTable
@@ -37,9 +41,36 @@ class StarTableDao: DbService() {
         } == 1
     }
 
-    suspend fun setEmailStatus(callerId: CallerId, emailStatus: EmailStatus) = dbQuery {
-        StarTable.update({ StarTable.id.eq(callerId) }) {
+    suspend fun setEmailStatus(email: Email, emailStatus: EmailStatus) = dbQuery {
+        StarTable.update({ StarTable.email.eq(email.value) }) {
             it[StarTable.emailStatus] = emailStatus
+        }
+    }
+
+    suspend fun setEmail(starId: StarId, email: Email, emailStatus: EmailStatus) = dbQuery {
+        StarTable.update({ StarTable.id.eq(starId) }) {
+            it[StarTable.email] = email.value
+            it[StarTable.emailStatus] = emailStatus
+        }
+    }
+
+    suspend fun setPassword(starId: StarId, passwordHash: PasswordHash) = dbQuery {
+        StarTable.update({ StarTable.id.eq(starId) }) {
+            it[StarTable.passwordHash] = passwordHash.value
+        }
+    }
+
+    suspend fun setEmailNotOwned(starId: StarId) = dbQuery {
+        StarTable.update({ StarTable.id.eq(starId) }) {
+            it[StarTable.emailStatus] = EmailStatus.NotOwned
+            it[StarTable.email] = null
+        }
+    }
+
+    suspend fun disablePassword(starId: StarId) = dbQuery {
+        StarTable.update({ StarTable.id.eq(starId) and StarTable.passwordHash.isNotNull() }) {
+            it[StarTable.disabledPasswordHash] = StarTable.passwordHash
+            it[StarTable.passwordHash] = null
         }
     }
 
@@ -71,5 +102,17 @@ class StarTableDao: DbService() {
         StarTable.select(AccountQuery.columns).where {
             StarTable.id.eq(starId)
         }.singleOrNull()?.toAccount()
+    }
+
+    suspend fun readAccount(email: Email) = dbQuery {
+        StarTable.select(AccountQuery.columns).where {
+            StarTable.email.eq(email.value)
+        }.singleOrNull()?.toAccount()
+    }
+
+    suspend fun readPasswordHash(callerId: CallerId) = dbQuery {
+        StarTable.select(StarTable.passwordHash).where {
+            StarTable.id.eq(callerId)
+        }.singleOrNull()?.let { it[StarTable.passwordHash]?.let { value -> PasswordHash(value) } }
     }
 }

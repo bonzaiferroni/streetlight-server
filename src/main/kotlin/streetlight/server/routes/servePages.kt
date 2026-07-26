@@ -21,8 +21,7 @@ import kotlinx.html.HTML
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.model.ui.Screen
-import streetlight.server.db.services.authEmailVerification
-import streetlight.web.doc.SiteDocTable
+import streetlight.server.db.services.redeemEmailVerification
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -198,7 +197,7 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
 
 suspend fun ApiScope.renderVerifyEmail(arg: String?): HtmlRender? {
     val token = arg?.let { Token(it) } ?: return null
-    val result = authEmailVerification(token)
+    val result = redeemEmailVerification(token)
 
     return HtmlRender {
         staticPage("Verify Email | Streetlight", SiteStyles) {

@@ -1,63 +1,62 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kampfire.api.Email
-import kampfire.model.CallerId
 import kampfire.model.HashedToken
-import kampfire.model.Token
 import klutch.db.DbService
-import klutch.server.hashToken
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.EmailStatus
-import streetlight.server.db.tables.AccountQuery
-import streetlight.server.db.tables.AuthMeta
+import streetlight.model.data.StarId
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
-import streetlight.server.db.tables.AuthType
-import streetlight.server.db.tables.BouncedEmailTable
+import streetlight.server.db.tables.AuthTokenType
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createToken
-import streetlight.server.db.tables.toAccount
 import streetlight.server.db.tables.toAuthToken
 import streetlight.server.plugins.logger
 import kotlin.time.Clock
 import kotlin.time.Instant
 
 class AuthTokenTableDao: DbService() {
-    suspend fun <T: AuthMeta> createToken(token: AuthToken<T>) = dbQuery {
+    suspend fun createToken(token: AuthToken) = dbQuery {
         AuthTokenTable.insert {
             it.createToken(token)
         }
     }
 
-    suspend fun createBouncedEmail(email: Email, reason: String) = dbQuery {
-        BouncedEmailTable.insert {
-            it[BouncedEmailTable.email] = email.value
-            it[BouncedEmailTable.reason] = reason
-            it[BouncedEmailTable.bouncedAt] = Clock.System.now()
-        }
-    }
-
-    suspend fun consumeAllTokensOfType(callerId: CallerId, authType: AuthType) = dbQuery {
-        AuthTokenTable.update({ AuthTokenTable.starId.eq(callerId) and AuthTokenTable.authType.eq(authType) }) {
+    suspend fun consumeAllTokensOfType(starId: StarId, tokenType: AuthTokenType) = dbQuery {
+        AuthTokenTable.update({ AuthTokenTable.starId.eq(starId) and AuthTokenTable.tokenType.eq(tokenType) }) {
             it[AuthTokenTable.consumedAt] = Clock.System.now()
         }
     }
 
-    suspend inline fun <reified T: AuthMeta> readToken(hashedToken: HashedToken, authType: AuthType) = dbQuery {
-        AuthTokenTable.selectAll()
-            .where { AuthTokenTable.hashedToken.eq(hashedToken.value) and AuthTokenTable.authType.eq(authType) }
-            .singleOrNull()?.toAuthToken<T>()
+    suspend fun consumeAllUserTokens(starId: StarId) = dbQuery {
+        AuthTokenTable.update({ AuthTokenTable.starId.eq(starId) }) {
+            it[AuthTokenTable.consumedAt] = Clock.System.now()
+        }
     }
 
-    suspend fun verifyEmail(authToken: AuthToken<AuthMeta.EmailVerification>) = dbQuery {
+    suspend inline fun readToken(hashedToken: HashedToken, tokenType: AuthTokenType) = dbQuery {
+        AuthTokenTable.selectAll()
+            .where { AuthTokenTable.hashedToken.eq(hashedToken.value) and AuthTokenTable.tokenType.eq(tokenType) }
+            .singleOrNull()?.toAuthToken()
+    }
+
+    suspend fun consumeToken(tokenId: Long, instant: Instant) = dbQuery {
+        AuthTokenTable.update({
+            AuthTokenTable.id.eq(tokenId) and AuthTokenTable.consumedAt.isNull()
+        }) {
+            it[AuthTokenTable.consumedAt] = instant
+        }
+    }
+
+    @Deprecated("use consumeToken")
+    suspend fun verifyEmail(authToken: AuthToken) = dbQuery {
         var updatedCount = AuthTokenTable.update({
             AuthTokenTable.id.eq(authToken.tokenId) and AuthTokenTable.consumedAt.isNull()
         }) {
@@ -70,9 +69,7 @@ class AuthTokenTableDao: DbService() {
         if (updatedCount != 1) error("unexpected update count: $updatedCount")
     }
 
-    suspend fun readIsBounced(email: Email) = dbQuery {
-        BouncedEmailTable.selectAll().where { BouncedEmailTable.email.eq(email.value) }.any() // is any the right function?
-    }
+
 }
 
 private val log = KotlinLogging.logger(AuthTokenTableDao::class)

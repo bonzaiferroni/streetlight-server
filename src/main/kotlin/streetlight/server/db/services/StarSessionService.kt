@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.Email
-import kampfire.api.HashedPassword
+import kampfire.api.PasswordHash
 import kampfire.api.LoginIdentity
 import kampfire.api.TableId
 import kampfire.api.TableUuid
@@ -19,6 +19,7 @@ import kampfire.model.Token
 import kampfire.model.UserRecord
 import kampfire.model.UserSeed
 import klutch.db.DbService
+import klutch.db.model.SessionId
 import klutch.db.readFirstOrNull
 import klutch.db.services.SessionService
 import klutch.server.GUEST_ACTIVITY_PERIOD
@@ -29,12 +30,12 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
-import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.StarTable
@@ -49,7 +50,7 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class StarSessionService: DbService(), SessionService {
-    override suspend fun createSessionRecord(
+    override suspend fun createSession(
         userId: TableId<Uuid>,
         token: HashedToken,
         ttl: Duration,
@@ -66,8 +67,11 @@ class StarSessionService: DbService(), SessionService {
         true
     }
 
-    override suspend fun deleteSessions(userId: TableUuid) = dbQuery {
-        SessionTable.deleteWhere { SessionTable.starId.eq(userId) }
+    override suspend fun deleteSessions(userId: TableUuid, sparedSessionId: SessionId?) = dbQuery {
+        when (sparedSessionId) {
+            null -> SessionTable.deleteWhere { SessionTable.starId.eq(userId) }
+            else -> SessionTable.deleteWhere { SessionTable.starId.eq(userId) and SessionTable.id.neq(sparedSessionId.value) }
+        }
     }
 
     override suspend fun deleteSession(token: Token) = dbQuery {
@@ -80,7 +84,8 @@ class StarSessionService: DbService(), SessionService {
         val user = UserRecord(
             userId = StarId.random(),
             username = seed.request.username,
-            hashedPassword = seed.hashedPassword,
+            passwordHash = seed.passwordHash,
+            disabledPasswordHash = null,
             email = seed.request.email,
             roles = seed.roles.toSet(),
             accountType = seed.accountType,
@@ -95,9 +100,9 @@ class StarSessionService: DbService(), SessionService {
         }.let { StarId(it.value) }
     }
 
-    override suspend fun upgradeAccount(callerId: CallerId, hashedPassword: HashedPassword, email: Email?) = dbQuery {
+    override suspend fun upgradeAccount(callerId: CallerId, passwordHash: PasswordHash, email: Email?) = dbQuery {
         StarTable.update({ StarTable.id.eq(callerId) and StarTable.accountType.eq(AccountType.Guest) }) {
-            it[StarTable.hashedPassword] = hashedPassword.value
+            it[StarTable.passwordHash] = passwordHash.value
             it[StarTable.email] = email?.value
             it[StarTable.guestToken] = null
             it[StarTable.accountType] = AccountType.Registered
@@ -123,7 +128,7 @@ class StarSessionService: DbService(), SessionService {
     }
 
     override suspend fun checkUsernameExists(username: Username) = dbQuery {
-        StarTable.select(StarTable.username).where { StarTable.username.eq(username) }.any()
+        StarTable.select(StarTable.username).where { StarTable.username.lowerCase().eq(username.value.lowercase()) }.any()
     }
 
     override suspend fun generateUsername() = "${getAdjective()}${getNoun()}".toUsername()

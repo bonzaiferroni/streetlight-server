@@ -45,6 +45,7 @@ class DaoFacade(
     val feedback: FeedbackTableDao = FeedbackTableDao(),
     val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
     val authToken: AuthTokenTableDao = AuthTokenTableDao(),
+    val bouncedEmail: BouncedEmailTableDao = BouncedEmailTableDao(),
 )
 
 class ClientFacade(

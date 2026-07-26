@@ -4,9 +4,11 @@ import kampfire.api.toEmail
 import org.jetbrains.exposed.v1.core.ResultRow
 import streetlight.model.data.CityId
 import streetlight.model.data.Account
+import streetlight.server.utils.toRecordId
 
 object AccountQuery {
     val columns = listOf(
+        StarTable.id,
         StarTable.name,
         StarTable.email,
         StarTable.identityVisibility,
@@ -17,6 +19,7 @@ object AccountQuery {
 }
 
 fun ResultRow.toAccount() = Account(
+    starId = this[StarTable.id].toRecordId(),
     email = this[StarTable.email]?.toEmail(),
     name = this[StarTable.name],
     identityVisibility = this[StarTable.identityVisibility],

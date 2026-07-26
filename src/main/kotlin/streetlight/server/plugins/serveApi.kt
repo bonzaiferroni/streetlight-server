@@ -35,6 +35,7 @@ fun Application.serveApi(server: ServerScope) {
             serveMedia()
             serveFeedback()
             serveSiteStatus()
+            serveWebhooks()
         }
     }
 }

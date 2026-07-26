@@ -93,3 +93,17 @@ data class PostmarkResponse(
     @SerialName("ErrorCode") val errorCode: Int,
     @SerialName("Message") val message: String,
 )
+
+@Serializable
+data class PostmarkBounce(
+    @SerialName("RecordType") val recordType: String,
+    @SerialName("Type") val type: String,
+    @SerialName("TypeCode") val typeCode: Int,
+    @SerialName("Email") val email: String,
+    @SerialName("BouncedAt") val bouncedAt: String,
+    @SerialName("Description") val description: String = "",
+    @SerialName("Details") val details: String = "",
+    @SerialName("MessageID") val messageId: String = "",
+    @SerialName("Inactive") val inactive: Boolean = false,
+    @SerialName("CanActivate") val canActivate: Boolean = true,
+)

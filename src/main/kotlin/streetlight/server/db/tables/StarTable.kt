@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import kampfire.api.HashedPassword
+import kampfire.api.PasswordHash
 import kampfire.api.toEmail
 import kampfire.api.toUsername
 import kampfire.model.AccountType
@@ -23,10 +23,11 @@ import kotlin.time.Clock
 
 object StarTable: UuidTable("star") {
     // td: support hometown
-    val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
-    val username = text("username").index()
-    val hashedPassword = text("hashed_password").nullable()
-    val email = text("email").nullable()
+    val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable().index()
+    val username = text("username").uniqueIndex()
+    val passwordHash = text("hashed_password").nullable() // td: rename to password_hash
+    val disabledPasswordHash = text("disabled_password_hash").nullable()
+    val email = text("email").nullable().uniqueIndex()
     val roles = array<Int>("roles")
     val name = text("name").nullable()
     val tagline = text("tagline").nullable()
@@ -55,7 +56,8 @@ fun List<Int>.toRoleSet() = map { ordinal -> UserRole.entries[ordinal] }.toSet()
 fun ResultRow.toUserRecord() = UserRecord(
     userId = StarId(this[StarTable.id].value),
     username = this[StarTable.username].toUsername(),
-    hashedPassword = this[StarTable.hashedPassword]?.let { HashedPassword(it) } ,
+    passwordHash = this[StarTable.passwordHash]?.let { PasswordHash(it) } ,
+    disabledPasswordHash = this[StarTable.disabledPasswordHash]?.let { PasswordHash(it) },
     email = this[StarTable.email]?.toEmail(),
     roles = this[StarTable.roles].toRoleSet(),
     accountType = this[StarTable.accountType],
@@ -74,7 +76,7 @@ fun UpdateBuilder<*>.createRecord(user: UserRecord) {
 
 fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
     this[StarTable.username] = user.username.value
-    this[StarTable.hashedPassword] = user.hashedPassword?.value
+    this[StarTable.passwordHash] = user.passwordHash?.value
     this[StarTable.email] = user.email?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
     this[StarTable.guestToken] = user.guestToken?.value
