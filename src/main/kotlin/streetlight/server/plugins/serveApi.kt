@@ -36,7 +36,7 @@ fun Application.serveApi(server: ServerScope) {
             serveFeedback()
             serveSiteStatus()
             serveWebhooks()
-            serveTokens()
+            serveAccountActions()
         }
     }
 }

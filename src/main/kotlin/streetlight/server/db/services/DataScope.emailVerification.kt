@@ -15,11 +15,11 @@ import kotlinx.html.html
 import kotlinx.html.p
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
+import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.toStarId
 import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
-import streetlight.server.db.tables.AuthTokenType
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days

@@ -5,7 +5,7 @@ import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.Token
 import klutch.server.hashToken
-import streetlight.server.db.tables.AuthTokenType
+import streetlight.model.data.AuthTokenType
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 

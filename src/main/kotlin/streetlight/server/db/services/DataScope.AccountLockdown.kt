@@ -15,8 +15,8 @@ import kotlinx.html.html
 import kotlinx.html.p
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
+import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
-import streetlight.server.db.tables.AuthTokenType
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 import kotlin.time.Duration

@@ -3,10 +3,12 @@ package streetlight.server.routes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
+import kampfire.api.ActionResult
 import kampfire.api.toSlug
 import kampfire.api.toUsername
 import kampfire.model.CallerId
 import kampfire.model.Identity
+import kampfire.model.Token
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -17,6 +19,7 @@ import koala.html.StaticParse
 import koala.html.UsernameParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
+import streetlight.model.data.AuthTokenType
 import streetlight.server.model.*
 import streetlight.server.SiteStyles
 import streetlight.model.ui.Screen
@@ -49,8 +52,10 @@ fun ApiScope.servePages() {
             Screen.Event -> renderEvent(arg, caller?.callerId)
             Screen.Docs -> renderSiteDoc(arg)
             Screen.Media -> renderMedia(arg)
-            Screen.VerifyEmail -> renderVerifyEmail(arg)
-            Screen.AccountNotOwned -> renderAccountNotOwned(arg)
+            Screen.VerifyEmail -> renderTokenPage(arg, AuthTokenType.EmailVerification)
+            Screen.AccountNotOwned -> renderTokenPage(arg, AuthTokenType.AccountNotOwned)
+            Screen.PasswordReset -> renderTokenPage(arg, AuthTokenType.PasswordReset)
+            Screen.AccountLockdown -> renderTokenPage(arg, AuthTokenType.AccountLockdown)
             Screen.ActionReport -> renderActionReport(arg)
             else -> renderClientBase(screen)
         }
@@ -192,5 +197,21 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
         appPage("${post.title} by ${post.username} | Streetlight", SiteStyles, Screen.Media) {
             mediaShell(post)
         }
+    }
+}
+
+fun renderActionReport(arg: String?): HtmlRender {
+    val result = ActionResult.of(arg)
+    val title = when (result) {
+        ActionResult.Success -> "Success"
+        else -> "Oops"
+    }
+    val message = when(result) {
+        ActionResult.Invalid -> "The action was not successful."
+        ActionResult.InternalError -> "Something went wrong on our end."
+        ActionResult.Success -> "Success! You may close this tab."
+    }
+    return HtmlRender {
+        messagePage(title, message, SiteStyles)
     }
 }

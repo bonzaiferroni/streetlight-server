@@ -10,11 +10,11 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
-import streetlight.server.db.tables.AuthTokenType
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createToken
 import streetlight.server.db.tables.toAuthToken

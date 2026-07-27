@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import kotlin.time.Instant
@@ -20,13 +21,6 @@ object AuthTokenTable: LongIdTable("auth_token") {
     val consumedAt = timestamp("consumed_at").nullable()
     val expiresAt = timestamp("expires_at")
     val createdAt = timestamp("created_at")
-}
-
-enum class AuthTokenType {
-    EmailVerification,
-    PasswordReset,
-    AccountLockdown,
-    AccountNotOwned,
 }
 
 fun UpdateBuilder<*>.createToken(authToken: AuthToken) {
