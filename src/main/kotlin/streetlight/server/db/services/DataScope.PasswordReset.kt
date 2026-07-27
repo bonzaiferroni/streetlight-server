@@ -4,7 +4,7 @@ import kampfire.api.Email
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.Outcome
-import kampfire.model.PasswordResetRedemption
+import kampfire.model.PasswordResetRequest
 import kampfire.model.Problem
 import klutch.db.services.SessionService
 import klutch.server.generateToken
@@ -17,7 +17,6 @@ import kotlinx.html.p
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
 import streetlight.model.data.AuthTokenType
-import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarId
 import streetlight.model.ui.PasswordResetRoute
 import streetlight.server.model.DataScope
@@ -26,7 +25,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 suspend fun DataScope.redeemPasswordReset(
-    request: PasswordResetRedemption,
+    request: PasswordResetRequest,
     sessionService: SessionService,
 ): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()

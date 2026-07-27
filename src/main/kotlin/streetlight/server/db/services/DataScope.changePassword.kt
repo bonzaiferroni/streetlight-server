@@ -7,13 +7,11 @@ import kampfire.model.CallerId
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.PasswordChange
-import kampfire.model.PasswordResetRedemption
 import kampfire.model.Problem
 import klutch.db.model.SessionId
 import klutch.db.services.SessionService
 import klutch.server.generateToken
 import klutch.server.hashPassword
-import klutch.server.hashToken
 import klutch.server.verifyPassword
 import kotlinx.html.a
 import kotlinx.html.body
