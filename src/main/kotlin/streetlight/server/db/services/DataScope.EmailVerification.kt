@@ -29,8 +29,15 @@ suspend fun DataScope.requestEmailVerification(callerId: CallerId): Outcome<Unit
     val account = dao.star.readAccount(starId) ?: return@tryOutcome Problem("Account not found.")
     val email = account.email ?: return@tryOutcome Problem("No user email.")
     if (account.emailStatus == EmailStatus.Verified) return@tryOutcome Problem("This email is already verified.")
+
     val bouncedProblem = Problem("This address can't receive mail. Try a different one.")
-    if (dao.bouncedEmail.readIsBounced(email)) return@tryOutcome bouncedProblem
+    if (account.emailStatus == EmailStatus.Bounced || account.emailStatus == EmailStatus.NotOwned)
+        return@tryOutcome bouncedProblem
+    if (dao.bouncedEmail.readIsBounced(email)) {
+        dao.star.setEmailStatus(email, EmailStatus.Bounced)
+        return@tryOutcome bouncedProblem
+    }
+
     val verifyToken = generateToken()
     val disavowToken = generateToken()
     val verifyUrl = VerifyEmailRoute(verifyToken).toAbsolutePath()

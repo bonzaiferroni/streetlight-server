@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kampfire.model.CallerId
 import kampfire.model.HashedToken
 import klutch.db.DbService
 import klutch.utils.eq
@@ -41,7 +42,7 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
-    suspend inline fun readToken(hashedToken: HashedToken, tokenType: AuthTokenType) = dbQuery {
+    suspend fun readToken(hashedToken: HashedToken, tokenType: AuthTokenType) = dbQuery {
         AuthTokenTable.selectAll()
             .where { AuthTokenTable.hashedToken.eq(hashedToken.value) and AuthTokenTable.tokenType.eq(tokenType) }
             .singleOrNull()?.toAuthToken()
@@ -55,21 +56,12 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
-    @Deprecated("use consumeToken")
-    suspend fun verifyEmail(authToken: AuthToken) = dbQuery {
-        var updatedCount = AuthTokenTable.update({
-            AuthTokenTable.id.eq(authToken.tokenId) and AuthTokenTable.consumedAt.isNull()
-        }) {
-            it[AuthTokenTable.consumedAt] = Clock.System.now()
-        }
-        if (updatedCount != 1) error("unexpected update count: $updatedCount")
-        updatedCount = StarTable.update({ StarTable.id.eq(authToken.starId)}) {
-            it[StarTable.emailStatus] = EmailStatus.Verified
-        }
-        if (updatedCount != 1) error("unexpected update count: $updatedCount")
+    suspend fun readIsVerifyEmailTokenActive(callerId: CallerId) = dbQuery {
+        AuthTokenTable.selectAll().where {
+            AuthTokenTable.starId.eq(callerId) and AuthTokenTable.tokenType.eq(AuthTokenType.EmailVerification) and
+                    AuthTokenTable.consumedAt.isNull()
+        }.any()
     }
-
-
 }
 
 private val log = KotlinLogging.logger(AuthTokenTableDao::class)

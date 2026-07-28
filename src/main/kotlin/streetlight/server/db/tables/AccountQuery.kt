@@ -9,10 +9,10 @@ import streetlight.server.utils.toRecordId
 object AccountQuery {
     val columns = listOf(
         StarTable.id,
-        StarTable.name,
         StarTable.email,
-        StarTable.identityVisibility,
-        StarTable.cityId,
+        // StarTable.name,
+        // StarTable.identityVisibility,
+        // StarTable.cityId,
         StarTable.accountType,
         StarTable.emailStatus,
     )
@@ -21,9 +21,9 @@ object AccountQuery {
 fun ResultRow.toAccount() = Account(
     starId = this[StarTable.id].toRecordId(),
     email = this[StarTable.email]?.toEmail(),
-    name = this[StarTable.name],
-    identityVisibility = this[StarTable.identityVisibility],
-    cityId = this[StarTable.cityId]?.let { CityId(it.value) },
+    // name = this[StarTable.name],
+    // identityVisibility = this[StarTable.identityVisibility],
+    // cityId = this[StarTable.cityId]?.let { CityId(it.value) },
     accountType = this[StarTable.accountType],
     emailStatus = this[StarTable.emailStatus]
 )

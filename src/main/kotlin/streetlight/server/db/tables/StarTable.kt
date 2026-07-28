@@ -90,6 +90,8 @@ fun UpdateBuilder<*>.updateProfile(edit: StarEdit) {
 }
 
 fun UpdateBuilder<*>.updateAccount(edit: Account) {
-    this[StarTable.name] = edit.name
     this[StarTable.email] = edit.email?.value
+    this[StarTable.emailStatus] = edit.emailStatus
+    // city, name, and identity visibility not yet implemented
+    // accountType set elsewhere
 }

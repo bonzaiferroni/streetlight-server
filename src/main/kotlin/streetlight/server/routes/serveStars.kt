@@ -1,8 +1,8 @@
 package streetlight.server.routes
 
 import kampfire.model.Ok
+import kampfire.model.Problem
 import kampfire.model.toOutcome
-import klutch.db.services.SessionService
 import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.data.LightEdit
@@ -11,10 +11,9 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
+import streetlight.model.data.EmailStatus
 import streetlight.model.data.toStarId
-import streetlight.server.db.services.redeemPasswordReset
 import streetlight.server.db.services.requestEmailVerification
-import streetlight.server.db.services.requestPasswordReset
 import streetlight.server.db.tables.StarTable
 
 fun ApiScope.serveStars() {
@@ -39,10 +38,11 @@ fun ApiScope.serveStars() {
             dao.star.updateProfile(callerId, edit.copy(image = image)).toOutcome()
         }
 
-        postApi(Api.Stars.UpdateAccount) {
-            val edit = it.data
+        postApi(Api.Stars.AddEmail) {
+            val email = it.data
             val callerId = call.getIdentity().callerId
-            dao.star.updateAccount(callerId, edit).toOutcome()
+            dao.star.setEmail(callerId.toStarId(), email, EmailStatus.Unverified)
+            requestEmailVerification(callerId)
         }
 
         postApi(Api.Stars.EditLight) {
@@ -65,11 +65,6 @@ fun ApiScope.serveStars() {
         getApi(Api.Stars.ReadAccount) {
             val callerId = call.getIdentity().callerId
             dao.star.readAccount(callerId.toStarId()).toOutcome()
-        }
-
-        getApi(Api.Stars.VerifyEmail) {
-            val callerId = call.getIdentity().callerId
-            requestEmailVerification(callerId)
         }
     }
 }

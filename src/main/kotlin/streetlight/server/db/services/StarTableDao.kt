@@ -35,21 +35,15 @@ class StarTableDao: DbService() {
         }.singleOrNull()?.toStar()
     }
 
-    suspend fun updateAccount(callerId: CallerId, edit: Account) = dbQuery {
-        StarTable.update(where = { StarTable.id.eq(callerId) }) {
-            it.updateAccount(edit)
-        } == 1
-    }
-
     suspend fun setEmailStatus(email: Email, emailStatus: EmailStatus) = dbQuery {
         StarTable.update({ StarTable.email.eq(email.value) }) {
             it[StarTable.emailStatus] = emailStatus
         }
     }
 
-    suspend fun setEmail(starId: StarId, email: Email, emailStatus: EmailStatus) = dbQuery {
+    suspend fun setEmail(starId: StarId, email: Email?, emailStatus: EmailStatus?) = dbQuery {
         StarTable.update({ StarTable.id.eq(starId) }) {
-            it[StarTable.email] = email.value
+            it[StarTable.email] = email?.value
             it[StarTable.emailStatus] = emailStatus
         }
     }
