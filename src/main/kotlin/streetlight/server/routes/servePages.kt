@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
 import kampfire.api.ActionResult
@@ -8,7 +9,6 @@ import kampfire.api.toSlug
 import kampfire.api.toUsername
 import kampfire.model.CallerId
 import kampfire.model.Identity
-import kampfire.model.Token
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -42,7 +42,7 @@ fun ApiScope.servePages() {
 //        }
 //    }
 
-    suspend fun renderScreen(screen: Screen, arg: String?, caller: Identity?): HtmlRender? {
+    suspend fun renderScreen(screen: Screen, arg: String?, caller: Identity?, call: ApplicationCall): HtmlRender? {
         return when (screen) {
             Screen.Home -> renderHome(caller?.callerId)
             Screen.AboutApp -> renderAboutApp()
@@ -56,7 +56,7 @@ fun ApiScope.servePages() {
             Screen.AccountNotOwned -> renderTokenPage(arg, AuthTokenType.AccountNotOwned)
             Screen.PasswordReset -> renderTokenPage(arg, AuthTokenType.PasswordReset)
             Screen.AccountLockdown -> renderTokenPage(arg, AuthTokenType.AccountLockdown)
-            Screen.ActionReport -> renderActionReport(arg)
+            Screen.ActionReport -> renderActionReport(call, arg)
             else -> renderClientBase(screen)
         }
     }
@@ -65,13 +65,13 @@ fun ApiScope.servePages() {
         Screen.entries.forEach { screen ->
 
             val paths = when (val parse = screen.routeParse) {
-                is SlugParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
-                is UsernameParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
-                is SlugOrNullParse -> listOf("/${screen.pathRoot}/{${parse.label}?}")
-                is IdParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
-                is UuidParse -> listOf("/${screen.pathRoot}/{${parse.label}}")
-                is StaticParse -> listOf("/${screen.pathRoot}")
-                is SegmentParse -> parse.roots.map { "/${screen.pathRoot}/$it/{id?}" }
+                is SlugParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
+                is UsernameParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
+                is SlugOrNullParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
+                is IdParse -> listOf("${screen.pathRoot}/{${parse.label}}")
+                is UuidParse -> listOf("${screen.pathRoot}/{${parse.label}}")
+                is StaticParse -> listOf(screen.pathRoot)
+                is SegmentParse -> parse.roots.map { "${screen.pathRoot}/$it/{id?}" }
             }
 
             paths.forEach { path ->
@@ -82,7 +82,7 @@ fun ApiScope.servePages() {
                         else -> call.parameters[parse.label]
                     }
 
-                    when (val render = renderScreen(screen, arg, identity)) {
+                    when (val render = renderScreen(screen, arg, identity, call)) {
                         null -> {
                             call.respondHtml {
                                 // td: not found
@@ -200,7 +200,7 @@ suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     }
 }
 
-fun renderActionReport(arg: String?): HtmlRender {
+fun renderActionReport(call: ApplicationCall, arg: String?): HtmlRender {
     val result = ActionResult.of(arg)
     val title = when (result) {
         ActionResult.Success -> "Success"
@@ -208,7 +208,9 @@ fun renderActionReport(arg: String?): HtmlRender {
     }
     val message = when(result) {
         ActionResult.Invalid -> "The action was not successful."
-        ActionResult.InternalError -> "Something went wrong on our end."
+        ActionResult.Problem -> {
+            call.readCookieMessage(Screen.ActionReport.pathRoot) ?: "Something went wrong on our end."
+        }
         ActionResult.Success -> "Success! You may close this tab."
     }
     return HtmlRender {
