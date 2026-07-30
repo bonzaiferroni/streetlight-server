@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kampfire.api.Email
 import kampfire.model.HashedToken
 import klutch.db.DbService
 import klutch.db.model.CallerId
@@ -9,6 +10,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -46,6 +48,17 @@ class AuthTokenTableDao: DbService() {
                         AuthTokenTable.tokenType.eq(AuthTokenType.AccountLockdown) and
                                 AuthTokenTable.id.less(exceptLockdownBefore)
                     )
+        }) {
+            it[AuthTokenTable.consumedAt] = Clock.System.now()
+        }
+    }
+
+    suspend fun consumeAllTokensForEmail(starId: StarId, email: Email) = dbQuery {
+        AuthTokenTable.update({
+            AuthTokenTable.starId.eq(starId) and
+                    AuthTokenTable.email.eq(email.value) and
+                    AuthTokenTable.consumedAt.isNull() and
+                    AuthTokenTable.tokenType.neq(AuthTokenType.AccountLockdown)
         }) {
             it[AuthTokenTable.consumedAt] = Clock.System.now()
         }

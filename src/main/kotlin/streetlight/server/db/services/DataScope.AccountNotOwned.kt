@@ -26,7 +26,7 @@ suspend fun DataScope.redeemAccountNotOwned(token: Token, supportAddress: String
 
     transaction {
         dao.authToken.consumeToken(authToken.tokenId, now)
-        dao.authToken.consumeAllUserTokens(authToken.starId)
+        dao.authToken.consumeAllTokensForEmail(authToken.starId, authToken.email)
         dao.star.setEmailNotOwned(authToken.starId)
         // td: send a UI-delivered message to the user
     }
