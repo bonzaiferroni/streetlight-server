@@ -1,10 +1,10 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
-import kampfire.model.Identity
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
+import klutch.db.model.CallerId
+import klutch.db.model.Identity
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -32,7 +32,6 @@ import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.MediaId
-import streetlight.model.data.toStarId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.PostStarTable
@@ -41,6 +40,7 @@ import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.updateRecord
+import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 
 class PostTableDao : DbService() {

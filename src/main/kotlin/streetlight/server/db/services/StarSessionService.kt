@@ -9,17 +9,17 @@ import kampfire.api.Username
 import kampfire.api.toEmail
 import kampfire.api.toUsername
 import kampfire.model.AccountType
-import kampfire.model.CallerId
 import kampfire.model.HashedToken
-import kampfire.model.Identity
 import kampfire.model.PrivateInfo
-import kampfire.model.Session
-import kampfire.model.SessionIdentity
 import kampfire.model.Token
 import kampfire.model.UserRecord
 import kampfire.model.UserSeed
 import klutch.db.DbService
+import klutch.db.model.CallerId
+import klutch.db.model.Identity
+import klutch.db.model.Session
 import klutch.db.model.SessionId
+import klutch.db.model.SessionIdentity
 import klutch.db.readFirstOrNull
 import klutch.db.services.SessionService
 import klutch.server.GUEST_ACTIVITY_PERIOD
@@ -56,15 +56,16 @@ class StarSessionService: DbService(), SessionService {
         ttl: Duration,
         expiresAt: Instant,
     ) = dbQuery {
+        val sessionId = SessionId(Uuid.random())
         SessionTable.insert {
-            it[id] = Uuid.random()
+            it[id] = sessionId.value
             it[starId] = userId.value
             it[tokenHash] = token.value
             it[ttlSeconds] = ttl.inWholeSeconds.toInt()
             it[createdAt] = Clock.System.now()
             it[this.expiresAt] = expiresAt
         }
-        true
+        sessionId
     }
 
     override suspend fun deleteSessions(userId: TableUuid, sparedSessionId: SessionId?) = dbQuery {
@@ -140,6 +141,7 @@ class StarSessionService: DbService(), SessionService {
         }.firstOrNull()?.let {
             SessionIdentity(
                 Session(
+                    sessionId = SessionId(it[SessionTable.id].value),
                     token = token,
                     ttlSeconds = it[SessionTable.ttlSeconds],
                     activeAt = it[StarTable.activeAt],
@@ -164,7 +166,7 @@ class StarSessionService: DbService(), SessionService {
             it[SessionTable.expiresAt] = expiresAt
         }
         if (updated == 0) throw IllegalStateException("Session not found")
-        Session(session.token, session.ttlSeconds, session.activeAt, expiresAt)
+        session.copy(expiresAt = expiresAt)
     }
 
     override suspend fun refreshActivity(callerId: CallerId) = dbQuery {
@@ -189,6 +191,7 @@ class StarSessionService: DbService(), SessionService {
 }
 
 private val identityColumns = listOf(
+    SessionTable.id,
     SessionTable.ttlSeconds,
     SessionTable.expiresAt,
     StarTable.username,

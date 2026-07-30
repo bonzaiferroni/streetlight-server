@@ -2,8 +2,8 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import kampfire.api.isValid
-import kampfire.model.CallerId
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert

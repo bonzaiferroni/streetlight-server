@@ -1,8 +1,8 @@
 package streetlight.server.db.services
 
 import kampfire.api.Slug
-import kampfire.model.CallerId
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.db.tables.nextSlugOf
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder

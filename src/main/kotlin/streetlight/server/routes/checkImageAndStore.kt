@@ -5,12 +5,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
-import kabinet.console.globalConsole
 import kampfire.api.TableId
-import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariants
 import kampfire.utils.randomUuidString
+import klutch.db.model.CallerId
 import klutch.utils.logger
 import koala.Image
 import streetlight.model.data.FileFormat

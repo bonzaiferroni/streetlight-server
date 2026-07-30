@@ -3,10 +3,10 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
-import kampfire.model.Identity
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import kampfire.model.outcomeOf
+import klutch.db.model.Identity
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api

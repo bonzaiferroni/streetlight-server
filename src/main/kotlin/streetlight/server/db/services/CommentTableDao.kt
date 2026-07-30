@@ -2,8 +2,8 @@ package streetlight.server.db.services
 
 import kabinet.console.globalConsole
 import kampfire.api.toUsername
-import kampfire.model.CallerId
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.db.readById
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Join
@@ -24,7 +24,6 @@ import streetlight.model.data.NewComment
 import streetlight.model.data.PostId
 import streetlight.model.data.SpaceType
 import streetlight.model.data.UpdatedComment
-import streetlight.model.data.toStarId
 import streetlight.server.db.tables.CommentRow
 import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
@@ -34,6 +33,7 @@ import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
+import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 

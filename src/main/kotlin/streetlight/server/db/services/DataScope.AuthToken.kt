@@ -13,18 +13,18 @@ import streetlight.server.model.DataScope
 import kotlin.time.Clock
 import kotlin.time.Duration
 
-internal suspend fun DataScope.createTokenOrThrow(
+internal suspend fun DataScope.createToken(
     starId: StarId,
     token: Token,
     email: Email,
     tokenType: AuthTokenType,
     interval: Duration,
     consumePrior: Boolean = true,
-) {
+): Boolean {
     val now = Clock.System.now()
     val hashedToken = hashToken(token)
 
-    transaction {
+    return transaction {
         if (consumePrior) {
             dao.authToken.consumeAllTokensOfType(starId, tokenType)
         }
@@ -40,7 +40,7 @@ internal suspend fun DataScope.createTokenOrThrow(
                 createdAt = now
             )
         ).insertedCount == 1
-        if (!isSuccess) error("unable to create token: $tokenType")
+        isSuccess
     }
 }
 

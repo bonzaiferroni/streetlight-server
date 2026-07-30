@@ -1,5 +1,7 @@
 package streetlight.server.routes
 
+import kampfire.api.deobfuscatePassword
+import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toOutcome
@@ -11,10 +13,8 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
-import streetlight.model.data.EmailStatus
-import streetlight.model.data.toStarId
-import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.db.tables.StarTable
+import streetlight.server.utils.toStarId
 
 fun ApiScope.serveStars() {
     authGate(optional = true) {
@@ -36,13 +36,6 @@ fun ApiScope.serveStars() {
             val callerId = call.getIdentity().callerId
             val image = checkImageAndStore(callerId, callerId, edit.image, StarTable.imageConfig)
             dao.star.updateProfile(callerId, edit.copy(image = image)).toOutcome()
-        }
-
-        postApi(Api.Stars.AddEmail) {
-            val email = it.data
-            val callerId = call.getIdentity().callerId
-            dao.star.setEmail(callerId.toStarId(), email, EmailStatus.Unverified)
-            requestEmailVerification(callerId)
         }
 
         postApi(Api.Stars.EditLight) {

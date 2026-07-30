@@ -4,6 +4,7 @@ import io.ktor.http.Cookie
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
@@ -12,27 +13,28 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.post
 import kabinet.utils.Environment
 import kampfire.api.ActionResult
-import kampfire.api.Endpoint
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.PasswordResetRequest
 import kampfire.model.Problem
 import kampfire.model.Token
 import kampfire.model.toOutcome
+import klutch.db.model.SessionIdentity
 import klutch.db.services.SessionService
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
-import streetlight.model.data.starId
 import streetlight.model.ui.ActionReportRoute
 import streetlight.model.ui.Screen
+import streetlight.server.db.services.changePasswordFromSession
 import streetlight.server.db.services.redeemAccountNotOwned
 import streetlight.server.db.services.redeemPasswordReset
 import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.db.services.requestPasswordReset
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
+import streetlight.server.utils.starId
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -52,14 +54,27 @@ fun ApiScope.serveAccountActions() {
             Ok(Unit)
         }
 
-        postApi(Api.AccountAction.VerifyEmail) {
-            val callerId = call.getIdentity().callerId
-            requestEmailVerification(callerId)
+        postApi(Api.AccountAction.VerifyExistingEmail) {
+            val starId = call.getIdentity().starId
+            val email = dao.star.readAccount(starId)?.email ?: return@postApi Problem("email not found")
+            requestEmailVerification(starId, email)
         }
 
-        getApi(Api.AccountAction.VerifyEmail.CheckStatus) {
+        getApi(Api.AccountAction.VerifyExistingEmail.CheckStatus) {
             val callerId = call.getIdentity().callerId
             dao.authToken.readIsVerifyEmailTokenActive(callerId).toOutcome()
+        }
+
+        postApi(Api.AccountAction.ChangePassword) {
+            val callerId = call.getIdentity().callerId
+            val sessionId = call.principal<SessionIdentity>()?.session?.sessionId ?: error("session id not found")
+            changePasswordFromSession(callerId, it.data, sessionId, sessionService)
+        }
+
+        postApi(Api.AccountAction.AddEmail) {
+            val email = it.data
+            val starId = call.getIdentity().starId
+            requestEmailVerification(starId, email)
         }
     }
 
@@ -87,7 +102,7 @@ fun ApiScope.serveAccountActions() {
         when (val outcome = redeemAccountNotOwned(token, supportAddress)) {
             is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
             is Problem -> {
-                call.writeCookieMessage(outcome.message, Screen.ActionReport.pathRoot)
+                call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
                 call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
             }
         }

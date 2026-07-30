@@ -19,7 +19,6 @@ import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 suspend fun DataScope.redeemAccountLockdown(
@@ -84,7 +83,8 @@ internal suspend fun DataScope.sendLockdownSupportNotice(
         textBody = createLockdownSupportTextBody(supportAddress),
     )
 
-    if (recordIfPostmarkError(response, email)) {
+    recordPostmarkBounced(response, email)
+    if (response.errorCode != 0) {
         log.error { "Failed to send lockdown support notice" }
     }
 }

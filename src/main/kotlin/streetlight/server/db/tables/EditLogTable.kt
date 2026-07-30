@@ -1,7 +1,7 @@
 package streetlight.server.db.tables
 
-import kampfire.model.CallerId
 import klutch.db.SyncValueTrigger
+import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder

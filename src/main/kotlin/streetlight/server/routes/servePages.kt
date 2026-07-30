@@ -7,8 +7,8 @@ import io.ktor.server.routing.get
 import kampfire.api.ActionResult
 import kampfire.api.toSlug
 import kampfire.api.toUsername
-import kampfire.model.CallerId
-import kampfire.model.Identity
+import klutch.db.model.CallerId
+import klutch.db.model.Identity
 import klutch.server.authGate
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
@@ -65,13 +65,13 @@ fun ApiScope.servePages() {
         Screen.entries.forEach { screen ->
 
             val paths = when (val parse = screen.routeParse) {
-                is SlugParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
-                is UsernameParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
-                is SlugOrNullParse -> listOf("${screen.pathRoot}/{${parse.label}?}")
-                is IdParse -> listOf("${screen.pathRoot}/{${parse.label}}")
-                is UuidParse -> listOf("${screen.pathRoot}/{${parse.label}}")
-                is StaticParse -> listOf(screen.pathRoot)
-                is SegmentParse -> parse.roots.map { "${screen.pathRoot}/$it/{id?}" }
+                is SlugParse -> listOf("${screen.pathBase}/{${parse.label}?}")
+                is UsernameParse -> listOf("${screen.pathBase}/{${parse.label}?}")
+                is SlugOrNullParse -> listOf("${screen.pathBase}/{${parse.label}?}")
+                is IdParse -> listOf("${screen.pathBase}/{${parse.label}}")
+                is UuidParse -> listOf("${screen.pathBase}/{${parse.label}}")
+                is StaticParse -> listOf(screen.pathBase)
+                is SegmentParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" }
             }
 
             paths.forEach { path ->
@@ -209,7 +209,7 @@ fun renderActionReport(call: ApplicationCall, arg: String?): HtmlRender {
     val message = when(result) {
         ActionResult.Invalid -> "The action was not successful."
         ActionResult.Problem -> {
-            call.readCookieMessage(Screen.ActionReport.pathRoot) ?: "Something went wrong on our end."
+            call.readCookieMessage(Screen.ActionReport.pathBase) ?: "Something went wrong on our end."
         }
         ActionResult.Success -> "Success! You may close this tab."
     }

@@ -1,10 +1,11 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
+import kampfire.api.Email
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.Token
+import klutch.db.model.CallerId
 import klutch.server.generateToken
 import klutch.server.hashToken
 import kotlinx.html.a
@@ -17,26 +18,39 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.title
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
-import streetlight.model.data.toStarId
+import streetlight.model.data.StarId
+import streetlight.model.ui.AccountLockdownRoute
 import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
 import streetlight.server.model.DataScope
+import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
-suspend fun DataScope.requestEmailVerification(callerId: CallerId): Outcome<Unit> = tryOutcome {
-    val starId = callerId.toStarId()
+suspend fun DataScope.requestEmailVerification(starId: StarId, email: Email): Outcome<Unit> = tryOutcome {
     val account = dao.star.readAccount(starId) ?: return@tryOutcome Problem("Account not found.")
-    val email = account.email ?: return@tryOutcome Problem("No user email.")
-    if (account.emailStatus == EmailStatus.Verified) return@tryOutcome Problem("This email is already verified.")
-
+    val emailNow = account.email
     val bouncedProblem = Problem("This address can't receive mail. Try a different one.")
-    if (account.emailStatus == EmailStatus.Bounced || account.emailStatus == EmailStatus.NotOwned)
-        return@tryOutcome bouncedProblem
-    if (dao.bouncedEmail.readIsBounced(email)) {
-        dao.star.setEmailStatus(email, EmailStatus.Bounced)
-        return@tryOutcome bouncedProblem
+    val isBounced = dao.bouncedEmail.readIsBounced(email)
+    if (emailNow != null) {
+        if (email == emailNow) {
+            if (account.emailStatus == EmailStatus.Verified) return@tryOutcome Problem("This email is already verified.")
+            if (account.emailStatus == EmailStatus.Bounced || account.emailStatus == EmailStatus.NotOwned)
+                return@tryOutcome bouncedProblem
+            if (isBounced) {
+                dao.star.setEmailStatus(email, EmailStatus.Bounced)
+                return@tryOutcome bouncedProblem
+            }
+        } else {
+            if (isBounced) return@tryOutcome bouncedProblem
+            sendLockdownEmailToPrevious(starId, emailNow)
+        }
+    } else {
+        if (isBounced) return@tryOutcome bouncedProblem
     }
+
+    if (dao.star.setEmail(starId, email, EmailStatus.Unverified) != 1)
+        return@tryOutcome Problem("This email is already in use.")
 
     val verifyToken = generateToken()
     val disavowToken = generateToken()
@@ -50,16 +64,12 @@ suspend fun DataScope.requestEmailVerification(callerId: CallerId): Outcome<Unit
         textBody = createEmailVerificationTextBody(verifyUrl, notOwnedUrl)
     )
 
-    if (response.errorCode == 406) {
-        dao.bouncedEmail.createBouncedEmail(email, "postmark 406")
-        dao.star.setEmailStatus(email, EmailStatus.Bounced)
-        return@tryOutcome bouncedProblem
-    }
+    recordPostmarkBounced(response, email)
     if (response.errorCode != 0) return@tryOutcome Problem("There was an internal error.")
 
     transaction {
-        createTokenOrThrow(starId, verifyToken, email, AuthTokenType.EmailVerification, VerifyEmailInterval)
-        createTokenOrThrow(starId, disavowToken, email, AuthTokenType.AccountNotOwned, NotOwnedEmailInterval)
+        createToken(starId, verifyToken, email, AuthTokenType.EmailVerification, VerifyEmailInterval)
+        createToken(starId, disavowToken, email, AuthTokenType.AccountNotOwned, NotOwnedEmailInterval)
     }
 
     Ok(Unit)
@@ -90,10 +100,31 @@ suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = t
     Ok("Success! This email has been verified.")
 }
 
+suspend fun DataScope.sendLockdownEmailToPrevious(starId: StarId, email: Email): Boolean {
+    val token = generateToken()
+    val url = AccountLockdownRoute(token).toAbsolutePath()
+
+    val response = client.postmark.sendEmail(
+        to = email.value,
+        subject = "Email changed",
+        htmlBody = createEmailChangedHtmlBody(url),
+        textBody = createEmailChangedTextBody(url)
+    )
+
+    recordPostmarkBounced(response, email)
+    if (response.errorCode != 0) return false
+
+    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval)
+    return true
+}
+
 val VerifyEmailInterval = 1.days
 val NotOwnedEmailInterval = 2.days
 
-private fun createEmailVerificationHtmlBody(verifyUrl: String, notOwnedUrl: String) = createHTML().html {
+private fun createEmailVerificationHtmlBody(
+    verifyUrl: String,
+    notOwnedUrl: String,
+) = createHTML().html {
     head {
         title("Verify your email")
     }
@@ -125,4 +156,34 @@ $verifyUrl
 If you didn't sign up for Streetlight, you can remove this address here:
 
 $disavowUrl
+""".trimIndent()
+
+private fun createEmailChangedHtmlBody(url: String) = createHTML().html {
+    head {
+        title("Streetlight Email Changed")
+    }
+    body {
+        p {
+            +"The email for your Streetlight account has changed."
+        }
+        p {
+            +"If this was you, no action is needed."
+        }
+        p {
+            +"If it wasn't, secure your account now — this will sign out every device and let you set a new password."
+        }
+        a(href = url) {
+            +"This wasn't me"
+        }
+    }
+}
+
+private fun createEmailChangedTextBody(url: String) = """
+The email for your Streetlight account has changed.
+
+If this was you, no action is needed.
+
+If it wasn't, secure your account now. This will sign out every device and let you set a new password:
+
+$url
 """.trimIndent()

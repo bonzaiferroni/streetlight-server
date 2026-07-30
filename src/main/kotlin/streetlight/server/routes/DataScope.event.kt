@@ -1,9 +1,9 @@
 package streetlight.server.routes
 
-import kampfire.model.CallerId
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.toOutcome
+import klutch.db.model.CallerId
 import streetlight.model.data.EditType
 import streetlight.model.data.Event
 import streetlight.model.data.EventEdit
@@ -11,11 +11,11 @@ import streetlight.model.data.EventId
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.StarId
 import streetlight.model.data.toEdit
-import streetlight.model.data.toStarId
 import streetlight.server.db.services.createEditTask
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
+import streetlight.server.utils.toStarId
 
 suspend fun DataScope.createEvent(
     callerId: CallerId,

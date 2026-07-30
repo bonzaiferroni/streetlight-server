@@ -3,12 +3,12 @@ package streetlight.server.db.services
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.Username
-import kampfire.model.CallerId
 import kampfire.model.GeoBounds
 import klutch.db.DbService
 import klutch.db.count
 import klutch.db.deleteSingle
 import klutch.db.inBounds
+import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq

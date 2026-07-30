@@ -2,7 +2,6 @@ package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kampfire.api.Slug
-import kampfire.model.CallerId
 import kampfire.model.Distance
 import kampfire.model.GeoBounds
 import kampfire.model.GeoPoint
@@ -10,6 +9,7 @@ import klutch.db.DbService
 import klutch.db.inBounds
 import klutch.db.isNearEq
 import klutch.db.mapFirstOrNull
+import klutch.db.model.CallerId
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import klutch.utils.eq

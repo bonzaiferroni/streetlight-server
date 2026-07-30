@@ -1,15 +1,15 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
+import klutch.db.model.CallerId
 import streetlight.model.data.EditType
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.StarId
 import streetlight.model.data.toEdit
-import streetlight.model.data.toStarId
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 import streetlight.server.routes.checkImageAndStore
+import streetlight.server.utils.toStarId
 
 suspend fun DataScope.createLocation(
     callerId: CallerId,

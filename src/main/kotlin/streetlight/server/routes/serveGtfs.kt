@@ -17,7 +17,6 @@ import kampfire.model.GeoPoint
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.getApi
-import klutch.server.getEndpoint
 import klutch.server.readParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

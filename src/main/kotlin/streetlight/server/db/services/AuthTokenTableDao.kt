@@ -1,9 +1,9 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kampfire.model.CallerId
 import kampfire.model.HashedToken
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq

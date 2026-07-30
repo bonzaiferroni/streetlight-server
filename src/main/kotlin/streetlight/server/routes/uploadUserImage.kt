@@ -1,9 +1,9 @@
 package streetlight.server.routes
 
-import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.Url
 import kampfire.model.toUrl
+import klutch.db.model.CallerId
 import kotlin.time.Clock
 import streetlight.model.data.FileFormat
 import streetlight.model.data.FileType
@@ -11,8 +11,8 @@ import streetlight.model.data.StarId
 import streetlight.model.data.StorageType
 import streetlight.model.data.UploadFile
 import streetlight.model.data.UploadFileId
-import streetlight.model.data.toStarId
 import streetlight.server.model.*
+import streetlight.server.utils.toStarId
 import java.io.File
 
 // private val console = globalConsole.getHandle("uploader")

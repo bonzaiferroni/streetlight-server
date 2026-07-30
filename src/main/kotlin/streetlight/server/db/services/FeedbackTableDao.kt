@@ -1,10 +1,10 @@
 package streetlight.server.db.services
 
 import kampfire.api.Username
-import kampfire.model.CallerId
-import kampfire.model.Identity
 import kampfire.model.UserRole
 import klutch.db.DbService
+import klutch.db.model.CallerId
+import klutch.db.model.Identity
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq

@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import kampfire.model.CallerId
+import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable

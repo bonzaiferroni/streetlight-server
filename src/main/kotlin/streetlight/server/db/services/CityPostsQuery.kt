@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
+import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow

@@ -1,10 +1,10 @@
 package streetlight.server.db.tables
 
-import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
+import klutch.db.model.CallerId
 import klutch.db.scaledImages
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable

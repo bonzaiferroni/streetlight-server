@@ -3,9 +3,9 @@ package streetlight.server.db.services
 import kampfire.api.Email
 import kampfire.api.PasswordHash
 import kampfire.api.Username
-import kampfire.model.CallerId
 import kampfire.model.thumb
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq

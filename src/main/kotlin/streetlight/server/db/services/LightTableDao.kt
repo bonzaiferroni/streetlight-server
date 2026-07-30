@@ -1,8 +1,8 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
 import kotlin.time.Instant
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table

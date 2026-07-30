@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
-import kampfire.model.CallerId
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Alias

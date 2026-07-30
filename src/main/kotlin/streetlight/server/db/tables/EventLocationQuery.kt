@@ -2,7 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
-import kampfire.model.CallerId
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType

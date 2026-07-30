@@ -3,15 +3,16 @@ package streetlight.server.routes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import kampfire.api.UserApi
+import kampfire.api.deobfuscatePassword
 import kampfire.model.AccountType
 import kampfire.model.AccountUpgradeRequest
 import kampfire.model.Ok
 import kampfire.model.Problem
-import kampfire.model.SessionIdentity
 import kampfire.model.Token
 import kampfire.model.UserRole
 import kampfire.model.outcomeOf
 import kampfire.model.toOutcome
+import klutch.db.model.SessionIdentity
 import klutch.db.services.SessionService
 import klutch.server.Authorizer
 import klutch.server.GUEST_COOKIE_NAME
@@ -22,8 +23,11 @@ import klutch.server.generateToken
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
+import streetlight.model.data.StarId
+import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
+import streetlight.server.utils.starId
 
 private val log = KotlinLogging.logger(ApiScope::serveSession.name)
 
@@ -44,7 +48,18 @@ fun ApiScope.serveSession() {
                     is Problem -> outcome
                 }
             }
-            AccountType.Registered -> authorizer.createRegisteredUser(it.data, setOf(UserRole.User))
+            AccountType.Registered -> {
+                when (val outcome = authorizer.createRegisteredUser(it.data, setOf(UserRole.User))) {
+                    is Ok -> {
+                        request.email?.let { email ->
+                            if (dao.star.readAccount(email) != null) return@postApi Problem("That email is already registered.")
+                            requestEmailVerification(StarId(outcome.data.value), email)
+                        }
+                        outcome
+                    }
+                    is Problem -> outcome
+                }
+            }
         }
 
         when (outcome) {
@@ -116,7 +131,16 @@ fun ApiScope.serveSession() {
             val identity = call.getIdentity()
             if (identity.accountType != AccountType.Guest) return@postApi Problem("Account is not a guest.")
             val request = it.data
-            when (val outcome = authorizer.upgradeAccount(identity.callerId, request.password, request.email)) {
+            request.email?.let { email ->
+                if (dao.star.readAccount(email) != null) return@postApi Problem("That email is already registered.")
+                requestEmailVerification(identity.starId, email)
+            }
+            // td: send email verification if present
+            when (val outcome = authorizer.upgradeAccount(
+                callerId = identity.callerId,
+                password = request.password.deobfuscatePassword(),
+                email = request.email
+            )) {
                 is Ok -> {
                     call.appendGuestCooke(null)
                     outcome

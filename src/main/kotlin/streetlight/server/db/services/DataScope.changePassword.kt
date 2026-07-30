@@ -2,12 +2,13 @@ package streetlight.server.db.services
 
 import kampfire.api.Email
 import kampfire.api.Password
+import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
-import kampfire.model.CallerId
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.PasswordChange
 import kampfire.model.Problem
+import klutch.db.model.CallerId
 import klutch.db.model.SessionId
 import klutch.db.services.SessionService
 import klutch.server.generateToken
@@ -23,34 +24,49 @@ import kotlinx.html.title
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarId
-import streetlight.model.data.toStarId
 import streetlight.model.ui.AccountLockdownRoute
 import streetlight.server.external.PostmarkResponse
 import streetlight.server.model.DataScope
+import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
-suspend fun DataScope.changePassword(
+suspend fun DataScope.changePasswordFromSession(
     callerId: CallerId,
     request: PasswordChange,
     sessionId: SessionId,
     sessionService: SessionService,
 ): Outcome<Unit> = tryOutcome {
-    val password = when (val outcome = request.newPassword.toValidOutcome()) {
+    val newPassword = when (val outcome = request.newPassword.deobfuscatePassword().toValidOutcome()) {
         is Ok -> outcome.data
         is Problem -> return@tryOutcome outcome
     }
 
     val account = dao.star.readAccount(callerId.toStarId()) ?: error("account not found")
-    val passwordHash = dao.star.readPasswordHash(callerId) ?: error("password not found")
+    val email = account.email
+    val passwordIncorrect = Problem("Your current password is not correct.")
 
-    if (!verifyPassword(request.currentPassword, passwordHash))
-        return@tryOutcome Problem("Your current password is not correct.")
+    // current password check only applies to accounts with an email
+    if (request.passwordNow == null && email != null) return@tryOutcome passwordIncorrect
+
+    // there should always be a current password here
+    // guest accounts shouldn't reach this function, and recovery from a disabled password calls a different function
+    val currentPasswordHash = dao.star.readPasswordHash(callerId) ?: error("password not found")
+
+    request.passwordNow?.let {
+        val currentPassword = it.deobfuscatePassword()
+        if (!verifyPassword(currentPassword, currentPasswordHash))
+            return@tryOutcome passwordIncorrect
+    }
+
+    if (verifyPassword(newPassword, currentPasswordHash)) {
+        return@tryOutcome Problem("Please enter a new password.")
+    }
 
     applyPasswordChange(
         starId = account.starId,
-        password = password,
+        newPassword = newPassword,
         email = account.email.takeIf { account.emailStatus == EmailStatus.Verified },
         sessionService = sessionService,
         sessionIdToSpare = sessionId,
@@ -59,16 +75,18 @@ suspend fun DataScope.changePassword(
     Ok(Unit)
 }
 
+// this function services changePasswordFromSession and redeemPasswordReset
+
 internal suspend fun DataScope.applyPasswordChange(
     starId: StarId,
-    password: Password,
+    newPassword: Password,
     email: Email?,
     sessionService: SessionService,
     sessionIdToSpare: SessionId? = null,
     tokenIdToConsume: Long? = null,
     now: Instant = Clock.System.now(),
 ): Boolean {
-    val passwordHash = hashPassword(password)
+    val passwordHash = hashPassword(newPassword)
 
     val applied = transaction {
         if (tokenIdToConsume != null) {
@@ -93,27 +111,28 @@ internal suspend fun DataScope.applyPasswordChange(
         textBody = createPasswordChangedTextBody(url),
     )
 
-    if (recordIfPostmarkError(response, email)) return true
+    recordPostmarkBounced(response, email)
+    if (response.errorCode != 0) return true
 
-    createTokenOrThrow(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval)
+    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval)
 
     return true
 }
 
-internal suspend fun DataScope.recordIfPostmarkError(
+internal suspend fun DataScope.recordPostmarkBounced(
     response: PostmarkResponse,
     email: Email,
-): Boolean {
-    if (response.errorCode == 0) return false
+) {
+    if (response.errorCode != 0) {
+        log.error { "Postmark error: ${response.errorCode}" }
+    }
     if (response.errorCode == 406) {
         dao.bouncedEmail.createBouncedEmail(email, "postmark 406")
         dao.star.setEmailStatus(email, EmailStatus.Bounced)
     }
-    log.error { "Postmark error: ${response.errorCode}" }
-    return true
 }
 
-private val AccountLockdownInterval = 2.days
+internal val AccountLockdownInterval = 2.days
 
 private fun createPasswordChangedHtmlBody(url: String) = createHTML().html {
     head {

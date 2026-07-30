@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.toSlug
-import kampfire.model.CallerId
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint

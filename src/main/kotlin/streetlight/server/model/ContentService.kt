@@ -2,8 +2,8 @@ package streetlight.server.model
 
 import kampfire.api.Slug
 import kampfire.api.Username
-import kampfire.model.CallerId
-import kampfire.model.Identity
+import klutch.db.model.CallerId
+import klutch.db.model.Identity
 import koala.model.DocId
 import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent

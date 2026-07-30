@@ -1,7 +1,7 @@
 package streetlight.server.routes
 
-import kampfire.model.Identity
 import kampfire.model.Url
+import klutch.db.model.Identity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -15,8 +15,8 @@ import streetlight.model.data.SpaceType
 import streetlight.model.data.StarId
 import streetlight.model.data.CommentUpdated
 import streetlight.model.data.UpdatedComment
-import streetlight.model.data.starId
 import streetlight.server.model.DaoFacade
+import streetlight.server.utils.starId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 

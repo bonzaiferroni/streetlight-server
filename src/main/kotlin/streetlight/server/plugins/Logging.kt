@@ -7,7 +7,7 @@ import io.ktor.server.application.call
 import io.ktor.server.auth.principal
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
-import kampfire.model.Identity
+import klutch.db.model.Identity
 import org.slf4j.MDC
 import kotlin.reflect.KClass
 import kotlin.uuid.Uuid

@@ -2,9 +2,9 @@ package streetlight.server.db.services
 
 import kampfire.api.Slug
 import kampfire.api.Username
-import kampfire.model.CallerId
 import kampfire.utils.requireNotNull
 import klutch.db.DbService
+import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.tables.nextSlugOf
 import klutch.utils.eq

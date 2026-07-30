@@ -30,7 +30,7 @@ suspend fun DataScope.redeemPasswordReset(
 ): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()
 
-    val password = when (val outcome = request.password.toValidOutcome()) {
+    val newPassword = when (val outcome = request.password.toValidOutcome()) {
         is Ok -> outcome.data
         is Problem -> return@tryOutcome outcome
     }
@@ -49,7 +49,7 @@ suspend fun DataScope.redeemPasswordReset(
 
     val applied = applyPasswordChange(
         starId = authToken.starId,
-        password = password,
+        newPassword = newPassword,
         email = authToken.email,
         sessionService = sessionService,
         tokenIdToConsume = authToken.tokenId,
@@ -75,7 +75,7 @@ internal suspend fun DataScope.sendPasswordReset(
     starId: StarId,
     email: Email,
     interval: Duration = PasswordResetInterval,
-) {
+): Boolean {
     val token = generateToken()
     val url = PasswordResetRoute(token).toAbsolutePath()
 
@@ -86,9 +86,11 @@ internal suspend fun DataScope.sendPasswordReset(
         textBody = createPasswordResetTextBody(url),
     )
 
-    if (recordIfPostmarkError(response, email)) error("Postmark error: ${response.errorCode}")
+    recordPostmarkBounced(response, email)
+    if (response.errorCode != 0) return false
 
-    createTokenOrThrow(starId, token, email, AuthTokenType.PasswordReset, interval)
+    createToken(starId, token, email, AuthTokenType.PasswordReset, interval)
+    return true
 }
 
 private val PasswordResetInterval = 10.minutes

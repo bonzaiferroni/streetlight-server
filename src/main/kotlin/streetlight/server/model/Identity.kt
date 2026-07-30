@@ -6,10 +6,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.RoutingContext
 import kampfire.api.Username
-import kampfire.model.Identity
 import kampfire.model.Outcome
-import kampfire.model.SessionIdentity
 import kampfire.model.UserRole
+import klutch.db.model.Identity
+import klutch.db.model.SessionIdentity
 import streetlight.model.data.StarId
 import kotlin.uuid.Uuid
 

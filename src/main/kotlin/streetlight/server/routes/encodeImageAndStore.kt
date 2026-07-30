@@ -1,10 +1,10 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariant
 import kampfire.model.Url
+import klutch.db.model.CallerId
 import streetlight.model.data.FileFormat
 import streetlight.model.data.StarId
 import streetlight.server.model.DataScope

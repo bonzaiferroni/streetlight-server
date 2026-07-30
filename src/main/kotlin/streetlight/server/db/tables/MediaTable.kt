@@ -2,10 +2,10 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
-import kampfire.model.CallerId
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
+import klutch.db.model.CallerId
 import klutch.db.point
 import klutch.db.scaledImages
 import klutch.db.tables.SlugTable
