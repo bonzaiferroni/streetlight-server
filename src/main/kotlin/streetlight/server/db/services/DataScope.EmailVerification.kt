@@ -5,7 +5,6 @@ import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.Token
-import klutch.db.model.CallerId
 import klutch.server.generateToken
 import klutch.server.hashToken
 import kotlinx.html.a
@@ -23,7 +22,6 @@ import streetlight.model.ui.AccountLockdownRoute
 import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
 import streetlight.server.model.DataScope
-import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -32,21 +30,20 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: Email): Ou
     val emailNow = account.email
     val bouncedProblem = Problem("This address can't receive mail. Try a different one.")
     val isBounced = dao.bouncedEmail.readIsBounced(email)
-    if (emailNow != null) {
-        if (email == emailNow) {
-            if (account.emailStatus == EmailStatus.Verified) return@tryOutcome Problem("This email is already verified.")
-            if (account.emailStatus == EmailStatus.Bounced || account.emailStatus == EmailStatus.NotOwned)
-                return@tryOutcome bouncedProblem
-            if (isBounced) {
-                dao.star.setEmailStatus(email, EmailStatus.Bounced)
-                return@tryOutcome bouncedProblem
-            }
-        } else {
-            if (isBounced) return@tryOutcome bouncedProblem
-            sendLockdownEmailToPrevious(starId, emailNow)
+    if (email == emailNow) {
+        if (account.emailStatus == EmailStatus.Verified) return@tryOutcome Problem("This email is already verified.")
+        if (account.emailStatus == EmailStatus.Bounced || account.emailStatus == EmailStatus.NotOwned)
+            return@tryOutcome bouncedProblem
+        if (isBounced) {
+            dao.star.setEmailStatus(email, EmailStatus.Bounced)
+            return@tryOutcome bouncedProblem
         }
-    } else {
-        if (isBounced) return@tryOutcome bouncedProblem
+    }
+
+    if (isBounced) return@tryOutcome bouncedProblem
+
+    if (emailNow != null && email != emailNow) {
+        if (!sendAccountChangeNotification(starId, emailNow)) error("Unable to notify previous address")
     }
 
     if (dao.star.setEmail(starId, email, EmailStatus.Unverified) != 1)
@@ -100,7 +97,7 @@ suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = t
     Ok("Success! This email has been verified.")
 }
 
-suspend fun DataScope.sendLockdownEmailToPrevious(starId: StarId, email: Email): Boolean {
+suspend fun DataScope.sendAccountChangeNotification(starId: StarId, email: Email): Boolean {
     val token = generateToken()
     val url = AccountLockdownRoute(token).toAbsolutePath()
 
@@ -114,7 +111,7 @@ suspend fun DataScope.sendLockdownEmailToPrevious(starId: StarId, email: Email):
     recordPostmarkBounced(response, email)
     if (response.errorCode != 0) return false
 
-    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval)
+    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval, consumePrior = false)
     return true
 }
 

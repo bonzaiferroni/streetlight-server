@@ -114,7 +114,7 @@ internal suspend fun DataScope.applyPasswordChange(
     recordPostmarkBounced(response, email)
     if (response.errorCode != 0) return true
 
-    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval)
+    createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval, consumePrior = false)
 
     return true
 }

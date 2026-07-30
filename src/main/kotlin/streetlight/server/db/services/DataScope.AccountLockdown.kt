@@ -43,7 +43,11 @@ suspend fun DataScope.redeemAccountLockdown(
             ?.takeIf { it.starId != authToken.starId }
         val canRevert = holder == null || holder.emailStatus != EmailStatus.Verified
 
-        dao.authToken.consumeAllUserTokens(authToken.starId)
+        dao.authToken.consumeToken(authToken.tokenId, now)
+        dao.authToken.consumeAllUserTokens(
+            starId = authToken.starId,
+            exceptLockdownBefore = authToken.tokenId,
+        )
 
         if (canRevert) {
             if (holder != null) dao.star.setEmailNotOwned(holder.starId)

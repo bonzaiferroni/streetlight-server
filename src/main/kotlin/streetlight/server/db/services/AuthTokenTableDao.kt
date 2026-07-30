@@ -8,6 +8,8 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -36,8 +38,15 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
-    suspend fun consumeAllUserTokens(starId: StarId) = dbQuery {
-        AuthTokenTable.update({ AuthTokenTable.starId.eq(starId) }) {
+    suspend fun consumeAllUserTokens(starId: StarId, exceptLockdownBefore: Long) = dbQuery {
+        AuthTokenTable.update({
+            AuthTokenTable.starId.eq(starId) and
+                    AuthTokenTable.consumedAt.isNull() and
+                    not(
+                        AuthTokenTable.tokenType.eq(AuthTokenType.AccountLockdown) and
+                                AuthTokenTable.id.less(exceptLockdownBefore)
+                    )
+        }) {
             it[AuthTokenTable.consumedAt] = Clock.System.now()
         }
     }

@@ -19,9 +19,9 @@ suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType): Ht
 
     return when (tokenType) {
         AuthTokenType.EmailVerification -> renderVerifyEmail(token)
-        AuthTokenType.PasswordReset -> renderPasswordReset(token)
-        AuthTokenType.AccountLockdown -> TODO()
-        AuthTokenType.AccountNotOwned -> renderAccountNotOwned(token)
+        AuthTokenType.PasswordReset -> renderPasswordResetForm(token)
+        AuthTokenType.AccountLockdown -> renderAccountLockdownConfirm(token)
+        AuthTokenType.AccountNotOwned -> renderAccountNotOwnedConfirm(token)
     }
 }
 
@@ -41,7 +41,7 @@ suspend fun ApiScope.renderVerifyEmail(token: Token): HtmlRender {
     }
 }
 
-fun renderAccountNotOwned(token: Token): HtmlRender {
+fun renderAccountNotOwnedConfirm(token: Token): HtmlRender {
     return HtmlRender {
         messagePage(
             title = "Remove Address",
@@ -54,7 +54,30 @@ fun renderAccountNotOwned(token: Token): HtmlRender {
     }
 }
 
-fun renderPasswordReset(token: Token): HtmlRender {
+fun renderAccountLockdownConfirm(token: Token): HtmlRender {
+    return HtmlRender {
+        messagePage(
+            title = "Lockdown Account",
+            message = {
+                column {
+                    textBlock("""
+                        Confirming will sign out all existing sessions for your account and 
+                        disable sign in until you set a new password. 
+                        A link will be emailed to you that will allow you to set a new password.
+                """.trimIndent())
+                    textBlock("""
+                        This should only be necessary if you believe someone has unauthorized access to your account. 
+                    """.trimIndent())
+                }
+            },
+            styles = SiteStyles,
+        ) {
+            formSubmit("Remove My Address", token, Api.AccountAction.AccountNotOwned)
+        }
+    }
+}
+
+fun renderPasswordResetForm(token: Token): HtmlRender {
 
     return HtmlRender {
         messagePage(

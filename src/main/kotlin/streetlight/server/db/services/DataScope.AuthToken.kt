@@ -24,6 +24,9 @@ internal suspend fun DataScope.createToken(
     val now = Clock.System.now()
     val hashedToken = hashToken(token)
 
+    if (tokenType == AuthTokenType.AccountLockdown && consumePrior)
+        error("Lockdown tokens should never consume prior tokens.")
+
     return transaction {
         if (consumePrior) {
             dao.authToken.consumeAllTokensOfType(starId, tokenType)

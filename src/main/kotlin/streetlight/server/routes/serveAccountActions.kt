@@ -28,6 +28,7 @@ import streetlight.model.Api
 import streetlight.model.ui.ActionReportRoute
 import streetlight.model.ui.Screen
 import streetlight.server.db.services.changePasswordFromSession
+import streetlight.server.db.services.redeemAccountLockdown
 import streetlight.server.db.services.redeemAccountNotOwned
 import streetlight.server.db.services.redeemPasswordReset
 import streetlight.server.db.services.requestEmailVerification
@@ -100,6 +101,20 @@ fun ApiScope.serveAccountActions() {
             return@post
         }
         when (val outcome = redeemAccountNotOwned(token, supportAddress)) {
+            is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
+            is Problem -> {
+                call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
+                call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
+            }
+        }
+    }
+
+    post(Api.AccountAction.LockdownAccount.path) {
+        val token = call.receiveParameters().getToken() ?: run {
+            call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
+            return@post
+        }
+        when (val outcome = redeemAccountLockdown(token, sessionService, supportAddress)) {
             is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
             is Problem -> {
                 call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
