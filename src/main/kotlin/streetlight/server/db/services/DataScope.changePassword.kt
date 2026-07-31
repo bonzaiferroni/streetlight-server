@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.api.Password
 import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
@@ -27,6 +27,8 @@ import streetlight.model.data.StarId
 import streetlight.model.ui.AccountLockdownRoute
 import streetlight.server.external.PostmarkResponse
 import streetlight.server.model.DataScope
+import streetlight.server.model.Email
+import streetlight.server.model.SendEmailResult
 import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -80,7 +82,7 @@ suspend fun DataScope.changePasswordFromSession(
 internal suspend fun DataScope.applyPasswordChange(
     starId: StarId,
     newPassword: Password,
-    email: Email?,
+    email: EmailAddress?,
     sessionService: SessionService,
     sessionIdToSpare: SessionId? = null,
     tokenIdToConsume: Long? = null,
@@ -105,13 +107,16 @@ internal suspend fun DataScope.applyPasswordChange(
     val url = AccountLockdownRoute(token).toAbsolutePath()
 
     val response = client.postmark.sendEmail(
-        to = email.value,
-        subject = "Password changed",
-        htmlBody = createPasswordChangedHtmlBody(url),
-        textBody = createPasswordChangedTextBody(url),
+        Email(
+            from = appEmail.support,
+            to = email,
+            subject = "Password changed",
+            htmlBody = createPasswordChangedHtmlBody(url),
+            textBody = createPasswordChangedTextBody(url),
+        )
     )
 
-    recordPostmarkBounced(response, email)
+    recordEmailBounced(response, email)
     if (response.errorCode != 0) return true
 
     createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval, consumePrior = false)
@@ -119,9 +124,9 @@ internal suspend fun DataScope.applyPasswordChange(
     return true
 }
 
-internal suspend fun DataScope.recordPostmarkBounced(
-    response: PostmarkResponse,
-    email: Email,
+internal suspend fun DataScope.recordEmailBounced(
+    response: SendEmailResult,
+    email: EmailAddress,
 ) {
     if (response.errorCode != 0) {
         log.error { "Postmark error: ${response.errorCode}" }

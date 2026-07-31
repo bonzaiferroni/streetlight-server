@@ -10,11 +10,11 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
-interface ServerScope: DataScope, ProviderScope {
-    // fun log(message: String)
-}
+interface ServerScope: DataScope, ProviderScope
 
-interface DataScope: DaoScope, ClientScope
+interface DataScope: DaoScope, ClientScope {
+    val appEmail: AppEmail
+}
 
 interface DaoScope {
     val dao: DaoFacade
@@ -36,7 +36,6 @@ interface DaoScope {
 }
 
 private val daoLogger = KotlinLogging.logger(DaoScope::class)
-
 
 interface ClientScope {
     val client: ClientFacade

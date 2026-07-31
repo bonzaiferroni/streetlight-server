@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
-import kampfire.api.toEmail
+import kampfire.api.EmailAddress
+import kampfire.api.toEmailAddress
 import kampfire.model.Token
 import klutch.server.hashToken
 import streetlight.model.data.AuthTokenType
@@ -16,7 +16,7 @@ import kotlin.time.Duration
 internal suspend fun DataScope.createToken(
     starId: StarId,
     token: Token,
-    email: Email,
+    email: EmailAddress,
     tokenType: AuthTokenType,
     interval: Duration,
     consumePrior: Boolean = true,
@@ -48,7 +48,7 @@ internal suspend fun DataScope.createToken(
 }
 
 suspend fun DataScope.recordBounce(bounce: PostmarkBounce) {
-    val email = bounce.email.toEmail()
+    val email = bounce.email.toEmailAddress()
 
     dao.bouncedEmail.createBouncedEmail(
         email = email,

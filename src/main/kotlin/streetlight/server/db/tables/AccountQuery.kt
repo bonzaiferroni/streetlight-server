@@ -1,8 +1,7 @@
 package streetlight.server.db.tables
 
-import kampfire.api.toEmail
+import kampfire.api.toEmailAddress
 import org.jetbrains.exposed.v1.core.ResultRow
-import streetlight.model.data.CityId
 import streetlight.model.data.Account
 import streetlight.server.utils.toRecordId
 
@@ -20,7 +19,7 @@ object AccountQuery {
 
 fun ResultRow.toAccount() = Account(
     starId = this[StarTable.id].toRecordId(),
-    email = this[StarTable.email]?.toEmail(),
+    email = this[StarTable.email]?.toEmailAddress(),
     // name = this[StarTable.name],
     // identityVisibility = this[StarTable.identityVisibility],
     // cityId = this[StarTable.cityId]?.let { CityId(it.value) },

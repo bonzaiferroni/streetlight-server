@@ -1,12 +1,13 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.Token
 import klutch.server.generateToken
 import klutch.server.hashToken
+import klutch.server.provide
 import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.h1
@@ -21,11 +22,13 @@ import streetlight.model.data.StarId
 import streetlight.model.ui.AccountLockdownRoute
 import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
+import streetlight.server.model.EmailClient
 import streetlight.server.model.DataScope
+import streetlight.server.model.Email
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
-suspend fun DataScope.requestEmailVerification(starId: StarId, email: Email): Outcome<Unit> = tryOutcome {
+suspend fun DataScope.requestEmailVerification(starId: StarId, email: EmailAddress): Outcome<Unit> = tryOutcome {
     val account = dao.star.readAccount(starId) ?: return@tryOutcome Problem("Account not found.")
     val emailNow = account.email
     val bouncedProblem = Problem("This address can't receive mail. Try a different one.")
@@ -43,7 +46,7 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: Email): Ou
     if (isBounced) return@tryOutcome bouncedProblem
 
     if (emailNow != null && email != emailNow) {
-        if (!sendAccountChangeNotification(starId, emailNow)) error("Unable to notify previous address")
+        if (!sendCredentialChangeNotification(starId, emailNow)) error("Unable to notify previous address")
     }
 
     if (dao.star.setEmail(starId, email, EmailStatus.Unverified) != 1)
@@ -55,13 +58,16 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: Email): Ou
     val notOwnedUrl = AccountNotOwnedRoute(disavowToken).toAbsolutePath()
 
     val response = client.postmark.sendEmail(
-        to = email.value,
-        subject = "Email verification",
-        htmlBody = createEmailVerificationHtmlBody(verifyUrl, notOwnedUrl),
-        textBody = createEmailVerificationTextBody(verifyUrl, notOwnedUrl)
+        Email(
+            from = appEmail.primary,
+            to = email,
+            subject = "Email verification",
+            htmlBody = createEmailVerificationHtmlBody(verifyUrl, notOwnedUrl),
+            textBody = createEmailVerificationTextBody(verifyUrl, notOwnedUrl)
+        )
     )
 
-    recordPostmarkBounced(response, email)
+    recordEmailBounced(response, email)
     if (response.errorCode != 0) return@tryOutcome Problem("There was an internal error.")
 
     transaction {
@@ -97,18 +103,21 @@ suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = t
     Ok("Success! This email has been verified.")
 }
 
-suspend fun DataScope.sendAccountChangeNotification(starId: StarId, email: Email): Boolean {
+suspend fun DataScope.sendCredentialChangeNotification(starId: StarId, email: EmailAddress): Boolean {
     val token = generateToken()
     val url = AccountLockdownRoute(token).toAbsolutePath()
 
     val response = client.postmark.sendEmail(
-        to = email.value,
-        subject = "Email changed",
-        htmlBody = createEmailChangedHtmlBody(url),
-        textBody = createEmailChangedTextBody(url)
+        Email(
+            from = appEmail.support,
+            to = email,
+            subject = "Email changed",
+            htmlBody = createEmailChangedHtmlBody(url),
+            textBody = createEmailChangedTextBody(url)
+        )
     )
 
-    recordPostmarkBounced(response, email)
+    recordEmailBounced(response, email)
     if (response.errorCode != 0) return false
 
     createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval, consumePrior = false)

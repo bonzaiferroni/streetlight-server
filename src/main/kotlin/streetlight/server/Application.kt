@@ -31,8 +31,8 @@ fun Application.module() {
     val provider = KoinProvider(koin)
     val dao = provider.provide<DaoFacade>()
     val client = provider.provide<ClientFacade>()
-    val session = provider.provide<StarSessionService>()
     val server = Server(provider, dao, client)
+    val session = provider.provide<StarSessionService>()
 
     install(Compression) {
         gzip { priority = 1.0 }

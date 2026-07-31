@@ -49,7 +49,6 @@ dependencies {
 
     implementation(libs.logback.classic)
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    testImplementation(libs.kotlin.test.junit)
 
     implementation(project(":model"))
     implementation(project(":kabinet"))
@@ -69,6 +68,12 @@ dependencies {
 
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
+
+    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.postgresql)
 }
 
 kotlin {
@@ -81,6 +86,10 @@ ktor {
     fatJar {
         archiveFileName.set("streetlight-server.jar")
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.withType<ShadowJar> {

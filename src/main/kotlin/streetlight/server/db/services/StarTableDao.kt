@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.api.PasswordHash
 import kampfire.api.Username
 import kampfire.model.thumb
@@ -13,7 +13,6 @@ import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
-import streetlight.model.data.Account
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
@@ -23,7 +22,6 @@ import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toAccount
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.updateProfile
-import streetlight.server.db.tables.updateAccount
 import streetlight.server.utils.toRecordId
 import kotlin.let
 
@@ -35,22 +33,16 @@ class StarTableDao: DbService() {
         }.singleOrNull()?.toStar()
     }
 
-    suspend fun setEmailStatus(email: Email, emailStatus: EmailStatus) = dbQuery {
+    suspend fun setEmailStatus(email: EmailAddress, emailStatus: EmailStatus) = dbQuery {
         StarTable.update({ StarTable.email.eq(email.value) }) {
             it[StarTable.emailStatus] = emailStatus
         }
     }
 
-    suspend fun setEmail(starId: StarId, email: Email?, emailStatus: EmailStatus?) = dbQuery {
+    suspend fun setEmail(starId: StarId, email: EmailAddress?, emailStatus: EmailStatus?) = dbQuery {
         StarTable.update({ StarTable.id.eq(starId) }) {
             it[StarTable.email] = email?.value
             it[StarTable.emailStatus] = emailStatus
-        }
-    }
-
-    suspend fun setPassword(starId: StarId, passwordHash: PasswordHash) = dbQuery {
-        StarTable.update({ StarTable.id.eq(starId) }) {
-            it[StarTable.passwordHash] = passwordHash.value
         }
     }
 
@@ -58,6 +50,12 @@ class StarTableDao: DbService() {
         StarTable.update({ StarTable.id.eq(starId) }) {
             it[StarTable.emailStatus] = EmailStatus.NotOwned
             it[StarTable.email] = null
+        }
+    }
+
+    suspend fun setPassword(starId: StarId, passwordHash: PasswordHash) = dbQuery {
+        StarTable.update({ StarTable.id.eq(starId) }) {
+            it[StarTable.passwordHash] = passwordHash.value
         }
     }
 
@@ -98,7 +96,7 @@ class StarTableDao: DbService() {
         }.singleOrNull()?.toAccount()
     }
 
-    suspend fun readAccount(email: Email) = dbQuery {
+    suspend fun readAccount(email: EmailAddress) = dbQuery {
         StarTable.select(AccountQuery.columns).where {
             StarTable.email.eq(email.value)
         }.singleOrNull()?.toAccount()

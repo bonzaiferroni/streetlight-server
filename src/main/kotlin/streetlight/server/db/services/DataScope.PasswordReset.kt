@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.Outcome
@@ -20,6 +20,7 @@ import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.model.ui.PasswordResetRoute
 import streetlight.server.model.DataScope
+import streetlight.server.model.Email
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -61,7 +62,7 @@ suspend fun DataScope.redeemPasswordReset(
     Ok(Unit)
 }
 
-suspend fun DataScope.requestPasswordReset(email: Email): Outcome<Unit> = tryOutcome(Ok(Unit)) {
+suspend fun DataScope.requestPasswordReset(email: EmailAddress): Outcome<Unit> = tryOutcome(Ok(Unit)) {
     // Ok(Unit) is returned in all branches for account security reasons
     if (dao.bouncedEmail.readIsBounced(email)) return@tryOutcome Ok(Unit)
     val account = dao.star.readAccount(email) ?: return@tryOutcome Ok(Unit)
@@ -73,20 +74,23 @@ suspend fun DataScope.requestPasswordReset(email: Email): Outcome<Unit> = tryOut
 
 internal suspend fun DataScope.sendPasswordReset(
     starId: StarId,
-    email: Email,
+    email: EmailAddress,
     interval: Duration = PasswordResetInterval,
 ): Boolean {
     val token = generateToken()
     val url = PasswordResetRoute(token).toAbsolutePath()
 
     val response = client.postmark.sendEmail(
-        to = email.value,
-        subject = "Password reset",
-        htmlBody = createPasswordResetHtmlBody(url),
-        textBody = createPasswordResetTextBody(url),
+        Email(
+            from = appEmail.support,
+            to = email,
+            subject = "Password reset",
+            htmlBody = createPasswordResetHtmlBody(url),
+            textBody = createPasswordResetTextBody(url),
+        )
     )
 
-    recordPostmarkBounced(response, email)
+    recordEmailBounced(response, email)
     if (response.errorCode != 0) return false
 
     createToken(starId, token, email, AuthTokenType.PasswordReset, interval)

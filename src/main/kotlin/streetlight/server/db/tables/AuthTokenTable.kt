@@ -1,7 +1,7 @@
 package streetlight.server.db.tables
 
-import kampfire.api.Email
-import kampfire.api.toEmail
+import kampfire.api.EmailAddress
+import kampfire.api.toEmailAddress
 import kampfire.model.HashedToken
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -38,7 +38,7 @@ data class AuthToken(
     val starId: StarId,
     val hashedToken: HashedToken,
     val tokenType: AuthTokenType,
-    val email: Email,
+    val email: EmailAddress,
     val consumedAt: Instant?,
     val expiresAt: Instant,
     val createdAt: Instant,
@@ -49,7 +49,7 @@ fun ResultRow.toAuthToken() = AuthToken(
     starId = this[AuthTokenTable.starId].toRecordId(),
     hashedToken = HashedToken(this[AuthTokenTable.hashedToken]),
     tokenType = this[AuthTokenTable.tokenType],
-    email = this[AuthTokenTable.email].toEmail(),
+    email = this[AuthTokenTable.email].toEmailAddress(),
     consumedAt = this[AuthTokenTable.consumedAt],
     expiresAt = this[AuthTokenTable.expiresAt],
     createdAt = this[AuthTokenTable.createdAt]

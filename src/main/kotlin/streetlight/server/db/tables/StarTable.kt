@@ -1,7 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.PasswordHash
-import kampfire.api.toEmail
+import kampfire.api.toEmailAddress
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.HashedToken
@@ -14,7 +14,6 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
-import streetlight.model.data.Account
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.IdentityVisibility
 import streetlight.model.data.StarEdit
@@ -58,7 +57,7 @@ fun ResultRow.toUserRecord() = UserRecord(
     username = this[StarTable.username].toUsername(),
     passwordHash = this[StarTable.passwordHash]?.let { PasswordHash(it) } ,
     disabledPasswordHash = this[StarTable.disabledPasswordHash]?.let { PasswordHash(it) },
-    email = this[StarTable.email]?.toEmail(),
+    email = this[StarTable.email]?.toEmailAddress(),
     roles = this[StarTable.roles].toRoleSet(),
     accountType = this[StarTable.accountType],
     guestToken = this[StarTable.guestToken]?.let { HashedToken(it) },
@@ -77,7 +76,6 @@ fun UpdateBuilder<*>.createRecord(user: UserRecord) {
 fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
     this[StarTable.username] = user.username.value
     this[StarTable.passwordHash] = user.passwordHash?.value
-    this[StarTable.email] = user.email?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
     this[StarTable.guestToken] = user.guestToken?.value
     this[StarTable.updatedAt] = user.updatedAt
@@ -87,11 +85,4 @@ fun UpdateBuilder<*>.updateProfile(edit: StarEdit) {
     this[StarTable.description] = edit.description?.value
     this[StarTable.tagline] = edit.tagline
     this[StarTable.image] = edit.image
-}
-
-fun UpdateBuilder<*>.updateAccount(edit: Account) {
-    this[StarTable.email] = edit.email?.value
-    this[StarTable.emailStatus] = edit.emailStatus
-    // city, name, and identity visibility not yet implemented
-    // accountType set elsewhere
 }

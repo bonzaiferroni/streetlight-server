@@ -4,19 +4,23 @@ import kabinet.clients.ReplicateClient
 import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
 import kabinet.utils.Environment
+import kampfire.api.EmailAddress
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
 import klutch.server.ProviderScope
-import streetlight.agent.ParserClient
 import streetlight.server.db.services.*
-import streetlight.server.external.OSMHttpClient
-import streetlight.server.external.PostmarkClient
 
 class Server(
     provider: ProviderScope,
     override val dao: DaoFacade,
     override val client: ClientFacade,
-): ServerScope, ProviderScope by provider
+): ServerScope, ProviderScope by provider {
+
+    override val appEmail = AppEmail (
+        EmailAddress("info@streetlight.ing"),
+        EmailAddress("support@streetlight.ing")
+    )
+}
 
 class DaoFacade(
     val location: LocationTableDao = LocationTableDao(),
@@ -26,7 +30,6 @@ class DaoFacade(
     val song: SongTableDao = SongTableDao(),
     val event: EventTableDao = EventTableDao(),
     val rendition: RenditionTableDao = RenditionTableDao(),
-    // val user: UserTableDao = UserTableDao(),
     val spark: SparkTableDao = SparkTableDao(),
     val talent: TalentTableDao = TalentTableDao(),
     val request: RequestTableDao = RequestTableDao(),
@@ -49,10 +52,14 @@ class DaoFacade(
 )
 
 class ClientFacade(
-    val blob: BlobClient,
-    val osm: OSMHttpClient,
-    val parser: ParserClient,
-    val postmark: PostmarkClient
+    val blob: S3BlobClient,
+    val osm: MapClient,
+    val postmark: EmailClient
+)
+
+class AppEmail(
+    val primary: EmailAddress,
+    val support: EmailAddress,
 )
 
 class InferenceFacade(

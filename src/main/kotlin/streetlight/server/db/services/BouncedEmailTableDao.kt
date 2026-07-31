@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import klutch.db.DbService
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -9,7 +9,7 @@ import streetlight.server.db.tables.BouncedEmailTable
 import kotlin.time.Clock
 
 class BouncedEmailTableDao: DbService() {
-    suspend fun createBouncedEmail(email: Email, reason: String) = dbQuery {
+    suspend fun createBouncedEmail(email: EmailAddress, reason: String) = dbQuery {
         BouncedEmailTable.insert {
             it[BouncedEmailTable.email] = email.value
             it[BouncedEmailTable.reason] = reason
@@ -17,7 +17,7 @@ class BouncedEmailTableDao: DbService() {
         }
     }
 
-    suspend fun readIsBounced(email: Email) = dbQuery {
+    suspend fun readIsBounced(email: EmailAddress) = dbQuery {
         BouncedEmailTable.selectAll().where { BouncedEmailTable.email.eq(email.value) }.any() // is any the right function?
     }
 }

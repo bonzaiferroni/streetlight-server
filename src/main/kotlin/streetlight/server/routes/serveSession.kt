@@ -49,10 +49,12 @@ fun ApiScope.serveSession() {
                 }
             }
             AccountType.Registered -> {
+                request.email?.let { email ->
+                    if (dao.star.readAccount(email) != null) return@postApi Problem("That email is already registered.")
+                }
                 when (val outcome = authorizer.createRegisteredUser(it.data, setOf(UserRole.User))) {
                     is Ok -> {
                         request.email?.let { email ->
-                            if (dao.star.readAccount(email) != null) return@postApi Problem("That email is already registered.")
                             requestEmailVerification(StarId(outcome.data.value), email)
                         }
                         outcome

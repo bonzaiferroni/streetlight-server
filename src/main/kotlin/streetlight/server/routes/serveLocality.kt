@@ -12,12 +12,12 @@ import streetlight.model.Api
 import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.external.OSMCity
-import streetlight.server.external.OSMHttpClient
+import streetlight.server.external.OSMMapClient
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
 
 fun ApiScope.serveCity() {
-    val osm = provide<OSMHttpClient>()
+    val osm = provide<OSMMapClient>()
 
     getApi(Api.Cities.ReadTopCities) {
         dao.city.readTopCities().toOutcome()

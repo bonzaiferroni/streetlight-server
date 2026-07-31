@@ -5,7 +5,9 @@ import kampfire.model.Outcome
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.toUrl
+import klutch.server.provide
 import koala.toImage
+import streetlight.agent.KoogParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.model.data.EventEdit
@@ -19,7 +21,7 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
-suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
+suspend fun DataScope.parseEvent(request: ParseRequest, parser: KoogParserClient): Outcome<EventEdit> {
     log.info { "parsing event" }
     val html = when (request) {
         is UrlParseRequest -> fetchHtml(request.url)
@@ -34,7 +36,7 @@ suspend fun DataScope.parseEvent(request: ParseRequest): Outcome<EventEdit> {
     val meta = doc.readHtmlMetaInfo()
     val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }
 
-    return when (val response = client.parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
+    return when (val response = parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
         is Ok -> {
             val parse = response.data
             Ok(parse.toEventEdit(null).copy(

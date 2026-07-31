@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
@@ -18,6 +18,7 @@ import kotlinx.html.title
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.server.model.DataScope
+import streetlight.server.model.Email
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -77,17 +78,20 @@ suspend fun DataScope.redeemAccountLockdown(
 private val AccountLockdownResetInterval = 1.days
 
 internal suspend fun DataScope.sendLockdownSupportNotice(
-    email: Email,
+    email: EmailAddress,
     supportAddress: String,
 ) {
     val response = client.postmark.sendEmail(
-        to = email.value,
-        subject = "Your Streetlight account is locked",
-        htmlBody = createLockdownSupportHtmlBody(supportAddress),
-        textBody = createLockdownSupportTextBody(supportAddress),
+        Email(
+            from = appEmail.support,
+            to = email,
+            subject = "Your Streetlight account is locked",
+            htmlBody = createLockdownSupportHtmlBody(supportAddress),
+            textBody = createLockdownSupportTextBody(supportAddress),
+        )
     )
 
-    recordPostmarkBounced(response, email)
+    recordEmailBounced(response, email)
     if (response.errorCode != 0) {
         log.error { "Failed to send lockdown support notice" }
     }

@@ -8,10 +8,10 @@ import streetlight.server.db.services.SongTableService
 import klutch.server.ProviderScope
 import klutch.server.provide
 import org.koin.dsl.bind
-import streetlight.agent.ParserClient
+import streetlight.agent.KoogParserClient
 import streetlight.server.db.services.StarSessionService
-import streetlight.server.external.OSMHttpClient
-import streetlight.server.external.PostmarkClient
+import streetlight.server.external.OSMMapClient
+import streetlight.server.external.PostmarkEmailClient
 import streetlight.server.routes.LocationParser
 
 val serverModule = module {
@@ -19,12 +19,12 @@ val serverModule = module {
     single { DaoFacade() }
 
     // clients
-    single { OSMHttpClient() }
-    single { ParserClient(get()) }
-    single { BlobClient(get()) }
+    single { OSMMapClient() } bind MapClient::class
+    single { KoogParserClient(get()) }
+    single { S3BlobClient(get()) } bind BlobClient::class
     single { LocationParser(get()) }
-    single { PostmarkClient(get()) }
-    single { ClientFacade(get(), get(), get(), get()) }
+    single { PostmarkEmailClient(get()) } bind EmailClient::class
+    single { ClientFacade(get(), get(), get()) }
 
     // services
     single { StarSessionService() } bind SessionService::class

@@ -1,21 +1,21 @@
 package streetlight.server.routes
 
 import kabinet.console.globalConsole
-import streetlight.agent.ParserClient
+import streetlight.agent.KoogParserClient
 import streetlight.model.data.ColdParse
 import streetlight.model.data.Location
 import streetlight.model.external.OSMQuery
 import streetlight.model.external.toGeoPoint
-import streetlight.server.external.OSMHttpClient
+import streetlight.server.external.OSMMapClient
 import streetlight.server.model.DaoFacade
 
 private val console = globalConsole.getHandle(ColdReader::class)
 
 class ColdReader(
-    private val parser: ParserClient,
+    private val parser: KoogParserClient,
     private val dao: DaoFacade,
 ) {
-    private val osmClient by lazy { OSMHttpClient() }
+    private val osmClient by lazy { OSMMapClient() }
 
 //    suspend fun serve(request: ParseRequest): MultiEventParseResult? {
 //        val url = request.url.takeIf { url -> url.isNotEmpty() } ?: return null

@@ -15,10 +15,11 @@ import streetlight.model.external.OSMCity
 import streetlight.model.external.OSMLocation
 import streetlight.model.external.OSMQuery
 import streetlight.model.external.toOSMCity
+import streetlight.server.model.MapClient
 
-class OSMHttpClient(
+class OSMMapClient(
     userAgent: String = "Streetlight/1.0"
-) {
+): MapClient {
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
@@ -33,7 +34,7 @@ class OSMHttpClient(
         }
     }
 
-    suspend fun search(point: GeoPoint): OSMLocation? =
+    override suspend fun search(point: GeoPoint): OSMLocation? =
         client.get("https://nominatim.openstreetmap.org/reverse") {
             url {
                 parameters.append("lat", point.lat.toString())
@@ -43,7 +44,7 @@ class OSMHttpClient(
             }
         }.body()
 
-    suspend fun search(query: OSMQuery): List<OSMLocation>? =
+    override suspend fun search(query: OSMQuery): List<OSMLocation>? =
         client.get("https://nominatim.openstreetmap.org/search") {
             url {
                 query.amenity?.let { parameters.append("amenity", it) }
@@ -59,12 +60,12 @@ class OSMHttpClient(
             }
         }.body()
 
-    suspend fun searchCity(query: String, country: String): List<OSMCity>? =
+    override suspend fun searchCity(query: String, country: String): List<OSMCity>? =
         search(OSMQuery(city = query, country = country))?.map { it.toOSMCity() }
 
-    suspend fun readCity(city: String, state: String): OSMCity? =
+    override suspend fun readCity(city: String, state: String): OSMCity? =
         search(OSMQuery(city = city, state = state))?.firstOrNull()?.toOSMCity()
 
-    suspend fun search(city: String, state: String): List<OSMLocation>? =
+    override suspend fun search(city: String, state: String): List<OSMLocation>? =
         search(OSMQuery(city = city, state = state))
 }

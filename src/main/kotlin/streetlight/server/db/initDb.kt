@@ -18,24 +18,7 @@ fun initDb(server: ServerScope) {
     val env = server.provide<Environment>()
     val db = connectDb(env)
 
-    transaction(db) {
-        // replaced: SchemaUtils.create(*dbTables.toTypedArray())
-        val statements = MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray())
-        statements.forEach { statement ->
-            exec(statement)
-        }
-
-        // uncomment for logger
-        // addLogger(StdOutSqlLogger)
-
-        counterTriggers.forEach {
-            createCounterTrigger(it)
-        }
-
-        syncValueTriggers.forEach {
-            createSyncValueTrigger(it)
-        }
-    }
+    raiseSchema(db)
 
     runBlocking {
         initUsers(server)
@@ -85,7 +68,7 @@ private val dbTables = listOf(
     BouncedEmailTable,
 )
 
-val counterTriggers get() = listOf(
+private val counterTriggers get() = listOf(
     cityGalaxyTrigger,
     galaxyStarTrigger,
     galaxyEventCountTrigger,
@@ -95,7 +78,7 @@ val counterTriggers get() = listOf(
     postStarCountTrigger,
 )
 
-val syncValueTriggers get() = listOf(
+private val syncValueTriggers get() = listOf(
     stateCountrySync,
     cityStateSync,
     cityCountrySync,
@@ -114,9 +97,25 @@ val syncValueTriggers get() = listOf(
     feedbackUsernameSync,
 )
 
-fun connectDb(env: Environment) = Database.connect(
-    url = "jdbc:postgresql://localhost:5432/streetlightdb",
+fun connectDb(url: String, user: String, password: String) = Database.connect(
+    url = url,
     driver = "org.postgresql.Driver",
-    user = "streetlight",
-    password = env.read("PSQL_PW")
+    user = user,
+    password = password,
 )
+
+fun connectDb(env: Environment) = connectDb(
+    url = "jdbc:postgresql://localhost:5432/streetlightdb",
+    user = "streetlight",
+    password = env.read("PSQL_PW"),
+)
+
+fun raiseSchema(db: Database) {
+    transaction(db) {
+        MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray())
+            .forEach { exec(it) }
+
+        counterTriggers.forEach { createCounterTrigger(it) }
+        syncValueTriggers.forEach { createSyncValueTrigger(it) }
+    }
+}

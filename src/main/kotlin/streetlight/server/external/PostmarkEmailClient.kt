@@ -14,13 +14,17 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kabinet.utils.Environment
+import kampfire.api.EmailAddress
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import streetlight.server.model.Email
+import streetlight.server.model.EmailClient
+import streetlight.server.model.SendEmailResult
 
-class PostmarkClient(env: Environment) {
+class PostmarkEmailClient(env: Environment): EmailClient {
     private val token = env.read("POSTMARK_SERVER_TOKEN")
-    private val fromAddress = env.read("POSTMARK_FROM_ADDRESS")
+    // private val fromAddress = env.read("POSTMARK_FROM_ADDRESS")
 
     private val client = HttpClient(CIO) {
         expectSuccess = false
@@ -45,29 +49,12 @@ class PostmarkClient(env: Environment) {
         }
     }
 
-    suspend fun sendEmail(
-        to: String,
-        subject: String,
-        htmlBody: String,
-        textBody: String,
-        tag: String? = null,
-        metadata: Map<String, String>? = null,
-    ): PostmarkResponse {
-        val response = client.post("email") {
-            setBody(
-                PostmarkEmail(
-                    from = fromAddress,
-                    to = to,
-                    subject = subject,
-                    htmlBody = htmlBody,
-                    textBody = textBody,
-                    tag = tag,
-                    metadata = metadata,
-                )
-            )
-        }
+    override suspend fun sendEmail(email: Email): SendEmailResult {
+        val response: PostmarkResponse = client.post("email") {
+            setBody(email.toPostmarkEmail())
+        }.body()
 
-        return response.body()
+        return response.toMailResult()
     }
 }
 
@@ -85,6 +72,16 @@ data class PostmarkEmail(
     @SerialName("Metadata") val metadata: Map<String, String>? = null,
 )
 
+fun Email.toPostmarkEmail() = PostmarkEmail(
+    from = from.value,
+    to = to.value,
+    subject = subject,
+    htmlBody = htmlBody,
+    textBody = textBody,
+    tag = tag,
+    metadata = metadata
+)
+
 @Serializable
 data class PostmarkResponse(
     @SerialName("To") val to: String,
@@ -92,6 +89,14 @@ data class PostmarkResponse(
     @SerialName("MessageID") val messageId: String,
     @SerialName("ErrorCode") val errorCode: Int,
     @SerialName("Message") val message: String,
+)
+
+fun PostmarkResponse.toMailResult() = SendEmailResult(
+    to = EmailAddress(to),
+    submittedAt = submittedAt,
+    messageId = messageId,
+    errorCode = errorCode,
+    message = message
 )
 
 @Serializable

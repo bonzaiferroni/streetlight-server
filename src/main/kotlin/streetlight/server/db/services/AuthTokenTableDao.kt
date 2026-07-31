@@ -1,7 +1,7 @@
 package streetlight.server.db.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.model.HashedToken
 import klutch.db.DbService
 import klutch.db.model.CallerId
@@ -16,11 +16,9 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.AuthTokenType
-import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
-import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.createToken
 import streetlight.server.db.tables.toAuthToken
 import streetlight.server.plugins.logger
@@ -53,7 +51,7 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
-    suspend fun consumeAllTokensForEmail(starId: StarId, email: Email) = dbQuery {
+    suspend fun consumeAllTokensForEmail(starId: StarId, email: EmailAddress) = dbQuery {
         AuthTokenTable.update({
             AuthTokenTable.starId.eq(starId) and
                     AuthTokenTable.email.eq(email.value) and

@@ -1,12 +1,12 @@
 package streetlight.server.db.services
 
-import kampfire.api.Email
+import kampfire.api.EmailAddress
 import kampfire.api.PasswordHash
 import kampfire.api.LoginIdentity
 import kampfire.api.TableId
 import kampfire.api.TableUuid
 import kampfire.api.Username
-import kampfire.api.toEmail
+import kampfire.api.toEmailAddress
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.HashedToken
@@ -49,7 +49,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-class StarSessionService: DbService(), SessionService {
+class StarSessionService(): DbService(), SessionService {
     override suspend fun createSession(
         userId: TableId<Uuid>,
         token: HashedToken,
@@ -101,10 +101,10 @@ class StarSessionService: DbService(), SessionService {
         }.let { StarId(it.value) }
     }
 
-    override suspend fun upgradeAccount(callerId: CallerId, passwordHash: PasswordHash, email: Email?) = dbQuery {
+    override suspend fun upgradeAccount(callerId: CallerId, passwordHash: PasswordHash, email: EmailAddress?) = dbQuery {
         StarTable.update({ StarTable.id.eq(callerId) and StarTable.accountType.eq(AccountType.Guest) }) {
             it[StarTable.passwordHash] = passwordHash.value
-            it[StarTable.email] = email?.value
+            // it[StarTable.email] = email?.value // should be set by StarTableDao.setEmail exclusively
             it[StarTable.guestToken] = null
             it[StarTable.accountType] = AccountType.Registered
         } == 1
@@ -125,7 +125,7 @@ class StarSessionService: DbService(), SessionService {
         StarTable.select(StarTable.name, StarTable.email)
             .where { StarTable.username.eq(username) }
             .firstOrNull()
-            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]?.toEmail()) }
+            ?.let { PrivateInfo(it[StarTable.name], it[StarTable.email]?.toEmailAddress()) }
     }
 
     override suspend fun checkUsernameExists(username: Username) = dbQuery {
@@ -202,6 +202,6 @@ private val identityColumns = listOf(
 )
 
 private fun eqIdentity(identity: LoginIdentity) = when (identity) {
-    is Email -> StarTable.email.lowerCase() eq identity.value.lowercase()
+    is EmailAddress -> StarTable.email.lowerCase() eq identity.value.lowercase()
     is Username -> StarTable.username.lowerCase() eq identity.value.lowercase()
 }

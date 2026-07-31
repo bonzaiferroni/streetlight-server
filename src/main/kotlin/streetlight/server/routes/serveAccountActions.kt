@@ -50,8 +50,9 @@ fun ApiScope.serveAccountActions() {
 
     authGate {
         postApi(Api.AccountAction.RemoveEmail) {
+            throw NotImplementedError() // needs a password gate
             val starId = call.getIdentity().starId
-            dao.star.setEmail(starId, null, null)
+            // dao.star.setEmail(starId, null, null)
             Ok(Unit)
         }
 
@@ -73,7 +74,8 @@ fun ApiScope.serveAccountActions() {
         }
 
         postApi(Api.AccountAction.AddEmail) {
-            val email = it.data
+            val email = it.data.newEmail
+            throw NotImplementedError()
             val starId = call.getIdentity().starId
             requestEmailVerification(starId, email)
         }
