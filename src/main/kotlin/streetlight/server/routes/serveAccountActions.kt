@@ -102,7 +102,7 @@ fun ApiScope.serveAccountActions() {
             call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
             return@post
         }
-        when (val outcome = redeemAccountNotOwned(token, supportAddress)) {
+        when (val outcome = redeemAccountNotOwned(token)) {
             is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
             is Problem -> {
                 call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)

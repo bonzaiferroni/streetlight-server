@@ -9,7 +9,7 @@ import streetlight.model.data.AuthTokenType
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 
-suspend fun DataScope.redeemAccountNotOwned(token: Token, supportAddress: String): Outcome<Unit> = tryOutcome {
+suspend fun DataScope.redeemAccountNotOwned(token: Token): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()
     val hashedToken = hashToken(token)
     val authToken = dao.authToken.readToken(hashedToken, AuthTokenType.AccountNotOwned)
@@ -22,7 +22,7 @@ suspend fun DataScope.redeemAccountNotOwned(token: Token, supportAddress: String
 
     if (authToken.consumedAt != null) return@tryOutcome Ok(Unit)
     if (authToken.expiresAt < now)
-        return@tryOutcome Problem("This link has expired. Contact us at $supportAddress to remove your address.")
+        return@tryOutcome Problem("This link has expired. Contact us at ${appEmail.support} to remove your address.")
 
     transaction {
         dao.authToken.consumeToken(authToken.tokenId, now)

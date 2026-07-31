@@ -24,6 +24,7 @@ import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
 import streetlight.model.data.StarId
+import streetlight.server.db.services.createRegisteredUser
 import streetlight.server.db.services.requestEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
@@ -49,18 +50,7 @@ fun ApiScope.serveSession() {
                 }
             }
             AccountType.Registered -> {
-                request.email?.let { email ->
-                    if (dao.star.readAccount(email) != null) return@postApi Problem("That email is already registered.")
-                }
-                when (val outcome = authorizer.createRegisteredUser(it.data, setOf(UserRole.User))) {
-                    is Ok -> {
-                        request.email?.let { email ->
-                            requestEmailVerification(StarId(outcome.data.value), email)
-                        }
-                        outcome
-                    }
-                    is Problem -> outcome
-                }
+                createRegisteredUser(request, authorizer)
             }
         }
 

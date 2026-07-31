@@ -1,11 +1,15 @@
 package streetlight.server
 
 import kabinet.utils.Environment
+import klutch.db.services.SessionService
 import klutch.environment.readEnvFromPath
+import klutch.server.Authorizer
 import klutch.server.KoinProvider
 import klutch.server.provide
+import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.EmailRouter
 import streetlight.server.model.TestBlobClient
 import streetlight.server.model.TestEmailClient
@@ -33,8 +37,10 @@ fun buildTestServer(
             single { daoFacade }
             single { mapClient }
             single { blobClient }
-            single { emailClient }
+            single { emailClient(emailRouter) }
             single { ClientFacade(get(), get(), get()) }
+            single { StarSessionService() } bind SessionService::class
+            single { Authorizer(get()) }
         })
     }.koin
 

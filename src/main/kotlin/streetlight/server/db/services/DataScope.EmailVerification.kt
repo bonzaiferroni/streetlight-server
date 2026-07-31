@@ -45,12 +45,16 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: EmailAddre
 
     if (isBounced) return@tryOutcome bouncedProblem
 
+    val holder = dao.star.readAccount(email)
+    if (holder != null && holder.starId != starId)
+        return@tryOutcome Problem("This email is already in use.")
+
     if (emailNow != null && email != emailNow) {
         if (!sendCredentialChangeNotification(starId, emailNow)) error("Unable to notify previous address")
     }
 
     if (dao.star.setEmail(starId, email, EmailStatus.Unverified) != 1)
-        return@tryOutcome Problem("This email is already in use.")
+        error("email was not set")
 
     val verifyToken = generateToken()
     val disavowToken = generateToken()
