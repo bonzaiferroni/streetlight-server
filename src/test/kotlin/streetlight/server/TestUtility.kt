@@ -6,16 +6,29 @@ import kampfire.api.TableUuid
 import kampfire.api.Username
 import kampfire.api.obfuscatePassword
 import kampfire.model.AccountType
+import kampfire.model.LoginRequest
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.SignUpRequest
 import kampfire.model.Token
+import klutch.db.model.Session
+import klutch.utils.eq
 import koala.html.AppScreen
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.model.ui.Screen
 import streetlight.server.db.services.createRegisteredUser
 import streetlight.server.db.services.redeemEmailVerification
+import streetlight.server.db.tables.AuthToken
+import streetlight.server.db.tables.AuthTokenTable
+import streetlight.server.db.tables.SessionTable
+import streetlight.server.db.tables.toAuthToken
 import streetlight.server.model.Email
 import streetlight.server.model.EmailRouter
 import streetlight.server.model.ServerScope
@@ -93,3 +106,32 @@ object TestDefault {
 }
 
 fun TableUuid.toStarId() = StarId(value)
+
+fun sessionCountOf(starId: StarId): Int = transaction {
+    SessionTable.selectAll()
+        .where { SessionTable.starId.eq(starId) }
+        .count()
+        .toInt()
+}
+
+suspend fun TestServer.loginStar(
+    username: Username = TestDefault.username,
+    password: Password = TestDefault.password,
+    guestToken: Token? = null,
+): Session = authorizer.authorize(
+    LoginRequest(
+        loginIdentity = username.value,
+        password = password.obfuscatePassword(),
+        isTemp = false,
+    ),
+    guestToken,
+).toDataOrThrow()
+
+fun latestAuthTokenOrNull(starId: StarId, type: AuthTokenType): AuthToken? = transaction {
+    AuthTokenTable.selectAll()
+        .where { AuthTokenTable.starId.eq(starId) and AuthTokenTable.tokenType.eq(type) }
+        .orderBy(AuthTokenTable.createdAt to SortOrder.DESC)
+        .limit(1)
+        .map { it.toAuthToken() }
+        .singleOrNull()
+}

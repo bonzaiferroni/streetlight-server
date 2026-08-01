@@ -4,10 +4,11 @@ import kotlin.time.Clock
 
 class TestEmailClient(
     private val emailRouter: EmailRouter,
-    private val errorCode: Int = 0,
+    private val getErrorCode: () -> Int = { 0 },
 ): EmailClient {
 
     override suspend fun sendEmail(email: Email): SendEmailResult {
+        val errorCode = getErrorCode()
 
         val message = when (errorCode) {
             0 -> {
