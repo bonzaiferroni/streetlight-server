@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.services.datascope
 
 import kampfire.api.EmailAddress
 import kampfire.model.Ok
@@ -17,6 +17,7 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.title
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
+import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import streetlight.server.model.Email
 import kotlin.time.Clock

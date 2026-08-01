@@ -9,8 +9,8 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.server.db.services.createLocation
-import streetlight.server.db.services.updateLocation
+import streetlight.server.db.services.datascope.createLocation
+import streetlight.server.db.services.datascope.updateLocation
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 

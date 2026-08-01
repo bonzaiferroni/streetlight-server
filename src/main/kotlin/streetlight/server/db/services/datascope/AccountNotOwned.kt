@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.services.datascope
 
 import kampfire.model.Ok
 import kampfire.model.Outcome
@@ -6,6 +6,7 @@ import kampfire.model.Problem
 import kampfire.model.Token
 import klutch.server.hashToken
 import streetlight.model.data.AuthTokenType
+import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 

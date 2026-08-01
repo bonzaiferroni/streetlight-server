@@ -7,10 +7,7 @@ import kampfire.api.obfuscatePassword
 import kampfire.model.PasswordResetRequest
 import klutch.server.generateToken
 import klutch.server.hashToken
-import klutch.utils.eq
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.junit.jupiter.api.Test
 import streetlight.model.data.AuthTokenType
 import streetlight.model.ui.Screen
@@ -18,12 +15,10 @@ import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
 import streetlight.server.buildTestServer
 import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.services.createToken
-import streetlight.server.db.services.redeemPasswordReset
-import streetlight.server.db.services.requestEmailVerification
-import streetlight.server.db.services.requestPasswordReset
-import streetlight.server.db.tables.SessionTable
-import streetlight.server.db.tables.StarTable
+import streetlight.server.db.services.datascope.createToken
+import streetlight.server.db.services.datascope.redeemPasswordReset
+import streetlight.server.db.services.datascope.requestEmailVerification
+import streetlight.server.db.services.datascope.requestPasswordReset
 import streetlight.server.extractToken
 import streetlight.server.latestAuthTokenOrNull
 import streetlight.server.latestMail

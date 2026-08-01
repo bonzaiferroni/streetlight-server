@@ -1,15 +1,13 @@
 package streetlight.server.plugins
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import kabinet.utils.Environment
-import streetlight.server.db.services.recordBounce
+import streetlight.server.db.services.datascope.recordBounce
 import streetlight.server.external.PostmarkBounce
 import streetlight.server.model.ApiScope
-import streetlight.server.model.Server
 
 fun ApiScope.serveWebhooks() {
     val postmarkWebhookSecret = provide(Environment::class).read("POSTMARK_WEBHOOK_SECRET")

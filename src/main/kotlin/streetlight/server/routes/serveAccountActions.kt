@@ -25,16 +25,21 @@ import klutch.db.services.SessionService
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
+import klutch.server.verifyPassword
 import streetlight.model.Api
+import streetlight.model.data.EmailStatus
 import streetlight.model.ui.ActionReportRoute
 import streetlight.model.ui.Screen
-import streetlight.server.db.services.changePasswordFromSession
-import streetlight.server.db.services.redeemAccountLockdown
-import streetlight.server.db.services.redeemAccountNotOwned
-import streetlight.server.db.services.redeemPasswordReset
-import streetlight.server.db.services.requestEmailVerification
-import streetlight.server.db.services.requestPasswordReset
+import streetlight.server.db.services.datascope.changePasswordFromSession
+import streetlight.server.db.services.datascope.redeemAccountLockdown
+import streetlight.server.db.services.datascope.redeemAccountNotOwned
+import streetlight.server.db.services.datascope.redeemPasswordReset
+import streetlight.server.db.services.datascope.requestEmailVerification
+import streetlight.server.db.services.datascope.requestPasswordReset
 import streetlight.server.model.ApiScope
+import kampfire.model.AuthProblem
+import streetlight.server.db.services.datascope.removeEmail
+import streetlight.server.db.services.datascope.sendCredentialChangeNotification
 import streetlight.server.model.getIdentity
 import streetlight.server.utils.starId
 import kotlin.time.Duration
@@ -50,16 +55,15 @@ fun ApiScope.serveAccountActions() {
     }
 
     authGate {
-        postApi(Api.AccountAction.RemoveEmail) {
-            throw NotImplementedError() // needs a password gate
+        postApi(Api.AccountAction.RemoveEmail) { request ->
+            val password = request.data.passwordNow?.deobfuscatePassword()
             val starId = call.getIdentity().starId
-            // dao.star.setEmail(starId, null, null)
-            Ok(Unit)
+            removeEmail(starId, password)
         }
 
         postApi(Api.AccountAction.VerifyExistingEmail) {
             val starId = call.getIdentity().starId
-            val email = dao.star.readAccount(starId)?.email ?: return@postApi Problem("email not found")
+            val email = dao.star.readAccount(starId)?.email ?: error("email not found")
             requestEmailVerification(starId, email)
         }
 
@@ -74,9 +78,8 @@ fun ApiScope.serveAccountActions() {
             changePasswordFromSession(callerId, it.data, sessionId, sessionService)
         }
 
-        postApi(Api.AccountAction.AddEmail) {
+        postApi(Api.AccountAction.ChangeEmail) {
             val email = it.data.newEmail
-            throw NotImplementedError()
             val starId = call.getIdentity().starId
             requestEmailVerification(starId, email)
         }

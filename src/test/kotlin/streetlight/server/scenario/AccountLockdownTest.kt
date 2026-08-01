@@ -13,11 +13,11 @@ import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
 import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.services.createToken
-import streetlight.server.db.services.redeemAccountLockdown
-import streetlight.server.db.services.redeemEmailVerification
-import streetlight.server.db.services.redeemPasswordReset
-import streetlight.server.db.services.requestEmailVerification
+import streetlight.server.db.services.datascope.createToken
+import streetlight.server.db.services.datascope.redeemAccountLockdown
+import streetlight.server.db.services.datascope.redeemEmailVerification
+import streetlight.server.db.services.datascope.redeemPasswordReset
+import streetlight.server.db.services.datascope.requestEmailVerification
 import streetlight.server.extractToken
 import streetlight.server.latestMail
 import streetlight.server.registerVerifiedStar

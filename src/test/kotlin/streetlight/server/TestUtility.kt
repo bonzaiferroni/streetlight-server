@@ -23,15 +23,14 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.model.ui.Screen
-import streetlight.server.db.services.createRegisteredUser
-import streetlight.server.db.services.redeemEmailVerification
+import streetlight.server.db.services.datascope.createRegisteredUser
+import streetlight.server.db.services.datascope.redeemEmailVerification
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
 import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.toAuthToken
 import streetlight.server.model.Email
 import streetlight.server.model.EmailRouter
-import streetlight.server.model.ServerScope
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 

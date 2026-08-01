@@ -5,12 +5,9 @@ import io.ktor.server.auth.principal
 import kampfire.api.UserApi
 import kampfire.api.deobfuscatePassword
 import kampfire.model.AccountType
-import kampfire.model.AccountUpgradeRequest
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.Token
-import kampfire.model.UserRole
-import kampfire.model.outcomeOf
 import kampfire.model.toOutcome
 import klutch.db.model.SessionIdentity
 import klutch.db.services.SessionService
@@ -23,9 +20,8 @@ import klutch.server.generateToken
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
-import streetlight.model.data.StarId
-import streetlight.server.db.services.createRegisteredUser
-import streetlight.server.db.services.requestEmailVerification
+import streetlight.server.db.services.datascope.createRegisteredUser
+import streetlight.server.db.services.datascope.requestEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
 import streetlight.server.utils.starId

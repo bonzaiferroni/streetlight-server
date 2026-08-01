@@ -3,12 +3,11 @@ package streetlight.server.routes
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.Token
-import koala.css.*
 import koala.html.*
 import streetlight.model.Api
 import streetlight.model.data.AuthTokenType
 import streetlight.server.SiteStyles
-import streetlight.server.db.services.redeemEmailVerification
+import streetlight.server.db.services.datascope.redeemEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.web.pages.formSubmit
 import streetlight.web.pages.messagePage

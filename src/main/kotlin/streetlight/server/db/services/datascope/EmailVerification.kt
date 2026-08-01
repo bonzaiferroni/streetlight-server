@@ -1,4 +1,4 @@
-package streetlight.server.db.services
+package streetlight.server.db.services.datascope
 
 import kampfire.api.EmailAddress
 import kampfire.model.Ok
@@ -7,7 +7,6 @@ import kampfire.model.Problem
 import kampfire.model.Token
 import klutch.server.generateToken
 import klutch.server.hashToken
-import klutch.server.provide
 import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.h1
@@ -22,7 +21,7 @@ import streetlight.model.data.StarId
 import streetlight.model.ui.AccountLockdownRoute
 import streetlight.model.ui.AccountNotOwnedRoute
 import streetlight.model.ui.VerifyEmailRoute
-import streetlight.server.model.EmailClient
+import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import streetlight.server.model.Email
 import kotlin.time.Clock

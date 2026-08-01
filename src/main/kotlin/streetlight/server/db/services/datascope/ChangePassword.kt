@@ -1,9 +1,10 @@
-package streetlight.server.db.services
+package streetlight.server.db.services.datascope
 
 import kampfire.api.EmailAddress
 import kampfire.api.Password
 import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
+import kampfire.model.AuthProblem
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.PasswordChange
@@ -25,10 +26,9 @@ import streetlight.model.data.AuthTokenType
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.StarId
 import streetlight.model.ui.AccountLockdownRoute
-import streetlight.server.external.PostmarkResponse
+import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import streetlight.server.model.Email
-import streetlight.server.model.SendEmailResult
 import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -47,10 +47,9 @@ suspend fun DataScope.changePasswordFromSession(
 
     val account = dao.star.readAccount(callerId.toStarId()) ?: error("account not found")
     val email = account.email
-    val passwordIncorrect = Problem("Your current password is not correct.")
 
     // current password check only applies to accounts with an email
-    if (request.passwordNow == null && email != null) return@tryOutcome passwordIncorrect
+    if (request.passwordNow == null && email != null) return@tryOutcome AuthProblem.CurrentPasswordInvalid
 
     // there should always be a current password here
     // guest accounts shouldn't reach this function, and recovery from a disabled password calls a different function
@@ -59,11 +58,11 @@ suspend fun DataScope.changePasswordFromSession(
     request.passwordNow?.let {
         val currentPassword = it.deobfuscatePassword()
         if (!verifyPassword(currentPassword, currentPasswordHash))
-            return@tryOutcome passwordIncorrect
+            return@tryOutcome AuthProblem.CurrentPasswordInvalid
     }
 
     if (verifyPassword(newPassword, currentPasswordHash)) {
-        return@tryOutcome Problem("Please enter a new password.")
+        return@tryOutcome AuthProblem.NewPasswordRequired
     }
 
     applyPasswordChange(

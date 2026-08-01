@@ -1,11 +1,12 @@
-package streetlight.server.db.services
+package streetlight.server.db.services.datascope
 
 import klutch.db.model.CallerId
 import streetlight.model.data.EditType
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
-import streetlight.model.data.StarId
 import streetlight.model.data.toEdit
+import streetlight.server.db.services.createEditTask
+import streetlight.server.db.services.readOrCreateCity
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 import streetlight.server.routes.checkImageAndStore
