@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.sse.SSE
+import klutch.server.Authorizer
 import klutch.server.KoinProvider
 import klutch.server.configureAuth
 import klutch.server.provide

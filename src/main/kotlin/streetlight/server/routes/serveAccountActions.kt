@@ -13,6 +13,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.post
 import kabinet.utils.Environment
 import kampfire.api.ActionResult
+import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.PasswordResetRequest
@@ -86,7 +87,7 @@ fun ApiScope.serveAccountActions() {
 
     post(Api.AccountAction.ResetPassword.Redemption.path) {
         val request = call.receive<PasswordResetRequest>()
-        when (val outcome = request.password.toValidOutcome()) {
+        when (val outcome = request.password.deobfuscatePassword().toValidOutcome()) {
             is Ok -> {
                 when (val resetOutcome = redeemPasswordReset(request, sessionService)) {
                     is Ok -> call.respond(HttpStatusCode.OK)
@@ -116,7 +117,7 @@ fun ApiScope.serveAccountActions() {
             call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
             return@post
         }
-        when (val outcome = redeemAccountLockdown(token, sessionService, supportAddress)) {
+        when (val outcome = redeemAccountLockdown(token, sessionService)) {
             is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
             is Problem -> {
                 call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)

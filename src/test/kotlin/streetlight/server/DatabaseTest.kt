@@ -26,14 +26,12 @@ abstract class DatabaseTest {
         }
     }
 
-    protected lateinit var emailRouter: EmailRouter
-    protected lateinit var server: ServerScope
+    protected lateinit var server: TestServer
 
     @BeforeTest
     fun prepareScenario() {
         truncateAll(database)
-        emailRouter = EmailRouter()
-        server = buildTestServer(emailRouter = emailRouter)
+        server = buildTestServer()
     }
 }
 

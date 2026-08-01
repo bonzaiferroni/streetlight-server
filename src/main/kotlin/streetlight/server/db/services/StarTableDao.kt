@@ -102,9 +102,9 @@ class StarTableDao: DbService() {
         }.singleOrNull()?.toAccount()
     }
 
-    suspend fun readPasswordHash(callerId: CallerId) = dbQuery {
+    suspend fun readPasswordHash(starId: StarId) = dbQuery {
         StarTable.select(StarTable.passwordHash).where {
-            StarTable.id.eq(callerId)
+            StarTable.id.eq(starId)
         }.singleOrNull()?.let { it[StarTable.passwordHash]?.let { value -> PasswordHash(value) } }
     }
 }

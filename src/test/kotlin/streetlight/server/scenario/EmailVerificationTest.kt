@@ -34,7 +34,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `a sailor verifies the address they registered with`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val email = EmailAddress("dingo99@gmail.com")
             val starId = createRegisteredUser(signupRequestOf(email = email), authorizer).toDataOrThrow().let {
                 StarId(it.value)
@@ -53,30 +52,9 @@ class EmailVerificationTest : DatabaseTest() {
         }
     }
 
-//    @Test
-//    fun `a verification token cannot be redeemed twice`() = runTest {
-//        with(server) {
-//            val authorizer = provide<Authorizer>()
-//            val email = EmailAddress("dingo99@gmail.com")
-//            val starId = createRegisteredUser(signupRequestOf(email = email), authorizer)
-//                .toDataOrThrow().let { StarId(it.value) }
-//
-//            requestEmailVerification(starId, email).toDataOrThrow()
-//            val token = assertNotNull(emailRouter.inbox(email).latestOrNull())
-//                .extractToken(Screen.VerifyEmail)
-//
-//            redeemEmailVerification(token).toDataOrThrow()
-//            redeemEmailVerification(token).toProblemOrThrow()
-//
-//            val account = dao.star.readAccount(starId)
-//            assertEquals(EmailStatus.Verified, account?.emailStatus)
-//        }
-//    }
-
     @Test
     fun `a second verification request consumes the first token`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val email = EmailAddress("dingo99@gmail.com")
             val starId = createRegisteredUser(signupRequestOf(email = email), authorizer)
                 .toDataOrThrow().let { StarId(it.value) }
@@ -102,7 +80,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `a sailor disavows an address someone else registered`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val email = EmailAddress("dingo99@gmail.com")
             val starId = createRegisteredUser(signupRequestOf(email = email), authorizer)
                 .toDataOrThrow().let { StarId(it.value) }
@@ -126,7 +103,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `a bounced address is recorded and refused thereafter`() = runTest {
         val bouncingServer = buildTestServer(
-            emailRouter = emailRouter,
             emailClient = { TestEmailClient(it, errorCode = 406) },
         )
 
@@ -147,7 +123,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `an address already held by another sailor is refused`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val heldEmail = EmailAddress("dingo99@gmail.com")
             createRegisteredUser(signupRequestOf(email = heldEmail), authorizer).toDataOrThrow()
 
@@ -168,7 +143,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `an expired verification token is refused`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val email = EmailAddress("dingo99@gmail.com")
             val starId = createRegisteredUser(signupRequestOf(email = email), authorizer)
                 .toDataOrThrow().let { StarId(it.value) }
@@ -185,7 +159,6 @@ class EmailVerificationTest : DatabaseTest() {
     @Test
     fun `a sailor changes to a new address and the old one is notified`() = runTest {
         with(server) {
-            val authorizer = provide<Authorizer>()
             val oldEmail = EmailAddress("dingo99@gmail.com")
             val newEmail = EmailAddress("dingo99@proton.me")
 

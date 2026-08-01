@@ -4,7 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.Level
 import io.ktor.server.routing.Routing
 import kabinet.console.globalConsole
+import klutch.server.Authorizer
 import klutch.server.ProviderScope
+import klutch.server.provide
 import klutch.utils.logger
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Transaction

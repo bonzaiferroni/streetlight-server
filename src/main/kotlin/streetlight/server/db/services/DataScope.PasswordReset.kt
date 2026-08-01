@@ -1,6 +1,7 @@
 package streetlight.server.db.services
 
 import kampfire.api.EmailAddress
+import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.Outcome
@@ -31,7 +32,7 @@ suspend fun DataScope.redeemPasswordReset(
 ): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()
 
-    val newPassword = when (val outcome = request.password.toValidOutcome()) {
+    val newPassword = when (val outcome = request.password.deobfuscatePassword().toValidOutcome()) {
         is Ok -> outcome.data
         is Problem -> return@tryOutcome outcome
     }

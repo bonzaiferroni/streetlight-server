@@ -11,6 +11,8 @@ class EmailRouter {
     }
 
     fun inbox(address: EmailAddress) = inboxes.getOrPut(address) { EmailInbox() }
+
+    fun count(address: EmailAddress) = inbox(address).emails.size
 }
 
 class EmailInbox {

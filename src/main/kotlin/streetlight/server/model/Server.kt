@@ -7,6 +7,7 @@ import kabinet.utils.Environment
 import kampfire.api.EmailAddress
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
+import klutch.server.Authorizer
 import klutch.server.ProviderScope
 import streetlight.server.db.services.*
 

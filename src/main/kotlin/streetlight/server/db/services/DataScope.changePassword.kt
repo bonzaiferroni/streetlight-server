@@ -54,7 +54,7 @@ suspend fun DataScope.changePasswordFromSession(
 
     // there should always be a current password here
     // guest accounts shouldn't reach this function, and recovery from a disabled password calls a different function
-    val currentPasswordHash = dao.star.readPasswordHash(callerId) ?: error("password not found")
+    val currentPasswordHash = dao.star.readPasswordHash(account.starId) ?: error("password not found")
 
     request.passwordNow?.let {
         val currentPassword = it.deobfuscatePassword()
@@ -122,19 +122,6 @@ internal suspend fun DataScope.applyPasswordChange(
     createToken(starId, token, email, AuthTokenType.AccountLockdown, AccountLockdownInterval, consumePrior = false)
 
     return true
-}
-
-internal suspend fun DataScope.recordEmailBounced(
-    response: SendEmailResult,
-    email: EmailAddress,
-) {
-    if (response.errorCode != 0) {
-        log.error { "Postmark error: ${response.errorCode}" }
-    }
-    if (response.errorCode == 406) {
-        dao.bouncedEmail.createBouncedEmail(email, "postmark 406")
-        dao.star.setEmailStatus(email, EmailStatus.Bounced)
-    }
 }
 
 internal val AccountLockdownInterval = 2.days
