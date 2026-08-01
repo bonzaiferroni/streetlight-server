@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
+import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
@@ -25,9 +26,7 @@ import klutch.db.services.SessionService
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
-import klutch.server.verifyPassword
 import streetlight.model.Api
-import streetlight.model.data.EmailStatus
 import streetlight.model.ui.ActionReportRoute
 import streetlight.model.ui.Screen
 import streetlight.server.db.services.datascope.changePasswordFromSession
@@ -37,10 +36,9 @@ import streetlight.server.db.services.datascope.redeemPasswordReset
 import streetlight.server.db.services.datascope.requestEmailVerification
 import streetlight.server.db.services.datascope.requestPasswordReset
 import streetlight.server.model.ApiScope
-import kampfire.model.AuthProblem
 import streetlight.server.db.services.datascope.removeEmail
-import streetlight.server.db.services.datascope.sendCredentialChangeNotification
 import streetlight.server.model.getIdentity
+import streetlight.server.plugins.RateLimits
 import streetlight.server.utils.starId
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -49,82 +47,84 @@ fun ApiScope.serveAccountActions() {
     val sessionService = provide(SessionService::class)
     val supportAddress = provide(Environment::class).read("STREETLIGHT_SUPPORT_ADDRESS")
 
-    postApi(Api.AccountAction.ResetPassword) {
-        val email = it.data
-        requestPasswordReset(email)
-    }
-
-    authGate {
-        postApi(Api.AccountAction.RemoveEmail) { request ->
-            val password = request.data.passwordNow?.deobfuscatePassword()
-            val starId = call.getIdentity().starId
-            removeEmail(starId, password)
+    rateLimit(RateLimits.AccountActions) {
+        postApi(Api.AccountAction.ResetPassword) {
+            val email = it.data
+            requestPasswordReset(email)
         }
 
-        postApi(Api.AccountAction.VerifyExistingEmail) {
-            val starId = call.getIdentity().starId
-            val email = dao.star.readAccount(starId)?.email ?: error("email not found")
-            requestEmailVerification(starId, email)
+        authGate {
+            postApi(Api.AccountAction.RemoveEmail) { request ->
+                val password = request.data.passwordNow?.deobfuscatePassword()
+                val starId = call.getIdentity().starId
+                removeEmail(starId, password)
+            }
+
+            postApi(Api.AccountAction.VerifyExistingEmail) {
+                val starId = call.getIdentity().starId
+                val email = dao.star.readAccount(starId)?.email ?: error("email not found")
+                requestEmailVerification(starId, email)
+            }
+
+            getApi(Api.AccountAction.VerifyExistingEmail.CheckStatus) {
+                val callerId = call.getIdentity().callerId
+                dao.authToken.readIsVerifyEmailTokenActive(callerId).toOutcome()
+            }
+
+            postApi(Api.AccountAction.ChangePassword) {
+                val callerId = call.getIdentity().callerId
+                val sessionId = call.principal<SessionIdentity>()?.session?.sessionId ?: error("session id not found")
+                changePasswordFromSession(callerId, it.data, sessionId, sessionService)
+            }
+
+            postApi(Api.AccountAction.ChangeEmail) {
+                val email = it.data.newEmail
+                val starId = call.getIdentity().starId
+                requestEmailVerification(starId, email)
+            }
         }
 
-        getApi(Api.AccountAction.VerifyExistingEmail.CheckStatus) {
-            val callerId = call.getIdentity().callerId
-            dao.authToken.readIsVerifyEmailTokenActive(callerId).toOutcome()
+        // the following endpoints call post rather than postApi
+        // because they are sent from static pages with minimal handling
+
+        post(Api.AccountAction.ResetPassword.Redemption.path) {
+            val request = call.receive<PasswordResetRequest>()
+            when (val outcome = request.password.deobfuscatePassword().toValidOutcome()) {
+                is Ok -> {
+                    when (val resetOutcome = redeemPasswordReset(request, sessionService)) {
+                        is Ok -> call.respond(HttpStatusCode.OK)
+                        is Problem -> call.respondText(resetOutcome.message, status = HttpStatusCode.BadRequest)
+                    }
+                }
+                is Problem -> call.respondText(outcome.message, status = HttpStatusCode.BadRequest)
+            }
         }
 
-        postApi(Api.AccountAction.ChangePassword) {
-            val callerId = call.getIdentity().callerId
-            val sessionId = call.principal<SessionIdentity>()?.session?.sessionId ?: error("session id not found")
-            changePasswordFromSession(callerId, it.data, sessionId, sessionService)
-        }
-
-        postApi(Api.AccountAction.ChangeEmail) {
-            val email = it.data.newEmail
-            val starId = call.getIdentity().starId
-            requestEmailVerification(starId, email)
-        }
-    }
-
-    // the following endpoints call post rather than postApi
-    // because they are sent from static pages with minimal handling
-
-    post(Api.AccountAction.ResetPassword.Redemption.path) {
-        val request = call.receive<PasswordResetRequest>()
-        when (val outcome = request.password.deobfuscatePassword().toValidOutcome()) {
-            is Ok -> {
-                when (val resetOutcome = redeemPasswordReset(request, sessionService)) {
-                    is Ok -> call.respond(HttpStatusCode.OK)
-                    is Problem -> call.respondText(resetOutcome.message, status = HttpStatusCode.BadRequest)
+        post(Api.AccountAction.AccountNotOwned.path) {
+            val token = call.receiveParameters().getToken() ?: run {
+                call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
+                return@post
+            }
+            when (val outcome = redeemAccountNotOwned(token)) {
+                is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
+                is Problem -> {
+                    call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
+                    call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
                 }
             }
-            is Problem -> call.respondText(outcome.message, status = HttpStatusCode.BadRequest)
         }
-    }
 
-    post(Api.AccountAction.AccountNotOwned.path) {
-        val token = call.receiveParameters().getToken() ?: run {
-            call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
-            return@post
-        }
-        when (val outcome = redeemAccountNotOwned(token)) {
-            is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
-            is Problem -> {
-                call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
-                call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
+        post(Api.AccountAction.LockdownAccount.path) {
+            val token = call.receiveParameters().getToken() ?: run {
+                call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
+                return@post
             }
-        }
-    }
-
-    post(Api.AccountAction.LockdownAccount.path) {
-        val token = call.receiveParameters().getToken() ?: run {
-            call.respondRedirect(ActionReportRoute(ActionResult.Invalid).toRelativePath())
-            return@post
-        }
-        when (val outcome = redeemAccountLockdown(token, sessionService)) {
-            is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
-            is Problem -> {
-                call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
-                call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
+            when (val outcome = redeemAccountLockdown(token, sessionService)) {
+                is Ok -> call.respondRedirect(ActionReportRoute(ActionResult.Success).toRelativePath())
+                is Problem -> {
+                    call.writeCookieMessage(outcome.message, Screen.ActionReport.pathBase)
+                    call.respondRedirect(ActionReportRoute(ActionResult.Problem).toRelativePath())
+                }
             }
         }
     }

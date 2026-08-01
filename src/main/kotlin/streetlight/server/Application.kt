@@ -39,6 +39,7 @@ fun Application.module() {
         gzip { priority = 1.0 }
     }
 
+    configureRateLimits()
     configureMetrics(server)
     configureLogging()
     configureCors()

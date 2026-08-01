@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
+import io.ktor.server.plugins.ratelimit.rateLimit
 import kampfire.api.UserApi
 import kampfire.api.deobfuscatePassword
 import kampfire.model.AccountType
@@ -24,6 +25,7 @@ import streetlight.server.db.services.datascope.createRegisteredUser
 import streetlight.server.db.services.datascope.requestEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
+import streetlight.server.plugins.RateLimits
 import streetlight.server.utils.starId
 
 private val log = KotlinLogging.logger(ApiScope::serveSession.name)
@@ -86,16 +88,18 @@ fun ApiScope.serveSession() {
         outcome
     }
 
-    postApi(UserApi.Login) { request ->
-        log.debug { "logging in" }
-        val token = call.request.cookies[GUEST_COOKIE_NAME]?.let { Token(it) }
-        when(val outcome = authorizer.authorize(request.data, token)) {
-            is Ok -> {
-                val session = outcome.data
-                call.appendSessionCookie(session)
-                Ok(true)
+    rateLimit(RateLimits.Login) {
+        postApi(UserApi.Login) { request ->
+            log.debug { "logging in" }
+            val token = call.request.cookies[GUEST_COOKIE_NAME]?.let { Token(it) }
+            when(val outcome = authorizer.authorize(request.data, token)) {
+                is Ok -> {
+                    val session = outcome.data
+                    call.appendSessionCookie(session)
+                    Ok(true)
+                }
+                is Problem -> outcome
             }
-            is Problem -> outcome
         }
     }
 
