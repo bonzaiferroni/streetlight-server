@@ -36,7 +36,7 @@ suspend fun DataScope.parseEvent(request: ParseRequest, parser: KoogParserClient
     val meta = doc.readHtmlMetaInfo()
     val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }
 
-    return when (val response = parser.readHtml<EventParse>(url, doc, ParserText.singleEventInstructions)) {
+    return when (val response = parser.readHtml(url, doc, ParserText.singleEventInstructions, EventParse::class)) {
         is Ok -> {
             val parse = response.data
             Ok(parse.toEventEdit(null).copy(

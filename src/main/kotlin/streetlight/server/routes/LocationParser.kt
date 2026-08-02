@@ -36,7 +36,7 @@ class LocationParser(
         val meta = doc.readHtmlMetaInfo()
         val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }
 
-        return when (val response = parser.readHtml<LocationParse>(url, doc, ParserText.locationInstructions)) {
+        return when (val response = parser.readHtml(url, doc, ParserText.locationInstructions, LocationParse::class)) {
             is Ok -> {
                 val parse = response.data
                 Ok(parse.toEdit(null).copy(
