@@ -1,4 +1,4 @@
-package streetlight.server.db.services.datascope
+package streetlight.server.db.datascope
 
 import klutch.db.model.CallerId
 import streetlight.model.data.EditType

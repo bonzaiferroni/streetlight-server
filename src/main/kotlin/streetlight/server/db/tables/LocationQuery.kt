@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.toUrl
 import klutch.db.model.CallerId
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
@@ -13,39 +14,42 @@ import streetlight.model.data.ResourceType
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
+object LocationQuery {
+    val columns = listOf(
+        LocationTable.id,
+        LocationTable.cityId,
+        LocationTable.mapId,
+        LocationTable.timezoneId,
+        LocationTable.slug,
+        LocationTable.host,
+        LocationTable.scout,
+        LocationTable.name,
+        LocationTable.description,
+        LocationTable.address,
+        LocationTable.city,
+        LocationTable.state,
+        LocationTable.geoPoint,
+        LocationTable.mapRank,
+        LocationTable.mapCategory,
+        LocationTable.mapType,
+        LocationTable.resources,
+        LocationTable.hours,
+        LocationTable.website,
+        LocationTable.eventsUrl,
+        LocationTable.links,
+        LocationTable.image,
+        LocationTable.starCount,
+        LocationTable.updatedAt,
+        LocationTable.createdAt,
+    )
+
+    val starColumns = columns + LocationStarTable.starId
+}
+
 fun locationQuery(callerId: CallerId?) = LocationTable
     .join(LocationStarTable, JoinType.LEFT, LocationTable.id, LocationStarTable.locationId,
         additionalConstraint = LocationStarTable.getConstraint(callerId))
-    .select(LocationColumns)
-
-val LocationColumns = listOf(
-    LocationTable.id,
-    LocationTable.cityId,
-    LocationTable.mapId,
-    LocationTable.timezoneId,
-    LocationTable.slug,
-    LocationTable.host,
-    LocationTable.scout,
-    LocationTable.name,
-    LocationTable.description,
-    LocationTable.address,
-    LocationTable.city,
-    LocationTable.state,
-    LocationTable.geoPoint,
-    LocationTable.mapRank,
-    LocationTable.mapCategory,
-    LocationTable.mapType,
-    LocationTable.resources,
-    LocationTable.hours,
-    LocationTable.website,
-    LocationTable.eventsUrl,
-    LocationTable.links,
-    LocationTable.image,
-    LocationTable.starCount,
-    LocationTable.updatedAt,
-    LocationTable.createdAt,
-    LocationStarTable.starId,
-)
+    .select(LocationQuery.starColumns)
 
 fun ResultRow.toLocation() = Location(
     locationId = toRecordId(LocationTable.id),
@@ -66,11 +70,12 @@ fun ResultRow.toLocation() = Location(
     mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
     hours = this[LocationTable.hours],
-    website = this[LocationTable.website],
-    eventsUrl = this[LocationTable.eventsUrl],
+    website = this[LocationTable.website]?.toUrl(),
+    eventsUrl = this[LocationTable.eventsUrl]?.toUrl(),
     extraLinks = this[LocationTable.links],
     image = this[LocationTable.image],
     lightCount = this[LocationTable.starCount],
+    isLit = this.getOrNull(LocationStarTable.starId) != null,
     updatedAt = this[LocationTable.updatedAt],
     createdAt = this[LocationTable.createdAt],
 )

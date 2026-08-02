@@ -10,9 +10,9 @@ import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
 import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.services.datascope.redeemPasswordReset
-import streetlight.server.db.services.datascope.removeEmail
-import streetlight.server.db.services.datascope.requestPasswordReset
+import streetlight.server.db.datascope.redeemPasswordReset
+import streetlight.server.db.datascope.removeEmail
+import streetlight.server.db.datascope.requestPasswordReset
 import streetlight.server.extractToken
 import streetlight.server.latestMail
 import streetlight.server.registerStar

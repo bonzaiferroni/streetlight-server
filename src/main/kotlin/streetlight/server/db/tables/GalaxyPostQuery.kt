@@ -29,7 +29,7 @@ val PostColumns = listOf(
     PostStarTable.starId
 )
 
-val GalaxyPostColumns = (EventLocationColumns + LocationColumns + PostColumns + MediaColumns).distinct()
+val GalaxyPostColumns = (EventLocationColumns + LocationQuery.columns + PostColumns + MediaColumns).distinct()
 
 fun galaxyPostQuery(callerId: CallerId?) = PostTable
     .leftJoin(EventTable)

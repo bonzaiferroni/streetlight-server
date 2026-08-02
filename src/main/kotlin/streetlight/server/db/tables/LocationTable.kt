@@ -9,16 +9,15 @@ import klutch.utils.*
 import klutch.db.point
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
-import koala.Image
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
+import streetlight.model.data.EventSelectorSchema
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.HoursSchedule
 import streetlight.model.data.Location
-import streetlight.model.data.StarId
 
 object LocationTable: UuidTable("location"), SlugTable {
     val hostId = reference("host_id", StarTable, ReferenceOption.SET_NULL).nullable()
@@ -45,6 +44,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val starCount = integer("star_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
     val eventsUrl = text("events_url").nullable()
+    val eventSchema = jsonb<EventSelectorSchema>("event_schema", jsonColumnConfig).nullable()
     val image = image("image").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
@@ -88,8 +88,8 @@ fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord) {
     this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
     this[LocationTable.hours] = location.hours
-    this[LocationTable.website] = location.website
-    this[LocationTable.eventsUrl] = location.eventsUrl
+    this[LocationTable.website] = location.website?.value
+    this[LocationTable.eventsUrl] = location.eventsUrl?.value
     this[LocationTable.links] = location.extraLinks
     this[LocationTable.updatedAt] = location.updatedAt
     this[LocationTable.image] = location.image

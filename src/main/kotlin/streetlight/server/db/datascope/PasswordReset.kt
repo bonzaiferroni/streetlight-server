@@ -1,4 +1,4 @@
-package streetlight.server.db.services.datascope
+package streetlight.server.db.datascope
 
 import kampfire.api.EmailAddress
 import kampfire.api.deobfuscatePassword

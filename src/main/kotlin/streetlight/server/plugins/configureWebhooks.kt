@@ -5,7 +5,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import kabinet.utils.Environment
-import streetlight.server.db.services.datascope.recordBounce
+import streetlight.server.db.datascope.recordBounce
 import streetlight.server.external.PostmarkBounce
 import streetlight.server.model.ApiScope
 

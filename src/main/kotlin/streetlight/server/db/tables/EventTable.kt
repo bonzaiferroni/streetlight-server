@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.model.ImageSize
+import kampfire.model.toUrl
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
@@ -71,7 +72,7 @@ fun UpdateBuilder<*>.createRecord(event: Event, starId: CallerId, slugRecord: Sl
 fun UpdateBuilder<*>.updateRecord(event: Event, slugRecord: SlugRecord) {
     this[EventTable.slug] = slugRecord.slug.value
     this[EventTable.pastSlug] = slugRecord.pastSlug?.value
-    this[EventTable.website] = event.website
+    this[EventTable.website] = event.website?.value
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description

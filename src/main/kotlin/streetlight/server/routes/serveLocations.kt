@@ -9,14 +9,17 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.server.db.services.datascope.createLocation
-import streetlight.server.db.services.datascope.updateLocation
+import streetlight.agent.KoogParserClient
+import streetlight.server.db.datascope.createLocation
+import streetlight.server.db.datascope.parseEventSchema
+import streetlight.server.db.datascope.updateLocation
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 
 fun ApiScope.serveLocations() {
     val parser = provide<LocationParser>()
     val omni = provide<OmniService>()
+    val koog = provide<KoogParserClient>()
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
@@ -76,7 +79,7 @@ fun ApiScope.serveLocations() {
         }
     }
 
-    authGate(optional = false) {
+    authGate {
 //        suspend fun <T> handleEdit(
 //            edit: LocationEdit,
 //            identity: StarIdentity,
@@ -104,6 +107,18 @@ fun ApiScope.serveLocations() {
         getApi(Api.Locations.ReadUpdaterContent) {
             val slug = it.data
             readLocationUpdaterContent(slug).toOutcome()
+        }
+
+        getApi(Api.Locations.ReadConfig, { it.toRecordId() }) {
+            val identity = call.getIdentity()
+            if (!identity.isAdmin) throw UnauthorizedUserException()
+            dao.location.readConfig(it.data).toOutcome()
+        }
+
+        postApi(Api.Locations.ParseEventSchema) {
+            val identity = call.getIdentity()
+            if (!identity.isAdmin) throw UnauthorizedUserException()
+            parseEventSchema(it.data, koog)
         }
     }
 }

@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.toUrl
 import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -55,7 +56,7 @@ fun ResultRow.toEvent() = Event(
     cost = this[EventTable.cost],
     visibility = this[EventTable.visibility],
     links = this[EventTable.links],
-    website = this[EventTable.website],
+    website = this[EventTable.website]?.toUrl(),
     image = this[EventTable.image],
     streamUrl = this[EventTable.streamUrl],
     timeZoneId = this[EventTable.timeZoneId],

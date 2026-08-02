@@ -21,8 +21,8 @@ import klutch.server.generateToken
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
-import streetlight.server.db.services.datascope.createRegisteredUser
-import streetlight.server.db.services.datascope.requestEmailVerification
+import streetlight.server.db.datascope.createRegisteredUser
+import streetlight.server.db.datascope.requestEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
 import streetlight.server.plugins.RateLimits

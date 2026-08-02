@@ -2,6 +2,7 @@ package streetlight.server.db.tables
 
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import kampfire.model.toUrl
 import klutch.db.model.CallerId
 import klutch.utils.eq
 import klutch.utils.toGeoPoint
@@ -51,7 +52,7 @@ fun ResultRow.toEventLocation() = EventLocation(
     eventSlug = this[EventTable.slug].toSlug(),
     locationSlug = this[LocationTable.slug].toSlug(),
     scout = this[EventTable.scout].toUsername(),
-    url = this[EventTable.website],
+    url = this[EventTable.website]?.toUrl(),
     eventImage = this[EventTable.image],
     title = this[EventTable.title],
     description = this[EventTable.description],

@@ -33,12 +33,16 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
+import streetlight.model.data.LocationConfig
+import streetlight.server.db.tables.LocationConfigQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.locationQuery
+import streetlight.server.db.tables.toLocationConfig
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
@@ -138,13 +142,20 @@ class LocationTableDao : DbService() {
     }
 
     suspend fun readLocationsInBounds(bounds: GeoBounds): List<LocationInfo> = dbQuery {
-        LocationTable.leftJoin(EventTable).selectAll().where { LocationTable.geoPoint.inBounds(bounds) }
+        LocationTable.leftJoin(EventTable).selectAll()
+            .where { LocationTable.geoPoint.inBounds(bounds) }
             .toList()
             .groupBy { it[LocationTable.id].toRecordId<LocationId>() }.map { (_, rows) ->
                 val location = rows.first().toLocation()
                 val events = rows.mapNotNull { row -> row.getOrNull(EventTable.id)?.let { row.toEvent() } }
                 LocationInfo(location, events)
             }
+    }
+
+    suspend fun readConfig(locationId: LocationId): LocationConfig? = dbQuery {
+        LocationTable.select(LocationConfigQuery.columns)
+            .where { LocationTable.id.eq(locationId) }
+            .singleOrNull()?.toLocationConfig()
     }
 }
 
@@ -171,6 +182,7 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     hours = hours,
     website = website,
     lightCount = null,
+    isLit = false,
     eventsUrl = eventsUrl,
     extraLinks = extraLinks,
     image = image,
