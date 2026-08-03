@@ -122,10 +122,6 @@ fun ApiScope.serveEvents() {
             parseEvent(request, parser)
         }
 
-        postApi(Api.Events.ParseEvent) {
-            error("not implemented")
-        }
-
         getApi(Api.Events.ReadLights) {
             val callerId = call.getIdentity().callerId
             Ok(dao.light.readEventLights(callerId))

@@ -32,9 +32,9 @@ import klutch.utils.inList
 import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createEvent
 import streetlight.server.db.tables.eventQuery
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.updateEvent
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -50,7 +50,7 @@ class EventTableDao: DbService() {
         val slug = EventTable.nextSlugOf(title)
         val event = edit.toEvent(eventId)
         EventTable.insert {
-            it.createRecord(event, callerId, SlugRecord(slug))
+            it.createEvent(event, callerId, SlugRecord(slug))
         }
         readEvent(eventId, callerId)
     }
@@ -64,7 +64,7 @@ class EventTableDao: DbService() {
         val slugSync = EventTable.getSlugRecord(eventId, title)
         val event = edit.toEvent(eventId)
         EventTable.update({ EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId)}) {
-            it.updateRecord(event, slugSync)
+            it.updateEvent(event, slugSync)
         }
         readEvent(eventId, callerId)
     }

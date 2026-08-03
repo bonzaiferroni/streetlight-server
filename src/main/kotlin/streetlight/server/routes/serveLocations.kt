@@ -2,6 +2,7 @@ package streetlight.server.routes
 
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import kampfire.model.Ok
 import kampfire.model.kilometers
 import kampfire.model.toOutcome
 import klutch.server.*
@@ -109,16 +110,23 @@ fun ApiScope.serveLocations() {
             readLocationUpdaterContent(slug).toOutcome()
         }
 
-        getApi(Api.Locations.ReadConfig, { it.toRecordId() }) {
+        getApi(Api.Locations.ReadConfigContent, { it.toRecordId() }) {
             val identity = call.getIdentity()
             if (!identity.isAdmin) throw UnauthorizedUserException()
-            dao.location.readConfig(it.data).toOutcome()
+            dao.location.readConfigContent(it.data).toOutcome()
         }
 
         postApi(Api.Locations.ParseEventSchema) {
             val identity = call.getIdentity()
             if (!identity.isAdmin) throw UnauthorizedUserException()
             parseEventSchema(it.data, koog)
+        }
+
+        postApi(Api.Locations.EditConfig) {
+            val identity = call.getIdentity()
+            if (!identity.isAdmin) throw UnauthorizedUserException()
+            if (dao.location.update(it.data) != 1) error("Update not applied")
+            Ok(Unit)
         }
     }
 }

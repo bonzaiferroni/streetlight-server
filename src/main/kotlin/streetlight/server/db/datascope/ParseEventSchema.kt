@@ -11,6 +11,7 @@ import kampfire.model.toUrl
 import streetlight.agent.KoogParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
+import streetlight.agent.tryQuery
 import streetlight.model.data.EventFeedSelectors
 import streetlight.model.data.EventPageSelectors
 import streetlight.model.data.EventSelectorSchema
@@ -61,14 +62,19 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
     }
 }
 
-fun Element.tryQuery(selector: String): Outcome<Elements> {
-    if (selector == ".") return Ok(Elements(this))
+private fun String.titleTokens(): Set<String> =
+    lowercase()
+        .map { if (it.isLetterOrDigit()) it else ' ' }
+        .joinToString("")
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .toSet()
 
-    return try {
-        Ok(select(selector))
-    } catch (e: Selector.SelectorParseException) {
-        Problem("Malformed selector: $selector")
-    } catch (e: IllegalArgumentException) {
-        Problem("Invalid selector: $selector")
-    }
+fun titlesOverlap(first: String, second: String, threshold: Float = 0.5f): Boolean {
+    val a = first.titleTokens()
+    val b = second.titleTokens()
+    if (a.isEmpty() || b.isEmpty()) return false
+
+    val shared = a.intersect(b).size
+    return shared.toFloat() / minOf(a.size, b.size) > threshold
 }

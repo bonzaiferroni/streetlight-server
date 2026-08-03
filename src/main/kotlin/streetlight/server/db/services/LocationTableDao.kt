@@ -33,7 +33,9 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
@@ -42,7 +44,7 @@ import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.locationQuery
-import streetlight.server.db.tables.toLocationConfig
+import streetlight.server.db.tables.toLocationConfigContent
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 
@@ -73,6 +75,12 @@ class LocationTableDao : DbService() {
         LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateRecord(location, slugRecord)
         }.singleOrNull()?.toLocation()
+    }
+
+    suspend fun update(config: LocationConfig) = dbQuery {
+        LocationTable.update(where = { LocationTable.id.eq(config.locationId) }) {
+            it[LocationTable.eventSchema] = config.eventSchema
+        }
     }
 
     suspend fun create(
@@ -152,10 +160,16 @@ class LocationTableDao : DbService() {
             }
     }
 
-    suspend fun readConfig(locationId: LocationId): LocationConfig? = dbQuery {
-        LocationTable.select(LocationConfigQuery.columns)
-            .where { LocationTable.id.eq(locationId) }
-            .singleOrNull()?.toLocationConfig()
+    suspend fun readConfigContent(locationId: LocationId) = dbQuery {
+        LocationTable.select(LocationConfigQuery.contentColumns).where {
+            LocationTable.id.eq(locationId)
+        }.singleOrNull()?.toLocationConfigContent()
+    }
+
+    suspend fun readParsable() = dbQuery {
+        LocationTable.select(LocationConfigQuery.contentColumns).where {
+            LocationTable.eventSchema.isNotNull()
+        }.map { it.toLocationConfigContent() }
     }
 }
 

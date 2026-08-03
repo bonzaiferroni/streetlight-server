@@ -1,25 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.api.Username
-import kampfire.model.PrivateInfo
-import kampfire.model.UserRecord
-import kampfire.model.UserSeed
-import klutch.db.DbService
-import klutch.db.readFirstOrNull
-import klutch.db.services.AuthDao
-import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.lowerCase
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
-import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.StarId
-import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.toUserRecord
-import streetlight.server.utils.toRecordId
-import kotlin.time.Clock
-
 //class StarAuthDao: AuthDao<StarRecord, StarId>, DbService() {
 //    override suspend fun createUser(seed: UserSeed) = dbQuery {
 //        val now = Clock.System.now()

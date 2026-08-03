@@ -1,17 +1,13 @@
 package streetlight.server
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.sse.SSE
-import klutch.server.Authorizer
 import klutch.server.KoinProvider
 import klutch.server.configureAuth
 import klutch.server.provide
-import klutch.utils.Log
 import org.koin.dsl.koinApplication
-import org.slf4j.LoggerFactory
-import streetlight.model.data.StarId
+import streetlight.server.daemon.startParseDaemon
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
@@ -50,4 +46,5 @@ fun Application.module() {
     install(SSE)
     serveApi(server)
     configureLogging()
+    startParseDaemon(server)
 }
