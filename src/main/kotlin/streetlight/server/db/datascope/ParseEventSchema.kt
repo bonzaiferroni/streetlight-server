@@ -25,14 +25,14 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
 
     val doc = parseDocument(html, url) ?: return@tryOutcome Problem("Feed url did not serve HTML.")
 
-    val parseContent = when (val outcome = koog.readHtml<ContentParse<EventFeedSchema>>(url, doc, SchemaParserText.EventFeedSelectorsInstructions)) {
+    val eventContent = when (val outcome = koog.readHtml<ContentParse<EventFeedSchema>>(url, doc, SchemaParserText.EventFeedSelectorsInstructions)) {
         is Problem -> return@tryOutcome outcome
         is Ok -> outcome.data
     }
 
-    val feedSchema = parseContent.content
-    if (!parseContent.isExpectedContent || feedSchema == null)
-        return@tryOutcome Problem("Fetch was not expected content, title: ${doc.title()}")
+    val feedSchema = eventContent.content
+    if (!eventContent.isExpectedContent || feedSchema == null)
+        return@tryOutcome Problem("Unexpected feed content, title: ${doc.title()}")
 
     val eventSelector = feedSchema.event ?: return@tryOutcome Problem("No event selector found")
     val feedOnlySchema = listOf(feedSchema)
@@ -61,15 +61,19 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
     }
 
     val pageDoc = parseDocument(pageHtml, pageUrl) ?: return@tryOutcome Ok(feedOnlySchema, "Page url did not serve HTML")
-    when (val outcome = koog.readHtml(pageUrl, pageDoc, SchemaParserText.EventPageSelectorsInstructions, EventPageSchema::class)) {
+    val pageContent = when (val outcome = koog.readHtml<ContentParse<EventPageSchema>>(pageUrl, pageDoc, SchemaParserText.EventPageSelectorsInstructions)) {
         is Problem -> return@tryOutcome Ok(feedOnlySchema, outcome.message)
-        is Ok -> {
-            val pageSchema = outcome.data
-            if (pageSchema.title == null && feedSchema.title == null)
-                return@tryOutcome Problem("No title selector present in either schema")
-            Ok(listOf(feedSchema, pageSchema))
-        }
+        is Ok -> outcome.data
     }
+
+    val pageSchema = pageContent.content
+    if (!pageContent.isExpectedContent || pageSchema == null) {
+        return@tryOutcome Ok(feedOnlySchema, "Unexpected page content, title: ${pageDoc.title()}")
+    }
+
+    if (pageSchema.title == null && feedSchema.title == null)
+        return@tryOutcome Problem("No title selector present in either schema")
+    Ok(listOf(feedSchema, pageSchema))
 }
 
 private fun String.titleTokens(): Set<String> =

@@ -137,6 +137,7 @@ fun ApiScope.serveLocations() {
             dao.origin.readOrCreateOrigin(originId)
             urlSchemas.schemas.forEach { schema ->
                 dao.origin.create(originId, schema)
+                dao.origin.linkLocation(originId, urlSchemas.locationId)
             }
             Ok(Unit)
         }

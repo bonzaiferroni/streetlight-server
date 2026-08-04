@@ -31,7 +31,7 @@ over an option from an earlier group merely because it is shorter.
 
 Given those considerations, the selector values you provide should be the minimal selector necessary to return the desired elements.
 
-Each selector will be queried against the document body and is expected to return a single element.        
+The selectors should not specifically target elements within the head.
 """
 
     val EventFeedSelectorsInstructions = """
@@ -48,11 +48,16 @@ Event-specific selectors are queried against each event element and must not rep
 selector as a prefix. If the event selector is ".event-item" and the title sits in
 "<h3 class='event-title'>", the title selector is ".event-title", not ".event-item .event-title".
 
+Sometimes the event feed will be associated with a particular location or venue, and sometimes it will be a list
+of local events like you might find on a social media page or news website. When it is a feed associated with a location,
+assign a selector to `feedLocation` that will return an element within the body with textContent that matches the location name. 
+When there is information about the event location within the event element, assign that selector to `eventLocation`.
+
 If the content of the document does not contain the information that the selector is intended to query,
 leave its value null. A null value in that case is correct and expected.
 
 If any of the selectors must target the event element itself, as you might expect with an anchor that wraps the entire 
-event content, define it as a single dot: "."
+event content, define it as a single dot: "." This applies only to selectors queried within event elements.
  
 Sometimes the target information will be contained within a set of child elements, that is fine but the
 textContent should evaluate to the desired information where relevant.
@@ -62,7 +67,15 @@ Each value should be a valid CSS query, except in the case of a single dot that 
 $contentObjectInstructions
 
 For the content object, determine the following:
+
+### Selectors that will be queried within the body
+* feedLocation: This selector should return a single element within the body with text content that matches the name of the location associated with the feed, if it is a location feed.
+    - This should be null if the feed is not associated with a location.
+* address: This selector should return a single element within the body with text content that matches the address of the location associated with the feed, if it is a location feed.
 * event: This selector will be used to return a list of elements that each contain details about a specific event.
+
+### Selectors that will be queried within event elements
+* eventLocation: This selector should return the name of the event location if it is present within the event element.
 * title: This selector should return an element with text content that reflects the event title.
 * link: This selector should return an anchor element with a href attribute with an absolute or relative address to an event page.
     - It may be the same as title.
@@ -85,6 +98,7 @@ query the document.
 
 $SelectorPreferenceInstructions
 
+Each selector will be queried against the document body and is expected to return a single element.     
 If the content of the document does not contain the information that the selector is intended to query,
 leave its value null. A null value in that case is correct and expected. 
  
@@ -97,6 +111,8 @@ $contentObjectInstructions
 
 For the content object, determine the following:
 * title: This selector should return an element with text content that reflects the event title.
+* location: This selector should return an element with text content that matches the name of the location.
+* address: This selector should return an element with text content that reflects the address of the location.
 * image: This selector should return an img element with a src attribute referencing an image for the event.
     - Unlike the other elements, the information in the src attribute will be used and not the text content.
 * cost: This selector should return an element with text content about the cost of an event or whether it is free.
