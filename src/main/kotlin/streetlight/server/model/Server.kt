@@ -50,6 +50,7 @@ class DaoFacade(
     val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
     val authToken: AuthTokenTableDao = AuthTokenTableDao(),
     val bouncedEmail: BouncedEmailTableDao = BouncedEmailTableDao(),
+    val origin: OriginTableDao = OriginTableDao()
 )
 
 class ClientFacade(

@@ -75,6 +75,8 @@ dependencies {
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgresql)
+
+    implementation("com.vladsch.flexmark:flexmark-html2md-converter:0.64.8")
 }
 
 kotlin {

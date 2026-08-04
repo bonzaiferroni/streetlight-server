@@ -14,8 +14,6 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.EventParseResult
-import streetlight.model.data.EventSelectorSchema
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.HoursSchedule
 import streetlight.model.data.Location
@@ -45,10 +43,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val starCount = integer("star_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
     val eventsUrl = text("events_url").nullable()
-    val eventSchema = jsonb<EventSelectorSchema>("event_schema", jsonColumnConfig).nullable()
     val image = image("image").nullable()
-    val parseResult = jsonb<EventParseResult>("parse_result", jsonColumnConfig).nullable()
-    val parsedAt = timestamp("checked_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 

@@ -1,8 +1,5 @@
 package streetlight.server.db.datascope
 
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.select.Elements
-import com.fleeksoft.ksoup.select.Selector
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
@@ -12,26 +9,35 @@ import streetlight.agent.KoogParserClient
 import streetlight.agent.fetchHtml
 import streetlight.agent.parseDocument
 import streetlight.agent.tryQuery
-import streetlight.model.data.EventFeedSelectors
-import streetlight.model.data.EventPageSelectors
-import streetlight.model.data.EventSelectorSchema
+import streetlight.model.data.ContentSchema
+import streetlight.model.data.EventFeedSchema
+import streetlight.model.data.EventPageSchema
 import streetlight.server.db.services.tryOutcome
+import streetlight.server.model.ContentParse
 import streetlight.server.model.DataScope
-import streetlight.server.routes.ParserText
+import streetlight.server.routes.SchemaParserText
 
-suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<EventSelectorSchema> = tryOutcome {
-    val html = fetchHtml(url) ?: return@tryOutcome Problem("Unable to fetch HTML.")
-    val doc = parseDocument(html, url) ?: return@tryOutcome Problem("Feed url did not serve HTML.")
-
-    val feedSelector = when (val outcome = koog.readHtml(url, doc, ParserText.eventFeedSelectorsInstructions, EventFeedSelectors::class)) {
+suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<ContentSchema>> = tryOutcome {
+    val html = when(val outcome = fetchHtml(url)) {
         is Problem -> return@tryOutcome outcome
         is Ok -> outcome.data
     }
 
-    val eventSelector = feedSelector.event ?: return@tryOutcome Problem("No event selector found")
-    val feedOnlySchema = EventSelectorSchema(feedSelector, null)
-    val linkSelector = feedSelector.link ?: run {
-        if (feedSelector.title != null) return@tryOutcome Ok(feedOnlySchema)
+    val doc = parseDocument(html, url) ?: return@tryOutcome Problem("Feed url did not serve HTML.")
+
+    val parseContent = when (val outcome = koog.readHtml<ContentParse<EventFeedSchema>>(url, doc, SchemaParserText.EventFeedSelectorsInstructions)) {
+        is Problem -> return@tryOutcome outcome
+        is Ok -> outcome.data
+    }
+
+    val feedSchema = parseContent.content
+    if (!parseContent.isExpectedContent || feedSchema == null)
+        return@tryOutcome Problem("Fetch was not expected content, title: ${doc.title()}")
+
+    val eventSelector = feedSchema.event ?: return@tryOutcome Problem("No event selector found")
+    val feedOnlySchema = listOf(feedSchema)
+    val linkSelector = feedSchema.link ?: run {
+        if (feedSchema.title != null) return@tryOutcome Ok(feedOnlySchema)
         return@tryOutcome Problem("Invalid feed-only schema: missing title")
     }
     val element = when (val outcome = doc.body().tryQuery(eventSelector)) {
@@ -49,15 +55,19 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
     }
 
     val pageUrl = linkElement.attribute("href")?.value?.toUrl() ?: return@tryOutcome Ok(feedOnlySchema, "No link href found")
-    val pageHtml = fetchHtml(pageUrl) ?: return@tryOutcome Ok(feedOnlySchema, "Unable to fetch event page")
+    val pageHtml = when (val outcome = fetchHtml(pageUrl)) {
+        is Problem -> return@tryOutcome Ok(feedOnlySchema, "Page fetch problem: ${outcome.message}")
+        is Ok -> outcome.data
+    }
+
     val pageDoc = parseDocument(pageHtml, pageUrl) ?: return@tryOutcome Ok(feedOnlySchema, "Page url did not serve HTML")
-    when (val outcome = koog.readHtml(pageUrl, pageDoc, ParserText.eventPageSelectorsInstructions, EventPageSelectors::class)) {
+    when (val outcome = koog.readHtml(pageUrl, pageDoc, SchemaParserText.EventPageSelectorsInstructions, EventPageSchema::class)) {
         is Problem -> return@tryOutcome Ok(feedOnlySchema, outcome.message)
         is Ok -> {
-            val pageSelector = outcome.data
-            if (pageSelector.title == null && feedSelector.title == null)
+            val pageSchema = outcome.data
+            if (pageSchema.title == null && feedSchema.title == null)
                 return@tryOutcome Problem("No title selector present in either schema")
-            Ok(EventSelectorSchema(feedSelector, outcome.data))
+            Ok(listOf(feedSchema, pageSchema))
         }
     }
 }

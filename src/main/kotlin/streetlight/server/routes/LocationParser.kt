@@ -24,7 +24,7 @@ class LocationParser(
 ) {
     suspend fun parseLocation(request: ParseRequest): Outcome<LocationEdit> {
         val html = when (request) {
-            is UrlParseRequest -> fetchHtml(request.url)
+            is UrlParseRequest -> fetchHtml(request.url).toDataOrNull()
             is HtmlParseRequest -> request.html
             is ImageParseRequest -> return Problem("Parsing images is not yet supported.")
         } ?: return Problem("Unable to access the website.")

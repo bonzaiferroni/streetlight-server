@@ -43,6 +43,7 @@ import streetlight.server.db.tables.LocationConfigQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.locationConfigContentQuery
 import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
 import streetlight.server.db.tables.updateRecord
@@ -79,7 +80,7 @@ class LocationTableDao : DbService() {
 
     suspend fun update(config: LocationConfig) = dbQuery {
         LocationTable.update(where = { LocationTable.id.eq(config.locationId) }) {
-            it[LocationTable.eventSchema] = config.eventSchema
+            // it[LocationTable.eventSchema] = config.eventSchema
         }
     }
 
@@ -161,15 +162,16 @@ class LocationTableDao : DbService() {
     }
 
     suspend fun readConfigContent(locationId: LocationId) = dbQuery {
-        LocationTable.select(LocationConfigQuery.contentColumns).where {
+        locationConfigContentQuery().where {
             LocationTable.id.eq(locationId)
-        }.singleOrNull()?.toLocationConfigContent()
+        }.toLocationConfigContent().firstOrNull()
     }
 
     suspend fun readParsable() = dbQuery {
-        LocationTable.select(LocationConfigQuery.contentColumns).where {
-            LocationTable.eventSchema.isNotNull()
-        }.map { it.toLocationConfigContent() }
+
+        // LocationTable.select(LocationConfigQuery.contentColumns).where {
+        //     LocationTable.eventSchema.isNotNull()
+        // }.map { it.toLocationConfigContent() }
     }
 }
 
