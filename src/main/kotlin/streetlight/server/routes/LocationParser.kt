@@ -7,8 +7,8 @@ import kampfire.model.Problem
 import kampfire.model.toUrl
 import koala.toImage
 import streetlight.agent.KoogParserClient
-import streetlight.agent.fetchHtml
-import streetlight.agent.parseDocument
+import streetlight.agent.fetchText
+import streetlight.agent.parseHtmlDocument
 import streetlight.model.data.HtmlParseRequest
 import streetlight.model.data.ImageParseRequest
 import streetlight.model.data.LocationEdit
@@ -24,14 +24,14 @@ class LocationParser(
 ) {
     suspend fun parseLocation(request: ParseRequest): Outcome<LocationEdit> {
         val html = when (request) {
-            is UrlParseRequest -> fetchHtml(request.url).toDataOrNull()
+            is UrlParseRequest -> fetchText(request.url).toDataOrNull()
             is HtmlParseRequest -> request.html
             is ImageParseRequest -> return Problem("Parsing images is not yet supported.")
         } ?: return Problem("Unable to access the website.")
 
         val url = request.url
 
-        val doc = parseDocument(html, request.url) ?: return Problem("Address did not serve HTML.")
+        val doc = parseHtmlDocument(html, request.url).toDataOrNull() ?: return Problem("Address did not serve HTML.")
 
         val meta = doc.readHtmlMetaInfo()
         val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }

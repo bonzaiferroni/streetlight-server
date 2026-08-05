@@ -44,6 +44,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
     val eventsUrl = text("events_url").nullable()
     val image = image("image").nullable()
+    val checkedAt = timestamp("checked_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 

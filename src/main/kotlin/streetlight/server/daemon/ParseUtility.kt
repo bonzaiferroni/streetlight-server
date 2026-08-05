@@ -7,7 +7,9 @@ import kampfire.api.Markdown
 import kampfire.api.toMarkdown
 import kampfire.model.Ok
 import kampfire.model.Problem
+import kampfire.model.toUrl
 import streetlight.agent.tryQuery
+import streetlight.model.data.OriginId
 
 fun Element.queryText(selector: String?): String? = selector?.let { query ->
     when (val outcome = tryQuery(query)) {
@@ -81,7 +83,7 @@ fun Element?.isPlausibleProse(): Boolean {
     if (element.isBoilerplate()) return false
     if (element.linkDensity() > 0.5f) return false
     val text = element.text().normalizeSpace()
-    return text.contains('.') && text.split(" ").size >= 12
+    return text.contains('.') && text.length > 64 && text.split(" ").size >= 12
 }
 
 fun Element?.isPlausibleField(): Boolean {
@@ -94,3 +96,5 @@ fun <T> List<RawEvent>.isConstant(selector: (RawEvent) -> T?): Boolean {
     val values = mapNotNull(selector)
     return values.size == size && values.distinct().size == 1
 }
+
+fun OriginId.toRobotsTxtUrl() = "https://${this}/robots.txt".toUrl()

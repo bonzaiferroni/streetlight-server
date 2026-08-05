@@ -4,10 +4,11 @@ import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.Url
+import kampfire.model.toDataOr
 import kampfire.model.toUrl
 import streetlight.agent.KoogParserClient
-import streetlight.agent.fetchHtml
-import streetlight.agent.parseDocument
+import streetlight.agent.fetchText
+import streetlight.agent.parseHtmlDocument
 import streetlight.agent.tryQuery
 import streetlight.model.data.ContentSchema
 import streetlight.model.data.EventFeedSchema
@@ -18,12 +19,9 @@ import streetlight.server.model.DataScope
 import streetlight.server.routes.SchemaParserText
 
 suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<ContentSchema>> = tryOutcome {
-    val html = when(val outcome = fetchHtml(url)) {
-        is Problem -> return@tryOutcome outcome
-        is Ok -> outcome.data
-    }
+    val html = fetchText(url).toDataOr { return@tryOutcome it }
 
-    val doc = parseDocument(html, url) ?: return@tryOutcome Problem("Feed url did not serve HTML.")
+    val doc = parseHtmlDocument(html, url).toDataOr { return@tryOutcome it }
 
     val eventContent = when (val outcome = koog.readHtml<ContentParse<EventFeedSchema>>(url, doc, SchemaParserText.EventFeedSelectorsInstructions)) {
         is Problem -> return@tryOutcome outcome
@@ -55,12 +53,14 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
     }
 
     val pageUrl = linkElement.attribute("href")?.value?.toUrl() ?: return@tryOutcome Ok(feedOnlySchema, "No link href found")
-    val pageHtml = when (val outcome = fetchHtml(pageUrl)) {
+    val pageHtml = when (val outcome = fetchText(pageUrl)) {
         is Problem -> return@tryOutcome Ok(feedOnlySchema, "Page fetch problem: ${outcome.message}")
         is Ok -> outcome.data
     }
 
-    val pageDoc = parseDocument(pageHtml, pageUrl) ?: return@tryOutcome Ok(feedOnlySchema, "Page url did not serve HTML")
+    val pageDoc = parseHtmlDocument(pageHtml, pageUrl).toDataOr {
+        return@tryOutcome Ok(feedOnlySchema, "Page url did not serve HTML")
+    }
     val pageContent = when (val outcome = koog.readHtml<ContentParse<EventPageSchema>>(pageUrl, pageDoc, SchemaParserText.EventPageSelectorsInstructions)) {
         is Problem -> return@tryOutcome Ok(feedOnlySchema, outcome.message)
         is Ok -> outcome.data

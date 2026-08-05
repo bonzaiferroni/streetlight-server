@@ -33,13 +33,15 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
-import streetlight.server.db.tables.LocationConfigQuery
+import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
@@ -48,6 +50,8 @@ import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
+import kotlin.time.Duration
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger(LocationTableDao::class.simpleName!!)
 
@@ -79,8 +83,14 @@ class LocationTableDao : DbService() {
     }
 
     suspend fun update(config: LocationConfig) = dbQuery {
-        LocationTable.update(where = { LocationTable.id.eq(config.locationId) }) {
+        LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
             // it[LocationTable.eventSchema] = config.eventSchema
+        }
+    }
+
+    suspend fun updateCheckedAt(locationId: LocationId, checkedAt: Instant = Clock.System.now()) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.checkedAt] = checkedAt
         }
     }
 
@@ -167,11 +177,10 @@ class LocationTableDao : DbService() {
         }.toLocationConfigContent().firstOrNull()
     }
 
-    suspend fun readParsable() = dbQuery {
-
-        // LocationTable.select(LocationConfigQuery.contentColumns).where {
-        //     LocationTable.eventSchema.isNotNull()
-        // }.map { it.toLocationConfigContent() }
+    suspend fun readCheckable(interval: Duration) = dbQuery {
+         LocationTable.select(LocationQuery.columns).where {
+             LocationTable.eventsUrl.isNotNull() // and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
+         }.map { it.toLocation() }
     }
 }
 

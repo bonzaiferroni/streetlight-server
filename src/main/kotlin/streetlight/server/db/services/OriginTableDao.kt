@@ -1,27 +1,31 @@
 package streetlight.server.db.services
 
-import kampfire.model.Url
 import klutch.db.DbService
+import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.intLiteral
+import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.ContentSchema
 import streetlight.model.data.LocationId
 import streetlight.model.data.Origin
 import streetlight.model.data.OriginId
 import streetlight.model.data.OriginSchema
 import streetlight.model.data.OriginSchemaId
-import streetlight.model.data.toOriginId
 import streetlight.server.db.tables.LocationOriginTable
 import streetlight.server.db.tables.OriginSchemaTable
 import streetlight.server.db.tables.OriginTable
 import streetlight.server.db.tables.createOrigin
 import streetlight.server.db.tables.createOriginSchema
+import streetlight.server.db.tables.originQuery
 import streetlight.server.db.tables.toOrigin
+import streetlight.server.db.tables.toOrigins
 import kotlin.time.Clock
 
-class OriginTableDao: DbService() {
+class OriginTableDao : DbService() {
 
     suspend fun create(originId: OriginId, schema: ContentSchema) = dbQuery {
         OriginSchemaTable.insert {
@@ -30,12 +34,29 @@ class OriginTableDao: DbService() {
     }
 
     suspend fun readOrCreateOrigin(originId: OriginId) = dbQuery {
-        OriginTable.select(OriginTable.columns).where { OriginTable.id.eq(originId.value) }.singleOrNull()?.toOrigin(emptyList())
-            ?: originId.toOrigin().also { origin ->
-                OriginTable.insert {
-                    it.createOrigin(origin)
-                }
+        readOrigin(originId) ?: originId.toOrigin().also { origin ->
+            OriginTable.insert {
+                it.createOrigin(origin)
             }
+        }
+    }
+
+    suspend fun updateRobotsTxt(originId: OriginId, robotsTxt: String) = dbQuery {
+        OriginTable.update({ OriginTable.id.eq(originId.value) }) {
+            it[OriginTable.robotsTxt] = robotsTxt
+            it[OriginTable.updatedAt] = Clock.System.now()
+        }
+    }
+
+    suspend fun updateSchemaResult(originSchemaId: OriginSchemaId, isSuccess: Boolean) = dbQuery {
+        val now = Clock.System.now()
+        OriginSchemaTable.update({ OriginSchemaTable.id.eq(originSchemaId) }) {
+            it[consecutiveFailCount] = if (isSuccess) intLiteral(0) else consecutiveFailCount + 1
+            it[updatedAt] = now
+            if (isSuccess) {
+                it[lastSuccessAt] = now
+            }
+        }
     }
 
     suspend fun linkLocation(originId: OriginId, locationId: LocationId) = dbQuery {
@@ -43,6 +64,10 @@ class OriginTableDao: DbService() {
             it[LocationOriginTable.locationId] = locationId.value
             it[LocationOriginTable.originId] = originId.value
         }
+    }
+
+    suspend fun readOrigin(originId: OriginId) = dbQuery {
+        originQuery().where { OriginTable.id.eq(originId.value) }.toOrigins().firstOrNull()
     }
 }
 
