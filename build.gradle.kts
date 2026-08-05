@@ -51,16 +51,16 @@ dependencies {
     implementation(libs.logback.classic)
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
-    api(project(":model"))
-    api(project(":kabinet"))
-    api(project(":klutch"))
+    implementation(project(":model"))
+    implementation(project(":kabinet"))
+    implementation(project(":klutch"))
     implementation(project(":web"))
     implementation(project(":agent"))
     implementation(project(":koala"))
 
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
     implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
-    implementation("com.fleeksoft.ksoup:ksoup:0.2.6")
+    implementation(libs.fleeksoft.ksoup)
     implementation("com.google.transit:gtfs-realtime-bindings:0.0.4")
     implementation(libs.ktor.serialization.kotlinx.cbor)
 

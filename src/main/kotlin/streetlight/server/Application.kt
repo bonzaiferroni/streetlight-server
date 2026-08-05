@@ -7,7 +7,6 @@ import klutch.server.KoinProvider
 import klutch.server.configureAuth
 import klutch.server.provide
 import org.koin.dsl.koinApplication
-import streetlight.server.daemon.startParseDaemon
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
@@ -46,5 +45,4 @@ fun Application.module() {
     install(SSE)
     serveApi(server)
     configureLogging()
-    startParseDaemon(server)
 }
