@@ -13,6 +13,7 @@ import kampfire.model.toDataOr
 import kampfire.model.toUrl
 import klutch.server.provide
 import koala.Image
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import streetlight.agent.AGENT_TOKEN
 import streetlight.agent.KoogParserClient
@@ -37,6 +38,7 @@ import streetlight.server.plugins.logger
 import streetlight.server.routes.SchemaParserText
 import streetlight.server.routes.createEvent
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 class ParseDaemon(private val server: Server) {
 
@@ -45,12 +47,15 @@ class ParseDaemon(private val server: Server) {
     private var lmUsageLimitReached = false
 
     suspend fun start() {
-        val galaxy = dao.galaxy.readGalaxy(Slug("tag"), null) ?: return
-        val locations = dao.location.readCheckable(checkInterval - 1.hours)
-        locations.forEach { location ->
-            checkLocation(location, galaxy)
+        while (true) {
+            val galaxy = dao.galaxy.readGalaxy(Slug("tag"), null) ?: return
+            val locations = dao.location.readCheckable(checkInterval - 1.hours)
+            locations.forEach { location ->
+                checkLocation(location, galaxy)
+            }
+            logger.info { "completed location check" }
+            delay(1.minutes)
         }
-        logger.info { "completed location check" }
     }
 
     private suspend fun checkLocation(location: Location, galaxy: Galaxy) {

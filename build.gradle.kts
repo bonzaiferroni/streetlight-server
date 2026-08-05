@@ -23,7 +23,7 @@ dependencies {
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
-    implementation(libs.exposed.jdbc)
+    api(libs.exposed.jdbc)
     implementation(libs.exposed.json)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.kotlinx.serialization.json)
@@ -51,9 +51,9 @@ dependencies {
     implementation(libs.logback.classic)
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 
-    implementation(project(":model"))
-    implementation(project(":kabinet"))
-    implementation(project(":klutch"))
+    api(project(":model"))
+    api(project(":kabinet"))
+    api(project(":klutch"))
     implementation(project(":web"))
     implementation(project(":agent"))
     implementation(project(":koala"))
@@ -67,8 +67,8 @@ dependencies {
     implementation(platform("aws.sdk.kotlin:bom:1.6.52"))
     implementation("aws.sdk.kotlin:s3")
 
-    implementation(project.dependencies.platform(libs.koin.bom))
-    implementation(libs.koin.core)
+    api(project.dependencies.platform(libs.koin.bom))
+    api(libs.koin.core)
 
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
