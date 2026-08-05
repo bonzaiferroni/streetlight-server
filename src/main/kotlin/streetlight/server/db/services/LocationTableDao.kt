@@ -179,12 +179,10 @@ class LocationTableDao : DbService() {
 
     suspend fun readCheckable(interval: Duration) = dbQuery {
          LocationTable.select(LocationQuery.columns).where {
-             LocationTable.eventsUrl.isNotNull() // and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
+             LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
          }.map { it.toLocation() }
     }
 }
-
-
 
 fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     locationId = locationId,

@@ -10,7 +10,7 @@ import streetlight.agent.KoogParserClient
 import streetlight.agent.fetchText
 import streetlight.agent.parseHtmlDocument
 import streetlight.agent.tryQuery
-import streetlight.model.data.ContentSchema
+import streetlight.model.data.SelectorSchema
 import streetlight.model.data.EventFeedSchema
 import streetlight.model.data.EventPageSchema
 import streetlight.server.db.services.tryOutcome
@@ -18,7 +18,7 @@ import streetlight.server.model.ContentParse
 import streetlight.server.model.DataScope
 import streetlight.server.routes.SchemaParserText
 
-suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<ContentSchema>> = tryOutcome {
+suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<SelectorSchema>> = tryOutcome {
     val html = fetchText(url).toDataOr { return@tryOutcome it }
 
     val doc = parseHtmlDocument(html, url).toDataOr { return@tryOutcome it }

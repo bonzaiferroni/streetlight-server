@@ -59,9 +59,9 @@ val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStar
 val eventLocationSlugSync = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
 val eventUsernameSync = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createEvent(event: Event, starId: CallerId, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.createEvent(event: Event, starId: CallerId?, slugRecord: SlugRecord) {
     this[EventTable.id] = event.eventId.value
-    this[EventTable.scoutId] = starId.value
+    this[EventTable.scoutId] = starId?.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.createdAt] = event.createdAt

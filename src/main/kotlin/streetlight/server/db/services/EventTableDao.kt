@@ -30,19 +30,21 @@ import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.createEvent
 import streetlight.server.db.tables.eventQuery
 import streetlight.server.db.tables.updateEvent
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 private val console = globalConsole.getHandle(EventTableDao::class)
 
 class EventTableDao: DbService() {
     suspend fun createEvent(
-        callerId: CallerId,
+        callerId: CallerId?,
         edit: EventEdit,
     ) = dbQuery {
         val eventId = EventId.random()
@@ -141,7 +143,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     contact = contact,
     status = EventStatus.Pending,
     ageMin = ageMin,
-    cost = cost ?: error("no cost provided"),
+    cost = cost,
     visibility = null,
     links = links,
     website = website,
@@ -149,7 +151,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     streamUrl = null,
     isLit = false, // set with join
     timeZoneId = timeZoneId ?: error("no time zone"),
-    startsAt = startsAt ?: error("no starting time"),
+    startsAt = startsAt,
     endsAt = endsAt,
     lightCount = 0,
     updatedAt = Clock.System.now(),

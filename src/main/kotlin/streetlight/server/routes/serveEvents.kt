@@ -88,7 +88,7 @@ fun ApiScope.serveEvents() {
             val edit = request.data
             val title = requireNotNull(edit.title)
 
-            createEvent(identity.callerId, edit)?.also { outcome ->
+            createEvent(identity.callerId, edit).also { outcome ->
                 if (outcome is Ok) {
                     val slug = outcome.data.slug
                     omni.sendEventCreated(title, slug, identity.username)

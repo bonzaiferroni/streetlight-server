@@ -1,9 +1,9 @@
 package streetlight.server.daemon
 
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.select.Elements
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.Application
+import kampfire.api.Slug
 import kampfire.api.toMarkdown
 import kampfire.model.Ok
 import kampfire.model.Outcome
@@ -13,83 +13,119 @@ import kampfire.model.toDataOr
 import kampfire.model.toUrl
 import klutch.server.provide
 import koala.Image
-import koala.utils.prettyPrint
 import kotlinx.coroutines.launch
 import streetlight.agent.AGENT_TOKEN
 import streetlight.agent.KoogParserClient
+import streetlight.agent.LMProblem
 import streetlight.agent.fetchText
 import streetlight.agent.parseHtmlDocument
 import streetlight.agent.tryQuery
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventFeedSchema
 import streetlight.model.data.EventPageSchema
+import streetlight.model.data.Galaxy
+import streetlight.model.data.Location
 import streetlight.model.data.LocationId
 import streetlight.model.data.Origin
 import streetlight.model.data.OriginSchema
+import streetlight.model.data.PostEdit
+import streetlight.model.data.PostType
 import streetlight.model.data.toOriginId
 import streetlight.server.model.ContentParse
-import streetlight.server.model.DaoFacade
 import streetlight.server.model.Server
 import streetlight.server.plugins.logger
 import streetlight.server.routes.SchemaParserText
+import streetlight.server.routes.createEvent
 import kotlin.time.Duration.Companion.hours
 
-class ParseDaemon(private val dao: DaoFacade, private val koog: KoogParserClient) {
+class ParseDaemon(private val server: Server) {
+
+    private val dao = server.dao
+    private val koog = server.provide<KoogParserClient>()
+    private var lmUsageLimitReached = false
 
     suspend fun start() {
+        val galaxy = dao.galaxy.readGalaxy(Slug("tag"), null) ?: return
         val locations = dao.location.readCheckable(checkInterval - 1.hours)
         locations.forEach { location ->
-            dao.location.updateCheckedAt(location.locationId)
+            checkLocation(location, galaxy)
+        }
+        logger.info { "completed location check" }
+    }
 
-            val feedUrl = requireNotNull(location.eventsUrl)
-            val originId = feedUrl.toOriginId() ?: return@forEach
-            if (originId.value != "swallowhillmusic.org") return@forEach
+    private suspend fun checkLocation(location: Location, galaxy: Galaxy) {
+        dao.location.updateCheckedAt(location.locationId)
 
-            val origin = dao.origin.readOrCreateOrigin(originId)
-            val gate = origin.getRobotGate()
+        val feedUrl = requireNotNull(location.eventsUrl)
+        val originId = feedUrl.toOriginId() ?: return
+        // if (originId.value != "swallowhillmusic.org") return@forEach
 
-            val feedHtml = gate.fetchWhenOpen(feedUrl).toDataOr(::logProblem) { return@forEach }
-            val feedDoc = parseHtmlDocument(feedHtml, feedUrl).toDataOr(::logProblem) { return@forEach }
-            val feedSchema = origin.getFeedSchema(feedUrl, feedDoc).toDataOr(::logProblem) { return@forEach }
+        val origin = dao.origin.readOrCreateOrigin(originId)
+        val gate = origin.getRobotGate()
 
-            val eventSelector = feedSchema.event ?: return@forEach
-            val body = feedDoc.body()
-            val pageElements = body.tryQuery(eventSelector).toDataOr(::logProblem) { return@forEach }
-            val rawEvents = pageElements.mapNotNull { element ->
-                val feedEvent = RawEvent(
-                    title = element.queryElement(feedSchema.title).plainText(),
-                    image = element.queryElement(feedSchema.image).absoluteUrl("src"),
-                    descriptionHtml = element.queryElement(feedSchema.description)
-                        .takeIf { it.isPlausibleProse() }.innerHtml(),
-                    cost = element.queryElement(feedSchema.cost).plainText(),
-                    date = element.queryElement(feedSchema.date).plainText(),
-                    startTime = element.queryElement(feedSchema.time).plainText(),
-                )
-                val pageUrl = element.queryElement(feedSchema.link).absoluteUrl("href")?.toUrl()
-                val pageEvent = pageUrl?.let { url ->
-                    val pageHtml = gate.fetchWhenOpen(url).toDataOr(::logProblem) { return@let null }
-                    val pageDoc = parseHtmlDocument(pageHtml, url).toDataOr(::logProblem) { return@let null }
+        val feedHtml = gate.fetchWhenOpen(feedUrl).toDataOr(::logProblem) { return }
+        val feedDoc = parseHtmlDocument(feedHtml, feedUrl).toDataOr(::logProblem) { return }
+        val feedSchema = origin.getFeedSchema(feedUrl, feedDoc).toDataOr(::logProblem) { return }
 
-                    val pageSchema = origin.getPageSchema(url, pageDoc).toDataOr(::logProblem) { return@let null }
-                    parsePageEvent(pageSchema, pageDoc)
+        val eventSelector = feedSchema.event ?: return
+        val body = feedDoc.body()
+        val pageElements = body.tryQuery(eventSelector).toDataOr(::logProblem) { return }
+        var pageFailCount = 0
+        val schemaCache = SchemaCache(origin.schemas)
+
+        val edits = pageElements.mapNotNull { element ->
+            val feedEvent = RawEvent(
+                title = element.queryElement(feedSchema.title).plainText(),
+                image = element.queryElement(feedSchema.image).absoluteUrl("src"),
+                descriptionHtml = element.queryElement(feedSchema.description)
+                    .takeIf { it.isPlausibleProse() }.innerHtml(),
+                cost = element.queryElement(feedSchema.cost).plainText(),
+                date = element.queryElement(feedSchema.date).plainText(),
+                startTime = element.queryElement(feedSchema.time).plainText(),
+            )
+            val pageUrl = element.queryElement(feedSchema.link).absoluteUrl("href")?.toUrl()
+            val pageEvent = pageUrl?.let { url ->
+                if (pageFailCount > 0) return@let null
+                val pageHtml = gate.fetchWhenOpen(url).toDataOr(::logProblem) { return@let null }
+                val pageDoc = parseHtmlDocument(pageHtml, url).toDataOr(::logProblem) { return@let null }
+
+                val pageSchema = origin.getPageSchema(url, pageDoc, schemaCache).toDataOr(::logProblem) {
+                    pageFailCount++
+                    return@let null
                 }
-
-                val event = RawEvent(
-                    title = pageEvent?.title ?: feedEvent.title,
-                    image = pageEvent?.image ?: feedEvent.image,
-                    descriptionHtml = pageEvent?.descriptionHtml ?: feedEvent.descriptionHtml,
-                    contact = pageEvent?.contact,
-                    cost = pageEvent?.cost ?: feedEvent.cost,
-                    ageMin = pageEvent?.ageMin,
-                    date = pageEvent?.date ?: feedEvent.date,
-                    startTime = pageEvent?.startTime ?: feedEvent.startTime,
-                    endTime = pageEvent?.endTime,
-                )
-
-                event.toEventEdit(pageUrl, location.timezoneId, location.locationId).also {
-                    println(prettyPrint(it))
-                }
+                parsePageEvent(pageSchema, pageDoc)
             }
+
+            val event = RawEvent(
+                title = pageEvent?.title ?: feedEvent.title,
+                image = pageEvent?.image ?: feedEvent.image,
+                descriptionHtml = pageEvent?.descriptionHtml ?: feedEvent.descriptionHtml,
+                contact = pageEvent?.contact,
+                cost = pageEvent?.cost ?: feedEvent.cost,
+                ageMin = pageEvent?.ageMin,
+                date = pageEvent?.date ?: feedEvent.date,
+                startTime = pageEvent?.startTime ?: feedEvent.startTime,
+                endTime = pageEvent?.endTime,
+            )
+
+            event.toEventEdit(pageUrl, location.timezoneId, location.locationId).also {
+                // println(prettyPrint(it))
+            }
+        }
+
+        edits.forEach { edit ->
+            val startsAt = edit.startsAt ?: return@forEach
+            val existingEvent = dao.event.readEventAt(location.locationId, startsAt)
+            if (existingEvent != null) return@forEach
+            val event = server.createEvent(null, edit).toDataOr { return@forEach }
+            dao.post.create(
+                PostEdit(
+                    postId = null,
+                    galaxyId = galaxy.galaxyId,
+                    postType = PostType.Event,
+                    recordId = event.eventId.value,
+                ), null
+            )
         }
     }
 
@@ -111,7 +147,7 @@ class ParseDaemon(private val dao: DaoFacade, private val koog: KoogParserClient
     private suspend fun Origin.getFeedSchema(url: Url, doc: Document): Outcome<EventFeedSchema> {
         val body = doc.body()
         schemas.forEach { schema ->
-            val content = schema.content as? EventFeedSchema ?: return@forEach
+            val content = schema.selector as? EventFeedSchema ?: return@forEach
             val eventSelector = content.event ?: return@forEach
             val pageElements = body.tryQuery(eventSelector).toDataOr { return@forEach }
             val isSuccess = !pageElements.isEmpty()
@@ -119,10 +155,17 @@ class ParseDaemon(private val dao: DaoFacade, private val koog: KoogParserClient
             if (isSuccess) return Ok(content)
         }
 
+        if (lmUsageLimitReached) return LMProblem.UsageLimit
+
         // td: limit LM call by interval
         val content = koog.readHtml<ContentParse<EventFeedSchema>>(
             url = url, doc = doc, instructions = SchemaParserText.EventFeedSelectorsInstructions
-        ).toDataOr { return it }
+        ).toDataOr {
+            if (it == LMProblem.UsageLimit) {
+                lmUsageLimitReached = true
+            }
+            return it
+        }
 
         val contentSchema = content.content
         if (!content.isExpectedContent || contentSchema == null) {
@@ -133,87 +176,53 @@ class ParseDaemon(private val dao: DaoFacade, private val koog: KoogParserClient
         return Ok(contentSchema)
     }
 
-    private suspend fun Origin.getPageSchema(url: Url, doc: Document): Outcome<EventPageSchema> {
-        schemas.forEach { schema ->
-            val content = schema.content as? EventPageSchema ?: return@forEach
+    private suspend fun Origin.getPageSchema(
+        url: Url,
+        doc: Document,
+        schemaCache: SchemaCache
+    ): Outcome<EventPageSchema> {
+
+        schemaCache.ordered().mapNotNull { schema ->
+            val content = schema.selector as? EventPageSchema ?: return@mapNotNull null
             val pageEvent = parsePageEvent(content, doc)
             val isSuccess = !pageEvent.title.isNullOrBlank() && !pageEvent.descriptionHtml.isNullOrBlank()
-            println(pageEvent.descriptionHtml?.length)
-            dao.origin.updateSchemaResult(schema.originSchemaId, isSuccess)
-            if (isSuccess) return Ok(content)
+
+            val length = pageEvent.descriptionHtml?.length
+            // println(length) td: a better way to score quality of selector
+
+            if (!isSuccess) {
+                dao.origin.updateSchemaResult(schema.originSchemaId, false)
+                return@mapNotNull null
+            }
+
+            length to schema
+        }.sortedByDescending { it.first }.firstOrNull()?.let { (length, schema) ->
+            println("chose: $length")
+            dao.origin.updateSchemaResult(schema.originSchemaId, true)
+            return Ok(schema.selector as EventPageSchema)
         }
+
+        if (lmUsageLimitReached) return LMProblem.UsageLimit
 
         // td: likewise limit LM call by interval
         val content = koog.readHtml<ContentParse<EventPageSchema>>(
             url = url, doc = doc, instructions = SchemaParserText.EventPageSelectorsInstructions
-        ).toDataOr { return it }
+        ).toDataOr {
+            if (it == LMProblem.UsageLimit) {
+                lmUsageLimitReached = true
+            }
+            return it
+        }
 
         val contentSchema = content.content
         if (!content.isExpectedContent || contentSchema == null) {
             return Problem("Document content was not an event page")
         }
 
-        dao.origin.create(originId, contentSchema)
+        val originSchema = dao.origin.create(originId, contentSchema)
+        schemaCache.add(originSchema)
         return Ok(contentSchema)
     }
-
-
-//    suspend fun parseLocationEvents(content: LocationConfigContent) {
-//        val location = content.location
-//        content.parseResult?.let { lastResult ->
-//            if (!lastResult.isSuccess) return
-//        }
-//        content.parsedAt?.let { parsedAt ->
-//            if (parsedAt > Clock.System.now() - 24.hours) return
-//        }
-//        val feedUrl = location.eventsUrl ?: error("url not found")
-//        println("fetching feed: $feedUrl")
-//        val feedHtml = fetchHtml(feedUrl) ?: error("could not fetch html")
-//        val doc = parseDocument(feedHtml, feedUrl) ?: error("doc not found")
-//        val schema = content.config.eventSchema ?: error("schema not found")
-//        val feed = schema.feed.firstOrNull() ?: error("feed selector not found")
-//        val eventSelector = feed.event ?: error("event selector not found")
-//        val pageElementsFromFeed = when (val outcome = doc.body().tryQuery(eventSelector)) {
-//            is Problem -> error(outcome.message)
-//            is Ok -> outcome.data
-//        }
-//
-//        val gathered = pageElementsFromFeed.map { element ->
-//            val feedDescription = element.queryElement(feed.description)
-//            val feedEvent = RawEvent(
-//                title = element.queryElement(feed.title).plainText(),
-//                image = element.queryElement(feed.image).absoluteUrl("src"),
-//                descriptionHtml = feedDescription.takeIf { it.isPlausibleProse() }.innerHtml(),
-//                cost = element.queryElement(feed.cost).plainText(),
-//                date = element.queryElement(feed.date).plainText(),
-//                startTime = element.queryElement(feed.time).plainText(),
-//            )
-//            val pageUrl = element.queryElement(feed.link).absoluteUrl("href")?.toUrl()
-//
-//            val pageEvent = pageUrl?.let { url ->
-//                println("fetching page: $url")
-//                val pageHtml = fetchHtml(url) ?: return@let null
-//                delay(1.minutes)
-//                val pageDoc = parseDocument(pageHtml, url) ?: return@let null
-//                val pageSchema = schema.page.firstOrNull() ?: return@let null
-//                parsePageEvent(pageSchema, pageDoc)
-//            }
-//
-//            RawEvent(
-//                title = pageEvent?.title ?: feedEvent.title,
-//                image = pageEvent?.image ?: feedEvent.image,
-//                descriptionHtml = pageEvent?.descriptionHtml ?: feedEvent.descriptionHtml,
-//                contact = pageEvent?.contact,
-//                cost = pageEvent?.cost ?: feedEvent.cost,
-//                ageMin = pageEvent?.ageMin,
-//                date = pageEvent?.date ?: feedEvent.date,
-//                startTime = pageEvent?.startTime ?: feedEvent.startTime,
-//                endTime = pageEvent?.endTime,
-//            )
-//        }
-//
-//
-//    }
 
     private fun parsePageEvent(schema: EventPageSchema, doc: Document): RawEvent {
         val body = doc.body()
@@ -241,7 +250,7 @@ class ParseDaemon(private val dao: DaoFacade, private val koog: KoogParserClient
 
 fun Application.startParseDaemon(server: Server) {
     launch {
-        ParseDaemon(server.dao, server.provide<KoogParserClient>()).start()
+        ParseDaemon(server).start()
     }
 }
 
@@ -271,17 +280,18 @@ private fun RawEvent.toEventEdit(website: Url?, timeZoneId: String?, locationId:
     val start = dateTimeText?.let { parseLocalDateTime(it, timeZoneId) }
     val end = endTime?.let { parseTimeFromText(it) }
 
-    val notes = listOfNotNull(
-        endTime?.let { "* **Ends:** $it" }, // td: escape markdown
-        cost?.let { "* **Cost:** $it" },
-        ageMin?.let { "* **Ages:** $it" },
-    )
+    // val notes = listOfNotNull(
+    //     end?.let { "* **Ends:** $it" },
+    //     cost?.let { "* **Cost:** $it" },
+    //     ageMin?.let { "* **Ages:** $it" },
+    // )
+    // td: escape markdown
     val timeNote = if (start == null) (startTime ?: date)?.let { "**Time:** $it" } else null
 
     val body = listOfNotNull(
         timeNote,
         description,
-        notes.joinToString("\n").takeIf { it.isNotBlank() },
+        // notes.joinToString("\n").takeIf { it.isNotBlank() },
     ).joinToString("\n\n").takeIf { it.isNotBlank() }
 
     return EventEdit(

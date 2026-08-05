@@ -59,15 +59,19 @@ class PostTableDao : DbService() {
     //     slug
     // }
 
-    suspend fun create(post: PostEdit, callerId: CallerId) = dbQuery {
+    suspend fun create(post: PostEdit, callerId: CallerId?) = dbQuery {
         val record = post.toPostRecord(callerId)
-        val status = getInitialContentStatus(record.galaxyId, callerId)
+        val status = callerId?.let {
+            getInitialContentStatus(record.galaxyId, callerId)
+        } ?: FeedStatus.Live // td: figure out feedstatus for no callerId
 
         PostTable.insert { it.createRecord(record, status) }
-        PostStarTable.insert {
-            it[PostStarTable.postId] = record.postId.value
-            it[PostStarTable.starId] = callerId.value
-            it[PostStarTable.createdAt] = Clock.System.now()
+        callerId?.let {
+            PostStarTable.insert {
+                it[PostStarTable.postId] = record.postId.value
+                it[PostStarTable.starId] = callerId.value
+                it[PostStarTable.createdAt] = Clock.System.now()
+            }
         }
         PostTable.selectAll().where { PostTable.id.eq(record.postId) }.singleOrNull()?.toPost()
     }
@@ -167,13 +171,13 @@ class PostTableDao : DbService() {
     }
 }
 
-fun PostEdit.toPostRecord(callerId: CallerId) = PostRecord(
+fun PostEdit.toPostRecord(callerId: CallerId?) = PostRecord(
     postId = postId ?: PostId.random(),
     galaxyId = galaxyId,
     eventId = recordId.takeIf { postType == PostType.Event }?.let { EventId(recordId) },
     locationId = recordId.takeIf { postType == PostType.Location }?.let { LocationId(recordId) },
     mediaId = recordId.takeIf { postType == PostType.Media }?.let { MediaId(recordId) },
-    starId = callerId.toStarId(),
+    starId = callerId?.toStarId(),
     title = title,
     text = text,
     lightCount = 0,

@@ -1,5 +1,7 @@
 package streetlight.server.routes
 
+import kampfire.model.CoreProblem
+import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.toOutcome
@@ -18,22 +20,22 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.toStarId
 
 suspend fun DataScope.createEvent(
-    callerId: CallerId,
+    callerId: CallerId?,
     edit: EventEdit,
-): Outcome<Event>? = transaction {
+): Outcome<Event> = transaction {
     if (dao.event.hasConflict(edit)) return@transaction Problem("Event already exists")
     val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)
 
     log("creating event: ${edit.title}")
-    val event = dao.event.createEvent(callerId, edit.copy(image = image)) ?: return@transaction null
-    val editLogId = dao.editLog.create(EditType.Create, event.toEdit(), event.eventId, callerId)
-    val star = dao.star.readStar(callerId.toStarId()) ?: error("star not found")
+    val event = dao.event.createEvent(callerId, edit.copy(image = image)) ?: return@transaction CoreProblem.Something
+    // val editLogId = dao.editLog.create(EditType.Create, event.toEdit(), event.eventId, callerId)
+    // val star = callerId?.let { dao.star.readStar(callerId.toStarId()) }
 
-    if (edit.needsReview || star.scoutLevel == 0) {
-        createEditTask(editLogId)
-    }
+    // if (edit.needsReview || star.scoutLevel == 0) {
+    //     createEditTask(editLogId)
+    // }
 
-    event.toOutcome()
+    Ok(event)
 }
 
 suspend fun DataScope.updateEvent(

@@ -7,9 +7,8 @@ import org.jetbrains.exposed.v1.core.intLiteral
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
-import streetlight.model.data.ContentSchema
+import streetlight.model.data.SelectorSchema
 import streetlight.model.data.LocationId
 import streetlight.model.data.Origin
 import streetlight.model.data.OriginId
@@ -21,16 +20,17 @@ import streetlight.server.db.tables.OriginTable
 import streetlight.server.db.tables.createOrigin
 import streetlight.server.db.tables.createOriginSchema
 import streetlight.server.db.tables.originQuery
-import streetlight.server.db.tables.toOrigin
 import streetlight.server.db.tables.toOrigins
 import kotlin.time.Clock
 
 class OriginTableDao : DbService() {
 
-    suspend fun create(originId: OriginId, schema: ContentSchema) = dbQuery {
+    suspend fun create(originId: OriginId, selectorSchema: SelectorSchema) = dbQuery {
+        val schema = selectorSchema.toOriginSchema(originId)
         OriginSchemaTable.insert {
-            it.createOriginSchema(schema.toOriginSchema(originId))
+            it.createOriginSchema(schema)
         }
+        schema
     }
 
     suspend fun readOrCreateOrigin(originId: OriginId) = dbQuery {
@@ -71,11 +71,11 @@ class OriginTableDao : DbService() {
     }
 }
 
-private fun ContentSchema.toOriginSchema(originId: OriginId) = OriginSchema(
+private fun SelectorSchema.toOriginSchema(originId: OriginId) = OriginSchema(
     originSchemaId = OriginSchemaId.random(),
     originId = originId,
     schemaType = schemaType,
-    content = this,
+    selector = this,
     consecutiveFailCount = 0,
     lastSuccessAt = null,
     updatedAt = Clock.System.now(),

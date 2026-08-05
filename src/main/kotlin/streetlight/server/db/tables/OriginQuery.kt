@@ -16,14 +16,17 @@ fun originQuery() = OriginTable.leftJoin(OriginSchemaTable).select(OriginQuery.c
 
 fun Query.toOrigins() = groupBy { it[OriginTable.id].value }
     .map { (_, rows) ->
-        rows.first().toOrigin(rows.map { it.toOriginSchema() })
+        rows.first().toOrigin(rows.mapNotNull {
+            if (it.getOrNull(OriginSchemaTable.id) == null) return@mapNotNull null
+            it.toOriginSchema()
+        })
     }
 
 fun ResultRow.toOriginSchema() = OriginSchema(
     originSchemaId = toRecordId(OriginSchemaTable.id),
     originId = OriginId(this[OriginSchemaTable.originId].value),
     schemaType = this[OriginSchemaTable.schemaType],
-    content = this[OriginSchemaTable.content],
+    selector = this[OriginSchemaTable.content],
     consecutiveFailCount = this[OriginSchemaTable.consecutiveFailCount],
     lastSuccessAt = this[OriginSchemaTable.lastSuccessAt],
     updatedAt = this[OriginSchemaTable.updatedAt],
