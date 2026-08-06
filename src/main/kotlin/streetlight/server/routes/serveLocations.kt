@@ -14,6 +14,7 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.agent.KoogParserClient
+import streetlight.model.data.FetchMode
 import streetlight.model.data.toOriginId
 import streetlight.server.db.datascope.createLocation
 import streetlight.server.db.datascope.parseEventSchema
@@ -136,7 +137,7 @@ fun ApiScope.serveLocations() {
             val originId = urlSchemas.url.toOriginId() ?: return@postApi Problem("Invalid url: ${urlSchemas.url}")
             dao.origin.readOrCreateOrigin(originId)
             urlSchemas.schemas.forEach { schema ->
-                dao.origin.create(originId, schema)
+                dao.origin.create(originId, schema, FetchMode.Basic)
                 dao.origin.linkLocation(originId, urlSchemas.locationId)
             }
             Ok(Unit)

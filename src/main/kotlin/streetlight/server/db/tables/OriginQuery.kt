@@ -26,6 +26,7 @@ fun ResultRow.toOriginSchema() = OriginSchema(
     originSchemaId = toRecordId(OriginSchemaTable.id),
     originId = OriginId(this[OriginSchemaTable.originId].value),
     schemaType = this[OriginSchemaTable.schemaType],
+    fetchMode = this[OriginSchemaTable.fetchMode],
     selector = this[OriginSchemaTable.content],
     consecutiveFailCount = this[OriginSchemaTable.consecutiveFailCount],
     lastSuccessAt = this[OriginSchemaTable.lastSuccessAt],
@@ -35,6 +36,7 @@ fun ResultRow.toOriginSchema() = OriginSchema(
 
 fun ResultRow.toOrigin(schemas: List<OriginSchema>) = Origin(
     originId = OriginId(this[OriginTable.id].value),
+    fetchMode = this[OriginTable.fetchMode],
     schemas = schemas,
     robotsTxt = this[OriginTable.robotsTxt],
     updatedAt = this[OriginTable.updatedAt],

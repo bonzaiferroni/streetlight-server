@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.update
+import streetlight.model.data.FetchMode
 import streetlight.model.data.SelectorSchema
 import streetlight.model.data.LocationId
 import streetlight.model.data.Origin
@@ -25,8 +26,8 @@ import kotlin.time.Clock
 
 class OriginTableDao : DbService() {
 
-    suspend fun create(originId: OriginId, selectorSchema: SelectorSchema) = dbQuery {
-        val schema = selectorSchema.toOriginSchema(originId)
+    suspend fun create(originId: OriginId, selectorSchema: SelectorSchema, fetchMode: FetchMode) = dbQuery {
+        val schema = selectorSchema.toOriginSchema(originId, fetchMode)
         OriginSchemaTable.insert {
             it.createOriginSchema(schema)
         }
@@ -71,10 +72,11 @@ class OriginTableDao : DbService() {
     }
 }
 
-private fun SelectorSchema.toOriginSchema(originId: OriginId) = OriginSchema(
+private fun SelectorSchema.toOriginSchema(originId: OriginId, fetchMode: FetchMode) = OriginSchema(
     originSchemaId = OriginSchemaId.random(),
     originId = originId,
     schemaType = schemaType,
+    fetchMode = fetchMode,
     selector = this,
     consecutiveFailCount = 0,
     lastSuccessAt = null,
@@ -84,6 +86,7 @@ private fun SelectorSchema.toOriginSchema(originId: OriginId) = OriginSchema(
 
 private fun OriginId.toOrigin() = Origin(
     originId = this,
+    fetchMode = FetchMode.Basic,
     schemas = emptyList(),
     robotsTxt = null,
     updatedAt = Clock.System.now(),

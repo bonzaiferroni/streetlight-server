@@ -5,12 +5,14 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.FetchMode
 import streetlight.model.data.Origin
 
 object OriginTable: IdTable<String>("origin") {
     override val id = varchar("origin_id", 253).entityId()
     override val primaryKey = PrimaryKey(id)
     val robotsTxt = text("robots_txt").nullable()
+    val fetchMode = enumeration<FetchMode>("fetch_mode").default(FetchMode.Basic)
 
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")

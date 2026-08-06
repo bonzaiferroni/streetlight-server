@@ -83,6 +83,7 @@ For the content object, determine the following:
 * image: This selector should return an img element with a src attribute referencing an image for the event.
     - Like link, the src attribute will be used and not the text content.
 * cost: This selector should return an element with text content about the cost of an event or whether it is free.
+    - This element should display a dollar amount or some other currency. If this information is not present, this value should be null.
 * description: This selector should return an element with text content that describes the event.
     - It may contain a variety of elements.
 * date: This selector should return an element with text content about the date of the event.
@@ -116,6 +117,7 @@ For the content object, determine the following:
 * image: This selector should return an img element with a src attribute referencing an image for the event.
     - Unlike the other elements, the information in the src attribute will be used and not the text content.
 * cost: This selector should return an element with text content about the cost of an event or whether it is free.
+    - This element should display a dollar amount or some other currency. If this information is not present, this value should be null.
 * description: This selector should return an element with text content that describes the event.
     - It may contain a variety of elements.
 * date: This selector should return an element with text content about the date of the event.
