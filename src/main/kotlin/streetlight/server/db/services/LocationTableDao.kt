@@ -46,8 +46,10 @@ import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.locationConfigContentQuery
+import streetlight.server.db.tables.locationLayoutQuery
 import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
+import streetlight.server.db.tables.toLocationLayout
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Duration
@@ -181,6 +183,10 @@ class LocationTableDao : DbService() {
         locationConfigContentQuery().where {
              LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
          }.map { it.toLocationConfigContent() }
+    }
+
+    suspend fun readLayout(slug: Slug, callerId: CallerId?) = dbQuery {
+        locationLayoutQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocationLayout() }
     }
 }
 

@@ -25,12 +25,14 @@ suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
 }
 
 suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): LocationContent? {
-    val location = dao.location.readLocation(slug, identity?.callerId) ?: return null
+    val locationLayout = dao.location.readLayout(slug, identity?.callerId) ?: return null
+    val location = locationLayout.location
     val events = dao.event.readLocationEvents(slug, identity?.callerId)
     val canEdit = location.host == null || location.host == identity?.username // || callerId?.roles?.contains(UserRole.Admin) == true
     return LocationContent(
         location = location,
         events = events,
+        layout = locationLayout.layout,
         canEdit = canEdit,
     )
 }

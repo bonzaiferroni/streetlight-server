@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.Entity
+import streetlight.model.data.FeedEntity
 import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.EventColumns
 import streetlight.server.db.tables.EventLocationColumns
@@ -33,7 +33,7 @@ fun cityPostQuery(callerId: CallerId?, block: () -> Op<Boolean>) = CityTable
     .where(block)
     .map { it.toCityPost() }
 
-fun ResultRow.toCityPost(): Entity = when (this.getOrNull(EventTable.id)) {
+fun ResultRow.toCityPost(): FeedEntity = when (this.getOrNull(EventTable.id)) {
     null -> toLocation()
     else -> toEventLocation()
 }

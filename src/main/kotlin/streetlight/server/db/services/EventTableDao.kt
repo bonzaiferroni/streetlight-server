@@ -29,15 +29,17 @@ import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
 import klutch.utils.inList
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.createEvent
 import streetlight.server.db.tables.eventQuery
 import streetlight.server.db.tables.updateEvent
 import kotlin.time.Clock
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 private val console = globalConsole.getHandle(EventTableDao::class)
@@ -115,7 +117,12 @@ class EventTableDao: DbService() {
     }
 
     suspend fun readLocationEvents(slug: Slug, callerId: CallerId?) = dbQuery {
-        eventQuery(callerId).where { EventTable.locationSlug.eq(slug) }.map { it.toEvent() }
+        val startsAt = Clock.System.now() - 6.hours
+        eventQuery(callerId).where {
+            EventTable.locationSlug.eq(slug) and EventTable.startsAt.isNotNull() and EventTable.startsAt.greaterEq(startsAt)
+        }
+            .orderBy(EventTable.startsAt, SortOrder.ASC)
+            .map { it.toEvent() }
     }
 
     suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {
