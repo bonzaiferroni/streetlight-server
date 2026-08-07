@@ -4,9 +4,14 @@ package streetlight.server.routes
 object SchemaParserText {
 
     val contentObjectInstructions = """
-The parent object has two parameters:
+The parent object has two parameters. Sometimes the page does not serve the content we were expecting.
+For example if we were expecting a feed of events but the content reflects a privacy policy or an error page,
+that is important to know. Also, sometimes the content will be incomplete because the desired content requires
+additional javascript. If you are unable to find elements that match the requested details and the page seems to
+only be partially loaded, signal that it is incomplete.
 
 * isExpectedContent: true if the document contains the expected content, false if it does not
+* isIncompleteContent: true if the document is incomplete due to a lack of javascript processing
 * content: an object with the parameters described below. Null if the document does not contain the expected content.
 """
 

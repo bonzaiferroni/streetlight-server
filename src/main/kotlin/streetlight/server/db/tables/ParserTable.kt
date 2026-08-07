@@ -8,31 +8,31 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.FetchMode
 import streetlight.model.data.SelectorSchema
-import streetlight.model.data.OriginSchema
+import streetlight.model.data.Parser
 import streetlight.model.data.SchemaType
 
-object OriginSchemaTable: UuidTable("origin_schema") {
+object ParserTable: UuidTable("parser") {
     val originId = reference("origin_id", OriginTable, ReferenceOption.CASCADE).index()
     val schemaType = enumeration<SchemaType>("schema_type")
     val fetchMode = enumeration<FetchMode>("fetch_mode").default(FetchMode.Basic)
-    val content = jsonb<SelectorSchema>("content", jsonColumnConfig)
+    val schema = jsonb<SelectorSchema>("schema", jsonColumnConfig)
     val consecutiveFailCount = integer("consecutive_fail_count").default(0)
     val lastSuccessAt = timestamp("last_success_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 }
 
-fun UpdateBuilder<*>.createOriginSchema(schema: OriginSchema) {
-    this[OriginSchemaTable.originId] = schema.originId.value
-    this[OriginSchemaTable.createdAt] = schema.createdAt
+fun UpdateBuilder<*>.createOriginSchema(schema: Parser) {
+    this[ParserTable.originId] = schema.originId.value
+    this[ParserTable.createdAt] = schema.createdAt
     updateOriginSchema(schema)
 }
 
-fun UpdateBuilder<*>.updateOriginSchema(schema: OriginSchema) {
-    this[OriginSchemaTable.schemaType] = schema.schemaType
-    this[OriginSchemaTable.fetchMode] = schema.fetchMode
-    this[OriginSchemaTable.content] = schema.selector
-    this[OriginSchemaTable.consecutiveFailCount] = schema.consecutiveFailCount
-    this[OriginSchemaTable.lastSuccessAt] = schema.lastSuccessAt
-    this[OriginSchemaTable.updatedAt] = schema.updatedAt
+fun UpdateBuilder<*>.updateOriginSchema(schema: Parser) {
+    this[ParserTable.schemaType] = schema.schemaType
+    this[ParserTable.fetchMode] = schema.fetchMode
+    this[ParserTable.schema] = schema.schema
+    this[ParserTable.consecutiveFailCount] = schema.consecutiveFailCount
+    this[ParserTable.lastSuccessAt] = schema.lastSuccessAt
+    this[ParserTable.updatedAt] = schema.updatedAt
 }

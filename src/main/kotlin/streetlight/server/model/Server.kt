@@ -5,6 +5,7 @@ import kabinet.clients.ReplicateInput
 import kabinet.console.globalConsole
 import kabinet.utils.Environment
 import kampfire.api.EmailAddress
+import kampfire.api.deobfuscateForm
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
 import klutch.server.Authorizer
@@ -18,8 +19,8 @@ class Server(
 ): ServerScope, ProviderScope by provider {
 
     override val appEmail = AppEmail (
-        EmailAddress("info@streetlight.ing"),
-        EmailAddress("support@streetlight.ing")
+        "info at streetlight.ing".deobfuscateForm(),
+        "support at streetlight.ing".deobfuscateForm(),
     )
 }
 
@@ -50,7 +51,9 @@ class DaoFacade(
     val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
     val authToken: AuthTokenTableDao = AuthTokenTableDao(),
     val bouncedEmail: BouncedEmailTableDao = BouncedEmailTableDao(),
-    val origin: OriginTableDao = OriginTableDao()
+    val origin: OriginTableDao = OriginTableDao(),
+    val link: LinkTableDao = LinkTableDao(),
+    val parser: ParserTableDao = ParserTableDao(),
 )
 
 class ClientFacade(

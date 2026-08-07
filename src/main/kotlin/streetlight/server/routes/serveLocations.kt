@@ -137,7 +137,7 @@ fun ApiScope.serveLocations() {
             val originId = urlSchemas.url.toOriginId() ?: return@postApi Problem("Invalid url: ${urlSchemas.url}")
             dao.origin.readOrCreateOrigin(originId)
             urlSchemas.schemas.forEach { schema ->
-                dao.origin.create(originId, schema, FetchMode.Basic)
+                dao.parser.create(originId, schema, FetchMode.Basic)
                 dao.origin.linkLocation(originId, urlSchemas.locationId)
             }
             Ok(Unit)

@@ -19,7 +19,7 @@ import streetlight.server.model.DataScope
 import streetlight.server.routes.SchemaParserText
 
 suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<SelectorSchema>> = tryOutcome {
-    val html = fetchText(url).toDataOr { return@tryOutcome it }
+    val html = fetchText(url).toDataOr { return@tryOutcome it }.text
 
     val doc = parseHtmlDocument(html, url).toDataOr { return@tryOutcome it }
 
@@ -55,7 +55,7 @@ suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcom
     val pageUrl = linkElement.attribute("href")?.value?.toUrl() ?: return@tryOutcome Ok(feedOnlySchema, "No link href found")
     val pageHtml = when (val outcome = fetchText(pageUrl)) {
         is Problem -> return@tryOutcome Ok(feedOnlySchema, "Page fetch problem: ${outcome.message}")
-        is Ok -> outcome.data
+        is Ok -> outcome.data.text
     }
 
     val pageDoc = parseHtmlDocument(pageHtml, pageUrl).toDataOr {

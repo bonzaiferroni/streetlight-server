@@ -174,13 +174,13 @@ class LocationTableDao : DbService() {
     suspend fun readConfigContent(locationId: LocationId) = dbQuery {
         locationConfigContentQuery().where {
             LocationTable.id.eq(locationId)
-        }.toLocationConfigContent().firstOrNull()
+        }.singleOrNull()?.toLocationConfigContent()
     }
 
     suspend fun readCheckable(interval: Duration) = dbQuery {
-         LocationTable.select(LocationQuery.columns).where {
+        locationConfigContentQuery().where {
              LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
-         }.map { it.toLocation() }
+         }.map { it.toLocationConfigContent() }
     }
 }
 

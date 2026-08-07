@@ -22,7 +22,7 @@ import streetlight.server.utils.stripHtml
 suspend fun DataScope.parseEvent(request: ParseRequest, parser: KoogParserClient): Outcome<EventEdit> {
     log.info { "parsing event" }
     val html = when (request) {
-        is UrlParseRequest -> fetchText(request.url).toDataOrNull()
+        is UrlParseRequest -> fetchText(request.url).toDataOrNull()?.text
         is HtmlParseRequest -> request.html
         is ImageParseRequest -> return Problem("Parsing images is not yet supported.")
     } ?: return Problem("Unable to access the website.")
