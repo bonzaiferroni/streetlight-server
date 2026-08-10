@@ -86,7 +86,8 @@ class LocationTableDao : DbService() {
 
     suspend fun update(config: LocationConfig) = dbQuery {
         LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
-            // it[LocationTable.eventSchema] = config.eventSchema
+            it[LocationTable.parseMode] = config.parseMode
+            it[LocationTable.layout] = config.layout
         }
     }
 

@@ -125,7 +125,7 @@ fun ApiScope.serveLocations() {
             parseEventSchema(it.data, koog)
         }
 
-        postApi(Api.Locations.EditConfig) {
+        postApi(Api.Locations.UpdateConfig) {
             call.requireAdminIdentity()
             if (dao.location.update(it.data) != 1) error("Update not applied")
             Ok(Unit)
