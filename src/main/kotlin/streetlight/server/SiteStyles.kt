@@ -15,6 +15,7 @@ import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import koala.html.NavMenuCss
 import streetlight.web.ui.FormCss
+import streetlight.web.ui.LayoutBuilderCss
 import streetlight.web.ui.StarLightCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
@@ -93,6 +94,7 @@ private val KtStyles = listOf(
     MarkerSheet,
     AltitudeCss,
     TextDeltaCss,
+    LayoutBuilderCss,
 )
 
 private val Utilities = listOf(

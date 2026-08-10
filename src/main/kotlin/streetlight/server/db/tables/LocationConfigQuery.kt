@@ -11,7 +11,8 @@ import streetlight.server.utils.toRecordId
 object LocationConfigQuery {
     val columns = listOf(
         LocationTable.id,
-        LocationTable.parseMode
+        LocationTable.parseMode,
+        LocationTable.layout,
     )
 
     val contentColumns = (columns + LocationQuery.columns).distinct()
@@ -28,5 +29,6 @@ fun ResultRow.toLocationConfigContent() = LocationConfigContent(
 fun ResultRow.toLocationConfig() = LocationConfig(
     locationId = toRecordId(LocationTable.id),
     parseMode = this[LocationTable.parseMode],
+    layout = this[LocationTable.layout],
 )
 
