@@ -37,6 +37,7 @@ fun Application.serveApi(server: ServerScope) {
             serveSiteStatus()
             serveWebhooks()
             serveAccountActions()
+            serveSubdomains()
         }
     }
 }

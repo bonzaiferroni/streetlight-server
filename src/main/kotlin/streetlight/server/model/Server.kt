@@ -54,6 +54,7 @@ class DaoFacade(
     val origin: OriginTableDao = OriginTableDao(),
     val link: LinkTableDao = LinkTableDao(),
     val parser: ParserTableDao = ParserTableDao(),
+    val subdomain: SubdomainTableDao = SubdomainTableDao(),
 )
 
 class ClientFacade(

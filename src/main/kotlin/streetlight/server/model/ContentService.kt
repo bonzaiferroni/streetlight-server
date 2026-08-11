@@ -37,6 +37,11 @@ suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): Locat
     )
 }
 
+suspend fun DaoScope.readLocationContentBySubdomain(slug: Slug, identity: Identity?): LocationContent? {
+    val locationSlug = dao.subdomain.readLocationSlug(slug) ?: return null
+    return readLocationContent(locationSlug, identity)
+}
+
 suspend fun DaoScope.readLocationUpdaterContent(slug: Slug): LocationUpdaterContent? {
     val location = dao.location.readLocation(slug, null) ?: return null
     val editLogs = dao.editLog.readEdits(location.locationId)
