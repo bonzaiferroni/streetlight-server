@@ -80,7 +80,7 @@ private val KtStyles = listOf(
     TextUtilitySheet,
     NavMenuCss,
     FormCss,
-    koala.model.LightControlCss,
+    koala.model.GlowControlCss,
 
     // web module
     StreetlightCss,
