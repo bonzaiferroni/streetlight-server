@@ -9,7 +9,6 @@ import streetlight.server.utils.printToFile
 import streetlight.web.layouts.CellContentCss
 import streetlight.web.layouts.FeedPostCss
 import streetlight.web.layouts.FeedProtoCss
-import streetlight.web.layouts.LightControlCss
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
@@ -27,6 +26,7 @@ val SiteStyles by lazy {
         // debug at runtime like this:
         // println(TextUtilityCss.toStylesheet())
         appendLine(StylesCss)
+        appendLine(ThemeCss)
 
         // css files located in /www/css
         CssFile.forEach {
@@ -80,6 +80,7 @@ private val KtStyles = listOf(
     TextUtilitySheet,
     NavMenuCss,
     FormCss,
+    koala.model.LightControlCss,
 
     // web module
     StreetlightCss,
@@ -90,7 +91,7 @@ private val KtStyles = listOf(
     FeedPostCss,
     FeedProtoCss,
     CellContentCss,
-    LightControlCss,
+    streetlight.web.layouts.LightControlCss,
     MarkerSheet,
     AltitudeCss,
     TextDeltaCss,

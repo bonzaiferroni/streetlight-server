@@ -7,7 +7,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.LocationLayout
 
 object LocationLayoutQuery {
-    val columns = listOf(LocationTable.layout) + LocationQuery.columns
+    val columns = listOf(LocationTable.design) + LocationQuery.columns
 }
 
 fun locationLayoutQuery(callerId: CallerId?) = LocationTable
@@ -15,7 +15,7 @@ fun locationLayoutQuery(callerId: CallerId?) = LocationTable
         additionalConstraint = LocationStarTable.getConstraint(callerId))
     .select(LocationLayoutQuery.columns)
 
-fun ResultRow.toLocationLayout() = LocationLayout(
+fun ResultRow.toLocationDesign() = LocationLayout(
     location = toLocation(),
-    layout = this[LocationTable.layout]
+    design = this[LocationTable.design]
 )

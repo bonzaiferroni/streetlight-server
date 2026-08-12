@@ -16,8 +16,9 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.HoursSchedule
-import streetlight.model.data.Layout
+import streetlight.model.data.PageLayout
 import streetlight.model.data.Location
+import streetlight.model.data.PageDesign
 import streetlight.model.data.ParseMode
 
 object LocationTable: UuidTable("location"), SlugTable {
@@ -42,7 +43,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val resources = array<Int>("resources")
     val hours = jsonb<HoursSchedule>("hours", jsonColumnConfig).nullable()
     val parseMode = enumeration<ParseMode>("parse_mode").default(ParseMode.Partial)
-    val layout = jsonb<Layout>("layout", jsonColumnConfig).nullable()
+    val design = jsonb<PageDesign>("design", jsonColumnConfig).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()

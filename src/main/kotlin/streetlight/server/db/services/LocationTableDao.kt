@@ -33,15 +33,12 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
-import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.less
-import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
-import streetlight.server.db.tables.LocationQuery
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createRecord
@@ -49,7 +46,7 @@ import streetlight.server.db.tables.locationConfigContentQuery
 import streetlight.server.db.tables.locationLayoutQuery
 import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
-import streetlight.server.db.tables.toLocationLayout
+import streetlight.server.db.tables.toLocationDesign
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
 import kotlin.time.Duration
@@ -87,7 +84,7 @@ class LocationTableDao : DbService() {
     suspend fun update(config: LocationConfig) = dbQuery {
         LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
             it[LocationTable.parseMode] = config.parseMode
-            it[LocationTable.layout] = config.layout
+            it[LocationTable.design] = config.design
         }
     }
 
@@ -186,8 +183,8 @@ class LocationTableDao : DbService() {
          }.map { it.toLocationConfigContent() }
     }
 
-    suspend fun readLayout(slug: Slug, callerId: CallerId?) = dbQuery {
-        locationLayoutQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocationLayout() }
+    suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {
+        locationLayoutQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocationDesign() }
     }
 }
 
