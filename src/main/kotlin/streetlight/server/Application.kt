@@ -13,12 +13,24 @@ import streetlight.server.model.DaoFacade
 import streetlight.server.model.Server
 import streetlight.server.model.serverModule
 import streetlight.server.plugins.*
+import java.io.File
 
 //val host = "https://streetlight.ing"
 
 fun main(args: Array<String>): Unit = io.ktor.server.cio.EngineMain.main(args)
 
 fun Application.module() {
+    println(File(".").absolutePath)
+
+    val isBenchmark = environment.config
+        .propertyOrNull("streetlight.benchmark")
+        ?.getString()
+        ?.toBoolean()
+        ?: false
+
+    if (isBenchmark) {
+        println("--BENCHMARK MODE--")
+    }
 
     val koin = koinApplication {
         modules(serverModule)
@@ -35,7 +47,9 @@ fun Application.module() {
     }
 
     configureRateLimits()
-    configureMetrics(server)
+    if (!isBenchmark) {
+        configureMetrics(server)
+    }
     configureLogging()
     configureCors()
     configureSerialization()

@@ -21,30 +21,6 @@ import streetlight.web.ui.TalkLogCss
 import streetlight.web.ui.TextDeltaCss
 import java.io.File
 
-val SiteStyles by lazy {
-    buildString {
-        // debug at runtime like this:
-        // println(TextUtilityCss.toStylesheet())
-        appendLine(StylesCss)
-        appendLine(ThemeCss)
-
-        // css files located in /www/css
-        CssFile.forEach {
-            appendLine(File("../${it.url}").readText())
-        }
-
-        // styles declared with elements in koala.html
-        KtStyles.forEach {
-            appendLine(it)
-        }
-
-        // utilities declared in koala.css
-        Utilities.forEach {
-            appendLine(it.toStylesheet())
-        }
-    }.also { printToFile(it, "../debug/site-styles.css") }
-}
-
 private val KtStyles = listOf(
     // koala module
     IconCss,
@@ -103,3 +79,25 @@ private val Utilities = listOf(
     DisplayUtilityCss,
     TextUtilityCss,
 )
+
+val SiteStyles = buildString {
+    // debug at runtime like this:
+    // println(TextUtilityCss.toStylesheet())
+    appendLine(StylesCss)
+    appendLine(ThemeCss)
+
+    // css files located in /www/css
+    CssFile.forEach {
+        appendLine(File("../${it.url}").readText())
+    }
+
+    // styles declared with elements in koala.html
+    KtStyles.forEach {
+        appendLine(it)
+    }
+
+    // utilities declared in koala.css
+    Utilities.forEach {
+        appendLine(it.toStylesheet())
+    }
+}.also { printToFile(it, "../debug/site-styles.css") }
