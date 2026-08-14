@@ -85,6 +85,7 @@ val SiteStyles = buildString {
     // println(TextUtilityCss.toStylesheet())
     appendLine(StylesCss)
     appendLine(ThemeCss)
+    appendLine(MagicCss)
 
     // css files located in /www/css
     CssFile.forEach {
