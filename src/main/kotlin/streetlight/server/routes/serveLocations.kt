@@ -19,6 +19,7 @@ import streetlight.model.data.toOriginId
 import streetlight.server.db.datascope.createLocation
 import streetlight.server.db.datascope.parseEventSchema
 import streetlight.server.db.datascope.updateLocation
+import streetlight.server.utils.TimeZones
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 
@@ -86,16 +87,6 @@ fun ApiScope.serveLocations() {
     }
 
     authGate {
-//        suspend fun <T> handleEdit(
-//            edit: LocationEdit,
-//            identity: StarIdentity,
-//            block: suspend (CityId, SavedImageSet?) -> T?
-//        ): T? {
-//            val imageUserId = identity.starId.takeIf { edit.imageRef?.isRelative ?: false }
-//            val imageSet = saveImages(imageUserId, edit.locationId, edit.imageRef, EventTable.imageConfig)
-//            val cityId = readOrCreateCity(edit.city, edit.state)
-//            return block(requireNotNull(cityId) { "city not found" }, imageSet)
-//        }
 
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
