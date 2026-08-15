@@ -60,7 +60,8 @@ suspend fun DataScope.saveS3ImageFile(
     val filename = filename ?: fileId.value.toString()
 
     val url = client.blob.put(bytes, filename, format.contentType) ?: return null
-    
+
+    // td: save all sizes to a single record
     dao.userFile.create(
         UploadFile(
             uploadFileId = fileId,

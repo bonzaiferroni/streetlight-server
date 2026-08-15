@@ -13,8 +13,6 @@ import klutch.db.model.CallerId
 import klutch.utils.logger
 import koala.Image
 import streetlight.model.data.FileFormat
-import streetlight.model.data.RecordId
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.DataScope
 import java.io.File
@@ -38,7 +36,7 @@ suspend fun DataScope.checkImageAndStore(
     }
     if (currentRef == image) return currentRef
     val result = provisionImageAndStore(userId, image, config.sizes) ?: return null
-    return image.copy(aspectRatio = result.aspectRatio, variants = result.sizes)
+    return image.copy(aspectRatio = result.aspectRatio, variants = result.variants)
 }
 
 
@@ -118,6 +116,6 @@ suspend fun RoutingContext.validateImage(
     return fileFormat
 }
 
-data class ImageSizerResult(val sizes: ImageVariants, val aspectRatio: Float)
+data class ImageSizerResult(val variants: ImageVariants, val aspectRatio: Float)
 
 private val console = KotlinLogging.logger(DataScope::checkImageAndStore)

@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.model.ImageSize
 import kampfire.model.toOutcome
 import kampfire.utils.randomUuidString
 import streetlight.model.Api
@@ -7,6 +8,7 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
+import streetlight.server.routes.encodeImageAndStore
 
 fun ApiScope.serveUserHub() {
     authGate {
@@ -41,7 +43,7 @@ fun ApiScope.serveUserHub() {
 
         postApi(Api.Users.UploadImage) {
             val userId = call.getIdentity().callerId
-            saveLocalImageFile(it.data, userId, randomUuidString()).toOutcome()
+            encodeImageAndStore(it.data, userId, randomUuidString(), ImageSize.All)?.toImage().toOutcome()
         }
     }
 }

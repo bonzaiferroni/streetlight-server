@@ -4,7 +4,9 @@ import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariant
 import kampfire.model.Url
+import kampfire.model.largest
 import klutch.db.model.CallerId
+import koala.Image
 import streetlight.model.data.FileFormat
 import streetlight.model.data.StarId
 import streetlight.server.model.DataScope
@@ -61,4 +63,10 @@ private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode
 private data class FormatAndEncodingMode(
     val format: FileFormat,
     val forceEncoding: Boolean
+)
+
+fun ImageSizerResult.toImage() = Image(
+    url = variants.largest ?: error("image variant not found"),
+    aspectRatio = aspectRatio,
+    variants = variants
 )

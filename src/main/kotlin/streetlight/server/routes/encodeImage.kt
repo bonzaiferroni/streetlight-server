@@ -144,58 +144,25 @@ private fun targetDimensions(
     require(sourceWidth > 0) { "sourceWidth must be > 0" }
     require(sourceHeight > 0) { "sourceHeight must be > 0" }
     require(size > 0) { "size must be > 0" }
+    require(aspectRatio == null || aspectRatio > 0f) { "aspectRatio must be > 0" }
 
     if (aspectRatio == null) {
-        if (sourceWidth <= size) {
-            return sourceWidth to sourceHeight
-        }
-        val targetWidth = size
-        val targetHeight = ((targetWidth.toDouble() * sourceHeight) / sourceWidth)
+        if (sourceWidth <= size) return sourceWidth to sourceHeight
+        val targetHeight = ((size.toDouble() * sourceHeight) / sourceWidth)
             .roundToInt()
             .coerceIn(1, sourceHeight)
-
-        return targetWidth to targetHeight
+        return size to targetHeight
     }
 
-    require(aspectRatio > 0f) { "aspectRatio must be > 0" }
+    val requestedHeight = (size / aspectRatio).roundToInt().coerceAtLeast(1)
+    val scale = minOf(
+        1f,
+        sourceWidth.toFloat() / size,
+        sourceHeight.toFloat() / requestedHeight,
+    )
 
-    val requestedWidth = (size * aspectRatio)
-        .roundToInt()
-        .coerceAtLeast(1)
-    val requestedHeight = size
-
-    val sourceAspect = sourceWidth.toFloat() / sourceHeight.toFloat()
-
-    val maxWidthAtAspect: Int
-    val maxHeightAtAspect: Int
-
-    if (sourceAspect >= aspectRatio) {
-        maxHeightAtAspect = sourceHeight
-        maxWidthAtAspect = (sourceHeight * aspectRatio)
-            .roundToInt()
-            .coerceAtMost(sourceWidth)
-            .coerceAtLeast(1)
-    } else {
-        maxWidthAtAspect = sourceWidth
-        maxHeightAtAspect = (sourceWidth / aspectRatio)
-            .roundToInt()
-            .coerceAtMost(sourceHeight)
-            .coerceAtLeast(1)
-    }
-
-    val widthScale = maxWidthAtAspect.toFloat() / requestedWidth.toFloat()
-    val heightScale = maxHeightAtAspect.toFloat() / requestedHeight.toFloat()
-    val scale = minOf(1f, widthScale, heightScale)
-
-    val targetWidth = (requestedWidth * scale)
-        .roundToInt()
-        .coerceIn(1, maxWidthAtAspect)
-
-    val targetHeight = (requestedHeight * scale)
-        .roundToInt()
-        .coerceIn(1, maxHeightAtAspect)
-
-    return targetWidth to targetHeight
+    return (size * scale).roundToInt().coerceIn(1, sourceWidth) to
+            (requestedHeight * scale).roundToInt().coerceIn(1, sourceHeight)
 }
 
 private fun ensureArgb(src: BufferedImage): BufferedImage {
