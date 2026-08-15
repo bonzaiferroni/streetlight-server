@@ -56,6 +56,7 @@ private val KtStyles = listOf(
     TextUtilitySheet,
     NavMenuCss,
     FormCss,
+    HrCss,
     koala.model.GlowControlCss,
 
     // web module
