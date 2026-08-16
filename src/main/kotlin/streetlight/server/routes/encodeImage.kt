@@ -8,9 +8,12 @@ import com.sksamuel.scrimage.nio.ImageSource
 import com.sksamuel.scrimage.nio.StreamingGifWriter
 import com.sksamuel.scrimage.webp.Gif2WebpWriter
 import com.sksamuel.scrimage.webp.WebpWriter
-import kabinet.console.globalConsole
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kampfire.model.ImageSize
-import streetlight.model.data.FileFormat
+import kampfire.model.Ok
+import kampfire.model.Outcome
+import klutch.utils.logger
+import streetlight.model.data.ImageFormat
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
@@ -18,40 +21,41 @@ import java.io.ByteArrayOutputStream
 import java.time.Duration
 import kotlin.math.roundToInt
 
-private val console = globalConsole.getHandle("resize")
+private val logger = KotlinLogging.logger(::encodeImage)
 
 @Suppress("ArrayInDataClass")
 data class ImageEncoding(
     val size: ImageSize,
     val bytes: ByteArray,
-    val format: FileFormat = FileFormat.WEBP,
 )
 
-data class ResizeResult(
+data class EncodingResult(
+    val format: ImageFormat,
     val encodings: List<ImageEncoding>,
-    val aspectRatio: Float
+    val aspect: Float,
 )
 
 fun encodeImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): ResizeResult? {
+): Outcome<EncodingResult> {
     println("Received ${bytes.size} bytes, first 8: ${bytes.take(8).map { it.toUByte() }}")
-    val format = FormatDetector.detect(bytes.inputStream()).orElse(null)
+    val format = FormatDetector.detect(bytes.inputStream()).orElse(null) ?: return ImageProblem.InvalidFormat
 
     return if (format == Format.GIF) {
-        resizeAnimatedImage(bytes, sizes)
+        resizeAnimatedImage(format, bytes, sizes)
     } else {
-        resizeStaticImage(bytes, sizes)
+        resizeStaticImage(format, bytes, sizes)
     }
 }
 
 private fun resizeStaticImage(
+    format: Format,
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): ResizeResult? {
+): Outcome<EncodingResult> {
     val image = ImmutableImage.loader().fromBytes(bytes)
-    if (image.height == 0) return null
+    if (image.height == 0) return ImageProblem.ZeroDimension
     val writer = WebpWriter.DEFAULT.withQ(80)
     val aspectRatio = image.width / image.height.toFloat()
 
@@ -70,11 +74,11 @@ private fun resizeStaticImage(
             val argb = ensureArgb(scaled.awt())
             val output = ImmutableImage.fromAwt(argb, BufferedImage.TYPE_INT_ARGB)
             ImageEncoding(size, output.bytes(writer))
-        }.onFailure { console.error(it) }
+        }.onFailure { logger.error { it } }
             .getOrNull()
-    }.takeIf { it.isNotEmpty() } ?: return null
+    }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Encoding
 
-    return ResizeResult(encodings, aspectRatio)
+    return Ok(EncodingResult(format.toImageFormat(), encodings, aspectRatio))
 }
 
 /**
@@ -85,15 +89,16 @@ private fun resizeStaticImage(
  * via Gif2WebpWriter.
  */
 private fun resizeAnimatedImage(
+    format: Format,
     bytes: ByteArray,
     sizes: List<ImageSize>,
-): ResizeResult? {
+): Outcome<EncodingResult> {
     val gif = AnimatedGifReader.read(ImageSource.of(bytes))
     val frameCount = gif.frameCount
-    if (frameCount <= 0) return null
+    if (frameCount <= 0) return ImageProblem.ZeroFrames
 
     val firstFrame = gif.getFrame(0)
-    if (firstFrame.height == 0) return null
+    if (firstFrame.height == 0) return ImageProblem.ZeroDimension
     val aspectRatio = firstFrame.width / firstFrame.height.toFloat()
     val delay = runCatching { gif.getDelay(0) }
         .getOrDefault(Duration.ofMillis(200))
@@ -128,11 +133,11 @@ private fun resizeAnimatedImage(
             val webpBytes = resizedGif.bytes(Gif2WebpWriter.DEFAULT)
 
             ImageEncoding(size, webpBytes)
-        }.onFailure { console.error(it) }
+        }.onFailure { logger.error { it } }
             .getOrNull()
-    }.takeIf { it.isNotEmpty() } ?: return null
+    }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Encoding
 
-    return ResizeResult(encodings, aspectRatio)
+    return Ok(EncodingResult(format.toImageFormat(), encodings, aspectRatio))
 }
 
 private fun targetDimensions(
@@ -179,4 +184,11 @@ private fun Graphics2D.useQuality() {
     setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
     setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
     setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+}
+
+private fun Format.toImageFormat() = when(this) {
+    Format.PNG -> ImageFormat.PNG
+    Format.GIF -> ImageFormat.GIF
+    Format.JPEG -> ImageFormat.JPEG
+    Format.WEBP -> ImageFormat.WEBP
 }

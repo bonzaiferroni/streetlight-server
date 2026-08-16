@@ -4,8 +4,11 @@ import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.Ok
+import kampfire.model.Outcome
 import kampfire.model.toOutcome
 import kampfire.model.outcomeOf
+import kampfire.model.toDataOr
+import kampfire.model.toOk
 import klutch.db.model.Identity
 import klutch.server.getApi
 import klutch.server.postApi
@@ -72,12 +75,13 @@ fun ApiScope.serveGalaxies() {
         suspend fun handleEdit(
             edit: GalaxyEdit,
             identity: Identity,
-            block: suspend (City?, GalaxyEdit) -> Slug?
-        ): Slug? {
+            block: suspend (City?, GalaxyEdit) -> Outcome<Slug>
+        ): Outcome<Slug> {
             val starId = identity.callerId
             val city = edit.cityId?.let { dao.city.readCity(it) }
             val imageUserId = starId.takeIf { edit.image?.isRelative ?: false }
             val image = checkImageAndStore(imageUserId, edit.galaxyId, edit.image, GalaxyTable.imageConfig)
+                .toDataOr { return it }
 
             return block(city, edit.copy(image = image))
         }
@@ -89,16 +93,16 @@ fun ApiScope.serveGalaxies() {
                 dao.galaxy.create(edit, identity.callerId, city).also { slug ->
                     val name = requireNotNull(edit.name) { "name not found" }
                     omni.sendGalaxyFounded(name, slug, identity.username)
-                }
-            }.toOutcome()
+                }.toOk()
+            }
         }
 
         postApi(Api.Galaxies.UpdateGalaxy) {
             val edit = it.data
             val identity = call.getIdentity()
             handleEdit(edit, identity) { city, edit ->
-                dao.galaxy.update(edit, city)
-            }.toOutcome()
+                dao.galaxy.update(edit, city).toOk()
+            }
         }
 
         postApi(Api.Galaxies.UpdatePost) {

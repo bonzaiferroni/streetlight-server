@@ -91,14 +91,14 @@ fun ApiScope.serveLocations() {
         postApi(Api.Locations.CreateLocation) { request ->
             val edit = request.data
             val identity = call.getIdentity()
-            createLocation(identity.callerId, edit).toOutcome()
+            createLocation(identity.callerId, edit)
         }
 
         postApi(Api.Locations.UpdateLocation) { request ->
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
             val identity = call.getIdentity()
-            updateLocation(locationId, identity.callerId, edit).toOutcome()
+            updateLocation(locationId, identity.callerId, edit)
         }
 
         getApi(Api.Locations.ReadUpdaterContent) {

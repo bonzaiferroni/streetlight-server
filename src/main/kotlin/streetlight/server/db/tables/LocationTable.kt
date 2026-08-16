@@ -3,7 +3,7 @@ package streetlight.server.db.tables
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
-import klutch.db.jsonColumnConfig
+import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
 import klutch.utils.*
 import klutch.db.point
@@ -16,7 +16,6 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.ExtraLink
 import streetlight.model.data.HoursSchedule
-import streetlight.model.data.PageLayout
 import streetlight.model.data.Location
 import streetlight.model.data.PageDesign
 import streetlight.model.data.ParseMode
@@ -41,12 +40,12 @@ object LocationTable: UuidTable("location"), SlugTable {
     val mapCategory = text("map_category").nullable()
     val mapType = text("map_type").nullable()
     val resources = array<Int>("resources")
-    val hours = jsonb<HoursSchedule>("hours", jsonColumnConfig).nullable()
+    val hours = jsonb<HoursSchedule>("hours", jsonbConfig).nullable()
     val parseMode = enumeration<ParseMode>("parse_mode").default(ParseMode.Partial)
-    val design = jsonb<PageDesign>("design", jsonColumnConfig).nullable()
+    val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)
-    val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
+    val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val eventsUrl = text("events_url").nullable()
     val image = image("image").nullable()
     val checkedAt = timestamp("checked_at").nullable()

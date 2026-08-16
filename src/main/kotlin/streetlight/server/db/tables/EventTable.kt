@@ -4,7 +4,7 @@ import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
-import klutch.db.jsonColumnConfig
+import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
@@ -33,7 +33,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val ageMin = integer("age_min").nullable()
     val cost = float("cost").nullable()
     val visibility = integer("visibility").nullable()
-    val links = jsonb<List<ExtraLink>>("links", jsonColumnConfig).nullable()
+    val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val website = text("url").nullable()
     val image = image("image").nullable()
     val streamUrl = text("stream_url").nullable()

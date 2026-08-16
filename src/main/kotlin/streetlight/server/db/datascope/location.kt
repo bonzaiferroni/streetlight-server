@@ -1,7 +1,12 @@
 package streetlight.server.db.datascope
 
+import kampfire.model.CoreProblem
+import kampfire.model.Ok
+import kampfire.model.Outcome
+import kampfire.model.toDataOr
 import klutch.db.model.CallerId
 import streetlight.model.data.EditType
+import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.toEdit
@@ -16,40 +21,42 @@ import streetlight.server.utils.toStarId
 suspend fun DataScope.createLocation(
     callerId: CallerId,
     edit: LocationEdit,
-) = transaction {
+): Outcome<Location> = transaction {
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
-    val preparedEdit = prepareLocation(callerId, edit)
+    val preparedEdit = prepareLocation(callerId, edit).toDataOr { return@transaction it }
 
     log("creating location: ${preparedEdit.label}")
-    val location = dao.location.create(cityId, callerId, preparedEdit) ?: return@transaction null
+    val location = dao.location.create(cityId, callerId, preparedEdit) ?: return@transaction CoreProblem.Something
     val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
     val star = dao.star.readStar(callerId.toStarId()) ?: error("star not found")
 
     if (preparedEdit.needsReview || star.scoutLevel == 0) {
         createEditTask(editLogId)
     }
-    location
+    Ok(location)
 }
 
 suspend fun DataScope.updateLocation(
     locationId: LocationId,
     callerId: CallerId,
     edit: LocationEdit,
-) = transaction {
+): Outcome<Location> = transaction {
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
-    val preparedEdit = prepareLocation(callerId, edit)
+    val preparedEdit = prepareLocation(callerId, edit).toDataOr { return@transaction it }
 
     log("updating location: ${preparedEdit.label}")
     val location = dao.location.update(locationId, cityId, callerId, preparedEdit)
-    val editLogId = dao.editLog.create(EditType.Update, preparedEdit, locationId, callerId)
-    location
+        ?: return@transaction CoreProblem.Something
+    dao.editLog.create(EditType.Update, preparedEdit, locationId, callerId)
+    Ok(location)
 }
 
-suspend fun DataScope.prepareLocation(callerId: CallerId, edit: LocationEdit): LocationEdit {
+suspend fun DataScope.prepareLocation(callerId: CallerId, edit: LocationEdit): Outcome<LocationEdit> {
     val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
+        .toDataOr { return it }
     val geoPoint = edit.geoPoint ?: error("GeoPoint not found")
     val timezoneId = TimeZones.zoneIdAt(geoPoint) ?: error("timezone query unsuccess")
-    return edit.copy(image = image, timezoneId = timezoneId)
+    return Ok(edit.copy(image = image, timezoneId = timezoneId))
 }
 
 //private suspend fun <T> DataScope.handleEdit(

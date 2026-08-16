@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import kampfire.model.toDataOr
 import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.postApi
@@ -10,19 +11,21 @@ import streetlight.server.model.getIdentity
 
 fun ApiScope.serveMedia() {
     authGate {
-        postApi(Api.Medias.CreateMedia) {
-            val edit = it.data
+        postApi(Api.Medias.CreateMedia) { request ->
+            val edit = request.data
             val identity = call.getIdentity()
 
             val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable.imageConfig)
+                .toDataOr { return@postApi it }
 
             dao.media.create(edit.copy(image = image), identity.callerId).toOutcome()
         }
 
-        postApi(Api.Medias.UpdateMedia) {
-            val edit = it.data
+        postApi(Api.Medias.UpdateMedia) { request ->
+            val edit = request.data
             val identity = call.getIdentity()
             val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable.imageConfig)
+                .toDataOr { return@postApi it }
 
             dao.media.update(edit.copy(image = image), identity.callerId).toOutcome()
         }

@@ -10,7 +10,7 @@ import com.sksamuel.scrimage.webp.WebpWriter
 import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.LARGE_IMAGE_SIZE
-import streetlight.model.data.FileFormat
+import streetlight.model.data.ImageFormat
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -23,16 +23,16 @@ private val console = globalConsole.getHandle("resize")
 
 fun resizeImage(
     bytes: ByteArray,
-    format: FileFormat,
+    format: ImageFormat,
     size: ImageSize?,
     aspectRatio: Float?,
     forceEncoding: Boolean = false,
 ) = when (format) {
-    FileFormat.JPEG -> resizeJpg(bytes, size, aspectRatio, forceEncoding)
-    FileFormat.PNG -> resizePng(bytes, size, aspectRatio, forceEncoding)
-    FileFormat.GIF -> resizeGif(bytes, size, aspectRatio, forceEncoding)
-    FileFormat.WEBP -> resizeWebp(bytes, size, aspectRatio, forceEncoding)
-    FileFormat.BMP -> error("unsupported resize type: BMP")
+    ImageFormat.JPEG -> resizeJpg(bytes, size, aspectRatio, forceEncoding)
+    ImageFormat.PNG -> resizePng(bytes, size, aspectRatio, forceEncoding)
+    ImageFormat.GIF -> resizeGif(bytes, size, aspectRatio, forceEncoding)
+    ImageFormat.WEBP -> resizeWebp(bytes, size, aspectRatio, forceEncoding)
+    ImageFormat.BMP -> error("unsupported resize type: BMP")
 }
 
 private fun resizeJpg(

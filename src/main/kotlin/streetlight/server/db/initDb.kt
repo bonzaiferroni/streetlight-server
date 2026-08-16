@@ -38,7 +38,7 @@ private val dbTables = listOf(
     TransitStopTable,
     TransitRouteStopTable,
     EventTagTable,
-    UploadFileTable,
+    ImageTable,
     TalentTable,
     GalaxyTable,
     GalaxyHostTable,

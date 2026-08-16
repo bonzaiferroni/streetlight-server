@@ -7,9 +7,7 @@ import klutch.utils.eq
 import koala.Image
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
-import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.select
-import streetlight.model.data.RecordId
 import kotlin.uuid.Uuid
 
 class TableImageConfig(
@@ -18,7 +16,7 @@ class TableImageConfig(
     val sizes: List<ImageSize>
 ): DbService() {
 
-    suspend fun readImageRef(id: TableId<Uuid>) = dbQuery {
+    suspend fun readCurrentImage(id: TableId<Uuid>) = dbQuery {
         table.select(column).where { table.id.eq(id) }.firstOrNull()?.getOrNull(column)
     }
 }

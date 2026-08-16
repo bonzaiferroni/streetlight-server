@@ -4,6 +4,7 @@ import kampfire.api.deobfuscatePassword
 import kampfire.api.toValidOutcome
 import kampfire.model.Ok
 import kampfire.model.Problem
+import kampfire.model.toDataOr
 import kampfire.model.toOutcome
 import klutch.server.postApi
 import streetlight.model.Api
@@ -31,10 +32,11 @@ fun ApiScope.serveStars() {
     }
 
     authGate {
-        postApi(Api.Stars.UpdateProfile) {
-            val edit = it.data
+        postApi(Api.Stars.UpdateProfile) { request ->
+            val edit = request.data
             val callerId = call.getIdentity().callerId
             val image = checkImageAndStore(callerId, callerId, edit.image, StarTable.imageConfig)
+                .toDataOr { return@postApi it }
             dao.star.updateProfile(callerId, edit.copy(image = image)).toOutcome()
         }
 

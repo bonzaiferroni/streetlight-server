@@ -1,72 +1,86 @@
 package streetlight.server.routes
 
-import kabinet.console.globalConsole
 import kampfire.model.ImageSize
 import kampfire.model.ImageVariant
+import kampfire.model.Ok
+import kampfire.model.Outcome
+import kampfire.model.Problem
 import kampfire.model.Url
 import kampfire.model.largest
+import kampfire.model.toDataOr
 import klutch.db.model.CallerId
 import koala.Image
-import streetlight.model.data.FileFormat
-import streetlight.model.data.StarId
+import koala.ImageId
+import streetlight.model.data.ImageFormat
+import streetlight.model.data.ImageRecord
 import streetlight.server.model.DataScope
-
-private val console = globalConsole.getHandle("storeImage")
-
-suspend fun DataScope.storeLocalImage(
-    bytes: ByteArray,
-    starId: CallerId?,
-    filename: String,
-    size: ImageSize = ImageSize.Large
-): Url? {
-    val result = detectFormatAndEncodingMode(bytes) ?: return null
-    val format = result.format; val forceEncoding = result.forceEncoding
-
-    val resizedBytes = resizeImage(bytes, format, size, size.aspectRatio, forceEncoding) ?: return null
-    return saveLocalImageFile(resizedBytes, starId, filename, format)
-}
+import streetlight.server.utils.toStarId
+import kotlin.time.Clock
 
 suspend fun DataScope.encodeImageAndStore(
     bytes: ByteArray,
-    userId: CallerId?,
-    filename: String,
+    callerId: CallerId?,
     sizes: List<ImageSize>,
-): ImageSizerResult? {
-    val filenameRoot = filename.takeIf { !it.contains('.') } ?: filename.split('.').dropLast(1).joinToString(".")
+    meta: Image? = null
+): Outcome<Image> {
+    val imageId = ImageId.random()
+    val filenameRoot = imageId.toString()
 
-    val result = encodeImage(bytes, sizes) ?: return null
-    val urlList = result.encodings.map {
-        val encodedBytes = it.bytes; val format = it.format; val size = it.size
+    val result = encodeImage(bytes, sizes).toDataOr { return it }
+    val format = result.format
+    val now = Clock.System.now()
+
+    val variants = result.encodings.map {
+        val encodedBytes = it.bytes; val size = it.size
         val filename = "$filenameRoot-${size.label}.${format.ext}"
-        val url = saveS3ImageFile(encodedBytes, userId, size, format, filename)
+        val url = saveS3ImageFile(encodedBytes, format, filename)
             ?: error("unable to save image: $filename")
-        console.log("saved remote image: $filename")
+        log("saved remote image: $filename")
         ImageVariant(size, url)
-    }.takeIf { it.isNotEmpty() } ?: return null
+    }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Saving
 
-    return ImageSizerResult(urlList, result.aspectRatio)
+    val url = variants.largest ?: error("largest image not found")
+
+    val image = Image(
+        url = url,
+        imageId = imageId,
+        variants = variants,
+        aspect = result.aspect,
+        name = meta?.name,
+        description = meta?.description,
+        attribution = meta?.attribution,
+        attributionUrl = meta?.attributionUrl,
+        caption = meta?.caption,
+    )
+
+    dao.image.create(ImageRecord(
+        imageId = imageId,
+        starId = callerId?.toStarId(),
+        format = format,
+        image = image,
+        updatedAt = now,
+        createdAt = now,
+    ))
+
+    return Ok(image)
 }
 
+suspend fun DataScope.saveS3ImageFile(
+    bytes: ByteArray,
+    format: ImageFormat,
+    filename: String? = null,
+): Url? {
+    val fileId = ImageId.random()
+    val filename = filename ?: fileId.value.toString()
 
-private fun detectFormatAndEncodingMode(bytes: ByteArray): FormatAndEncodingMode? {
-    var forceEncoding = false
-    val format = detectFormatFromImage(bytes).let { format ->
-        // save BMP as PNG
-        if (format == FileFormat.BMP) {
-            forceEncoding = true
-            FileFormat.JPEG
-        } else format
-    } ?: return null
-    return FormatAndEncodingMode(format, forceEncoding)
+    return client.blob.put(bytes, filename, format.contentType)
 }
 
-private data class FormatAndEncodingMode(
-    val format: FileFormat,
-    val forceEncoding: Boolean
-)
-
-fun ImageSizerResult.toImage() = Image(
-    url = variants.largest ?: error("image variant not found"),
-    aspectRatio = aspectRatio,
-    variants = variants
-)
+object ImageProblem {
+    val Encoding = Problem("Unable to encode image.")
+    val Download = Problem("Unable to download image.")
+    val Saving = Problem("Unable to save image.")
+    val ZeroDimension = Problem("Image has zero height or width.")
+    val ZeroFrames = Problem("Animated image has zero frames.")
+    val InvalidFormat = Problem("Invalid image format.")
+}

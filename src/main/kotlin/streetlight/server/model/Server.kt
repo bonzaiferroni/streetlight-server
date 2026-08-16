@@ -8,7 +8,6 @@ import kampfire.api.EmailAddress
 import kampfire.api.deobfuscateForm
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
-import klutch.server.Authorizer
 import klutch.server.ProviderScope
 import streetlight.server.db.services.*
 
@@ -39,7 +38,7 @@ class DaoFacade(
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),
     val city: CityTableDao = CityTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
-    val userFile: UploadFileTableDao = UploadFileTableDao(),
+    val image: ImageTableDao = ImageTableDao(),
     val talk: CommentTableDao = CommentTableDao(),
     val omni: OmniTableDao = OmniTableDao(),
     val light: LightTableDao = LightTableDao(),
