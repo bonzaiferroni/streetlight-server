@@ -57,6 +57,7 @@ fun ApiScope.serveUserHub() {
             val userId = call.getIdentity().callerId
             var meta: Image? = null
             var bytes: ByteArray? = null
+            println("ey")
 
             call.receiveMultipart(formFieldLimit = 16 * 1024 * 1024).forEachPart { part ->
                 when (part) {
@@ -68,6 +69,7 @@ fun ApiScope.serveUserHub() {
                 }
                 part.release()
             }
+            println("received")
 
             apiResponse {
                 val image = encodeImageAndStore(
