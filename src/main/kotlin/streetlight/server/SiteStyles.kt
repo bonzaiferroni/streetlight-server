@@ -13,6 +13,9 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import koala.html.NavMenuCss
+import koala.model.GlowControlCss
+import koala.model.TextEditorCss
+import streetlight.web.layouts.LightControlCss
 import streetlight.web.ui.BodyCss
 import streetlight.web.ui.LayoutBuilderCss
 import streetlight.web.ui.StarLightCss
@@ -57,7 +60,8 @@ private val KtStyles = listOf(
     NavMenuCss,
     BodyCss,
     HrCss,
-    koala.model.GlowControlCss,
+    GlowControlCss,
+    TextEditorCss,
 
     // web module
     StreetlightCss,
@@ -68,7 +72,7 @@ private val KtStyles = listOf(
     FeedPostCss,
     FeedProtoCss,
     CellContentCss,
-    streetlight.web.layouts.LightControlCss,
+    LightControlCss,
     MarkerSheet,
     AltitudeCss,
     TextDeltaCss,
