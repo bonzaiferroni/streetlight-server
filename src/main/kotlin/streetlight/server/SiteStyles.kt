@@ -13,6 +13,7 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import koala.html.NavMenuCss
+import koala.markdown.MarkdownCss
 import koala.model.GlowControlCss
 import koala.model.TextEditorCss
 import streetlight.web.layouts.LightControlCss
