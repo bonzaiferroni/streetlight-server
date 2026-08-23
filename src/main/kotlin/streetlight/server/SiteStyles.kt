@@ -19,6 +19,7 @@ import koala.model.TextEditorCss
 import streetlight.web.layouts.LightControlCss
 import streetlight.web.ui.BodyCss
 import streetlight.web.ui.LayoutBuilderCss
+import streetlight.web.ui.LayoutStyleCss
 import streetlight.web.ui.StarLightCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
@@ -78,6 +79,7 @@ private val KtStyles = listOf(
     AltitudeCss,
     TextDeltaCss,
     LayoutBuilderCss,
+    LayoutStyleCss,
 )
 
 private val Utilities = listOf(
