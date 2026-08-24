@@ -92,9 +92,11 @@ val SiteStyles = buildString {
     // debug at runtime like this:
     // println(TextUtilityCss.toStylesheet())
     appendLine(StylesCss)
+    appendLine(TypographyCss)
     appendLine(ThemeCss)
     appendLine(MagicCss)
     appendLine(ButtonCss)
+
 
     // css files located in /www/css
     CssFile.forEach {
