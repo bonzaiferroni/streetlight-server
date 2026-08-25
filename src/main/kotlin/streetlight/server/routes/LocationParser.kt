@@ -4,6 +4,8 @@ import kampfire.api.toMarkdown
 import kampfire.model.Outcome
 import kampfire.model.Ok
 import kampfire.model.Problem
+import kampfire.model.toDataOr
+import kampfire.model.toDataOrNull
 import kampfire.model.toUrl
 import koala.toImage
 import streetlight.agent.KoogParserClient
@@ -31,7 +33,7 @@ class LocationParser(
 
         val url = request.url
 
-        val doc = parseHtmlDocument(html, request.url).toDataOrNull() ?: return Problem("Address did not serve HTML.")
+        val doc = parseHtmlDocument(html, request.url).toDataOr { return Problem("Address did not serve HTML.") }
 
         val meta = doc.readHtmlMetaInfo()
         val metaDescription by lazy { meta.description?.stripHtml()?.toMarkdown() }

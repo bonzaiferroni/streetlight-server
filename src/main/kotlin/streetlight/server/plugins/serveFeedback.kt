@@ -1,5 +1,7 @@
 package streetlight.server.plugins
 
+import kampfire.model.CoreProblem
+import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.getApi
@@ -12,7 +14,8 @@ fun ApiScope.serveFeedback() {
     authGate(optional = true) {
         postApi(Api.Feedback.Create) {
             val identity = call.getIdentityOrNull()
-            dao.feedback.create(it.data, identity?.callerId).toOutcome()
+            if (!dao.feedback.create(it.data, identity?.callerId)) return@postApi CoreProblem.Something
+            Ok(Unit)
         }
 
         getApi(Api.Feedback.Feed) {

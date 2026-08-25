@@ -57,7 +57,7 @@ fun ApiScope.serveSession() {
                 val authId = outcome.data
                 val session = authorizer.authorizeNewAccount(authId, it.data.stayLoggedIn)
                 call.appendSessionCookie(session)
-                Ok(true)
+                Ok(Unit)
             }
             is Problem -> outcome
         }
@@ -96,7 +96,7 @@ fun ApiScope.serveSession() {
                 is Ok -> {
                     val session = outcome.data
                     call.appendSessionCookie(session)
-                    Ok(true)
+                    Ok(Unit)
                 }
                 is Problem -> outcome
             }

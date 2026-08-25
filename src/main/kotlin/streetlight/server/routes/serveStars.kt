@@ -24,14 +24,14 @@ fun ApiScope.serveStars() {
             val identity = call.getIdentityOrNull()
             readStarContent(username, identity)?.toOutcome()
         }
-
-        getApi(Api.Stars.ValidateLogin) {
-            val identity = call.getIdentityOrNull() ?: return@getApi Ok(null)
-            dao.star.readStar(identity.username, null).toOutcome()
-        }
     }
 
     authGate {
+        getApi(Api.Stars.ValidateLogin) {
+            val identity = call.getIdentity()
+            dao.star.readStar(identity.username, null).toOutcome()
+        }
+
         postApi(Api.Stars.UpdateProfile) { request ->
             val edit = request.data
             val callerId = call.getIdentity().callerId
