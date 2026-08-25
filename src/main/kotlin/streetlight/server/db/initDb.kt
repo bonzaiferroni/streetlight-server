@@ -101,6 +101,7 @@ private val syncValueTriggers get() = listOf(
     editUsernameSync,
     mediaUsernameSync,
     feedbackUsernameSync,
+    messageAuthorSync,
 )
 
 fun connectDb(url: String, user: String, password: String) = Database.connect(

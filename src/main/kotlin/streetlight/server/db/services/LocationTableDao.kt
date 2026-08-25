@@ -33,6 +33,7 @@ import streetlight.server.db.tables.LocationTable
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.getSlugRecord
 import klutch.db.tables.nextSlugOf
+import klutch.utils.logger
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.update
@@ -52,7 +53,7 @@ import streetlight.server.utils.toRecordId
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-private val log = KotlinLogging.logger(LocationTableDao::class.simpleName!!)
+private val log = KotlinLogging.logger(LocationTableDao::class)
 
 class LocationTableDao : DbService() {
 
