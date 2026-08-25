@@ -72,6 +72,7 @@ private val dbTables = listOf(
     LinkTable,
     LinkAliasTable,
     SubdomainTable,
+    MessageTable,
 )
 
 private val counterTriggers get() = listOf(
