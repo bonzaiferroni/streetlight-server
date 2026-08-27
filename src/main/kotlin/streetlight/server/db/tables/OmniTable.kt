@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.db.jsonbConfig
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
@@ -11,7 +12,7 @@ import java.util.UUID
 import kotlin.uuid.Uuid
 
 object OmniTable: UuidTable("omni") {
-    val record = jsonb<OmniRecord>("record", tableJsonDefault)
+    val record = jsonb<OmniRecord>("record", jsonbConfig)
     val recordAt = timestamp("record_at").index()
 }
 

@@ -2,6 +2,7 @@ package streetlight.server.model
 
 import kampfire.api.Slug
 import kampfire.api.Username
+import klutch.db.model.SessionId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

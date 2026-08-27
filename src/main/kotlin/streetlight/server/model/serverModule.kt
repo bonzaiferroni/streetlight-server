@@ -7,6 +7,9 @@ import org.koin.dsl.module
 import streetlight.server.db.services.SongTableService
 import klutch.server.ProviderScope
 import klutch.server.provide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import streetlight.agent.KoogParserClient
 import streetlight.server.db.services.StarSessionService
@@ -16,6 +19,7 @@ import streetlight.server.routes.LocationParser
 
 val serverModule = module {
     single { readEnvFromPath() }
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single { DaoFacade() }
 
     // clients
@@ -28,6 +32,7 @@ val serverModule = module {
 
     // services
     single { StarSessionService() } bind SessionService::class
+    single { ConnectionService() }
     single { Authorizer(get()) }
     single { OmniService(get()) }
 

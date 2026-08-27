@@ -2,59 +2,78 @@
 
 package streetlight.server.routes
 
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.send
-import kabinet.console.globalConsole
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.principal
+import io.ktor.server.sse.ServerSSESession
+import io.ktor.server.sse.sse
+import klutch.db.model.SessionIdentity
+import klutch.server.authGate
 import klutch.server.provide
+import koala.utils.jsonConfig
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.serializer
 import streetlight.model.Api
+import streetlight.model.data.EventCreated
+import streetlight.model.data.EventUpdated
+import streetlight.model.data.GalaxyFounded
+import streetlight.model.data.LocationCreated
+import streetlight.model.data.LocationEdited
+import streetlight.model.data.Message
 import streetlight.model.data.OmniHistory
 import streetlight.model.data.OmniMessage
-import streetlight.model.data.OmniStatus
-import streetlight.server.model.OmniService
 import streetlight.server.model.ApiScope
-import java.util.Collections
+import streetlight.server.model.ConnectionExit
+import streetlight.server.model.ConnectionMessage
+import streetlight.server.model.ConnectionService
+import streetlight.server.utils.starId
+import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 // private val console = globalConsole.getHandle(ApiScope::serveOmni.name)
 
 fun ApiScope.serveOmni() {
-    val omni = provide<OmniService>()
+    val connectionService = provide<ConnectionService>()
 
-    val clients = Collections.synchronizedSet<DefaultWebSocketServerSession>(
-        LinkedHashSet()
-    )
+    authGate {
+        sse(Api.Omni.Log.path) {
+            val principal = call.principal<SessionIdentity>() ?: error("principal not found")
+            val sessionId = principal.session.sessionId
+            val starId = principal.identity.starId
+            val connectionId = Uuid.random()
+            val eventFlow = connectionService.openConnection(starId, connectionId)
 
-    fun sendStatus() = omni.sendMessage(OmniStatus(clients.size))
+            try {
+                if (call.getLastEventId() == null) {
+                    sendMessage(OmniHistory(dao.omni.readHistory(20)), eventId = "connected")
+                }
 
-    webSocket(Api.Omni.Log.path) {
-        clients += this
-        try {
-            val history = dao.omni.readHistory(20)
-            // console.log(history.size)
+                eventFlow.takeWhile { it !is ConnectionExit || it.sessionId != sessionId }
+                    .collect { event ->
+                        when (event) {
+                            is ConnectionMessage -> {
+                                when (val message = event.message) {
+                                    is OmniHistory -> {}
+                                    else -> {
+                                        sendMessage(message)
+                                    }
+                                }
+                            }
+                            is ConnectionExit -> {}
+                        }
+                    }
 
-            sendMessage(OmniHistory(history))
-
-            sendStatus()
-
-            omni.logFlow.collect { record ->
-                sendMessage(record)
-            }
-
-        } finally {
-            clients -= this
-            if (clients.isNotEmpty()) {
-                sendStatus()
+            } finally {
+                connectionService.closeConnection(starId, connectionId)
             }
         }
     }
 }
 
-suspend fun WebSocketSession.sendMessage(message: OmniMessage) {
-    val bytes = defaultCbor.encodeToByteArray(OmniMessage.serializer(), message)
-    send(bytes)
+suspend fun ServerSSESession.sendMessage(message: OmniMessage, eventId: String? = null) {
+    send(data = message.encode(), id = eventId)
 }
 
-val defaultCbor = Cbor
+private fun OmniMessage.encode(): String = jsonConfig.encodeToString(serializer(), this)
+
+private fun ApplicationCall.getLastEventId() = request.headers["Last-Event-ID"]

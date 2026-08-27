@@ -21,9 +21,11 @@ import klutch.server.generateToken
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
+import kotlinx.coroutines.launch
 import streetlight.server.db.datascope.createRegisteredUser
 import streetlight.server.db.datascope.requestEmailVerification
 import streetlight.server.model.ApiScope
+import streetlight.server.model.ConnectionService
 import streetlight.server.model.getIdentity
 import streetlight.server.plugins.RateLimits
 import streetlight.server.utils.starId
@@ -33,6 +35,7 @@ private val log = KotlinLogging.logger(ApiScope::serveSession.name)
 fun ApiScope.serveSession() {
     val authorizer = provide<Authorizer>()
     val service = provide<SessionService>()
+    val connection = provide<ConnectionService>()
 
     postApi(UserApi.Create) {
         val request = it.data
@@ -108,6 +111,7 @@ fun ApiScope.serveSession() {
             log.debug { "logging out" }
             val principal = call.principal<SessionIdentity>() ?: error("principal not found")
             service.deleteSession(principal.session.token)
+            connection.exitSession(principal.identity.starId, principal.session.sessionId)
             call.appendSessionCookie(null)
             Ok(true)
         }
