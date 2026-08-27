@@ -5,7 +5,9 @@ package streetlight.server.routes
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.sse.ServerSSESession
+import io.ktor.server.sse.heartbeat
 import io.ktor.server.sse.sse
+import io.ktor.sse.ServerSentEvent
 import klutch.db.model.SessionIdentity
 import klutch.server.authGate
 import klutch.server.provide
@@ -28,6 +30,7 @@ import streetlight.server.model.ConnectionMessage
 import streetlight.server.model.ConnectionService
 import streetlight.server.utils.starId
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 // private val console = globalConsole.getHandle(ApiScope::serveOmni.name)
@@ -37,6 +40,11 @@ fun ApiScope.serveOmni() {
 
     authGate {
         sse(Api.Omni.Log.path) {
+            heartbeat {
+                period = 30.seconds
+                event = ServerSentEvent(comments = "ping")
+            }
+
             val principal = call.principal<SessionIdentity>() ?: error("principal not found")
             val sessionId = principal.session.sessionId
             val starId = principal.identity.starId
@@ -55,6 +63,7 @@ fun ApiScope.serveOmni() {
                                 when (val message = event.message) {
                                     is OmniHistory -> {}
                                     else -> {
+                                        println("sending message: $connectionId")
                                         sendMessage(message)
                                     }
                                 }

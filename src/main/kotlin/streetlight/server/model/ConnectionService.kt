@@ -1,12 +1,16 @@
 package streetlight.server.model
 
+import kampfire.api.Username
 import klutch.db.model.SessionId
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import streetlight.model.data.Message
+import streetlight.model.data.MessageSent
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.StarId
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class ConnectionService() {
@@ -25,17 +29,24 @@ class ConnectionService() {
     }
 
     fun exitSession(starId: StarId, sessionId: SessionId) {
-        connections[starId]?.exit(sessionId)
+        emit(starId) { ConnectionExit(sessionId) }
+    }
+
+    fun notifyMessage(starId: StarId, author: Username, sentAt: Instant) {
+        emit(starId) { ConnectionMessage(MessageSent(author, sentAt)) }
+    }
+
+    private fun emit(starId: StarId, event: () -> ConnectionEvent) {
+        connections[starId]?.eventFlow?.tryEmit(event())
     }
 }
 
 private class Connection {
-    private val _eventFlow = MutableSharedFlow<ConnectionEvent>(
+    val eventFlow = MutableSharedFlow<ConnectionEvent>(
         replay = 0,
         extraBufferCapacity = 16,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    val eventFlow: Flow<ConnectionEvent> = _eventFlow
     private val sessions = mutableSetOf<Uuid>()
 
     fun open(connectionId: Uuid) {
@@ -45,10 +56,6 @@ private class Connection {
     fun close(connectionId: Uuid): Boolean {
         sessions.remove(connectionId)
         return sessions.isEmpty()
-    }
-
-    fun exit(sessionId: SessionId) {
-        _eventFlow.tryEmit(ConnectionExit(sessionId))
     }
 }
 
