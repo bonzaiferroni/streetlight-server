@@ -3,9 +3,11 @@ package streetlight.server.routes
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import klutch.server.authGate
+import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
 import streetlight.model.Api
+import streetlight.model.data.InboxContent
 import streetlight.server.model.ApiScope
 import streetlight.server.model.ConnectionService
 import streetlight.server.model.getIdentity
@@ -23,6 +25,11 @@ fun ApiScope.serveMessages() {
             dao.message.create(callerId, recipientId, message)
             connection.notifyMessage(recipientId, identity.username, Clock.System.now())
             Ok(Unit)
+        }
+
+        getApi(Api.Messages.Inbox) {
+            val identity = call.getIdentity()
+            Ok(InboxContent(dao.message.readInbox(identity.callerId)))
         }
     }
 }

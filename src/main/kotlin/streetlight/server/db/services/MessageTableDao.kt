@@ -3,13 +3,17 @@ package streetlight.server.db.services
 import kampfire.api.Username
 import klutch.db.DbService
 import klutch.db.model.CallerId
+import klutch.db.whereWith
+import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.Message
 import streetlight.model.data.MessageEdit
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.MessageTable
 import streetlight.server.db.tables.createMessage
-import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 
 class MessageTableDao: DbService() {
@@ -17,6 +21,12 @@ class MessageTableDao: DbService() {
         MessageTable.insert {
             it.createMessage(callerId, recipientId, edit.toMessage())
         }
+    }
+
+    suspend fun readInbox(callerId: CallerId, archived: Boolean = false) = dbQuery {
+        messageQuery().whereWith(MessageTable) {
+            recipientId.eq(callerId) and isArchived.eq(archived)
+        }.orderBy(MessageTable.sentAt).map { it.toMessage() }
     }
 }
 
@@ -30,5 +40,5 @@ private fun MessageEdit.toMessage() = Message(
     content = content,
     isRead = false,
     isArchived = false,
-    createdAt = Clock.System.now()
+    sentAt = Clock.System.now()
 )

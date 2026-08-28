@@ -20,7 +20,7 @@ object MessageTable: UuidTable("message") {
     val content = text("content")
     val isArchived = bool("is_archived").default(false)
     val isRead = bool("is_read").default(false)
-    val createdAt = timestamp("created_at").index()
+    val sentAt = timestamp("sent_at").index()
 }
 
 val messageAuthorSync = SyncValueTrigger(MessageTable.authorId, MessageTable.author, StarTable, StarTable.username)
@@ -34,5 +34,5 @@ fun UpdateBuilder<*>.createMessage(callerId: CallerId, recipientId: StarId, mess
     this[MessageTable.recipientId] = recipientId.value
     this[MessageTable.subject] = message.subject
     this[MessageTable.content] = message.content.value
-    this[MessageTable.createdAt] = message.createdAt
+    this[MessageTable.sentAt] = message.sentAt
 }
