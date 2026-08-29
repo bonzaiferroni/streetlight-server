@@ -73,6 +73,8 @@ private val dbTables = listOf(
     LinkAliasTable,
     SubdomainTable,
     MessageTable,
+    ChatTable,
+    ChatStarTable,
 )
 
 private val counterTriggers get() = listOf(
@@ -102,8 +104,6 @@ private val syncValueTriggers get() = listOf(
     editUsernameSync,
     mediaUsernameSync,
     feedbackUsernameSync,
-    messageAuthorSync,
-    messageRecipientSync,
 )
 
 fun connectDb(url: String, user: String, password: String) = Database.connect(

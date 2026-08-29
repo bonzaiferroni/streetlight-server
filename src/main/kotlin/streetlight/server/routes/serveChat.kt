@@ -19,7 +19,7 @@ fun ApiScope.serveChat() {
         LinkedHashSet()
     )
 
-    webSocket(Api.Chat.path) {
+    webSocket(Api.GroupChat.path) {
         clients += this
         try {
             val currentHistory = synchronized(history) { history.toList() }
