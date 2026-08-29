@@ -15,6 +15,7 @@ import streetlight.web.ui.EarthCss
 import koala.html.NavMenuCss
 import koala.markdown.MarkdownCss
 import koala.model.GlowControlCss
+import koala.model.LazyColumnCss
 import koala.model.TextEditorCss
 import streetlight.web.layouts.LightControlCss
 import streetlight.web.ui.BodyCss
@@ -64,6 +65,7 @@ private val KtStyles = listOf(
     HrCss,
     GlowControlCss,
     TextEditorCss,
+    LazyColumnCss,
 
     // web module
     StreetlightCss,
