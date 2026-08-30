@@ -4,6 +4,7 @@ import kampfire.api.Username
 import kampfire.utils.takeEllipsis
 import klutch.db.DbService
 import klutch.db.model.CallerId
+import klutch.db.model.Identity
 import klutch.db.whereWith
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.JoinType
@@ -14,10 +15,10 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.ChatId
 import streetlight.model.data.ChatPreview
+import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
 import streetlight.model.data.ReplyMessage
@@ -26,12 +27,13 @@ import streetlight.server.db.tables.ChatStarTable
 import streetlight.server.db.tables.ChatTable
 import streetlight.server.db.tables.MessageTable
 import streetlight.server.db.tables.StarTable
+import kotlin.text.get
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class MessageTableDao: DbService() {
-    suspend fun create(callerId: CallerId, recipientId: StarId, message: NewMessage) = dbQuery {
+    suspend fun create(caller: Identity, recipientId: StarId, message: NewMessage) = dbQuery {
         val chatId = ChatId(Uuid.random())
         val messageId = MessageId(Uuid.random())
         val now = Clock.System.now()
@@ -46,7 +48,7 @@ class MessageTableDao: DbService() {
 
         ChatStarTable.insert {
             it[ChatStarTable.chatId] = chatId.value
-            it[ChatStarTable.starId] = callerId.value
+            it[ChatStarTable.starId] = caller.callerId.value
             it[ChatStarTable.lastReadAt] = now
         }
 
@@ -58,7 +60,7 @@ class MessageTableDao: DbService() {
         MessageTable.insert {
             it[MessageTable.id] = messageId.value
             it[MessageTable.chatId] = chatId.value
-            it[MessageTable.starId] = callerId.value
+            it[MessageTable.starId] = caller.callerId.value
             it[MessageTable.content] = message.content.value
             it[MessageTable.sentAt] = now
         }
@@ -66,18 +68,20 @@ class MessageTableDao: DbService() {
         ChatTable.update({ ChatTable.id.eq(chatId) }) {
             it[ChatTable.lastMessageId] = messageId.value
         }
+
+        Message(messageId, chatId, caller.username, message.content, now)
     }
 
-    suspend fun create(callerId: CallerId, message: ReplyMessage) = dbQuery {
+    suspend fun create(caller: Identity, message: ReplyMessage) = dbQuery {
         val messageId = MessageId(Uuid.random())
         val now = Clock.System.now()
 
-        if (updateLastReadAt(callerId, message.chatId, now) != 1) return@dbQuery 0
+        if (updateLastReadAt(caller.callerId, message.chatId, now) != 1) return@dbQuery null
 
         MessageTable.insert {
             it[MessageTable.id] = messageId.value
             it[MessageTable.chatId] = message.chatId.value
-            it[MessageTable.starId] = callerId.value
+            it[MessageTable.starId] = caller.callerId.value
             it[MessageTable.content] = message.content.value
             it[MessageTable.sentAt] = now
         }
@@ -87,46 +91,23 @@ class MessageTableDao: DbService() {
             it[ChatTable.lastMessageAt] = now
             it[ChatTable.lastMessagePreview] = message.content.value.takeEllipsis(40)
         }
+
+        Message(messageId, message.chatId, caller.username, message.content, now)
     }
 
     suspend fun readInbox(callerId: CallerId, limit: Int = 100) = dbQuery {
-        val rows = ChatStarTable
-            .join(ChatTable, JoinType.INNER) { ChatTable.id.eq(ChatStarTable.chatId) }
-            .select(
-                ChatTable.id,
-                ChatTable.subject,
-                ChatTable.lastMessagePreview,
-                ChatTable.lastMessageAt,
-                ChatTable.createdAt,
-                ChatStarTable.lastReadAt,
-                ChatStarTable.archivedAt
-            )
+        val rows = ChatPreviewAspect.query()
             .where { ChatStarTable.starId.eq(callerId.value) }
             .orderBy(ChatTable.lastMessageAt to SortOrder.DESC)
             .limit(limit)
             .toList()
 
-        val usernamesByChat = ChatStarTable
-            .join(StarTable, JoinType.INNER) { StarTable.id.eq(ChatStarTable.starId) }
-            .select(ChatStarTable.chatId, StarTable.username)
-            .where {
-                ChatStarTable.chatId.inList(rows.map { it[ChatTable.id] }) and
-                        ChatStarTable.starId.neq(callerId.value)
-            }
-            .groupBy({ it[ChatStarTable.chatId] }) { Username(it[StarTable.username]) }
+        val usernamesByChat = ChatPreviewAspect.queryUsernames(rows)
 
         rows.map { row ->
             val chatId = row[ChatTable.id]
-            ChatPreview(
-                chatId = ChatId(chatId.value),
-                usernames = usernamesByChat[chatId].orEmpty(),
-                subject = row[ChatTable.subject],
-                lastMessagePreview = row[ChatTable.lastMessagePreview],
-                lastMessageAt = row[ChatTable.lastMessageAt],
-                lastReadAt = row[ChatStarTable.lastReadAt],
-                archivedAt = row[ChatStarTable.archivedAt],
-                createdAt = row[ChatTable.createdAt]
-            )
+            val usernames = usernamesByChat[chatId].orEmpty()
+            row.toChatPreview(usernames)
         }
     }
 

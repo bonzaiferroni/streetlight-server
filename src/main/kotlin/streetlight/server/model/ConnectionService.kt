@@ -6,7 +6,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import streetlight.model.data.Message
-import streetlight.model.data.MessageSent
 import streetlight.model.data.OmniMessage
 import streetlight.model.data.StarId
 import java.util.concurrent.ConcurrentHashMap
@@ -32,8 +31,8 @@ class ConnectionService() {
         emit(starId) { ConnectionExit(sessionId) }
     }
 
-    fun notifyMessage(starId: StarId, author: Username, sentAt: Instant) {
-        emit(starId) { ConnectionMessage(MessageSent(author, sentAt)) }
+    fun notifyMessage(starId: StarId, message: Message) {
+        emit(starId) { ConnectionMessage(message) }
     }
 
     private fun emit(starId: StarId, event: () -> ConnectionEvent) {

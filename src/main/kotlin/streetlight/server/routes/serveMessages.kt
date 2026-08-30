@@ -19,22 +19,20 @@ fun ApiScope.serveMessages() {
 
     authGate {
         postApi(Api.Messages.SendNew) { request ->
-            val message = request.data.takeIf { it.isValid } ?: return@postApi HttpProblem.BadRequest
+            val newMessage = request.data.takeIf { it.isValid } ?: return@postApi HttpProblem.BadRequest
             val identity = call.getIdentity()
-            val callerId = identity.callerId
-            val recipientId = dao.star.readIdByUsername(message.recipient) ?: return@postApi HttpProblem.NotFound
-            if (dao.message.create(callerId, recipientId, message) == 0) return@postApi HttpProblem.InternalServerError
-            connection.notifyMessage(recipientId, identity.username, Clock.System.now())
+            val recipientId = dao.star.readIdByUsername(newMessage.recipient) ?: return@postApi HttpProblem.NotFound
+            val message = dao.message.create(identity, recipientId, newMessage)
+            connection.notifyMessage(recipientId, message)
             Ok(Unit)
         }
 
         postApi(Api.Messages.SendReply) {
-            val message = it.data
+            val reply = it.data
             val identity = call.getIdentity()
-            val callerId = identity.callerId
-            if (dao.message.create(callerId, message) == 0) return@postApi HttpProblem.NotAuthorized
-            dao.message.readStarIds(message.chatId).forEach { recipientId ->
-                connection.notifyMessage(recipientId, identity.username, Clock.System.now())
+            val message = dao.message.create(identity, reply) ?: return@postApi HttpProblem.NotAuthorized
+            dao.message.readStarIds(reply.chatId).forEach { recipientId ->
+                connection.notifyMessage(recipientId, message)
             }
             Ok(Unit)
         }

@@ -95,6 +95,7 @@ val SiteStyles = buildString {
     // println(TextUtilityCss.toStylesheet())
     appendLine(StylesCss)
     appendLine(TypographyCss)
+    appendLine(LayoutCss)
     appendLine(ThemeCss)
     appendLine(MagicCss)
     appendLine(ButtonCss)
