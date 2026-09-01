@@ -9,16 +9,19 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.ChatId
-import streetlight.model.data.ChatMessageRequest
 import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
+import streetlight.model.data.RecordCursor
 import streetlight.model.data.ReplyMessage
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.ChatStarTable
@@ -91,11 +94,23 @@ class MessageTableDao: DbService() {
         Message(messageId, message.chatId, caller.username, message.content, now)
     }
 
-    suspend fun readInbox(callerId: CallerId, limit: Int = 100) = dbQuery {
+    suspend fun readChats(callerId: CallerId, isArchive: Boolean, cursor: RecordCursor? = null) = dbQuery {
+        val isArchiveQuery = if (isArchive) {
+            ChatStarTable.archivedAt.greater(ChatTable.lastMessageAt)
+        } else {
+            ChatStarTable.archivedAt.isNull() or ChatStarTable.archivedAt.lessEq(ChatTable.lastMessageAt)
+        }
         val rows = ChatPreviewAspect.query()
-            .where { ChatStarTable.starId.eq(callerId.value) }
+            .whereWith(ChatTable) {
+                val chatMatch = ChatStarTable.starId.eq(callerId.value) and isArchiveQuery
+                if (cursor == null) chatMatch
+                else chatMatch and (
+                    lastMessageAt.less(cursor.recordAt) or
+                            (lastMessageAt.eq(cursor.recordAt) and id.less(cursor.recordId))
+                )
+            }
             .orderBy(ChatTable.lastMessageAt, SortOrder.DESC)
-            .limit(limit)
+            .limit(cursor?.limit ?: RecordCursor.DefaultLimit)
             .toList()
 
         val chatBadges = ChatPreviewAspect.queryBadges(rows)
@@ -107,15 +122,7 @@ class MessageTableDao: DbService() {
         }
     }
 
-    suspend fun readStarIds(chatId: ChatId) = dbQuery {
-        ChatStarTable.select(ChatStarTable.starId).where { ChatStarTable.chatId.eq(chatId) }
-            .map { StarId(it[ChatStarTable.starId].value) }
-    }
-
-    suspend fun readChatMessages(callerId: CallerId, request: ChatMessageRequest) = dbQuery {
-        val chatId = request.chatId
-        val limit = request.limit
-        val cursor = request.cursor
+    suspend fun readChatMessages(callerId: CallerId, chatId: ChatId, cursor: RecordCursor?) = dbQuery {
         if (updateLastReadAt(callerId, chatId, Clock.System.now()) != 1) return@dbQuery null
         MessageAspect.query().whereWith(MessageTable) {
             val chatMatch = this.chatId.eq(chatId)
@@ -126,13 +133,30 @@ class MessageTableDao: DbService() {
                     )
         }
             .orderBy(MessageTable.sentAt to SortOrder.DESC, MessageTable.id to SortOrder.DESC)
-            .limit(limit)
+            .limit(cursor?.limit ?: RecordCursor.DefaultLimit)
             .map { it.toMessage() }
     }
 
     private fun updateLastReadAt(callerId: CallerId, chatId: ChatId, now: Instant): Int {
         return ChatStarTable.update({ ChatStarTable.chatId.eq(chatId) and ChatStarTable.starId.eq(callerId) }) {
             it[ChatStarTable.lastReadAt] = now
+        }
+    }
+
+    suspend fun readStarIds(chatId: ChatId) = dbQuery {
+        ChatStarTable.select(ChatStarTable.starId).where { ChatStarTable.chatId.eq(chatId) }
+            .map { StarId(it[ChatStarTable.starId].value) }
+    }
+
+    suspend fun archiveChat(callerId: CallerId, chatId: ChatId) = dbQuery {
+        ChatStarTable.update({ ChatStarTable.chatId.eq(chatId) and ChatStarTable.starId.eq(callerId) }) {
+            it[ChatStarTable.archivedAt] = Clock.System.now()
+        }
+    }
+
+    suspend fun unarchiveChat(callerId: CallerId, chatId: ChatId) = dbQuery {
+        ChatStarTable.update({ ChatStarTable.chatId.eq(chatId) and ChatStarTable.starId.eq(callerId) }) {
+            it[ChatStarTable.archivedAt] = null
         }
     }
 }
