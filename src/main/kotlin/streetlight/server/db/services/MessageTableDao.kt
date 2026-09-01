@@ -1,33 +1,30 @@
 package streetlight.server.db.services
 
-import kampfire.api.Username
 import kampfire.utils.takeEllipsis
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
 import klutch.db.whereWith
 import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.ChatId
-import streetlight.model.data.ChatPreview
+import streetlight.model.data.ChatMessageRequest
 import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
+import streetlight.model.data.RecordCursor
 import streetlight.model.data.ReplyMessage
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.ChatStarTable
 import streetlight.server.db.tables.ChatTable
 import streetlight.server.db.tables.MessageTable
-import streetlight.server.db.tables.StarTable
-import kotlin.text.get
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -98,7 +95,7 @@ class MessageTableDao: DbService() {
     suspend fun readInbox(callerId: CallerId, limit: Int = 100) = dbQuery {
         val rows = ChatPreviewAspect.query()
             .where { ChatStarTable.starId.eq(callerId.value) }
-            .orderBy(ChatTable.lastMessageAt to SortOrder.DESC)
+            .orderBy(ChatTable.lastMessageAt, SortOrder.DESC)
             .limit(limit)
             .toList()
 
@@ -116,9 +113,22 @@ class MessageTableDao: DbService() {
             .map { StarId(it[ChatStarTable.starId].value) }
     }
 
-    suspend fun readChat(callerId: CallerId, chatId: ChatId) = dbQuery {
+    suspend fun readChatMessages(callerId: CallerId, request: ChatMessageRequest) = dbQuery {
+        val chatId = request.chatId
+        val limit = request.limit
+        val cursor = request.cursor
         if (updateLastReadAt(callerId, chatId, Clock.System.now()) != 1) return@dbQuery null
-        MessageAspect.query().whereWith(MessageTable) { this.chatId.eq(chatId) }.map { it.toMessage() }
+        MessageAspect.query().whereWith(MessageTable) {
+            val chatMatch = this.chatId.eq(chatId)
+            if (cursor == null) chatMatch
+            else chatMatch and (
+                    sentAt.less(cursor.recordAt) or
+                            (sentAt.eq(cursor.recordAt) and id.less(cursor.recordId))
+                    )
+        }
+            .orderBy(MessageTable.sentAt to SortOrder.DESC, MessageTable.id to SortOrder.DESC)
+            .limit(limit)
+            .map { it.toMessage() }
     }
 
     private fun updateLastReadAt(callerId: CallerId, chatId: ChatId, now: Instant): Int {

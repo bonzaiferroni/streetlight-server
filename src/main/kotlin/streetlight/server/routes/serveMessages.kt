@@ -12,7 +12,6 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.ApiScope
 import streetlight.server.model.ConnectionService
 import streetlight.server.model.getIdentity
-import kotlin.time.Clock
 
 fun ApiScope.serveMessages() {
     val connection = provide<ConnectionService>()
@@ -42,10 +41,9 @@ fun ApiScope.serveMessages() {
             Ok(InboxContent(dao.message.readInbox(identity.callerId)))
         }
 
-        getApi(Api.Messages.ReadChat, { it.toRecordId() }) {
-            val chatId = it.data
+        postApi(Api.Messages.ReadChatMessages) {
             val identity = call.getIdentity()
-            val messages = dao.message.readChat(identity.callerId, chatId) ?: return@getApi HttpProblem.NotAuthorized
+            val messages = dao.message.readChatMessages(identity.callerId, it.data) ?: return@postApi HttpProblem.NotAuthorized
             Ok(messages)
         }
     }
