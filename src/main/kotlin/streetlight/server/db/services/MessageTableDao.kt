@@ -19,7 +19,6 @@ import streetlight.model.data.ChatMessageRequest
 import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
-import streetlight.model.data.RecordCursor
 import streetlight.model.data.ReplyMessage
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.ChatStarTable
@@ -99,12 +98,12 @@ class MessageTableDao: DbService() {
             .limit(limit)
             .toList()
 
-        val usernamesByChat = ChatPreviewAspect.queryUsernames(rows)
+        val chatBadges = ChatPreviewAspect.queryBadges(rows)
 
         rows.map { row ->
             val chatId = row[ChatTable.id]
-            val usernames = usernamesByChat[chatId].orEmpty()
-            row.toChatPreview(usernames)
+            val badges = chatBadges[chatId].orEmpty()
+            row.toChatPreview(badges)
         }
     }
 

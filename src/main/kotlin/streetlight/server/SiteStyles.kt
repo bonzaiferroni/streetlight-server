@@ -19,6 +19,7 @@ import koala.model.LazyColumnCss
 import koala.model.TextEditorCss
 import streetlight.web.layouts.LightControlCss
 import streetlight.web.ui.BodyCss
+import streetlight.web.ui.InboxCss
 import streetlight.web.ui.LayoutBuilderCss
 import streetlight.web.ui.LayoutStyleCss
 import streetlight.web.ui.StarLightCss
@@ -82,6 +83,7 @@ private val KtStyles = listOf(
     TextDeltaCss,
     LayoutBuilderCss,
     LayoutStyleCss,
+    InboxCss,
 )
 
 private val Utilities = listOf(

@@ -1,6 +1,6 @@
 package streetlight.server.db.services
 
-import kampfire.api.Username
+import kampfire.api.toUsername
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
@@ -8,10 +8,10 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.ChatId
 import streetlight.model.data.ChatPreview
+import streetlight.model.data.StarBadge
 import streetlight.server.db.tables.ChatStarTable
 import streetlight.server.db.tables.ChatTable
 import streetlight.server.db.tables.StarTable
-import kotlin.collections.orEmpty
 
 object ChatPreviewAspect {
     val columns = with(ChatTable) {
@@ -25,20 +25,25 @@ object ChatPreviewAspect {
         .join(ChatTable, JoinType.INNER) { ChatTable.id.eq(ChatStarTable.chatId) }
         .select(columns)
 
-    fun queryUsernames(rows: List<ResultRow>) = ChatStarTable
+    fun queryBadges(rows: List<ResultRow>) = ChatStarTable
         .join(StarTable, JoinType.INNER) { StarTable.id.eq(ChatStarTable.starId) }
-        .select(ChatStarTable.chatId, StarTable.username)
+        .select(ChatStarTable.chatId, StarTable.username, StarTable.image)
         .where { ChatStarTable.chatId.inList(rows.map { it[ChatTable.id] }) }
-        .groupBy({ it[ChatStarTable.chatId] }) { Username(it[StarTable.username]) }
+        .groupBy({ it[ChatStarTable.chatId] }) { it.toStarBadge() }
 }
 
-fun ResultRow.toChatPreview(usernames: List<Username>) = ChatPreview(
+fun ResultRow.toChatPreview(badges: List<StarBadge>) = ChatPreview(
     chatId = ChatId(this[ChatTable.id].value),
-    usernames = usernames,
+    badges = badges,
     subject = this[ChatTable.subject],
     lastMessagePreview = this[ChatTable.lastMessagePreview],
     lastMessageAt = this[ChatTable.lastMessageAt],
     lastReadAt = this[ChatStarTable.lastReadAt],
     archivedAt = this[ChatStarTable.archivedAt],
     createdAt = this[ChatTable.createdAt]
+)
+
+fun ResultRow.toStarBadge() = StarBadge(
+    username = this[StarTable.username].toUsername(),
+    thumb = this[StarTable.image]?.thumb
 )
