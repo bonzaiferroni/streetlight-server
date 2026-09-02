@@ -8,6 +8,7 @@ import klutch.server.postApi
 import klutch.server.provide
 import streetlight.model.Api
 import streetlight.model.data.InboxContent
+import streetlight.model.data.toRecordId
 import streetlight.server.model.ApiScope
 import streetlight.server.model.ConnectionService
 import streetlight.server.model.getIdentity
@@ -51,8 +52,7 @@ fun ApiScope.serveMessages() {
         postApi(Api.Messages.ReadChats) {
             val request = it.data
             val identity = call.getIdentity()
-            val chats = dao.message.readChats(identity.callerId, request.isArchive, request.cursor)
-            Ok(chats)
+            Ok(dao.message.readChats(identity.callerId, request.isArchive, request.cursor))
         }
 
         postApi(Api.Messages.ArchiveChat) {
@@ -67,6 +67,12 @@ fun ApiScope.serveMessages() {
             val identity = call.getIdentity()
             if (dao.message.unarchiveChat(identity.callerId, chatId) != 1) return@postApi HttpProblem.NotAuthorized
             Ok(Unit)
+        }
+
+        getApi(Api.Messages.ReadChatPreview, { it.toRecordId() }) {
+            val chatId = it.data
+            val identity = call.getIdentity()
+            Ok(dao.message.readChatPreview(identity.callerId, chatId) ?: return@getApi HttpProblem.NotAuthorized)
         }
     }
 }

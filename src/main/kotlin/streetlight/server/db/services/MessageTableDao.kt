@@ -111,7 +111,7 @@ class MessageTableDao: DbService() {
             }
             .orderBy(ChatTable.lastMessageAt, SortOrder.DESC)
             .limit(cursor?.limit ?: RecordCursor.DefaultLimit)
-            .toList()
+            .toList().takeIf { it.isNotEmpty() } ?: return@dbQuery emptyList()
 
         val chatBadges = ChatPreviewAspect.queryBadges(rows)
 
@@ -157,6 +157,20 @@ class MessageTableDao: DbService() {
     suspend fun unarchiveChat(callerId: CallerId, chatId: ChatId) = dbQuery {
         ChatStarTable.update({ ChatStarTable.chatId.eq(chatId) and ChatStarTable.starId.eq(callerId) }) {
             it[ChatStarTable.archivedAt] = null
+        }
+    }
+
+    suspend fun readChatPreview(callerId: CallerId, chatId: ChatId) = dbQuery {
+        val rows = ChatPreviewAspect.query()
+            .where { ChatStarTable.starId.eq(callerId) and ChatTable.id.eq(chatId) }
+            .toList().takeIf { it.isNotEmpty() } ?: return@dbQuery null
+
+        val chatBadges = ChatPreviewAspect.queryBadges(rows)
+
+        rows.singleOrNull()?.let { row ->
+            val chatId = row[ChatTable.id]
+            val badges = chatBadges[chatId].orEmpty()
+            row.toChatPreview(badges)
         }
     }
 }
