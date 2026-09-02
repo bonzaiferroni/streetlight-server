@@ -16,12 +16,14 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.ChatId
 import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
-import streetlight.model.data.RecordCursor
+import kampfire.model.RecordCursor
+import kampfire.model.limitOrDefault
 import streetlight.model.data.ReplyMessage
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.ChatStarTable
@@ -109,8 +111,8 @@ class MessageTableDao: DbService() {
                             (lastMessageAt.eq(cursor.recordAt) and id.less(cursor.recordId))
                 )
             }
-            .orderBy(ChatTable.lastMessageAt, SortOrder.DESC)
-            .limit(cursor?.limit ?: RecordCursor.DefaultLimit)
+            .orderBy(ChatTable.lastMessageAt to SortOrder.DESC, ChatTable.id to SortOrder.DESC)
+            .limit(cursor.limitOrDefault)
             .toList().takeIf { it.isNotEmpty() } ?: return@dbQuery emptyList()
 
         val chatBadges = ChatPreviewAspect.queryBadges(rows)
@@ -123,7 +125,7 @@ class MessageTableDao: DbService() {
     }
 
     suspend fun readChatMessages(callerId: CallerId, chatId: ChatId, cursor: RecordCursor?) = dbQuery {
-        if (updateLastReadAt(callerId, chatId, Clock.System.now()) != 1) return@dbQuery null
+        if (!isChatMember(callerId, chatId, cursor)) return@dbQuery null
         MessageAspect.query().whereWith(MessageTable) {
             val chatMatch = this.chatId.eq(chatId)
             if (cursor == null) chatMatch
@@ -133,8 +135,17 @@ class MessageTableDao: DbService() {
                     )
         }
             .orderBy(MessageTable.sentAt to SortOrder.DESC, MessageTable.id to SortOrder.DESC)
-            .limit(cursor?.limit ?: RecordCursor.DefaultLimit)
+            .limit(cursor.limitOrDefault)
             .map { it.toMessage() }
+    }
+
+    private fun isChatMember(callerId: CallerId, chatId: ChatId, cursor: RecordCursor?): Boolean {
+        return when (cursor) {
+            null -> updateLastReadAt(callerId, chatId, Clock.System.now()) == 1
+            else -> ChatStarTable.selectAll()
+                .where { ChatStarTable.chatId.eq(chatId) and ChatStarTable.starId.eq(callerId) }
+                .empty().not()
+        }
     }
 
     private fun updateLastReadAt(callerId: CallerId, chatId: ChatId, now: Instant): Int {
