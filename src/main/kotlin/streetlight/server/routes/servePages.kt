@@ -119,6 +119,7 @@ data class HtmlRender(
 suspend fun ApiScope.renderClientBase(screen: AppScreen): HtmlRender {
     return HtmlRender {
         // td: add loading message
+        // td: pass screen title
         appPage("Streetlight", SiteStyles, screen) { }
     }
 }
@@ -128,7 +129,9 @@ suspend fun ApiScope.renderHome(callerId: CallerId?): HtmlRender {
     val content = readHomeContent(callerId)
 
     return HtmlRender {
-        homePage(content, SiteStyles)
+        appPage("Home", SiteStyles, Screen.Galaxy) {
+            homeShell(content)
+        }
     }
 }
 
@@ -140,10 +143,12 @@ suspend fun ApiScope.renderAboutApp(): HtmlRender {
 
 suspend fun ApiScope.renderLocation(arg: String?, caller: Identity?): HtmlRender? {
     val locationId = arg?.toSlug() ?: return null
-    val location = readLocationContent(locationId, caller) ?: return null
+    val content = readLocationContent(locationId, caller) ?: return null
 
     return HtmlRender {
-        locationPage(location, SiteStyles)
+        appPage(content.location.name ?: "Location", SiteStyles, Screen.Location, content.design?.theme) {
+            locationShell(content)
+        }
     }
 }
 
@@ -152,7 +157,9 @@ suspend fun ApiScope.renderGalaxy(arg: String?, callerId: CallerId?): HtmlRender
     val content = readGalaxyContent(slug, callerId) ?: return null
 
     return HtmlRender {
-        galaxyPage(content, SiteStyles)
+        appPage(content.galaxy.name, SiteStyles, Screen.Galaxy) {
+            galaxyShell(content)
+        }
     }
 }
 
@@ -161,7 +168,7 @@ suspend fun ApiScope.renderStar(arg: String?, caller: Identity?): HtmlRender? {
     val content = readStarContent(username, caller) ?: return null
 
     return HtmlRender {
-        appPage("$username", SiteStyles, Screen.Star) {
+        appPage(username.value, SiteStyles, Screen.Star) {
             starShell(content)
         }
     }
@@ -172,7 +179,7 @@ suspend fun ApiScope.renderEvent(arg: String?, callerId: CallerId?): HtmlRender?
     val event = dao.event.readEventLocationBySlug(slug, callerId) ?: return null
 
     return HtmlRender {
-        appPage("${event.title} | Streetlight", SiteStyles, Screen.Event) {
+        appPage(event.title, SiteStyles, Screen.Event) {
             eventShell(event)
         }
     }
@@ -183,7 +190,7 @@ fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
     val content = readDocContent(docId) ?: return null
 
     return HtmlRender {
-        appPage("${content.node.doc.title} | Streetlight", SiteStyles, Screen.Docs) {
+        appPage(content.node.doc.title, SiteStyles, Screen.Docs) {
             siteDocShell(content)
         }
     }
