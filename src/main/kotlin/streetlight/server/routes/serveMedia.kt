@@ -18,8 +18,7 @@ fun ApiScope.serveMedia() {
     authGate(optional = true) {
         getApi(Api.Medias.ReadMedia, { it.toSlug() }) {
             val slug = it.data
-            HttpProblem.Conflict
-            // Ok(dao.media.readMedia(slug) ?: return@getApi HttpProblem.NotFound)
+            Ok(dao.media.readMedia(slug) ?: return@getApi HttpProblem.NotFound)
         }
     }
 

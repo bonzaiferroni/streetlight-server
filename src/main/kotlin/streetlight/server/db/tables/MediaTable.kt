@@ -5,6 +5,7 @@ import kampfire.api.toUsername
 import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
+import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
 import klutch.db.point
 import klutch.db.scaledImages
@@ -18,8 +19,10 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Media
 import streetlight.model.data.MediaType
+import streetlight.model.data.PageDesign
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
@@ -34,6 +37,7 @@ object MediaTable: UuidTable("media"), SlugTable {
     val link = url("link").nullable()
     val geoPoint = point("geo_point").nullable()
     val image = image("image").nullable()
+    val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     // td: add unpublished status
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
@@ -49,21 +53,6 @@ object MediaTable: UuidTable("media"), SlugTable {
 }
 
 val mediaUsernameSync = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)
-
-fun ResultRow.toMedia() = Media(
-    mediaId = toRecordId(MediaTable.id),
-    slug = this[MediaTable.slug].toSlug(),
-    username = this[MediaTable.username],
-    mediaType = this[MediaTable.mediaType],
-    title = this[MediaTable.title],
-    subtitle = this[MediaTable.subtitle],
-    text = this[MediaTable.text],
-    link = this[MediaTable.link],
-    geoPoint = this[MediaTable.geoPoint]?.toGeoPoint(),
-    image = this[MediaTable.image],
-    updatedAt = this[MediaTable.updatedAt],
-    createdAt = this[MediaTable.createdAt],
-)
 
 fun UpdateBuilder<*>.createRecord(media: Media, callerId: CallerId) {
     this[MediaTable.id] = media.mediaId.value
@@ -82,6 +71,7 @@ fun UpdateBuilder<*>.writeUpdate(media: Media) {
     this[MediaTable.link] = media.link
     this[MediaTable.geoPoint] = media.geoPoint?.toPGpoint()
     this[MediaTable.image] = media.image
+    this[MediaTable.design] = media.design
     this[MediaTable.updatedAt] = media.updatedAt
     // writeImages(MediaTable.imageConfig, imageSet)
 }

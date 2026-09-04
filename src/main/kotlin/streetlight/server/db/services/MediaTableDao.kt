@@ -63,6 +63,7 @@ private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug? = null) = Media(
     link = link,
     geoPoint = geoPoint,
     image = image,
+    design = design,
     updatedAt = Clock.System.now(),
     createdAt = Clock.System.now(),
 )
