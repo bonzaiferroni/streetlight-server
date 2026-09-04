@@ -168,7 +168,7 @@ suspend fun ApiScope.renderStar(arg: String?, caller: Identity?): HtmlRender? {
     val content = readStarContent(username, caller) ?: return null
 
     return HtmlRender {
-        appPage(username.value, SiteStyles, Screen.Star) {
+        appPage(username.value, SiteStyles, Screen.Star, content.star.design?.theme) {
             starShell(content)
         }
     }
@@ -198,11 +198,11 @@ fun ApiScope.renderSiteDoc(arg: String?): HtmlRender? {
 
 suspend fun ApiScope.renderMedia(arg: String?): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val post = dao.media.readMedia(slug) ?: return null
+    val media = dao.media.readMedia(slug) ?: return null
 
     return HtmlRender {
-        appPage("${post.title} by ${post.username} | Streetlight", SiteStyles, Screen.Media) {
-            mediaShell(post)
+        appPage("${media.title} by ${media.username}", SiteStyles, Screen.Media, media.design?.theme) {
+            mediaShell(media)
         }
     }
 }

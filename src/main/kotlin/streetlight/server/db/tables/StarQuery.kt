@@ -13,6 +13,8 @@ object StarQuery {
         StarTable.image, StarTable.tagline, StarTable.description,
         StarTable.scoutLevel, StarTable.createdAt,
     )
+
+    fun getColumns(withDesign: Boolean) = if (withDesign) columns + StarTable.design else columns
 }
 
 fun ResultRow.toStar() = Star(
@@ -22,6 +24,7 @@ fun ResultRow.toStar() = Star(
     name = getIfVisibilityPublic(StarTable.name),
 
     image = this[StarTable.image],
+    design = getOrNull(StarTable.design),
     tagline = this[StarTable.tagline],
     description = this[StarTable.description]?.toMarkdown(),
 

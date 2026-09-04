@@ -9,13 +9,16 @@ import kampfire.model.ImageSize
 import kampfire.model.UserRecord
 import kampfire.model.UserRole
 import klutch.db.image
+import klutch.db.jsonbConfig
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.EmailStatus
 import streetlight.model.data.IdentityVisibility
+import streetlight.model.data.PageDesign
 import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
 import kotlin.time.Clock
@@ -36,6 +39,7 @@ object StarTable: UuidTable("star") {
     val emailStatus = enumeration<EmailStatus>("email_status").nullable()
     val scoutLevel = integer("scout_level").default(0)
     val image = image("image").nullable()
+    val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val guestToken = char("guest_token", 64).uniqueIndex().nullable()
     val activeAt = timestamp("active_at").default(Clock.System.now())
     val createdAt = timestamp("created_at")
@@ -85,4 +89,5 @@ fun UpdateBuilder<*>.updateProfile(edit: StarEdit) {
     this[StarTable.description] = edit.description?.value
     this[StarTable.tagline] = edit.tagline
     this[StarTable.image] = edit.image
+    this[StarTable.design] = edit.design
 }

@@ -71,7 +71,7 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
 }
 
 suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): StarContent? {
-    val star = dao.star.readStar(username, caller?.callerId) ?: return null
+    val star = dao.star.readStar(username, caller?.callerId, true) ?: return null
     val posts = dao.media.readMedia(username, caller?.callerId)
     return StarContent(
         star = star,

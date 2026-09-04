@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.MediaPost
 import streetlight.model.data.EventPost
+import streetlight.model.data.GalaxyTrace
 import streetlight.model.data.LocationPost
 import streetlight.model.data.Post
 import streetlight.model.data.PostType
@@ -60,10 +61,8 @@ fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {
 
 fun ResultRow.toPost() = Post(
     postId = this[PostTable.id].toRecordId(),
-    galaxyId = this[PostTable.galaxyId].toRecordId(),
+    galaxy = toGalaxyTrace(),
     postType = this[PostTable.postType],
-    galaxyName = this[PostTable.galaxyName] ?: error("galaxy name not found"),
-    galaxySlug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
     username = this[PostTable.username]?.toUsername(),
     title = this[PostTable.title],
     text = this[PostTable.text],
@@ -71,4 +70,10 @@ fun ResultRow.toPost() = Post(
     lightCount = this[PostTable.starCount],
     createdAt = this[PostTable.createdAt],
     updatedAt = this[PostTable.updatedAt],
+)
+
+fun ResultRow.toGalaxyTrace() = GalaxyTrace(
+    galaxyId = this[PostTable.galaxyId].toRecordId(),
+    name = this[PostTable.galaxyName] ?: error("galaxy name not found"),
+    slug = this[PostTable.galaxySlug]?.toSlug() ?: error("galaxy slug not found"),
 )

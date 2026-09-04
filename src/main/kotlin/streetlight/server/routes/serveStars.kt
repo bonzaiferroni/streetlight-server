@@ -1,9 +1,6 @@
 package streetlight.server.routes
 
-import kampfire.api.deobfuscatePassword
-import kampfire.api.toValidOutcome
 import kampfire.model.Ok
-import kampfire.model.Problem
 import kampfire.model.toDataOr
 import kampfire.model.toOutcome
 import klutch.server.postApi
@@ -14,6 +11,7 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
+import streetlight.model.data.ProfileConfig
 import streetlight.server.db.tables.StarTable
 import streetlight.server.utils.toStarId
 
@@ -60,6 +58,11 @@ fun ApiScope.serveStars() {
         getApi(Api.Stars.ReadAccount) {
             val callerId = call.getIdentity().callerId
             dao.star.readAccount(callerId.toStarId()).toOutcome()
+        }
+
+        getApi(Api.Stars.ReadProfileConfig) {
+            val callerId = call.getIdentity().callerId
+            Ok(ProfileConfig(dao.star.readDesign(callerId)))
         }
     }
 }

@@ -66,9 +66,9 @@ class StarTableDao: DbService() {
         }
     }
 
-    suspend fun readStar(username: Username, callerId: CallerId?) = dbQuery {
+    suspend fun readStar(username: Username, callerId: CallerId?, withDesign: Boolean = false) = dbQuery {
         // td: add starlight
-        StarTable.select(StarQuery.columns)
+        StarTable.select(StarQuery.getColumns(withDesign))
             .where { StarTable.username.eq(username) }
             .map { it.toStar() }
             .firstOrNull()
@@ -100,6 +100,11 @@ class StarTableDao: DbService() {
         StarTable.select(AccountQuery.columns).where {
             StarTable.email.eq(email.value)
         }.singleOrNull()?.toAccount()
+    }
+
+    suspend fun readDesign(callerId: CallerId) = dbQuery {
+        StarTable.select(StarTable.design).where { StarTable.id.eq(callerId) }
+            .singleOrNull()?.let { it[StarTable.design] }
     }
 
     suspend fun readPasswordHash(starId: StarId) = dbQuery {
