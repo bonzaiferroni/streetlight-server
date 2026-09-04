@@ -157,7 +157,7 @@ suspend fun ApiScope.renderGalaxy(arg: String?, callerId: CallerId?): HtmlRender
     val content = readGalaxyContent(slug, callerId) ?: return null
 
     return HtmlRender {
-        appPage(content.galaxy.name, SiteStyles, Screen.Galaxy) {
+        appPage(content.galaxy.name, SiteStyles, Screen.Galaxy, content.design?.theme) {
             galaxyShell(content)
         }
     }

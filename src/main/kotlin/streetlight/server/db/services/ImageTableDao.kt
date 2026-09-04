@@ -5,16 +5,12 @@ import klutch.db.read
 import klutch.db.whereWith
 import klutch.utils.eq
 import koala.ImageId
-import org.jetbrains.exposed.v1.core.ColumnSet
-import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.StarId
 import streetlight.model.data.ImageRecord
-import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.ImageTable
 import streetlight.server.db.tables.toImageRecord
 import streetlight.server.db.tables.createRecord

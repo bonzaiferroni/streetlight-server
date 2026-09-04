@@ -22,8 +22,8 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import streetlight.model.data.HostType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyStarTable
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.createGalaxy
+import streetlight.server.db.tables.updateGalaxy
 
 class GalaxyTableDao : DbService() {
 
@@ -34,7 +34,7 @@ class GalaxyTableDao : DbService() {
         val record = edit.toGalaxy()
 
         GalaxyTable.insert {
-            it.createRecord(record, callerId, SlugRecord(slug), city)
+            it.createGalaxy(record, callerId, SlugRecord(slug), city)
         }
         GalaxyStarTable.insert {
             it[GalaxyStarTable.galaxyId] = record.galaxyId.value
@@ -58,7 +58,7 @@ class GalaxyTableDao : DbService() {
 
         val galaxy = edit.toGalaxy()
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
-            it.updateRecord(galaxy, slugRecord, city)
+            it.updateGalaxy(galaxy, slugRecord, city)
         }
         slug
     }
@@ -103,6 +103,7 @@ fun GalaxyEdit.toGalaxy() = Galaxy(
     reviewCount = requireNotNull(reviewCount) { "review count not found" },
     postGuide = postGuide,
     image = image,
+    design = design,
     starCount = 0,
     eventCount = 0,
     locationCount = 0,
