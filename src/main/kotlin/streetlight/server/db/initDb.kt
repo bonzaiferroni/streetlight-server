@@ -45,7 +45,7 @@ private val dbTables = listOf(
     GalaxyCommentTable,
     GalaxyStarTable,
     PostTable,
-    PostStarTable,
+    PostMarkTable,
     CommentTable,
     CommentStarTable,
     MediaCommentTable,
@@ -75,6 +75,8 @@ private val dbTables = listOf(
     MessageTable,
     ChatTable,
     ChatStarTable,
+    GalaxyMarkTable,
+    MarkTable,
 )
 
 private val counterTriggers get() = listOf(

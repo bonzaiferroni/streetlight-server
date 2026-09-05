@@ -41,7 +41,7 @@ object PostTable : UuidTable("post") {
     val starCount = integer("star_count").default(0).index()
 }
 
-val postStarCountTrigger = CounterTrigger(PostTable, PostStarTable, PostStarTable.postId, PostTable.starCount)
+val postStarCountTrigger = CounterTrigger(PostTable, PostMarkTable, PostMarkTable.postId, PostTable.starCount)
 val postUsernameSync = SyncValueTrigger(PostTable.starId, PostTable.username, StarTable, StarTable.username)
 val postEventLocationSync = SyncValueTrigger(PostTable.eventId, PostTable.locationId, EventTable, EventTable.locationId)
 val postGalaxyNameSync = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)

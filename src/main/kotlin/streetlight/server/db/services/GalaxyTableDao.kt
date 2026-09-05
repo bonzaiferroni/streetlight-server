@@ -19,11 +19,24 @@ import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.HostType
+import streetlight.model.data.Lean
+import streetlight.model.data.Mark
+import streetlight.model.data.MarkId
 import streetlight.server.db.tables.GalaxyHostTable
+import streetlight.server.db.tables.MarkAspect
+import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyStarTable
+import streetlight.server.db.tables.MarkTable
 import streetlight.server.db.tables.createGalaxy
+import streetlight.server.db.tables.toGalaxyMark
+import streetlight.server.db.tables.toMark
 import streetlight.server.db.tables.updateGalaxy
+import kotlin.uuid.Uuid
 
 class GalaxyTableDao : DbService() {
 
@@ -47,6 +60,11 @@ class GalaxyTableDao : DbService() {
             it[GalaxyHostTable.hostType] = HostType.Creator
             it[GalaxyHostTable.createdAt] = Clock.System.now()
         }
+        GalaxyMarkTable.batchInsert(edit.marks) { mark ->
+            this[GalaxyMarkTable.markId] = mark.markId.value
+            this[GalaxyMarkTable.galaxyId] = record.galaxyId.value
+            this[GalaxyMarkTable.lean] = mark.lean
+        }
 
         slug
     }
@@ -60,6 +78,11 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
             it.updateGalaxy(galaxy, slugRecord, city)
         }
+        GalaxyMarkTable.batchUpsert(edit.marks, GalaxyMarkTable.galaxyId, GalaxyMarkTable.markId) { mark ->
+            this[GalaxyMarkTable.markId] = mark.markId.value
+            this[GalaxyMarkTable.galaxyId] = galaxyId.value
+            this[GalaxyMarkTable.lean] = mark.lean
+        }
         slug
     }
 
@@ -67,8 +90,24 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
+    suspend fun provisionMark(name: String) = dbQuery {
+        MarkTable.selectAll().where { MarkTable.name.eq(name) }.singleOrNull()?.toMark(Lean.Neutral)
+            ?: Mark(MarkId(Uuid.random()), Lean.Neutral, name).also { mark ->
+                MarkTable.insert {
+                    it[MarkTable.id] = mark.markId.value
+                    it[MarkTable.name] = mark.name
+                    it[MarkTable.createdAt] = Clock.System.now()
+                }
+            }
+    }
+
     suspend fun readGalaxy(slug: Slug, callerId: CallerId?) = dbQuery {
         galaxyQuery(callerId).where { GalaxyTable.slug.eq(slug) }.firstOrNull()?.toGalaxy()
+    }
+
+    suspend fun readMarks(galaxyId: GalaxyId) = dbQuery {
+        MarkAspect.queryGalaxy().where { GalaxyMarkTable.galaxyId.eq(galaxyId) }
+            .map { it.toGalaxyMark() }
     }
 
     suspend fun readGalaxy(galaxyId: GalaxyId, callerId: CallerId?) = dbQuery {

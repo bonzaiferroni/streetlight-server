@@ -5,6 +5,7 @@ import kampfire.api.Username
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
 import koala.model.DocId
+import org.jetbrains.exposed.v1.core.Op
 import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent
 import streetlight.model.data.GalaxyContent
@@ -16,7 +17,7 @@ import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
 
 suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
-    val posts = dao.post.readOrderedPosts(callerId)
+    val posts = dao.post.readOrderedPosts(callerId) { Op.TRUE }
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
     return HomeContent(
         galaxies = galaxies,
@@ -63,10 +64,12 @@ suspend fun DaoScope.readEventUpdaterContent(slug: Slug): EventUpdaterContent? {
 suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyContent? {
     val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
     val galaxyId = galaxy.galaxyId
+    val marks = dao.galaxy.readMarks(galaxyId)
     val posts = dao.post.readOrderedPosts(galaxyId, callerId)
     return GalaxyContent(
         galaxy = galaxy,
         posts = posts,
+        marks = marks
     )
 }
 

@@ -5,6 +5,7 @@ import klutch.db.any
 import klutch.db.count
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
+import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -19,13 +20,9 @@ import streetlight.model.data.PostId
 import streetlight.model.data.PostOrder
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
-import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import klutch.utils.inList
-import org.jetbrains.exposed.v1.core.greater
-import org.jetbrains.exposed.v1.core.neq
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.FeedStatus
@@ -33,9 +30,9 @@ import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.MediaId
 import streetlight.server.db.tables.GalaxyHostTable
+import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyTable
-import streetlight.server.db.tables.PostStarTable
-import streetlight.server.db.tables.galaxyPostQuery
+import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toPost
@@ -67,10 +64,10 @@ class PostTableDao : DbService() {
 
         PostTable.insert { it.createRecord(record, status) }
         callerId?.let {
-            PostStarTable.insert {
-                it[PostStarTable.postId] = record.postId.value
-                it[PostStarTable.starId] = callerId.value
-                it[PostStarTable.createdAt] = Clock.System.now()
+            PostMarkTable.insert {
+                it[PostMarkTable.postId] = record.postId.value
+                it[PostMarkTable.starId] = callerId.value
+                it[PostMarkTable.createdAt] = Clock.System.now()
             }
         }
         PostTable.selectAll().where { PostTable.id.eq(record.postId) }.singleOrNull()?.toPost()
@@ -103,34 +100,32 @@ class PostTableDao : DbService() {
         galaxyIds: List<GalaxyId>,
         callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
-        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.galaxyId.inList(galaxyIds) }
+        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
     suspend fun readOrderedPosts(
         galaxyId: GalaxyId,
         callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
-        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.galaxyId.eq(galaxyId) }
+        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.eq(galaxyId) }
     }
 
     suspend fun readStarPosts(
         starId: StarId,
         callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
-        filterUpcomingEvents: Boolean = true,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, filterUpcomingEvents, limit) { PostTable.starId.eq(starId.value) }
+        readOrderedPosts(callerId, order, limit) { PostTable.starId.eq(starId.value) }
     }
 
     suspend fun readPost(postId: PostId, callerId: CallerId?) = dbQuery {
-        galaxyPostQuery(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
+        val isMarked = GalaxyPostAspect.isMarked(callerId)
+        GalaxyPostAspect.query(callerId, isMarked).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost(isMarked)
     }
 
     suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
@@ -140,34 +135,18 @@ class PostTableDao : DbService() {
     suspend fun readOrderedPosts(
         callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
-        filterUpcomingEvents: Boolean = true,
         limit: Int = 100,
-        filter: QueryFilter? = null,
+        filter: QueryFilter,
     ) = dbQuery {
         val (orderColumn, sort) = orderOf(order)
 
-        val filter = getFilter(filterUpcomingEvents, filter)
-
-        galaxyPostQuery(callerId)
-            .let {
-                when (filter) {
-                    null -> it
-                    else -> it.where(filter)
-                }
-            }
+        val isMarked = GalaxyPostAspect.isMarked(callerId)
+        GalaxyPostAspect.query(callerId, isMarked)
+            .where(filter)
             .orderBy(orderColumn, sort)
             .limit(limit)
-            .map { it.toGalaxyPost() }
-    }
-
-    private fun getFilter(filterUpcomingEvents: Boolean, filter: QueryFilter?): QueryFilter? {
-        val eventFilter: QueryFilter? = if (filterUpcomingEvents) {
-            { PostTable.postType.neq(PostType.Event) or EventTable.startsAt.greater(Clock.System.now()) }
-        } else null
-
-        if (eventFilter == null) return filter
-        if (filter == null) return eventFilter
-        return { eventFilter() and filter() }
+            .printQuery()
+            .map { it.toGalaxyPost(isMarked) }
     }
 }
 

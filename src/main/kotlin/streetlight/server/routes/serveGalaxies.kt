@@ -3,6 +3,7 @@ package streetlight.server.routes
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
+import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.toOutcome
@@ -19,8 +20,10 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
 import streetlight.model.data.City
+import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.GalaxyEdit
+import streetlight.model.data.Mark
 
 private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
@@ -66,8 +69,9 @@ fun ApiScope.serveGalaxies() {
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
             val identity = call.getIdentityOrNull()
             val galaxy = dao.galaxy.readGalaxy(it.data, identity?.callerId) ?: return@getApi null
+            val marks = dao.galaxy.readMarks(galaxy.galaxyId)
             val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.callerId)
-            Ok(GalaxyContent(galaxy, posts))
+            Ok(GalaxyContent(galaxy, posts, marks))
         }
     }
 
@@ -113,6 +117,15 @@ fun ApiScope.serveGalaxies() {
             dao.post.update(postId, edit, identity.callerId).toOutcome()
         }
 
+        getApi(Api.Galaxies.ReadConfig, { it.toSlug() }) {
+            val slug = it.data
+            val identity = call.getIdentity()
+            // gate here by identity or admin?
+            val galaxy = dao.galaxy.readGalaxy(slug, identity.callerId) ?: return@getApi HttpProblem.NotFound
+            val marks = dao.galaxy.readMarks(galaxy.galaxyId)
+            Ok(GalaxyConfig(galaxy, marks))
+        }
+
         getApi(Api.Galaxies.ReadLights) {
             val callerId = call.getIdentity().callerId
             Ok(dao.light.readGalaxyLights(callerId))
@@ -132,6 +145,12 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.CreatePost) {
             val callerId = call.getIdentity().callerId
             dao.post.create(it.data, callerId).toOutcome()
+        }
+
+        postApi(Api.Galaxies.ProvisionMark) { request ->
+            val name = request.data.trim().takeIf { it.length in Mark.ValidLength }
+                ?: return@postApi HttpProblem.BadRequest
+            Ok(dao.galaxy.provisionMark(name))
         }
     }
 }

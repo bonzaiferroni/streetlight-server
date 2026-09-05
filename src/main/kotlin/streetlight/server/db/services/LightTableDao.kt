@@ -21,7 +21,7 @@ import streetlight.model.data.PostId
 import streetlight.server.db.tables.EventStarTable
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.LocationStarTable
-import streetlight.server.db.tables.PostStarTable
+import streetlight.server.db.tables.PostMarkTable
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -56,10 +56,10 @@ class LightTableDao : DbService() {
     )
 
     private val postLight = LightConfig(
-        lightTable = PostStarTable,
-        lightStarId = PostStarTable.starId,
-        lightForeignId = PostStarTable.postId,
-        createdAt = PostStarTable.createdAt,
+        lightTable = PostMarkTable,
+        lightStarId = PostMarkTable.starId,
+        lightForeignId = PostMarkTable.postId,
+        createdAt = PostMarkTable.createdAt,
     )
 
     // -- public API --
