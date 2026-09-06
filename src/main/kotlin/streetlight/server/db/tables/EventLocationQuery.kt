@@ -35,7 +35,6 @@ val EventLocationColumns = listOf(
     EventTable.starCount,
     EventTable.createdAt,
     EventTable.updatedAt,
-    EventStarTable.starId,
     LocationTable.slug,
     LocationTable.image,
     LocationTable.name,

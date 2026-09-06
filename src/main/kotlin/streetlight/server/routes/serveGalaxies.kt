@@ -7,7 +7,6 @@ import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import kampfire.model.Outcome
 import kampfire.model.toOutcome
-import kampfire.model.outcomeOf
 import kampfire.model.toDataOr
 import kampfire.model.toOk
 import klutch.db.model.Identity
@@ -23,7 +22,7 @@ import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.GalaxyEdit
-import streetlight.model.data.Mark
+import streetlight.model.data.FeedMark
 
 private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
@@ -57,7 +56,8 @@ fun ApiScope.serveGalaxies() {
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
             val postId = it.data
             val identity = call.getIdentityOrNull()
-            dao.post.readPost(postId, identity?.callerId).toOutcome()
+            // td: add marks
+            dao.post.readPost(postId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
@@ -68,10 +68,7 @@ fun ApiScope.serveGalaxies() {
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
             val identity = call.getIdentityOrNull()
-            val galaxy = dao.galaxy.readGalaxy(it.data, identity?.callerId) ?: return@getApi null
-            val marks = dao.galaxy.readMarks(galaxy.galaxyId)
-            val posts = dao.post.readOrderedPosts(galaxy.galaxyId, identity?.callerId)
-            Ok(GalaxyContent(galaxy, posts, marks))
+            Ok(readGalaxyContent(it.data, identity?.callerId) ?: return@getApi HttpProblem.NotFound)
         }
     }
 
@@ -122,7 +119,7 @@ fun ApiScope.serveGalaxies() {
             val identity = call.getIdentity()
             // gate here by identity or admin?
             val galaxy = dao.galaxy.readGalaxy(slug, identity.callerId) ?: return@getApi HttpProblem.NotFound
-            val marks = dao.galaxy.readMarks(galaxy.galaxyId)
+            val marks = dao.galaxy.readFeedMarks(galaxy.galaxyId)
             Ok(GalaxyConfig(galaxy, marks))
         }
 
@@ -148,7 +145,7 @@ fun ApiScope.serveGalaxies() {
         }
 
         postApi(Api.Galaxies.ProvisionMark) { request ->
-            val name = request.data.trim().takeIf { it.length in Mark.ValidLength }
+            val name = request.data.trim().takeIf { it.length in FeedMark.ValidLength }
                 ?: return@postApi HttpProblem.BadRequest
             Ok(dao.galaxy.provisionMark(name))
         }

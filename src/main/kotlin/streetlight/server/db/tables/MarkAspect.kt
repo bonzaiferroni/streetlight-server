@@ -3,7 +3,7 @@ package streetlight.server.db.tables
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Lean
-import streetlight.model.data.Mark
+import streetlight.model.data.FeedMark
 import streetlight.server.utils.toRecordId
 
 object MarkAspect {
@@ -14,7 +14,7 @@ object MarkAspect {
 
 fun ResultRow.toGalaxyMark() = toMark(this[GalaxyMarkTable.lean])
 
-fun ResultRow.toMark(lean: Lean) = Mark(
+fun ResultRow.toMark(lean: Lean) = FeedMark(
     markId = this[MarkTable.id].toRecordId(),
     lean = lean,
     name = this[MarkTable.name]

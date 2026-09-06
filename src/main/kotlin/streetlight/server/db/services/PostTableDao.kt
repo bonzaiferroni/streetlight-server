@@ -5,7 +5,6 @@ import klutch.db.any
 import klutch.db.count
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
-import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -23,11 +22,18 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import klutch.utils.inList
+import org.jetbrains.exposed.v1.core.Case
+import org.jetbrains.exposed.v1.core.IntegerColumnType
+import org.jetbrains.exposed.v1.core.Sum
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.intLiteral
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
+import streetlight.model.data.PostMark
 import streetlight.model.data.MediaId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyPostAspect
@@ -37,8 +43,10 @@ import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.updateRecord
+import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toStarId
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class PostTableDao : DbService() {
 
@@ -102,7 +110,7 @@ class PostTableDao : DbService() {
         order: PostOrder = PostOrder.NewFirst,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.inList(galaxyIds) }
+        readOrderedPosts(order, limit) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
     suspend fun readOrderedPosts(
@@ -111,7 +119,7 @@ class PostTableDao : DbService() {
         order: PostOrder = PostOrder.NewFirst,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.galaxyId.eq(galaxyId) }
+        readOrderedPosts(order, limit) { PostTable.galaxyId.eq(galaxyId) }
     }
 
     suspend fun readStarPosts(
@@ -120,12 +128,11 @@ class PostTableDao : DbService() {
         order: PostOrder = PostOrder.NewFirst,
         limit: Int = 100
     ) = dbQuery {
-        readOrderedPosts(callerId, order, limit) { PostTable.starId.eq(starId.value) }
+        readOrderedPosts(order, limit) { PostTable.starId.eq(starId.value) }
     }
 
-    suspend fun readPost(postId: PostId, callerId: CallerId?) = dbQuery {
-        val userLean = GalaxyPostAspect.userLean(callerId)
-        GalaxyPostAspect.query(callerId, userLean).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost(userLean)
+    suspend fun readPost(postId: PostId) = dbQuery {
+        GalaxyPostAspect.query().where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
     }
 
     suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
@@ -133,20 +140,41 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readOrderedPosts(
-        callerId: CallerId?,
         order: PostOrder = PostOrder.NewFirst,
         limit: Int = 100,
         filter: QueryFilter,
     ) = dbQuery {
         val (orderColumn, sort) = orderOf(order)
 
-        val userLean = GalaxyPostAspect.userLean(callerId)
-        GalaxyPostAspect.query(callerId, userLean)
+        GalaxyPostAspect.query()
             .where(filter)
             .orderBy(orderColumn, sort)
             .limit(limit)
-            .printQuery()
-            .map { it.toGalaxyPost(userLean) }
+            .map { it.toGalaxyPost() }
+    }
+
+    suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<Uuid, List<PostMark>> = dbQuery {
+        val sum = PostMarkTable.markId.count()
+        val isCaller = callerId?.let { PostMarkTable.starId.eq(it) } ?: Op.FALSE
+
+        val callerMarks = Sum(
+            Case()
+                .When(isCaller, intLiteral(1))
+                .Else(intLiteral(0)),
+            IntegerColumnType(),
+        )
+
+        PostMarkTable
+            .select(PostMarkTable.postId, PostMarkTable.markId, sum, callerMarks)
+            .where { PostMarkTable.postId.inList(postIds) }
+            .groupBy(PostMarkTable.postId, PostMarkTable.markId)
+            .groupBy({ it[PostMarkTable.postId].value }) { row ->
+                PostMark(
+                    markId = row[PostMarkTable.markId].toRecordId(),
+                    sum = row[sum].toInt(),
+                    isMarked = (row[callerMarks] ?: 0) > 0,
+                )
+            }
     }
 }
 

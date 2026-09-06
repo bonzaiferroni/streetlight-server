@@ -15,7 +15,7 @@ object LocationConfigQuery {
         SubdomainTable.slug,
     )
 
-    val contentColumns = (columns + LocationQuery.columns).distinct()
+    val contentColumns = (columns + LocationAspect.columns).distinct()
 }
 
 fun locationConfigContentQuery() = LocationTable

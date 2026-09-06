@@ -11,10 +11,9 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.CityId
 import streetlight.model.data.Location
 import streetlight.model.data.ResourceType
-import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-object LocationQuery {
+object LocationAspect {
     val columns = listOf(
         LocationTable.id,
         LocationTable.cityId,
@@ -49,7 +48,7 @@ object LocationQuery {
 fun locationQuery(callerId: CallerId?) = LocationTable
     .join(LocationStarTable, JoinType.LEFT, LocationTable.id, LocationStarTable.locationId,
         additionalConstraint = LocationStarTable.getConstraint(callerId))
-    .select(LocationQuery.starColumns)
+    .select(LocationAspect.starColumns)
 
 fun ResultRow.toLocation() = Location(
     locationId = toRecordId(LocationTable.id),
