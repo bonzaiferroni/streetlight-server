@@ -69,7 +69,7 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
     return GalaxyContent(
         galaxy = galaxy,
         posts = posts,
-        marks = marks
+        feedMarks = marks
     )
 }
 

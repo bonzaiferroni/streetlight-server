@@ -124,8 +124,8 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readPost(postId: PostId, callerId: CallerId?) = dbQuery {
-        val isMarked = GalaxyPostAspect.isMarked(callerId)
-        GalaxyPostAspect.query(callerId, isMarked).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost(isMarked)
+        val userLean = GalaxyPostAspect.userLean(callerId)
+        GalaxyPostAspect.query(callerId, userLean).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost(userLean)
     }
 
     suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
@@ -140,13 +140,13 @@ class PostTableDao : DbService() {
     ) = dbQuery {
         val (orderColumn, sort) = orderOf(order)
 
-        val isMarked = GalaxyPostAspect.isMarked(callerId)
-        GalaxyPostAspect.query(callerId, isMarked)
+        val userLean = GalaxyPostAspect.userLean(callerId)
+        GalaxyPostAspect.query(callerId, userLean)
             .where(filter)
             .orderBy(orderColumn, sort)
             .limit(limit)
             .printQuery()
-            .map { it.toGalaxyPost(isMarked) }
+            .map { it.toGalaxyPost(userLean) }
     }
 }
 
