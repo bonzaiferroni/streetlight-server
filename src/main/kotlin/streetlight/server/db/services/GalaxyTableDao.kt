@@ -106,9 +106,14 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun readFeedMarks(galaxyId: GalaxyId) = dbQuery {
-        MarkAspect.queryGalaxy().where { GalaxyMarkTable.galaxyId.eq(galaxyId) }
-            .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
+        MarkAspect.queryGalaxyMarks().where { GalaxyMarkTable.galaxyId.eq(galaxyId) }
             .map { it.toGalaxyMark() }
+    }
+
+    suspend fun readFeedMarks(galaxyIds: Set<GalaxyId>) = dbQuery {
+        MarkAspect.queryGalaxyMarks(true).where { GalaxyMarkTable.galaxyId.inList(galaxyIds) }
+            .groupBy { GalaxyId(it[GalaxyMarkTable.galaxyId].value) }
+            .mapValues { (_, rows) -> rows.map { it.toGalaxyMark() } }
     }
 
     suspend fun readGalaxy(galaxyId: GalaxyId, callerId: CallerId?) = dbQuery {

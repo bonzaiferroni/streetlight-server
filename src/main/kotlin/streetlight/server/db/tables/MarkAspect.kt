@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Lean
 import streetlight.model.data.FeedMark
@@ -9,7 +10,10 @@ import streetlight.server.utils.toRecordId
 object MarkAspect {
     val GalaxyColumns = listOf(MarkTable.id, GalaxyMarkTable.lean, MarkTable.name)
 
-    fun queryGalaxy() = GalaxyMarkTable.leftJoin(MarkTable).select(GalaxyColumns)
+    fun queryGalaxyMarks(withGalaxyId: Boolean = false) = GalaxyMarkTable
+        .leftJoin(MarkTable)
+        .select(if (withGalaxyId) GalaxyColumns + GalaxyMarkTable.galaxyId else GalaxyColumns)
+        .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
 }
 
 fun ResultRow.toGalaxyMark() = toMark(this[GalaxyMarkTable.lean])

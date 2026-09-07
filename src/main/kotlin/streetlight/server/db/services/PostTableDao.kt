@@ -36,11 +36,14 @@ import streetlight.model.data.LocationId
 import streetlight.model.data.PostMark
 import streetlight.model.data.MediaId
 import streetlight.server.db.tables.GalaxyHostTable
+import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.MarkAspect
 import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.toGalaxyMark
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
@@ -153,7 +156,7 @@ class PostTableDao : DbService() {
             .map { it.toGalaxyPost() }
     }
 
-    suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<Uuid, List<PostMark>> = dbQuery {
+    suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<PostId, List<PostMark>> = dbQuery {
         val sum = PostMarkTable.markId.count()
         val isCaller = callerId?.let { PostMarkTable.starId.eq(it) } ?: Op.FALSE
 
@@ -168,7 +171,7 @@ class PostTableDao : DbService() {
             .select(PostMarkTable.postId, PostMarkTable.markId, sum, callerMarks)
             .where { PostMarkTable.postId.inList(postIds) }
             .groupBy(PostMarkTable.postId, PostMarkTable.markId)
-            .groupBy({ it[PostMarkTable.postId].value }) { row ->
+            .groupBy({ PostId(it[PostMarkTable.postId].value) }) { row ->
                 PostMark(
                     markId = row[PostMarkTable.markId].toRecordId(),
                     sum = row[sum].toInt(),
