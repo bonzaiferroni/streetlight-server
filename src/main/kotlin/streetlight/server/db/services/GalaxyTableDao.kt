@@ -25,7 +25,7 @@ import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.HostType
 import streetlight.model.data.Lean
-import streetlight.model.data.FeedMark
+import streetlight.model.data.Mark
 import streetlight.model.data.MarkId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.MarkAspect
@@ -92,7 +92,7 @@ class GalaxyTableDao : DbService() {
 
     suspend fun provisionMark(name: String) = dbQuery {
         MarkTable.selectAll().where { MarkTable.name.eq(name) }.singleOrNull()?.toMark(Lean.Neutral)
-            ?: FeedMark(MarkId(Uuid.random()), Lean.Neutral, name).also { mark ->
+            ?: Mark(MarkId(Uuid.random()), Lean.Neutral, name).also { mark ->
                 MarkTable.insert {
                     it[MarkTable.id] = mark.markId.value
                     it[MarkTable.name] = mark.name

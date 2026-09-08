@@ -25,7 +25,7 @@ suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     return HomeContent(
         galaxies = galaxies,
         posts = posts,
-        feedMarks = feedMarks,
+        marks = feedMarks,
         postMarks = postMarks
     )
 }
@@ -75,7 +75,7 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
     return GalaxyContent(
         galaxy = galaxy,
         posts = posts,
-        feedMarks = feedMarks,
+        marks = feedMarks,
         postMarks = postMarks,
     )
 }
