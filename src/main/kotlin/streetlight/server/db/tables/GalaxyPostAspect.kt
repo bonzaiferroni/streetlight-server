@@ -60,15 +60,15 @@ object GalaxyPostAspect {
 fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {
     PostType.Event -> EventPost(
         event = this.toEventLocation(),
-        base = this.toPost(),
+        post = this.toPost(),
     )
     PostType.Location -> LocationPost(
-        base = this.toPost(),
+        post = this.toPost(),
         location = this.toLocation(),
     )
     PostType.Media -> MediaPost(
         media = this.toMedia(),
-        base = this.toPost()
+        post = this.toPost()
     )
 }
 

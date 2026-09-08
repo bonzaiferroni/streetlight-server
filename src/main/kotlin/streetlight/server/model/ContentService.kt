@@ -18,10 +18,10 @@ import streetlight.web.doc.SiteDocTree
 
 suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     val posts = dao.post.readOrderedPosts { Op.TRUE }
-    val galaxyIds = posts.map { it.base.galaxy.galaxyId }.toSet()
+    val galaxyIds = posts.mapNotNull { it.post?.galaxy?.galaxyId }.toSet()
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
     val feedMarks = dao.galaxy.readFeedMarks(galaxyIds)
-    val postMarks = dao.post.readPostMarks(posts.map { it.base.postId }, callerId)
+    val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
     return HomeContent(
         galaxies = galaxies,
         posts = posts,
@@ -71,7 +71,7 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
     val galaxyId = galaxy.galaxyId
     val feedMarks = dao.galaxy.readFeedMarks(setOf(galaxyId))
     val posts = dao.post.readOrderedPosts(galaxyId, callerId)
-    val postMarks = dao.post.readPostMarks(posts.map { it.base.postId }, callerId)
+    val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
     return GalaxyContent(
         galaxy = galaxy,
         posts = posts,
