@@ -170,7 +170,7 @@ class PostTableDao : DbService() {
             .groupBy({ PostId(it[PostMarkTable.postId].value) }) { row ->
                 MarkStatus(
                     markId = row[PostMarkTable.markId].toRecordId(),
-                    sum = row[sum].toInt(),
+                    count = row[sum].toInt(),
                     isMarked = (row[callerMarks] ?: 0) > 0,
                 )
             }

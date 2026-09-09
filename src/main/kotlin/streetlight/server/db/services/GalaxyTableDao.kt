@@ -92,7 +92,7 @@ class GalaxyTableDao : DbService() {
 
     suspend fun provisionMark(name: String) = dbQuery {
         MarkTable.selectAll().where { MarkTable.name.eq(name) }.singleOrNull()?.toMark(Lean.Neutral)
-            ?: Mark(MarkId(Uuid.random()), Lean.Neutral, name).also { mark ->
+            ?: Mark(MarkId(Uuid.random()), null, Lean.Neutral, name).also { mark ->
                 MarkTable.insert {
                     it[MarkTable.id] = mark.markId.value
                     it[MarkTable.name] = mark.name

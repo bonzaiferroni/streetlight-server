@@ -14,6 +14,7 @@ object MarkTable: UuidTable("mark") {
 object GalaxyMarkTable: Table("galaxy_mark") {
     val galaxyId = reference("galaxy_id", GalaxyTable, ReferenceOption.CASCADE)
     val markId = reference("mark_id", MarkTable, ReferenceOption.CASCADE)
+    val unmarkId = reference("unmark_id", MarkTable, ReferenceOption.SET_NULL).nullable()
     val lean = enumeration<Lean>("lean")
 
     override val primaryKey = PrimaryKey(galaxyId, markId)
