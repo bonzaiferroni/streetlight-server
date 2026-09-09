@@ -27,6 +27,8 @@ import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.Sum
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.intLiteral
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.updateReturning
@@ -34,13 +36,18 @@ import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
 import streetlight.model.data.MarkStatus
+import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
+import streetlight.model.data.CuratorType
+import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.MarkAspect
 import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.toGalaxyMark
 import streetlight.server.db.tables.toPost
 import streetlight.server.db.tables.updateRecord
 import streetlight.server.utils.toRecordId
@@ -174,6 +181,23 @@ class PostTableDao : DbService() {
                     isMarked = (row[callerMarks] ?: 0) > 0,
                 )
             }
+    }
+
+    suspend fun updateMark(update: MarkUpdate, callerId: CallerId) = dbQuery {
+        val feedMarks = MarkAspect.queryPostMarks().where { PostTable.id.eq(update.postId) }.map { it.toGalaxyMark() }
+        val curatorType = feedMarks.getCuratorType()
+        val isSuccess = PostMarkTable.insertIgnore {
+            it[PostMarkTable.postId] = update.postId.value
+            it[PostMarkTable.markId] = update.markId.value
+            it[PostMarkTable.starId] = callerId.value
+            it[PostMarkTable.createdAt] = Clock.System.now()
+        }.insertedCount > 0
+        if (isSuccess && curatorType == CuratorType.Polar) {
+            PostMarkTable.deleteWhere {
+                PostMarkTable.postId.eq(update.postId) and PostMarkTable.starId.eq(callerId) and
+                        PostMarkTable.markId.neq(update.markId.value)
+            }
+        }
     }
 }
 

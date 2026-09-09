@@ -148,5 +148,10 @@ fun ApiScope.serveGalaxies() {
                 ?: return@postApi HttpProblem.BadRequest
             Ok(dao.galaxy.provisionMark(name))
         }
+
+        postApi(Api.Galaxies.UpdateMark) {
+            dao.post.updateMark(it.data, call.getIdentity().callerId)
+            Ok(Unit)
+        }
     }
 }

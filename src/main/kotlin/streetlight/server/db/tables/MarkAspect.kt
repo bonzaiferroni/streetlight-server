@@ -9,11 +9,17 @@ import streetlight.model.data.Mark
 import streetlight.server.utils.toRecordId
 
 object MarkAspect {
-    val GalaxyColumns = listOf(MarkTable.id, GalaxyMarkTable.lean, GalaxyMarkTable.unmarkId, MarkTable.name)
+    val GalaxyMarkColumns = listOf(MarkTable.id, GalaxyMarkTable.lean, MarkTable.name)
 
     fun queryGalaxyMarks(withGalaxyId: Boolean = false) = GalaxyMarkTable
         .join(MarkTable, JoinType.LEFT, GalaxyMarkTable.markId, MarkTable.id)
-        .select(if (withGalaxyId) GalaxyColumns + GalaxyMarkTable.galaxyId else GalaxyColumns)
+        .select(if (withGalaxyId) GalaxyMarkColumns + GalaxyMarkTable.galaxyId else GalaxyMarkColumns)
+        .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
+
+    fun queryPostMarks() = PostTable
+        .join(GalaxyMarkTable, JoinType.LEFT, PostTable.galaxyId, GalaxyMarkTable.galaxyId)
+        .join(MarkTable, JoinType.LEFT, GalaxyMarkTable.markId, MarkTable.id)
+        .select(GalaxyMarkColumns)
         .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
 }
 
@@ -21,7 +27,6 @@ fun ResultRow.toGalaxyMark() = toMark(this[GalaxyMarkTable.lean])
 
 fun ResultRow.toMark(lean: Lean) = Mark(
     markId = this[MarkTable.id].toRecordId(),
-    unmarkId = this[GalaxyMarkTable.unmarkId]?.toRecordId(),
     lean = lean,
     name = this[MarkTable.name]
 )
