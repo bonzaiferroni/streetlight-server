@@ -18,6 +18,7 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
+import klutch.server.readParamOrNull
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit
@@ -59,10 +60,12 @@ fun ApiScope.serveGalaxies() {
             dao.post.readPost(postId).toOutcome()
         }
 
-        getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) {
-            val galaxyId = it.data
-            val identity = call.getIdentityOrNull()
-            Ok(dao.post.readOrderedPosts(galaxyId, identity?.callerId))
+        getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) { request ->
+            val galaxyId = request.data
+            val markId = readParamOrNull(request.endpoint.markId)
+            val callerId = call.getIdentityOrNull()?.callerId
+            // td: add marks
+            Ok(readGalaxyFeed(galaxyId, callerId))
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {

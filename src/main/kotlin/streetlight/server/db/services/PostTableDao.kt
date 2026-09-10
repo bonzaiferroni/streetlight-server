@@ -36,7 +36,7 @@ import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
 import streetlight.model.data.LocationId
-import streetlight.model.data.MarkStatus
+import streetlight.model.data.MarkTally
 import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
@@ -115,7 +115,6 @@ class PostTableDao : DbService() {
 
     suspend fun readOrderedPosts(
         galaxyIds: List<GalaxyId>,
-        callerId: CallerId?,
         order: PostOrder = PostOrder.New,
         limit: Int = 20
     ) = dbQuery {
@@ -124,7 +123,6 @@ class PostTableDao : DbService() {
 
     suspend fun readOrderedPosts(
         galaxyId: GalaxyId,
-        callerId: CallerId?,
         order: PostOrder = PostOrder.Lean,
         limit: Int = 100
     ) = dbQuery {
@@ -133,7 +131,6 @@ class PostTableDao : DbService() {
 
     suspend fun readStarPosts(
         starId: StarId,
-        callerId: CallerId?,
         order: PostOrder = PostOrder.New,
         limit: Int = 100
     ) = dbQuery {
@@ -162,7 +159,7 @@ class PostTableDao : DbService() {
             .map { it.toGalaxyPost() }
     }
 
-    suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<PostId, List<MarkStatus>> = dbQuery {
+    suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<PostId, List<MarkTally>> = dbQuery {
         val isCaller = callerId?.let { PostMarkTable.starId.eq(it) } ?: Op.FALSE
 
         PostMarkCountTable
@@ -174,7 +171,7 @@ class PostTableDao : DbService() {
             .select(PostMarkCountTable.postId, PostMarkCountTable.galaxyMarkId, PostMarkCountTable.count, PostMarkTable.starId)
             .where { PostMarkCountTable.postId.inList(postIds) }
             .groupBy({ PostId(it[PostMarkCountTable.postId].value) }) { row ->
-                MarkStatus(
+                MarkTally(
                     markId = row[PostMarkCountTable.galaxyMarkId].toRecordId(),
                     count = row[PostMarkCountTable.count],
                     isMarked = row.getOrNull(PostMarkTable.starId) != null,

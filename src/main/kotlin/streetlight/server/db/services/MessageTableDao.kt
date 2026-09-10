@@ -22,7 +22,7 @@ import streetlight.model.data.ChatId
 import streetlight.model.data.Message
 import streetlight.model.data.MessageId
 import streetlight.model.data.NewMessage
-import kampfire.model.RecordCursor
+import kampfire.model.TimeCursor
 import kampfire.model.limitOrDefault
 import streetlight.model.data.ReplyMessage
 import streetlight.model.data.StarId
@@ -96,7 +96,7 @@ class MessageTableDao: DbService() {
         Message(messageId, message.chatId, caller.username, message.content, now)
     }
 
-    suspend fun readChats(callerId: CallerId, isArchive: Boolean, cursor: RecordCursor? = null) = dbQuery {
+    suspend fun readChats(callerId: CallerId, isArchive: Boolean, cursor: TimeCursor? = null) = dbQuery {
         val isArchiveQuery = if (isArchive) {
             ChatStarTable.archivedAt.greater(ChatTable.lastMessageAt)
         } else {
@@ -124,7 +124,7 @@ class MessageTableDao: DbService() {
         }
     }
 
-    suspend fun readChatMessages(callerId: CallerId, chatId: ChatId, cursor: RecordCursor?) = dbQuery {
+    suspend fun readChatMessages(callerId: CallerId, chatId: ChatId, cursor: TimeCursor?) = dbQuery {
         if (!isChatMember(callerId, chatId, cursor)) return@dbQuery null
         MessageAspect.query().whereWith(MessageTable) {
             val chatMatch = this.chatId.eq(chatId)
@@ -139,7 +139,7 @@ class MessageTableDao: DbService() {
             .map { it.toMessage() }
     }
 
-    private fun isChatMember(callerId: CallerId, chatId: ChatId, cursor: RecordCursor?): Boolean {
+    private fun isChatMember(callerId: CallerId, chatId: ChatId, cursor: TimeCursor?): Boolean {
         return when (cursor) {
             null -> updateLastReadAt(callerId, chatId, Clock.System.now()) == 1
             else -> ChatStarTable.selectAll()

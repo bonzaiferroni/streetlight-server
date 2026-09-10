@@ -9,6 +9,8 @@ import org.jetbrains.exposed.v1.core.Op
 import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent
 import streetlight.model.data.GalaxyContent
+import streetlight.model.data.EntityFeed
+import streetlight.model.data.GalaxyId
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
@@ -20,13 +22,11 @@ suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     val posts = dao.post.readOrderedPosts { Op.TRUE }
     val galaxyIds = posts.mapNotNull { it.post?.galaxy?.galaxyId }.toSet()
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
-    val feedMarks = dao.galaxy.readFeedMarks(galaxyIds)
-    val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
+    val marks = dao.galaxy.readFeedMarks(galaxyIds)
+    val tallies = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
     return HomeContent(
         galaxies = galaxies,
-        posts = posts,
-        marks = feedMarks,
-        postMarks = postMarks
+        feed = EntityFeed(posts, marks, tallies)
     )
 }
 
@@ -69,15 +69,17 @@ suspend fun DaoScope.readEventUpdaterContent(slug: Slug): EventUpdaterContent? {
 suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyContent? {
     val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
     val galaxyId = galaxy.galaxyId
-    val feedMarks = dao.galaxy.readFeedMarks(setOf(galaxyId))
-    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
-    val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
     return GalaxyContent(
         galaxy = galaxy,
-        posts = posts,
-        marks = feedMarks,
-        postMarks = postMarks,
+        feed = readGalaxyFeed(galaxyId, callerId)
     )
+}
+
+suspend fun DaoScope.readGalaxyFeed(galaxyId: GalaxyId, callerId: CallerId?): EntityFeed {
+    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
+    val feedMarks = dao.galaxy.readFeedMarks(setOf(galaxyId))
+    val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
+    return EntityFeed(posts, feedMarks, postMarks)
 }
 
 suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): StarContent? {
@@ -85,7 +87,7 @@ suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): Sta
     val posts = dao.media.readMedia(username, caller?.callerId)
     return StarContent(
         star = star,
-        posts = posts,
+        feed = EntityFeed(posts),
         isCaller = caller?.username == star.username
     )
 }
