@@ -14,13 +14,13 @@ object MarkAspect {
     fun queryGalaxyMarks(withGalaxyId: Boolean = false) = GalaxyMarkTable
         .join(MarkTable, JoinType.LEFT, GalaxyMarkTable.markId, MarkTable.id)
         .select(if (withGalaxyId) GalaxyMarkColumns + GalaxyMarkTable.galaxyId else GalaxyMarkColumns)
-        .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
+        .orderBy(GalaxyMarkTable.lean, SortOrder.ASC)
 
     fun queryPostMarks() = PostTable
         .join(GalaxyMarkTable, JoinType.LEFT, PostTable.galaxyId, GalaxyMarkTable.galaxyId)
         .join(MarkTable, JoinType.LEFT, GalaxyMarkTable.markId, MarkTable.id)
         .select(GalaxyMarkColumns)
-        .orderBy(GalaxyMarkTable.lean, SortOrder.DESC)
+        .orderBy(GalaxyMarkTable.lean, SortOrder.ASC)
 }
 
 fun ResultRow.toGalaxyMark() = toMark(this[GalaxyMarkTable.lean])

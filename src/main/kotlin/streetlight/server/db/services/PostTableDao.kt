@@ -26,11 +26,13 @@ import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.Sum
 import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.intLiteral
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.FeedStatus
 import streetlight.model.data.EventId
@@ -41,6 +43,7 @@ import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
+import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.MarkAspect
@@ -113,8 +116,8 @@ class PostTableDao : DbService() {
     suspend fun readOrderedPosts(
         galaxyIds: List<GalaxyId>,
         callerId: CallerId?,
-        order: PostOrder = PostOrder.NewFirst,
-        limit: Int = 100
+        order: PostOrder = PostOrder.New,
+        limit: Int = 20
     ) = dbQuery {
         readOrderedPosts(order, limit) { PostTable.galaxyId.inList(galaxyIds) }
     }
@@ -122,7 +125,7 @@ class PostTableDao : DbService() {
     suspend fun readOrderedPosts(
         galaxyId: GalaxyId,
         callerId: CallerId?,
-        order: PostOrder = PostOrder.NewFirst,
+        order: PostOrder = PostOrder.Lean,
         limit: Int = 100
     ) = dbQuery {
         readOrderedPosts(order, limit) { PostTable.galaxyId.eq(galaxyId) }
@@ -131,7 +134,7 @@ class PostTableDao : DbService() {
     suspend fun readStarPosts(
         starId: StarId,
         callerId: CallerId?,
-        order: PostOrder = PostOrder.NewFirst,
+        order: PostOrder = PostOrder.New,
         limit: Int = 100
     ) = dbQuery {
         readOrderedPosts(order, limit) { PostTable.starId.eq(starId.value) }
@@ -146,7 +149,7 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readOrderedPosts(
-        order: PostOrder = PostOrder.NewFirst,
+        order: PostOrder = PostOrder.Lean,
         limit: Int = 100,
         filter: QueryFilter,
     ) = dbQuery {
@@ -184,19 +187,45 @@ class PostTableDao : DbService() {
     }
 
     suspend fun updateMark(update: MarkUpdate, callerId: CallerId) = dbQuery {
-        val feedMarks = MarkAspect.queryPostMarks().where { PostTable.id.eq(update.postId) }.map { it.toGalaxyMark() }
-        val curatorType = feedMarks.getCuratorType()
-        val isSuccess = PostMarkTable.insertIgnore {
-            it[PostMarkTable.postId] = update.postId.value
-            it[PostMarkTable.markId] = update.markId.value
-            it[PostMarkTable.starId] = callerId.value
-            it[PostMarkTable.createdAt] = Clock.System.now()
-        }.insertedCount > 0
-        if (isSuccess && curatorType == CuratorType.Polar) {
+        val isSuccess = if (update.isMarked) {
+            val feedMarks = MarkAspect.queryPostMarks().where { PostTable.id.eq(update.postId) }.map { it.toGalaxyMark() }
+            val curatorType = feedMarks.getCuratorType()
+            val isSuccess = PostMarkTable.insertIgnore {
+                it[PostMarkTable.postId] = update.postId.value
+                it[PostMarkTable.markId] = update.markId.value
+                it[PostMarkTable.starId] = callerId.value
+                it[PostMarkTable.createdAt] = Clock.System.now()
+            }.insertedCount > 0
+            if (isSuccess && curatorType == CuratorType.Polar) {
+                PostMarkTable.deleteWhere {
+                    PostMarkTable.postId.eq(update.postId) and PostMarkTable.starId.eq(callerId) and
+                            PostMarkTable.markId.neq(update.markId.value)
+                }
+            }
+            isSuccess
+        } else {
             PostMarkTable.deleteWhere {
                 PostMarkTable.postId.eq(update.postId) and PostMarkTable.starId.eq(callerId) and
-                        PostMarkTable.markId.neq(update.markId.value)
+                        PostMarkTable.markId.eq(update.markId)
+            } > 0
+        }
+        // td: calculate somewhere else
+        if (isSuccess)
+            updatePostLean(update.postId)
+        isSuccess
+    }
+
+    private fun updatePostLean(postId: PostId) {
+        val lean = PostMarkTable
+            .innerJoin(PostTable, { PostMarkTable.postId }, { id })
+            .innerJoin(GalaxyMarkTable, { PostMarkTable.markId }, { markId }) {
+                GalaxyMarkTable.galaxyId.eq(PostTable.galaxyId)
             }
+            .select(GalaxyMarkTable.lean)
+            .where { PostMarkTable.postId.eq(postId) }
+            .sumOf { it[GalaxyMarkTable.lean].value }
+        PostTable.update({ PostTable.id.eq(postId) }) {
+            it[PostTable.lean] = lean
         }
     }
 }
@@ -219,7 +248,8 @@ fun PostEdit.toPostRecord(callerId: CallerId?) = PostRecord(
 typealias QueryFilter = () -> Op<Boolean>
 
 private fun orderOf(order: PostOrder) = when (order) {
-    PostOrder.NewFirst -> PostTable.createdAt to SortOrder.DESC
-    PostOrder.OldFirst -> PostTable.createdAt to SortOrder.ASC
+    PostOrder.New -> PostTable.createdAt to SortOrder.DESC
+    PostOrder.Old -> PostTable.createdAt to SortOrder.ASC
+    PostOrder.Lean -> PostTable.lean to SortOrder.DESC
     // PostOrder.Visibility -> TODO()
 }

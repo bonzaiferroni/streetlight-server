@@ -32,6 +32,7 @@ object PostTable : UuidTable("post") {
     val text = text("text").transformMarkdown().nullable()
     val postType = enumeration<PostType>("post_type")
     val status = enumeration<FeedStatus>("status").default(FeedStatus.Live) // td: remove default value
+    val lean = integer("lean").default(0)
     val updatedAt = timestamp("updated_at").index()
     val createdAt = timestamp("created_at").index()
 
