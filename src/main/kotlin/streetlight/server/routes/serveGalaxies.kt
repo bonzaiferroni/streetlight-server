@@ -21,7 +21,7 @@ import klutch.server.provide
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit
-import streetlight.model.data.Mark
+import streetlight.model.data.GalaxyMark
 
 private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
@@ -141,12 +141,6 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.CreatePost) {
             val callerId = call.getIdentity().callerId
             dao.post.create(it.data, callerId).toOutcome()
-        }
-
-        postApi(Api.Galaxies.ProvisionMark) { request ->
-            val name = request.data.trim().takeIf { it.length in Mark.ValidLength }
-                ?: return@postApi HttpProblem.BadRequest
-            Ok(dao.galaxy.provisionMark(name))
         }
 
         postApi(Api.Galaxies.UpdateMark) {

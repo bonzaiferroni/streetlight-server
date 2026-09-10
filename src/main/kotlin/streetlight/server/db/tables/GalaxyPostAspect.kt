@@ -44,17 +44,6 @@ object GalaxyPostAspect {
         .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
         .leftJoin(MediaTable)
         .select(GalaxyPostColumns)
-
-    fun userLean(callerId: CallerId?): Expression<Lean?> = callerId?.let {
-        wrapAsExpression(
-            PostMarkTable
-                .join(GalaxyMarkTable, JoinType.INNER, PostMarkTable.markId, GalaxyMarkTable.markId,
-                    additionalConstraint = { GalaxyMarkTable.galaxyId.eq(PostTable.galaxyId) })
-                .select(GalaxyMarkTable.lean)
-                .where { PostMarkTable.postId.eq(PostTable.id) and PostMarkTable.starId.eq(it) }
-                .limit(1)
-        )
-    } ?: Op.nullOp()
 }
 
 fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {

@@ -22,13 +22,12 @@ import streetlight.model.data.StarId
 import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import klutch.utils.inList
-import org.jetbrains.exposed.v1.core.Case
-import org.jetbrains.exposed.v1.core.IntegerColumnType
-import org.jetbrains.exposed.v1.core.Sum
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.innerJoin
-import org.jetbrains.exposed.v1.core.intLiteral
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.notInList
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -47,6 +46,7 @@ import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.MarkAspect
+import streetlight.server.db.tables.PostMarkCountTable
 import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
@@ -163,25 +163,21 @@ class PostTableDao : DbService() {
     }
 
     suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<PostId, List<MarkStatus>> = dbQuery {
-        val sum = PostMarkTable.markId.count()
         val isCaller = callerId?.let { PostMarkTable.starId.eq(it) } ?: Op.FALSE
 
-        val callerMarks = Sum(
-            Case()
-                .When(isCaller, intLiteral(1))
-                .Else(intLiteral(0)),
-            IntegerColumnType(),
-        )
-
-        PostMarkTable
-            .select(PostMarkTable.postId, PostMarkTable.markId, sum, callerMarks)
-            .where { PostMarkTable.postId.inList(postIds) }
-            .groupBy(PostMarkTable.postId, PostMarkTable.markId)
-            .groupBy({ PostId(it[PostMarkTable.postId].value) }) { row ->
+        PostMarkCountTable
+            .join(PostMarkTable, JoinType.LEFT, PostMarkCountTable.postId, PostMarkTable.postId,
+                additionalConstraint = {
+                    PostMarkTable.galaxyMarkId.eq(PostMarkCountTable.galaxyMarkId) and isCaller
+                },
+            )
+            .select(PostMarkCountTable.postId, PostMarkCountTable.galaxyMarkId, PostMarkCountTable.count, PostMarkTable.starId)
+            .where { PostMarkCountTable.postId.inList(postIds) }
+            .groupBy({ PostId(it[PostMarkCountTable.postId].value) }) { row ->
                 MarkStatus(
-                    markId = row[PostMarkTable.markId].toRecordId(),
-                    count = row[sum].toInt(),
-                    isMarked = (row[callerMarks] ?: 0) > 0,
+                    markId = row[PostMarkCountTable.galaxyMarkId].toRecordId(),
+                    count = row[PostMarkCountTable.count],
+                    isMarked = row.getOrNull(PostMarkTable.starId) != null,
                 )
             }
     }
@@ -192,40 +188,52 @@ class PostTableDao : DbService() {
             val curatorType = feedMarks.getCuratorType()
             val isSuccess = PostMarkTable.insertIgnore {
                 it[PostMarkTable.postId] = update.postId.value
-                it[PostMarkTable.markId] = update.markId.value
+                it[PostMarkTable.galaxyMarkId] = update.markId.value
                 it[PostMarkTable.starId] = callerId.value
                 it[PostMarkTable.createdAt] = Clock.System.now()
             }.insertedCount > 0
             if (isSuccess && curatorType == CuratorType.Polar) {
                 PostMarkTable.deleteWhere {
                     PostMarkTable.postId.eq(update.postId) and PostMarkTable.starId.eq(callerId) and
-                            PostMarkTable.markId.neq(update.markId.value)
+                            PostMarkTable.galaxyMarkId.neq(update.markId.value)
                 }
             }
             isSuccess
         } else {
             PostMarkTable.deleteWhere {
                 PostMarkTable.postId.eq(update.postId) and PostMarkTable.starId.eq(callerId) and
-                        PostMarkTable.markId.eq(update.markId)
+                        PostMarkTable.galaxyMarkId.eq(update.markId)
             } > 0
         }
         // td: calculate somewhere else
         if (isSuccess)
-            updatePostLean(update.postId)
+            updatePostMarkCount(update.postId)
         isSuccess
     }
 
-    private fun updatePostLean(postId: PostId) {
-        val lean = PostMarkTable
-            .innerJoin(PostTable, { PostMarkTable.postId }, { id })
-            .innerJoin(GalaxyMarkTable, { PostMarkTable.markId }, { markId }) {
-                GalaxyMarkTable.galaxyId.eq(PostTable.galaxyId)
-            }
-            .select(GalaxyMarkTable.lean)
+    private fun updatePostMarkCount(postId: PostId) {
+        val count = PostMarkTable.galaxyMarkId.count()
+        val tallies = PostMarkTable
+            .innerJoin(GalaxyMarkTable, { PostMarkTable.galaxyMarkId }, { id })
+            .select(PostMarkTable.galaxyMarkId, GalaxyMarkTable.lean, count)
             .where { PostMarkTable.postId.eq(postId) }
-            .sumOf { it[GalaxyMarkTable.lean].value }
+            .groupBy(PostMarkTable.galaxyMarkId, GalaxyMarkTable.lean)
+            .map { Triple(it[PostMarkTable.galaxyMarkId], it[GalaxyMarkTable.lean].value, it[count].toInt()) }
+
+        PostMarkCountTable.deleteWhere {
+            PostMarkCountTable.postId.eq(postId) and
+                    PostMarkCountTable.galaxyMarkId.notInList(tallies.map { it.first })
+        }
+        PostMarkCountTable.batchUpsert(tallies,
+            onUpdate = { it[PostMarkCountTable.count] = insertValue(PostMarkCountTable.count) }
+        ) { (markId, _, markCount) ->
+            this[PostMarkCountTable.postId] = postId.value
+            this[PostMarkCountTable.galaxyMarkId] = markId
+            this[PostMarkCountTable.count] = markCount
+        }
+
         PostTable.update({ PostTable.id.eq(postId) }) {
-            it[PostTable.lean] = lean
+            it[PostTable.lean] = tallies.sumOf { (_, lean, markCount) -> lean * markCount }
         }
     }
 }
