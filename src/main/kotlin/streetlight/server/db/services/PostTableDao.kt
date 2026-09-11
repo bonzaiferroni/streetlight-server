@@ -5,10 +5,10 @@ import klutch.db.any
 import klutch.db.count
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
+import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -23,6 +23,7 @@ import streetlight.server.db.tables.PostRecord
 import streetlight.server.db.tables.PostTable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.andIfNotNull
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.neq
@@ -40,6 +41,8 @@ import streetlight.model.data.MarkTally
 import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
+import streetlight.model.data.PostCursor
+import streetlight.model.data.SortDirection
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyMarkTable
@@ -48,6 +51,8 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.MarkAspect
 import streetlight.server.db.tables.PostMarkCountTable
 import streetlight.server.db.tables.PostMarkTable
+import streetlight.server.db.tables.afterCursor
+import streetlight.server.db.tables.orderByCursor
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
 import streetlight.server.db.tables.toGalaxyMark
@@ -113,28 +118,16 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) } == 1
     }
 
-    suspend fun readOrderedPosts(
-        galaxyIds: List<GalaxyId>,
-        order: PostOrder = PostOrder.New,
-        limit: Int = 20
-    ) = dbQuery {
-        readOrderedPosts(order, limit) { PostTable.galaxyId.inList(galaxyIds) }
+    suspend fun readOrderedPosts(galaxyIds: List<GalaxyId>, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(cursor) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readOrderedPosts(
-        galaxyId: GalaxyId,
-        order: PostOrder = PostOrder.Lean,
-        limit: Int = 100
-    ) = dbQuery {
-        readOrderedPosts(order, limit) { PostTable.galaxyId.eq(galaxyId) }
+    suspend fun readOrderedPosts(galaxyId: GalaxyId, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(cursor) { PostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readStarPosts(
-        starId: StarId,
-        order: PostOrder = PostOrder.New,
-        limit: Int = 100
-    ) = dbQuery {
-        readOrderedPosts(order, limit) { PostTable.starId.eq(starId.value) }
+    suspend fun readStarPosts(starId: StarId, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(cursor) { PostTable.starId.eq(starId.value) }
     }
 
     suspend fun readPost(postId: PostId) = dbQuery {
@@ -145,17 +138,11 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) } == 1 // td: or admin, or moderator
     }
 
-    suspend fun readOrderedPosts(
-        order: PostOrder = PostOrder.Lean,
-        limit: Int = 100,
-        filter: QueryFilter,
-    ) = dbQuery {
-        val (orderColumn, sort) = orderOf(order)
-
-        GalaxyPostAspect.query()
-            .where(filter)
-            .orderBy(orderColumn, sort)
-            .limit(limit)
+    suspend fun readOrderedPosts(cursor: PostCursor = PostCursor.Default, filter: QueryFilter) = dbQuery {
+        GalaxyPostAspect.queryCursor(cursor)
+            .where { filter() andIfNotNull GalaxyPostAspect.afterCursor(cursor) }
+            .orderByCursor(cursor)
+            .limit(PostCursor.DefaultLimit)
             .map { it.toGalaxyPost() }
     }
 
@@ -251,10 +238,3 @@ fun PostEdit.toPostRecord(callerId: CallerId?) = PostRecord(
 )
 
 typealias QueryFilter = () -> Op<Boolean>
-
-private fun orderOf(order: PostOrder) = when (order) {
-    PostOrder.New -> PostTable.createdAt to SortOrder.DESC
-    PostOrder.Old -> PostTable.createdAt to SortOrder.ASC
-    PostOrder.Lean -> PostTable.lean to SortOrder.DESC
-    // PostOrder.Visibility -> TODO()
-}

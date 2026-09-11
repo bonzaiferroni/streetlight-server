@@ -10,10 +10,12 @@ import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.EntityFeed
+import streetlight.model.data.FeedEntity
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
+import streetlight.model.data.PostCursor
 import streetlight.model.data.StarContent
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
@@ -34,7 +36,8 @@ suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): Locat
     val locationLayout = dao.location.readDesign(slug, identity?.callerId) ?: return null
     val location = locationLayout.location
     val events = dao.event.readLocationEvents(slug, identity?.callerId)
-    val canEdit = location.host == null || location.host == identity?.username // || callerId?.roles?.contains(UserRole.Admin) == true
+    val canEdit =
+        location.host == null || location.host == identity?.username // || callerId?.roles?.contains(UserRole.Admin) == true
     return LocationContent(
         location = location,
         events = events,
@@ -75,12 +78,26 @@ suspend fun DaoScope.readGalaxyContent(slug: Slug, callerId: CallerId?): GalaxyC
     )
 }
 
-suspend fun DaoScope.readGalaxyFeed(galaxyId: GalaxyId, callerId: CallerId?): EntityFeed {
-    val posts = dao.post.readOrderedPosts(galaxyId, callerId)
+suspend fun DaoScope.readGalaxyFeed(
+    galaxyId: GalaxyId,
+    callerId: CallerId?,
+    cursor: PostCursor = PostCursor.Default
+): EntityFeed {
+    val posts = dao.post.readOrderedPosts(galaxyId, cursor)
     val feedMarks = dao.galaxy.readFeedMarks(setOf(galaxyId))
     val postMarks = dao.post.readPostMarks(posts.mapNotNull { it.post?.postId }, callerId)
-    return EntityFeed(posts, feedMarks, postMarks)
+    val nextCursor = cursor.next(posts)
+    return EntityFeed(posts, feedMarks, postMarks, nextCursor)
 }
+
+fun PostCursor.next(entities: List<FeedEntity>): PostCursor? = (entities.takeIf { it.size >= PostCursor.DefaultLimit }
+    ?.lastOrNull()?.post)?.let { lastPost ->
+        when (this) {
+            is PostCursor.Time -> copy(postId = lastPost.postId, recordAt = lastPost.createdAt)
+            is PostCursor.Lean -> lastPost.lean?.let { copy(postId = lastPost.postId, postLean = it) }
+            is PostCursor.Mark -> lastPost.markCount?.let { copy(postId = lastPost.postId, count = it) }
+        }
+    }
 
 suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): StarContent? {
     val star = dao.star.readStar(username, caller?.callerId, true) ?: return null

@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import io.ktor.server.routing.RoutingContext
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
@@ -19,10 +20,13 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.readParamOrNull
+import streetlight.model.CursorEndpoint
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit
-import streetlight.model.data.GalaxyMark
+import streetlight.model.data.MarkId
+import streetlight.model.data.PostCursor
+import streetlight.model.data.PostId
 
 private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
 
@@ -50,7 +54,7 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.post.readOrderedPosts(galaxyIds, identity?.callerId))
+            Ok(dao.post.readOrderedPosts(galaxyIds))
         }
 
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
@@ -60,12 +64,11 @@ fun ApiScope.serveGalaxies() {
             dao.post.readPost(postId).toOutcome()
         }
 
-        getApi(Api.Galaxies.ReadPosts, { it.toRecordId() }) { request ->
+        getApi(Api.Galaxies.ReadGalaxyPosts, { it.toRecordId() }) { request ->
             val galaxyId = request.data
-            val markId = readParamOrNull(request.endpoint.markId)
+            val cursor = readCursor(request.endpoint)
             val callerId = call.getIdentityOrNull()?.callerId
-            // td: add marks
-            Ok(readGalaxyFeed(galaxyId, callerId))
+            Ok(readGalaxyFeed(galaxyId, callerId, cursor))
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
@@ -150,5 +153,21 @@ fun ApiScope.serveGalaxies() {
             dao.post.updateMark(it.data, call.getIdentity().callerId)
             Ok(Unit)
         }
+    }
+}
+
+fun RoutingContext.readCursor(endpoint: CursorEndpoint): PostCursor {
+    val postId = readParamOrNull(endpoint.postId)?.let { PostId(it) }
+    val markId = readParamOrNull(endpoint.markId)
+    if (markId != null) {
+        return PostCursor.Mark(MarkId(markId), postId, readParamOrNull(endpoint.count))
+    }
+    val direction = readParamOrNull(endpoint.direction) ?: return PostCursor.Default
+    val lean = readParamOrNull(endpoint.lean)
+    val recordAt = readParamOrNull(endpoint.recordAt)
+    return when {
+        lean != null -> PostCursor.Lean(direction, postId, lean)
+        recordAt != null -> PostCursor.Time(direction, postId, recordAt)
+        else -> PostCursor.Time(direction, postId, null)
     }
 }
