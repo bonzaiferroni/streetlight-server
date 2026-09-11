@@ -3,6 +3,7 @@ package streetlight.server.db.tables
 import kampfire.api.TableId
 import kampfire.api.toSlug
 import kampfire.api.toUsername
+import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Coalesce
 import org.jetbrains.exposed.v1.core.Column
@@ -51,15 +52,16 @@ object GalaxyPostAspect {
 
     val GalaxyPostColumns = (EventLocationColumns + LocationAspect.columns + PostColumns + MediaColumns).distinct()
 
-    private fun baseQuery() = PostTable
+    private fun baseQuery(callerId: CallerId? = null) = PostTable
         .leftJoin(EventTable)
         .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
         .leftJoin(MediaTable)
+        .joinCaller(callerId)
 
     fun query() = baseQuery()
         .select(GalaxyPostColumns)
 
-    fun queryCursor(cursor: PostCursor) = baseQuery()
+    fun queryCursor(cursor: PostCursor, callerId: CallerId? = null) = baseQuery(callerId)
         .joinCursor(cursor)
         .select(if (cursor is PostCursor.Mark) GalaxyPostColumns + MarkCount else GalaxyPostColumns)
 
@@ -79,6 +81,12 @@ object GalaxyPostAspect {
             }
         }
     }
+}
+
+fun Join.joinCaller(callerId: CallerId?): Join {
+    if (callerId == null) return this
+    return join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
+        additionalConstraint = { GalaxyStarTable.starId.eq(callerId) })
 }
 
 fun Join.joinCursor(cursor: PostCursor): Join {

@@ -28,8 +28,6 @@ import streetlight.model.data.MarkId
 import streetlight.model.data.PostCursor
 import streetlight.model.data.PostId
 
-private val console = globalConsole.getHandle(ApiScope::serveGalaxies.name)
-
 fun ApiScope.serveGalaxies() {
     val omni = provide<OmniService>()
 
@@ -54,7 +52,7 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.post.readOrderedPosts(galaxyIds))
+            Ok(dao.post.readGalaxyPosts(galaxyIds))
         }
 
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
@@ -64,11 +62,12 @@ fun ApiScope.serveGalaxies() {
             dao.post.readPost(postId).toOutcome()
         }
 
-        getApi(Api.Galaxies.ReadGalaxyPosts, { it.toRecordId() }) { request ->
+        getApi(Api.Galaxies.ReadGalaxyFeed, { it.toRecordId() }) { request ->
             val galaxyId = request.data
             val cursor = readCursor(request.endpoint)
             val callerId = call.getIdentityOrNull()?.callerId
-            Ok(readGalaxyFeed(galaxyId, callerId, cursor))
+            val posts = dao.post.readGalaxyPosts(galaxyId, cursor)
+            Ok(readFeedMarks(posts, callerId, cursor))
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {
@@ -141,7 +140,7 @@ fun ApiScope.serveGalaxies() {
 
         getApi(Api.Galaxies.ReadUserGalaxies) {
             val callerId = call.getIdentity().callerId
-            dao.galaxy.readGalaxies(callerId).toOutcome()
+            dao.galaxy.readUserGalaxies(callerId).toOutcome()
         }
 
         postApi(Api.Galaxies.CreatePost) {

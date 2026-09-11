@@ -5,7 +5,6 @@ import klutch.db.any
 import klutch.db.count
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
-import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -16,7 +15,6 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import streetlight.model.data.PostEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.PostId
-import streetlight.model.data.PostOrder
 import streetlight.model.data.PostType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.PostRecord
@@ -42,16 +40,15 @@ import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
 import streetlight.model.data.PostCursor
-import streetlight.model.data.SortDirection
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyPostAspect
+import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.MarkAspect
 import streetlight.server.db.tables.PostMarkCountTable
 import streetlight.server.db.tables.PostMarkTable
-import streetlight.server.db.tables.afterCursor
 import streetlight.server.db.tables.orderByCursor
 import streetlight.server.db.tables.toGalaxyPost
 import streetlight.server.db.tables.createRecord
@@ -118,16 +115,20 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) } == 1
     }
 
-    suspend fun readOrderedPosts(galaxyIds: List<GalaxyId>, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readGalaxyPosts(galaxyIds: List<GalaxyId>, cursor: PostCursor = PostCursor.Default) = dbQuery {
         readOrderedPosts(cursor) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readOrderedPosts(galaxyId: GalaxyId, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readGalaxyPosts(galaxyId: GalaxyId, cursor: PostCursor = PostCursor.Default) = dbQuery {
         readOrderedPosts(cursor) { PostTable.galaxyId.eq(galaxyId) }
     }
 
     suspend fun readStarPosts(starId: StarId, cursor: PostCursor = PostCursor.Default) = dbQuery {
         readOrderedPosts(cursor) { PostTable.starId.eq(starId.value) }
+    }
+
+    suspend fun readHomePosts(cursor: PostCursor = PostCursor.Default, callerId: CallerId) = dbQuery {
+        readOrderedPosts(cursor, callerId) { GalaxyStarTable.starId.eq(callerId) }
     }
 
     suspend fun readPost(postId: PostId) = dbQuery {
@@ -138,8 +139,8 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) } == 1 // td: or admin, or moderator
     }
 
-    suspend fun readOrderedPosts(cursor: PostCursor = PostCursor.Default, filter: QueryFilter) = dbQuery {
-        GalaxyPostAspect.queryCursor(cursor)
+    suspend fun readOrderedPosts(cursor: PostCursor = PostCursor.Default, callerId: CallerId? = null, filter: QueryFilter) = dbQuery {
+        GalaxyPostAspect.queryCursor(cursor, callerId)
             .where { filter() andIfNotNull GalaxyPostAspect.afterCursor(cursor) }
             .orderByCursor(cursor)
             .limit(PostCursor.DefaultLimit)
