@@ -74,6 +74,13 @@ fun ApiScope.serveGalaxies() {
             val identity = call.getIdentityOrNull()
             Ok(readGalaxyContent(it.data, identity?.callerId) ?: return@getApi HttpProblem.NotFound)
         }
+
+        getApi(Api.Galaxies.ReadUserGalaxies) {
+            when(val callerId = call.getIdentityOrNull()?.callerId) {
+                null -> dao.galaxy.readTopGalaxies(null)
+                else -> dao.galaxy.readUserGalaxies(callerId)
+            }.toOutcome()
+        }
     }
 
     authGate {
@@ -136,11 +143,6 @@ fun ApiScope.serveGalaxies() {
             val postId = it.data
             val identity = call.getIdentity()
             Ok(dao.post.removePost(postId, identity))
-        }
-
-        getApi(Api.Galaxies.ReadUserGalaxies) {
-            val callerId = call.getIdentity().callerId
-            dao.galaxy.readUserGalaxies(callerId).toOutcome()
         }
 
         postApi(Api.Galaxies.CreatePost) {
