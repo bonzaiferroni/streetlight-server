@@ -73,7 +73,7 @@ fun ResultRow.toLocation() = Location(
     eventsUrl = this[LocationTable.eventsUrl]?.toUrl(),
     extraLinks = this[LocationTable.links],
     image = this[LocationTable.image],
-    lightCount = this[LocationTable.starCount],
+    starCount = this[LocationTable.starCount],
     isLit = this.getOrNull(LocationStarTable.starId) != null,
     updatedAt = this[LocationTable.updatedAt],
     createdAt = this[LocationTable.createdAt],

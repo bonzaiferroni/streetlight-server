@@ -7,6 +7,8 @@ import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Coalesce
 import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.ColumnSet
+import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
@@ -18,6 +20,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.intLiteral
+import org.jetbrains.exposed.v1.core.leftJoin
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Query
@@ -52,6 +55,19 @@ object GalaxyPostAspect {
 
     val GalaxyPostColumns = (EventLocationColumns + LocationAspect.columns + PostColumns + MediaColumns).distinct()
 
+    private fun getColumns(cursor: PostCursor, callerId: CallerId?): List<Expression<*>> {
+        val markCursor = cursor as? PostCursor.Mark
+        if (markCursor == null && callerId == null) return GalaxyPostColumns
+        val columns = mutableListOf<Expression<*>>()
+        columns.addAll(GalaxyPostColumns)
+        if (markCursor != null) columns.add(MarkCount)
+        if (callerId != null) {
+            columns.add(LocationStarTable.starId)
+            columns.add(EventStarTable.starId)
+        }
+        return columns
+    }
+
     private fun baseQuery(callerId: CallerId? = null) = PostTable
         .leftJoin(EventTable)
         .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
@@ -63,7 +79,7 @@ object GalaxyPostAspect {
 
     fun queryCursor(cursor: PostCursor, callerId: CallerId? = null) = baseQuery(callerId)
         .joinCursor(cursor)
-        .select(if (cursor is PostCursor.Mark) GalaxyPostColumns + MarkCount else GalaxyPostColumns)
+        .select(getColumns(cursor, callerId))
 
     val MarkCount = Coalesce(PostMarkCountTable.count, intLiteral(0))
 
@@ -87,6 +103,9 @@ fun Join.joinCaller(callerId: CallerId?): Join {
     if (callerId == null) return this
     return join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
         additionalConstraint = { GalaxyStarTable.starId.eq(callerId) })
+        .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId)
+        .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
+            additionalConstraint = { PostTable.postType.eq(PostType.Location)})
 }
 
 fun Join.joinCursor(cursor: PostCursor): Join {

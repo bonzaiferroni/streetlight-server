@@ -5,6 +5,7 @@ import klutch.db.any
 import klutch.db.count
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
+import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op

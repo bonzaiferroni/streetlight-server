@@ -61,7 +61,7 @@ dependencies {
     implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
     implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
     implementation(libs.fleeksoft.ksoup)
-    implementation("com.google.transit:gtfs-realtime-bindings:0.0.4")
+    implementation("org.mobilitydata:gtfs-realtime-bindings:0.0.8")
     implementation(libs.ktor.serialization.kotlinx.cbor)
 
     implementation(platform("aws.sdk.kotlin:bom:1.6.52"))

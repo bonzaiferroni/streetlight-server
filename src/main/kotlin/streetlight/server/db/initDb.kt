@@ -87,6 +87,7 @@ private val counterTriggers get() = listOf(
     galaxyPostCountTrigger,
     eventStarCountTrigger,
     postStarCountTrigger,
+    locationStarCountTrigger,
 )
 
 private val syncValueTriggers get() = listOf(
