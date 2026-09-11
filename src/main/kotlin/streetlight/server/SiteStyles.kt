@@ -7,7 +7,6 @@ import koala.model.AltitudeCss
 import koala.model.MarkerSheet
 import streetlight.server.utils.printToFile
 import streetlight.web.layouts.CellContentCss
-import streetlight.web.layouts.FeedPostCss
 import streetlight.web.layouts.FeedProtoCss
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
@@ -17,13 +16,12 @@ import koala.markdown.MarkdownCss
 import koala.model.GlowControlCss
 import koala.model.LazyColumnCss
 import koala.model.TextEditorCss
-import streetlight.web.layouts.LightControlCss
+import streetlight.web.ui.StarToggleCss
 import streetlight.web.ui.BodyCss
 import streetlight.web.ui.CuratorMenuStyle
 import streetlight.web.ui.InboxCss
 import streetlight.web.ui.LayoutBuilderCss
 import streetlight.web.ui.LayoutStyleCss
-import streetlight.web.ui.StarLightCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
 import streetlight.web.ui.TextDeltaCss
@@ -57,7 +55,6 @@ private val KtStyles = listOf(
     DialogCss,
     LottieCss,
     IconButtonCss,
-    StarLightCss,
     FeatureImageCss,
     GridColumnsCss,
     SwapCss,
@@ -76,10 +73,9 @@ private val KtStyles = listOf(
     AppOverlayCss,
     EarthCss,
     TalkLogCss,
-    FeedPostCss,
     FeedProtoCss,
     CellContentCss,
-    LightControlCss,
+    StarToggleCss,
     MarkerSheet,
     AltitudeCss,
     TextDeltaCss,

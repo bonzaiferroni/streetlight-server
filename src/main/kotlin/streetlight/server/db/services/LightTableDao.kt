@@ -15,7 +15,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventId
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
-import streetlight.model.data.StarType
+import streetlight.model.data.ToggleType
 import streetlight.model.data.LocationId
 import streetlight.model.data.PostId
 import streetlight.server.db.tables.EventStarTable
@@ -69,11 +69,11 @@ class LightTableDao : DbService() {
     suspend fun readLocationLights(callerId: CallerId) = readLights(locationLight, callerId) { LocationId(it) }
     suspend fun readPostLights(callerId: CallerId) = readLights(postLight, callerId) { PostId(it) }
 
-    suspend fun editLight(edit: LightEdit, callerId: CallerId) = when (edit.starType) {
-        StarType.Event -> editLight(eventLight, edit, callerId)
-        StarType.Galaxy -> editLight(galaxyLight, edit, callerId)
-        StarType.Location -> editLight(locationLight, edit, callerId)
-        StarType.Post -> editLight(postLight, edit, callerId)
+    suspend fun editLight(edit: LightEdit, callerId: CallerId) = when (edit.toggleType) {
+        ToggleType.Event -> editLight(eventLight, edit, callerId)
+        ToggleType.Galaxy -> editLight(galaxyLight, edit, callerId)
+        ToggleType.Location -> editLight(locationLight, edit, callerId)
+        ToggleType.Post -> editLight(postLight, edit, callerId)
     }
 
     suspend fun editLights(edits: List<LightEdit>, callerId: CallerId): Boolean {
