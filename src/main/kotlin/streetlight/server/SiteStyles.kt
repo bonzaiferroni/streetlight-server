@@ -66,6 +66,7 @@ private val KtStyles = listOf(
     TextEditorCss,
     LazyColumnCss,
     ProgressBarCss,
+    TabsProtoCss,
 
     // web module
     StreetlightCss,
