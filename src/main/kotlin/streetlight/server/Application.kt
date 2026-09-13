@@ -2,6 +2,7 @@ package streetlight.server
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.sse.SSE
 import klutch.server.KoinProvider
 import klutch.server.configureAuth

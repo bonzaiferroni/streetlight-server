@@ -71,7 +71,7 @@ fun ApiScope.servePages() {
                 is IdParse -> listOf("${screen.pathBase}/{${parse.label}}")
                 is UuidParse -> listOf("${screen.pathBase}/{${parse.label}}")
                 is StaticParse -> listOf(screen.pathBase)
-                is SegmentParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" }
+                is SegmentParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" } + screen.pathBase
             }
 
             paths.forEach { path ->
@@ -85,7 +85,7 @@ fun ApiScope.servePages() {
                     when (val render = renderScreen(screen, arg, identity, call)) {
                         null -> {
                             call.respondHtml {
-                                // td: not found
+                                renderNotFound().block(this)
                             }
                         }
                         else -> {
@@ -95,6 +95,12 @@ fun ApiScope.servePages() {
                         }
                     }
                 }
+            }
+        }
+
+        get("{...}") {
+            call.respondHtml {
+                renderNotFound().block(this)
             }
         }
     }
@@ -120,7 +126,7 @@ suspend fun ApiScope.renderClientBase(screen: AppScreen): HtmlRender {
     return HtmlRender {
         // td: add loading message
         // td: pass screen title
-        appPage("Streetlight", SiteStyles, screen) { }
+        appPage("Streetlight", SiteStyles, screen)
     }
 }
 
@@ -131,6 +137,14 @@ suspend fun ApiScope.renderHome(callerId: CallerId?): HtmlRender {
     return HtmlRender {
         appPage("Home", SiteStyles, Screen.Galaxy) {
             homeShell(content)
+        }
+    }
+}
+
+fun ApiScope.renderNotFound(): HtmlRender {
+    return HtmlRender {
+        appPage("Oops", SiteStyles, Screen.Error) {
+            +"We didn't find it :("
         }
     }
 }
