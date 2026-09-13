@@ -44,7 +44,6 @@ private val KtStyles = listOf(
     SwitchCss,
     FlowBlockCss,
     ItemsBlockCss,
-    ShellBoxCss,
     WireBlockCss,
     FillImageCss,
     CarouselCss,
