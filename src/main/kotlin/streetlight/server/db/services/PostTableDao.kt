@@ -1,8 +1,10 @@
 package streetlight.server.db.services
 
+import kampfire.model.GeoBounds
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
+import klutch.db.inBounds
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
 import klutch.db.printQuery
@@ -27,6 +29,7 @@ import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.notInList
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
@@ -47,7 +50,9 @@ import streetlight.server.db.tables.GalaxyMarkTable
 import streetlight.server.db.tables.GalaxyPostAspect
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.MarkAspect
+import streetlight.server.db.tables.MediaTable
 import streetlight.server.db.tables.PostMarkCountTable
 import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.orderByCursor
@@ -221,6 +226,12 @@ class PostTableDao : DbService() {
         PostTable.update({ PostTable.id.eq(postId) }) {
             it[PostTable.lean] = tallies.sumOf { (_, lean, markCount) -> lean * markCount }
         }
+    }
+
+    suspend fun readMapPosts(bounds: GeoBounds, callerId: CallerId?) = dbQuery {
+        GalaxyPostAspect.query(callerId)
+            .where { LocationTable.geoPoint.inBounds(bounds) or MediaTable.geoPoint.inBounds(bounds) }
+            .map { it.toGalaxyPost() }
     }
 }
 

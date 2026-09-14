@@ -74,7 +74,7 @@ object GalaxyPostAspect {
         .leftJoin(MediaTable)
         .joinCaller(callerId)
 
-    fun query() = baseQuery()
+    fun query(callerId: CallerId? = null) = baseQuery(callerId)
         .select(GalaxyPostColumns)
 
     fun queryCursor(cursor: PostCursor, callerId: CallerId? = null) = baseQuery(callerId)

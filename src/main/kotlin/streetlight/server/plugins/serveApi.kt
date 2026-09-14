@@ -34,6 +34,7 @@ fun Application.serveApi(server: ServerScope) {
             serveUserHub()
             serveChat()
             serveMap()
+            serveSpiritVision()
             serveFiles()
             serveOmni()
             serveSiteDocs()
