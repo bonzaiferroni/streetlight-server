@@ -43,11 +43,11 @@ suspend fun DaoScope.readFeedMarks(
     return EntityFeed(posts, feedMarks, postMarks, nextCursor)
 }
 
-fun PostCursor.next(entities: List<FeedEntity>): PostCursor? = (entities.takeIf { it.size >= PostCursor.DefaultLimit }
-    ?.lastOrNull()?.post)?.let { lastPost ->
-        when (this) {
-            is PostCursor.Time -> copy(postId = lastPost.postId, recordAt = lastPost.createdAt)
-            is PostCursor.Lean -> lastPost.lean?.let { copy(postId = lastPost.postId, postLean = it) }
-            is PostCursor.Mark -> lastPost.markCount?.let { copy(postId = lastPost.postId, count = it) }
-        }
+fun PostCursor.next(entities: List<FeedEntity>): PostCursor? {
+    val lastPost = entities.takeIf { it.size >= PostCursor.DefaultLimit }?.last()?.post ?: return null
+    return when (this) {
+        is PostCursor.Time -> copy(postId = lastPost.postId, recordAt = lastPost.createdAt)
+        is PostCursor.Lean -> copy(postId = lastPost.postId, postLean = lastPost.lean ?: 0)
+        is PostCursor.Mark -> copy(postId = lastPost.postId, count = lastPost.markCount ?: 0)
     }
+}

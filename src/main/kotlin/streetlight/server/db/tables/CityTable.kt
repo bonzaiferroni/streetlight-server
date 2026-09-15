@@ -50,7 +50,7 @@ fun ResultRow.toCity() = City(
     galaxyCount = this[CityTable.galaxyCount],
     mapRank = this[CityTable.mapRank],
     geoPoint = this[CityTable.geoPoint].toGeoPoint(),
-    geoBounds = this[CityTable.geoBounds].toGeoBounds()
+    geoRect = this[CityTable.geoBounds].toGeoBounds()
 )
 
 fun UpdateBuilder<*>.createRecord(city: City, stateId: StateId) {
@@ -66,6 +66,6 @@ fun UpdateBuilder<*>.updateRecord(city: City) {
     this[CityTable.name] = city.name
     this[CityTable.mapRank] = city.mapRank
     this[CityTable.geoPoint] = city.geoPoint.toPGpoint()
-    this[CityTable.geoBounds] = city.geoBounds.toList()
+    this[CityTable.geoBounds] = city.geoRect.toList()
     this[CityTable.updatedAt] = Clock.System.now()
 }

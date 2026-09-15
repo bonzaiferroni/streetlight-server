@@ -3,10 +3,10 @@ package streetlight.server.db.services
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kampfire.api.Slug
 import kampfire.model.Distance
-import kampfire.model.GeoBounds
+import kampfire.model.GeoRect
 import kampfire.model.GeoPoint
 import klutch.db.DbService
-import klutch.db.inBounds
+import klutch.db.inRect
 import klutch.db.isNearEq
 import klutch.db.mapFirstOrNull
 import klutch.db.model.CallerId
@@ -161,9 +161,9 @@ class LocationTableDao : DbService() {
             .map { it.toLocation() }
     }
 
-    suspend fun readLocationsInBounds(bounds: GeoBounds): List<LocationInfo> = dbQuery {
+    suspend fun readLocationsInBounds(bounds: GeoRect): List<LocationInfo> = dbQuery {
         LocationTable.leftJoin(EventTable).selectAll()
-            .where { LocationTable.geoPoint.inBounds(bounds) }
+            .where { LocationTable.geoPoint.inRect(bounds) }
             .toList()
             .groupBy { it[LocationTable.id].toRecordId<LocationId>() }.map { (_, rows) ->
                 val location = rows.first().toLocation()

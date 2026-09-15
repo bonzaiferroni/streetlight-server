@@ -80,7 +80,7 @@ fun UpdateBuilder<*>.updateGalaxy(galaxy: Galaxy, slugRecord: SlugRecord, city: 
     this[GalaxyTable.tagline] = galaxy.tagline
     this[GalaxyTable.description] = galaxy.description
     this[GalaxyTable.geoPoint] = galaxy.geoPoint.toPGpoint()
-    this[GalaxyTable.geoBounds] = galaxy.geoBounds.toList()
+    this[GalaxyTable.geoBounds] = galaxy.geoRect.toList()
     this[GalaxyTable.postPermission] = galaxy.postPermission
     this[GalaxyTable.reviewCount] = galaxy.reviewCount
     this[GalaxyTable.postGuide] = galaxy.postGuide

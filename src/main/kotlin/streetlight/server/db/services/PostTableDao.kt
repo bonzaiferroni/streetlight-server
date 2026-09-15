@@ -1,13 +1,12 @@
 package streetlight.server.db.services
 
-import kampfire.model.GeoBounds
+import kampfire.model.GeoRect
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
-import klutch.db.inBounds
+import klutch.db.inRect
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
-import klutch.db.printQuery
 import klutch.db.readValue
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
@@ -28,6 +27,7 @@ import org.jetbrains.exposed.v1.core.andIfNotNull
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.not
 import org.jetbrains.exposed.v1.core.notInList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.batchUpsert
@@ -43,7 +43,9 @@ import streetlight.model.data.MarkTally
 import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
+import streetlight.model.data.MapQuery
 import streetlight.model.data.PostCursor
+import streetlight.model.data.SortDirection
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyMarkTable
@@ -228,9 +230,16 @@ class PostTableDao : DbService() {
         }
     }
 
-    suspend fun readMapPosts(bounds: GeoBounds, callerId: CallerId?) = dbQuery {
-        GalaxyPostAspect.query(callerId)
-            .where { LocationTable.geoPoint.inBounds(bounds) or MediaTable.geoPoint.inBounds(bounds) }
+    suspend fun readBoundedPosts(callerId: CallerId?, query: MapQuery) = dbQuery {
+        val excluded = query.seen?.takeIf { it.isNotEmpty() }?.map { rect ->
+            LocationTable.geoPoint.inRect(rect) or MediaTable.geoPoint.inRect(rect)
+        }?.reduce { acc, op -> acc or op }
+
+        GalaxyPostAspect.queryCursor(query.cursor, callerId)
+            .where {
+                (LocationTable.geoPoint.inRect(query.view) or MediaTable.geoPoint.inRect(query.view))
+                    .let { if (excluded != null) it and not(excluded) else it }
+            }
             .map { it.toGalaxyPost() }
     }
 }

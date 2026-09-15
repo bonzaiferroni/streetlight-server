@@ -6,7 +6,6 @@ import io.ktor.server.application.install
 import io.ktor.server.response.respond
 import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.routing.get
-import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import streetlight.model.Api
 import streetlight.server.model.ServerRouting
@@ -33,7 +32,7 @@ fun Application.serveApi(server: ServerScope) {
             // serveSpeech(Api.Speech, app.ai.speech)
             serveUserHub()
             serveChat()
-            serveMap()
+            servePosts()
             serveSpiritVision()
             serveFiles()
             serveOmni()

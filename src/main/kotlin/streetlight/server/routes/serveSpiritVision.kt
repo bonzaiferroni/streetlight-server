@@ -26,7 +26,7 @@ fun ApiScope.serveSpiritVision() {
     val connections = LinkedHashSet<SpiritConnection>()
     val connectionsMutex = Mutex()
 
-    webSocket(Api.Map.SpiritVision.path) {
+    webSocket(Api.Posts.SpiritVision.path) {
         var connection: SpiritConnection? = null
 
         suspend fun gatherRecipients(pos: GeoPoint): List<SpiritConnection> {
@@ -135,4 +135,4 @@ private suspend fun DefaultWebSocketServerSession.trySend(text: String) = try {
 private fun SpiritFrame.encode() = Json.encodeToString<SpiritFrame>(this)
 private fun String.decode() = Json.decodeFromString<SpiritFrame>(this)
 
-private val console = KotlinLogging.logger(ApiScope::serveMap.name)
+private val console = KotlinLogging.logger(ApiScope::servePosts.name)

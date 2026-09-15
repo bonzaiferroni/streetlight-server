@@ -10,7 +10,6 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.CityId
 import streetlight.model.data.Galaxy
-import streetlight.model.data.StarId
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.GalaxyTable
@@ -58,7 +57,7 @@ fun ResultRow.toGalaxy() = Galaxy(
     tagline = this[GalaxyTable.tagline],
     description = this[GalaxyTable.description],
     geoPoint = this[GalaxyTable.geoPoint].toGeoPoint(),
-    geoBounds = this[GalaxyTable.geoBounds].toGeoBounds(),
+    geoRect = this[GalaxyTable.geoBounds].toGeoBounds(),
     postPermission = this[GalaxyTable.postPermission],
     reviewCount = this[GalaxyTable.reviewCount],
     postGuide = this[GalaxyTable.postGuide],

@@ -8,7 +8,7 @@ import kabinet.console.globalConsole
 import kampfire.model.Ok
 import kampfire.model.outcomeOf
 import kampfire.model.toOutcome
-import streetlight.model.data.MapQuery
+import streetlight.model.data.MapQueryLegacy
 import klutch.server.*
 import kotlinx.html.body
 import kotlinx.html.p
@@ -49,7 +49,7 @@ fun ApiScope.serveEvents() {
             Ok(dao.event.readLocationEvents(it.data, identity?.callerId))
         }
 
-        getApi(Api.Events.QueryMap, MapQuery::fromQuery) {
+        getApi(Api.Events.QueryMap, MapQueryLegacy::fromQuery) {
             val sent = it.data
             val identity = call.getIdentityOrNull()
             Ok(dao.event.readEventsInBounds(sent.bounds, identity?.callerId))

@@ -3,11 +3,11 @@ package streetlight.server.db.services
 import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.Username
-import kampfire.model.GeoBounds
+import kampfire.model.GeoRect
 import klutch.db.DbService
 import klutch.db.count
 import klutch.db.deleteSingle
-import klutch.db.inBounds
+import klutch.db.inRect
 import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.readFirstOrNull
@@ -87,8 +87,8 @@ class EventTableDao: DbService() {
         EventTable.deleteSingle { EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId) }
     }
 
-    suspend fun readEventsInBounds(bounds: GeoBounds, callerId: CallerId?) = dbQuery { // , after: LocalDate, before: LocalDate
-        eventLocationQuery(callerId).where { LocationTable.geoPoint.inBounds(bounds) }.map { it.toEventLocation() }
+    suspend fun readEventsInBounds(bounds: GeoRect, callerId: CallerId?) = dbQuery { // , after: LocalDate, before: LocalDate
+        eventLocationQuery(callerId).where { LocationTable.geoPoint.inRect(bounds) }.map { it.toEventLocation() }
     }
 
     suspend fun readActiveEvents() = dbQuery {
