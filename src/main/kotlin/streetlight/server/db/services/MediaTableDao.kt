@@ -56,7 +56,7 @@ private fun MediaEdit.toMedia(mediaId: MediaId, slug: Slug? = null) = Media(
     mediaId = mediaId,
     slug = slug ?: Slug.Empty,
     username = Username.Empty, // set with join
-    mediaType = MediaType.Text,
+    mediaType = mediaType,
     title = title,
     subtitle = subtitle,
     text = text,
