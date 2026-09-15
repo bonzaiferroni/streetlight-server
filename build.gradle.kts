@@ -78,6 +78,10 @@ dependencies {
 
     implementation("com.vladsch.flexmark:flexmark-html2md-converter:0.64.8")
     implementation("net.iakovlev:timeshape:2025b.28")
+
+    implementation("com.zaxxer:HikariCP:7.1.0")
+    implementation("org.flywaydb:flyway-core:13.7.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.7.0")
 }
 
 kotlin {

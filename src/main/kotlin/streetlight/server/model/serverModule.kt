@@ -1,7 +1,9 @@
 package streetlight.server.model
 
 import klutch.db.services.SessionService
+import klutch.environment.SystemEnvironment
 import klutch.environment.readEnvFromPath
+import klutch.environment.readEnvFromPathOrNull
 import klutch.server.Authorizer
 import org.koin.dsl.module
 import streetlight.server.db.services.SongTableService
@@ -18,7 +20,7 @@ import streetlight.server.external.PostmarkEmailClient
 import streetlight.server.routes.LocationParser
 
 val serverModule = module {
-    single { readEnvFromPath() }
+    single { SystemEnvironment.fromSystem(readEnvFromPathOrNull()) }
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single { DaoFacade() }
 

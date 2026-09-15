@@ -1,5 +1,7 @@
 package streetlight.server.db
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import kabinet.utils.Environment
 import klutch.db.createCounterTrigger
 import klutch.db.createSyncValueTrigger
@@ -7,6 +9,7 @@ import klutch.db.services.initUsers
 import klutch.server.provide
 import klutch.utils.dbLog
 import kotlinx.coroutines.runBlocking
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
@@ -18,7 +21,7 @@ fun initDb(server: ServerScope) {
     val env = server.provide<Environment>()
     val db = connectDb(env)
 
-    raiseSchema(db)
+    installTriggers(db)
 
     runBlocking {
         initUsers(server)
@@ -26,7 +29,14 @@ fun initDb(server: ServerScope) {
     }
 }
 
-private val dbTables = listOf(
+fun installTriggers(db: Database) {
+    transaction(db) {
+        counterTriggers.forEach { createCounterTrigger(it) }
+        syncValueTriggers.forEach { createSyncValueTrigger(it) }
+    }
+}
+
+internal val dbTables = listOf(
     LocationTable,
     EventTable,
     SongTable,
@@ -116,11 +126,21 @@ fun connectDb(url: String, user: String, password: String) = Database.connect(
     password = password,
 )
 
-fun connectDb(env: Environment) = connectDb(
-    url = "jdbc:postgresql://localhost:5432/streetlightdb",
-    user = "streetlight",
-    password = env.read("PSQL_PW"),
-)
+fun connectDb(env: Environment): Database {
+    val dataSource = HikariDataSource(HikariConfig().apply {
+        jdbcUrl = env.read("DB_URL")
+        username = env.read("DB_USER")
+        password = env.read("DB_PASSWORD")
+        maximumPoolSize = 10
+    })
+
+    Flyway.configure()
+        .dataSource(dataSource)
+        .load()
+        .migrate()
+
+    return Database.connect(dataSource)
+}
 
 fun raiseSchema(db: Database) {
     transaction(db) {
