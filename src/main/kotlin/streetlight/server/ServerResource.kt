@@ -31,8 +31,15 @@ import streetlight.web.ui.TextDeltaCss
 import java.io.File
 
 class ServerResource(mode: BuildMode): PageResource {
+
     override val bundle = ServerBundle(mode)
     override val styles = BuildStyles()
+
+    init {
+        if (mode == BuildMode.Development) {
+            printToFile(styles, "../debug/site-styles.css")
+        }
+    }
 }
 
 private val KtStyles = listOf(
@@ -124,7 +131,7 @@ private fun BuildStyles() = buildString {
     Utilities.forEach {
         appendLine(it.toStylesheet())
     }
-}.also { printToFile(it, "../debug/site-styles.css") }
+}
 
 class ServerBundle(mode: BuildMode): JsBundle {
     override val web = jsFileOf("web.js", basePath = mode.bundleBuildPath)
