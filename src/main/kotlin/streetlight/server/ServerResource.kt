@@ -3,7 +3,7 @@ package streetlight.server
 import koala.CssFile
 import koala.JsBundle
 import koala.PageResource
-import koala.css.*
+import koala.modifier.*
 import koala.html.*
 import koala.model.AltitudeCss
 import koala.model.MarkerSheet
