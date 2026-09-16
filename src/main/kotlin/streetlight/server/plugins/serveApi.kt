@@ -7,7 +7,11 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import kabinet.utils.Environment
+import klutch.server.provide
 import streetlight.model.Api
+import streetlight.server.ServerResource
+import streetlight.server.buildMode
 import streetlight.server.model.ServerRouting
 import streetlight.server.model.ServerScope
 import streetlight.server.routes.*
@@ -18,7 +22,8 @@ fun Application.serveApi(server: ServerScope) {
     routing {
         val scope = ServerRouting(server, this)
         with (scope) {
-            servePages()
+            val resource = ServerResource(provide<Environment>().buildMode)
+            servePages(resource)
             serveSession()
             serveEvents()
             serveGalaxies()
@@ -46,7 +51,7 @@ fun Application.serveApi(server: ServerScope) {
             serveSiteStatus()
             serveWebhooks()
             serveAccountActions()
-            serveSubdomains()
+            serveSubdomains(resource)
             serveMessages()
         }
 

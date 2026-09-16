@@ -1,16 +1,23 @@
 package streetlight.server.routes
 
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.defaultForFilePath
 import io.ktor.server.http.content.staticFiles
-import io.ktor.server.response.respondBytes
-import io.ktor.server.routing.get
-import koala.DEV_PATH
-import koala.PROD_PATH
+import io.ktor.server.response.header
+import io.ktor.server.routing.Route
+import kabinet.utils.Environment
+import klutch.server.provide
+import streetlight.server.BuildMode
+import streetlight.server.buildMode
+import streetlight.server.bundleCacheControl
+import streetlight.server.bundleDir
+import streetlight.server.bundleBuildPath
 import streetlight.server.model.ApiScope
 import java.io.File
 
 fun ApiScope.serveFiles() {
+    val env = provide<Environment>()
     uploadFolder.mkdirs()
     wwwFolder.mkdirs()
 
@@ -26,23 +33,25 @@ fun ApiScope.serveFiles() {
 //        }
     }
 
-//    get(CssFiles.genElements.path) {
-//        call.respondText(
-//            text = CssManifest.joinToString("\n"),
-//            contentType = ContentType.Text.CSS
-//        )
-//    }
-    staticFiles(PROD_PATH, File("../web/build/kotlin-webpack/js/productionExecutable")) {
+    serveBundle(env.buildMode)
+
+//    staticFiles(PROD_PATH, File("../web/build/kotlin-webpack/js/productionExecutable")) {
 //        cacheControl {
 //            listOf(CacheControl.MaxAge(maxAgeSeconds = 600))
 //        }
-    }
+//    }
 
-    // staticFiles(DEV_PATH, File("../web/build/kotlin-webpack/js/developmentExecutable"))
-    val webBundle = File("../web/build/kotlin-webpack/js/developmentExecutable/web.js").readBytes()
-
-    get("${DEV_PATH}web.js") {
-        call.respondBytes(webBundle, ContentType.Application.JavaScript)
-    }
+//    val webBundle = File("../web/build/kotlin-webpack/js/developmentExecutable/web.js").readBytes()
+//
+//    get("${DEV_PATH}web.js") {
+//        call.respondBytes(webBundle, ContentType.Application.JavaScript)
+//    }
 }
 
+fun Route.serveBundle(buildMode: BuildMode) {
+    staticFiles(buildMode.bundleBuildPath, File(buildMode.bundleDir)) {
+        modify { _, call ->
+            call.response.header(HttpHeaders.CacheControl, buildMode.bundleCacheControl)
+        }
+    }
+}

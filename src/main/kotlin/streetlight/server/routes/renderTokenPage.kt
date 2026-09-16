@@ -3,28 +3,28 @@ package streetlight.server.routes
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.Token
+import koala.PageResource
 import koala.html.*
 import streetlight.model.Api
 import streetlight.model.data.AuthTokenType
-import streetlight.server.SiteStyles
 import streetlight.server.db.datascope.redeemEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.web.pages.formSubmit
 import streetlight.web.pages.messagePage
 import streetlight.web.shells.passwordResetForm
 
-suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType): HtmlRender? {
+suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType, resource: PageResource): HtmlRender? {
     val token = arg?.let { Token(it) } ?: return null
 
     return when (tokenType) {
-        AuthTokenType.EmailVerification -> renderVerifyEmail(token)
-        AuthTokenType.PasswordReset -> renderPasswordResetForm(token)
-        AuthTokenType.AccountLockdown -> renderAccountLockdownConfirm(token)
-        AuthTokenType.AccountNotOwned -> renderAccountNotOwnedConfirm(token)
+        AuthTokenType.EmailVerification -> renderVerifyEmail(token, resource)
+        AuthTokenType.PasswordReset -> renderPasswordResetForm(token, resource)
+        AuthTokenType.AccountLockdown -> renderAccountLockdownConfirm(token, resource)
+        AuthTokenType.AccountNotOwned -> renderAccountNotOwnedConfirm(token, resource)
     }
 }
 
-suspend fun ApiScope.renderVerifyEmail(token: Token): HtmlRender {
+suspend fun ApiScope.renderVerifyEmail(token: Token, resource: PageResource): HtmlRender {
     val outcome = redeemEmailVerification(token)
     val title = when(outcome) {
         is Ok -> "Success"
@@ -36,24 +36,24 @@ suspend fun ApiScope.renderVerifyEmail(token: Token): HtmlRender {
     }
 
     return HtmlRender {
-        messagePage(title, message, SiteStyles)
+        messagePage(title, message, resource)
     }
 }
 
-fun renderAccountNotOwnedConfirm(token: Token): HtmlRender {
+fun renderAccountNotOwnedConfirm(token: Token, resource: PageResource): HtmlRender {
     return HtmlRender {
         messagePage(
             title = "Remove Address",
             message = """Confirming will remove this email address from the Streetlight account it was entered on. 
                    The account will no longer be able to send mail to you.""".trimIndent(),
-            styles = SiteStyles,
+            resource = resource,
         ) {
             formSubmit("Remove My Address", token, Api.AccountAction.AccountNotOwned)
         }
     }
 }
 
-fun renderAccountLockdownConfirm(token: Token): HtmlRender {
+fun renderAccountLockdownConfirm(token: Token, resource: PageResource): HtmlRender {
     return HtmlRender {
         messagePage(
             title = "Lockdown Account",
@@ -69,22 +69,22 @@ fun renderAccountLockdownConfirm(token: Token): HtmlRender {
                     """.trimIndent())
                 }
             },
-            styles = SiteStyles,
+            resource = resource,
         ) {
             formSubmit("Remove My Address", token, Api.AccountAction.AccountNotOwned)
         }
     }
 }
 
-fun renderPasswordResetForm(token: Token): HtmlRender {
+fun renderPasswordResetForm(token: Token, resource: PageResource): HtmlRender {
 
     return HtmlRender {
         messagePage(
             title = "Password Reset",
             message = "Enter a new password",
-            styles = SiteStyles,
+            resource = resource,
         ) {
-            passwordResetForm(token)
+            passwordResetForm(token, resource)
         }
     }
 }

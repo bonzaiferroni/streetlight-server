@@ -10,18 +10,19 @@ import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import klutch.server.authGate
 import klutch.server.postApi
+import koala.PageResource
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.utils.subdomain
 
-fun ApiScope.serveSubdomains() {
+fun ApiScope.serveSubdomains(resource: PageResource) {
     authGate(optional = true) {
         subdomain("streetlight.ing", "localhost") {
             get("/") {
                 val slug = call.parameters.getOrFail("subdomain").toSlug()
                 val locationSlug = dao.subdomain.readLocationSlug(slug) ?: return@get call.respond(HttpStatusCode.NotFound)
-                val render = renderLocation(locationSlug.value, call.getIdentityOrNull()) ?: return@get call.respond(HttpStatusCode.NotFound)
+                val render = renderLocation(locationSlug.value, call.getIdentityOrNull(), resource) ?: return@get call.respond(HttpStatusCode.NotFound)
                 call.respondHtml {
                     render.block(this)
                 }
