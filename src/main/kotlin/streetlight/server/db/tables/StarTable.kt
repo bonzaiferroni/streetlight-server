@@ -14,6 +14,8 @@ import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.datetime.CurrentDateTime
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.EmailStatus
@@ -41,7 +43,7 @@ object StarTable: UuidTable("star") {
     val image = image("image").nullable()
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val guestToken = char("guest_token", 64).uniqueIndex().nullable()
-    val activeAt = timestamp("active_at").default(Clock.System.now())
+    val activeAt = timestamp("active_at").defaultExpression(CurrentTimestamp)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 

@@ -7,6 +7,9 @@ enum class BuildMode { Development, Production }
 
 object EnvKey {
     const val BUILD_ENV = "BUILD_ENV"
+    const val DB_USER = "DB_USER"
+    const val DB_URL = "DB_URL"
+    const val DB_PASSWORD = "DB_PASSWORD"
 }
 
 val Environment.buildMode get() = when (val value = read(EnvKey.BUILD_ENV)) {

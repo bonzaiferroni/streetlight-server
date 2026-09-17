@@ -104,3 +104,16 @@ tasks.withType<ShadowJar> {
     mergeServiceFiles()
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
+
+tasks.register<JavaExec>("generateMigration") {
+    group = "database"
+    description = "Diffs the table definitions against a shadow database and writes the next migration"
+    mainClass.set("streetlight.server.tools.GenerateMigrationKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    workingDir = projectDir
+    doFirst {
+        val name = project.findProperty("migration")?.toString()
+            ?: error("pass -Pmigration=<snake_case_description>")
+        args = listOf(name)
+    }
+}

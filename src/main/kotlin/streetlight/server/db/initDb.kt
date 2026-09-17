@@ -13,6 +13,9 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
+import streetlight.server.BuildMode
+import streetlight.server.EnvKey
+import streetlight.server.buildMode
 import streetlight.server.db.tables.*
 import streetlight.server.model.ServerScope
 
@@ -22,6 +25,8 @@ fun initDb(server: ServerScope) {
     val db = connectDb(env)
 
     installTriggers(db)
+
+    if (env.buildMode == BuildMode.Development) raiseSchema(db)
 
     runBlocking {
         initUsers(server)
@@ -128,9 +133,9 @@ fun connectDb(url: String, user: String, password: String) = Database.connect(
 
 fun connectDb(env: Environment): Database {
     val dataSource = HikariDataSource(HikariConfig().apply {
-        jdbcUrl = env.read("DB_URL")
-        username = env.read("DB_USER")
-        password = env.read("DB_PASSWORD")
+        jdbcUrl = env.read(EnvKey.DB_URL)
+        username = env.read(EnvKey.DB_USER)
+        password = env.read(EnvKey.DB_PASSWORD)
         maximumPoolSize = 10
     })
 
