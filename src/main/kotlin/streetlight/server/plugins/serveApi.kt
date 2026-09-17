@@ -53,6 +53,7 @@ fun Application.serveApi(server: ServerScope) {
             serveAccountActions()
             serveSubdomains(resource)
             serveMessages()
+            serveSystem()
         }
 
         get("${Api.path}/{...}") {
