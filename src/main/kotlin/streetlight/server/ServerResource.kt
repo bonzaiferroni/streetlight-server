@@ -51,7 +51,6 @@ private val KtStyles = listOf(
     TableCss,
     ListItemCss,
     PopoverCss,
-    SwapBlockCss,
     SectionCss,
     ActionCss,
     TextLabelCss,
