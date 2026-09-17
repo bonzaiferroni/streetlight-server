@@ -90,13 +90,6 @@ class PostTableDao : DbService() {
         } ?: FeedStatus.Live // td: figure out feedstatus for no callerId
 
         PostTable.insert { it.createRecord(record, status) }
-        callerId?.let {
-            PostMarkTable.insert {
-                it[PostMarkTable.postId] = record.postId.value
-                it[PostMarkTable.starId] = callerId.value
-                it[PostMarkTable.createdAt] = Clock.System.now()
-            }
-        }
         PostTable.selectAll().where { PostTable.id.eq(record.postId) }.singleOrNull()?.toPost()
     }
 
