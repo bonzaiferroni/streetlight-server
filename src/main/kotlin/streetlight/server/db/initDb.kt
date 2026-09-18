@@ -92,6 +92,7 @@ internal val dbTables = listOf(
     GalaxyMarkTable,
     PostMarkTable,
     PostMarkCountTable,
+    SiteEventTable,
 )
 
 private val counterTriggers get() = listOf(
