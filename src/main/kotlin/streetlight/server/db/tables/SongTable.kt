@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.db.jsonbConfig
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -15,7 +16,7 @@ object SongTable : UuidTable() {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val name = text("title")
     val artist = text("artist")
-    val notation = jsonb<SongNotation>("notation", tableJsonDefault).nullable()
+    val notation = jsonb<SongNotation>("notation", jsonbConfig).nullable()
     val tempo = integer("tempo").nullable()
     val capo = integer("capo").nullable()
     val inRotation = bool("in_rotation").default(true)
@@ -52,11 +53,4 @@ fun UpdateBuilder<*>.updateRecord(song: Song) {
     this[SongTable.capo] = song.capo
     this[SongTable.inRotation] = song.inRotation
     this[SongTable.updatedAt] = song.updatedAt
-}
-
-@Deprecated("use klutch reference jsonColumnConfig")
-val tableJsonDefault = Json {
-    encodeDefaults = true
-    explicitNulls = false
-    ignoreUnknownKeys = true
 }

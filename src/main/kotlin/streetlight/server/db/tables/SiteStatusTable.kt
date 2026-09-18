@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.db.jsonbConfig
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -13,8 +14,8 @@ import streetlight.model.data.SiteStatusId
 import streetlight.server.utils.toRecordId
 
 object SiteStatusTable : LongIdTable("site_status") {
-    val integers = jsonb<Map<SiteMetric, Int>>("integers", tableJsonDefault)
-    val doubles = jsonb<Map<SiteMetric, Double>>("doubles", tableJsonDefault)
+    val integers = jsonb<Map<SiteMetric, Int>>("integers", jsonbConfig)
+    val doubles = jsonb<Map<SiteMetric, Double>>("doubles", jsonbConfig)
     val resolution = enumeration<MetricResolution>("resolution")
     val coverage = float("coverage")
     val startedAt = timestamp("started_at")

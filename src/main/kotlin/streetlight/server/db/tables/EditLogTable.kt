@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import klutch.db.SyncValueTrigger
+import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -19,7 +20,7 @@ object EditLogTable: UuidTable("edit_log") {
     val starId = reference("star_id", StarTable, ReferenceOption.SET_NULL).index().nullable()
     val username = text("username").index().default("")
     val recordType = enumeration<RecordType>("record_type")
-    val recordEdit = jsonb<RecordEdit>("record_edit", tableJsonDefault).nullable()
+    val recordEdit = jsonb<RecordEdit>("record_edit", jsonbConfig).nullable()
     val editType = enumeration<EditType>("edit_type")
     // val note = text("note").nullable()
     val updatedAt = timestamp("updated_at")

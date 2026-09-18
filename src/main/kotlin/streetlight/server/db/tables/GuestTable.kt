@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.db.jsonbConfig
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
@@ -13,7 +14,7 @@ import streetlight.server.utils.toRecordIdOrNull
 object GuestTable : UuidTable("guest") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val name = text("name").nullable()
-    val songs = jsonb<List<String>>("songs", tableJsonDefault).nullable()
+    val songs = jsonb<List<String>>("songs", jsonbConfig).nullable()
     val createdAt = timestamp("created_at")
 }
 
