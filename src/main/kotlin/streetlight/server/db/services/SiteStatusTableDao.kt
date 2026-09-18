@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.mapFirstOrNull
-import klutch.db.whereWith
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -14,19 +13,22 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.MetricResolution
-import streetlight.model.data.StatusPoint
+import streetlight.model.data.StatusStatus
 import streetlight.model.data.SiteStatusId
+import streetlight.server.db.tables.SiteEventTable
 import streetlight.server.db.tables.SiteStatusTable
+import streetlight.server.db.tables.toSiteEvent
 import streetlight.server.db.tables.toSiteStatus
 import streetlight.server.db.tables.writeFull
 import streetlight.server.plugins.logger
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 class SiteStatusTableDao : DbService() {
 
-    suspend fun create(statusPoint: StatusPoint) = dbQuery {
+    suspend fun create(statusStatus: StatusStatus) = dbQuery {
         SiteStatusTable.insert {
-            it.writeFull(statusPoint)
+            it.writeFull(statusStatus)
         }
     }
 
@@ -61,8 +63,15 @@ class SiteStatusTableDao : DbService() {
             .map { it.toSiteStatus() }
     }
 
-    suspend fun readEvents(resolution: MetricResolution) {
-
+    suspend fun readEvents(
+        resolution: MetricResolution,
+        limit: Int = 60
+    ) = dbQuery {
+        val startedAt = Clock.System.now() - resolution.duration * limit
+        SiteEventTable.selectAll().where {
+            SiteEventTable.time.greaterEq(startedAt)
+        }.orderBy(SiteEventTable.time, SortOrder.ASC)
+            .map { it.toSiteEvent() }
     }
 }
 
