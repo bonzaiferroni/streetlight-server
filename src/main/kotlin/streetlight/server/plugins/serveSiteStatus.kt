@@ -11,7 +11,8 @@ import streetlight.server.model.ApiScope
 fun ApiScope.serveSiteStatus() {
     getApi(Api.Status.Feed) {
         val resolution = readParam(it.resolution)
-        dao.siteStatus.readByResolution(resolution).toOutcome()
+        val points = dao.siteStatus.readByResolution(resolution)
+        val events = dao.siteStatus.readEvents(resolution)
     }
 
     getApi(Api.Status.ReadLast) {

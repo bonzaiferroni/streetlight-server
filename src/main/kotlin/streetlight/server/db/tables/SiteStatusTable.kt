@@ -3,15 +3,13 @@ package streetlight.server.db.tables
 import klutch.db.jsonbConfig
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
-import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.MetricResolution
 import streetlight.model.data.SiteMetric
-import streetlight.model.data.SiteStatus
+import streetlight.model.data.StatusPoint
 import streetlight.model.data.SiteStatusId
-import streetlight.server.utils.toRecordId
 
 object SiteStatusTable : LongIdTable("site_status") {
     val integers = jsonb<Map<SiteMetric, Int>>("integers", jsonbConfig)
@@ -23,7 +21,7 @@ object SiteStatusTable : LongIdTable("site_status") {
     val createdAt = timestamp("created_at")
 }
 
-fun ResultRow.toSiteStatus() = SiteStatus(
+fun ResultRow.toSiteStatus() = StatusPoint(
     siteStatusId = SiteStatusId(this[SiteStatusTable.id].value),
     integers = this[SiteStatusTable.integers],
     doubles = this[SiteStatusTable.doubles],
@@ -34,14 +32,14 @@ fun ResultRow.toSiteStatus() = SiteStatus(
     createdAt = this[SiteStatusTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(siteStatus: SiteStatus) {
-    this[SiteStatusTable.integers] = siteStatus.integers
-    this[SiteStatusTable.doubles] = siteStatus.doubles
-    this[SiteStatusTable.resolution] = siteStatus.resolution
-    this[SiteStatusTable.coverage] = siteStatus.coverage
-    this[SiteStatusTable.startedAt] = siteStatus.startedAt
-    this[SiteStatusTable.endedAt] = siteStatus.endedAt
-    this[SiteStatusTable.createdAt] = siteStatus.createdAt
+fun UpdateBuilder<*>.writeFull(statusPoint: StatusPoint) {
+    this[SiteStatusTable.integers] = statusPoint.integers
+    this[SiteStatusTable.doubles] = statusPoint.doubles
+    this[SiteStatusTable.resolution] = statusPoint.resolution
+    this[SiteStatusTable.coverage] = statusPoint.coverage
+    this[SiteStatusTable.startedAt] = statusPoint.startedAt
+    this[SiteStatusTable.endedAt] = statusPoint.endedAt
+    this[SiteStatusTable.createdAt] = statusPoint.createdAt
 }
 
 // fun UpdateBuilder<*>.writeUpdate(siteStatus: SiteStatus) {

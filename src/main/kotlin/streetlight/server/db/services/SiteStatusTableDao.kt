@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import klutch.db.DbService
 import klutch.db.deleteSingle
 import klutch.db.mapFirstOrNull
+import klutch.db.whereWith
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -12,22 +13,20 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.MetricResolution
-import streetlight.model.data.SiteStatus
+import streetlight.model.data.StatusPoint
 import streetlight.model.data.SiteStatusId
 import streetlight.server.db.tables.SiteStatusTable
 import streetlight.server.db.tables.toSiteStatus
 import streetlight.server.db.tables.writeFull
-import streetlight.server.db.tables.writeUpdate
 import streetlight.server.plugins.logger
 import kotlin.time.Instant
 
 class SiteStatusTableDao : DbService() {
 
-    suspend fun create(siteStatus: SiteStatus) = dbQuery {
+    suspend fun create(statusPoint: StatusPoint) = dbQuery {
         SiteStatusTable.insert {
-            it.writeFull(siteStatus)
+            it.writeFull(statusPoint)
         }
     }
 
@@ -60,6 +59,10 @@ class SiteStatusTableDao : DbService() {
             SiteStatusTable.resolution.eq(resolution)
         }.orderBy(SiteStatusTable.id, SortOrder.DESC).limit(limit)
             .map { it.toSiteStatus() }
+    }
+
+    suspend fun readEvents(resolution: MetricResolution) {
+
     }
 }
 

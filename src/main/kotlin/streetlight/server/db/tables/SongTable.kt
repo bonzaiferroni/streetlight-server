@@ -12,7 +12,7 @@ import streetlight.model.data.Song
 import streetlight.model.data.SongNotation
 import streetlight.server.utils.toRecordId
 
-object SongTable : UuidTable() {
+object SongTable : UuidTable("song") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE)
     val name = text("title")
     val artist = text("artist")

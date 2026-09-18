@@ -6,9 +6,8 @@ import kotlinx.coroutines.delay
 import streetlight.model.data.MetricResolution
 import streetlight.model.data.MetricType
 import streetlight.model.data.SiteMetric
-import streetlight.model.data.SiteStatus
+import streetlight.model.data.StatusPoint
 import streetlight.model.data.SiteStatusId
-import streetlight.server.db.services.SiteStatusTableDao
 import streetlight.server.model.DaoFacade
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
@@ -91,7 +90,7 @@ class SiteStatusDaemon(
         }
 
         dao.siteStatus.create(
-            SiteStatus(
+            StatusPoint(
                 siteStatusId = SiteStatusId.Empty,
                 integers = integers,
                 doubles = doubles,
@@ -148,7 +147,7 @@ class SiteStatusDaemon(
         }
 
         dao.siteStatus.create(
-            SiteStatus(
+            StatusPoint(
                 siteStatusId = SiteStatusId.Empty,
                 integers = integers,
                 doubles = doubles,
