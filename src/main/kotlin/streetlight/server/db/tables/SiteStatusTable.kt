@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.MetricResolution
 import streetlight.model.data.SiteMetric
-import streetlight.model.data.StatusStatus
+import streetlight.model.data.SiteStatus
 import streetlight.model.data.SiteStatusId
 
 object SiteStatusTable : LongIdTable("site_status") {
@@ -21,7 +21,7 @@ object SiteStatusTable : LongIdTable("site_status") {
     val createdAt = timestamp("created_at")
 }
 
-fun ResultRow.toSiteStatus() = StatusStatus(
+fun ResultRow.toSiteStatus() = SiteStatus(
     siteStatusId = SiteStatusId(this[SiteStatusTable.id].value),
     integers = this[SiteStatusTable.integers],
     doubles = this[SiteStatusTable.doubles],
@@ -32,14 +32,14 @@ fun ResultRow.toSiteStatus() = StatusStatus(
     createdAt = this[SiteStatusTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(statusStatus: StatusStatus) {
-    this[SiteStatusTable.integers] = statusStatus.integers
-    this[SiteStatusTable.doubles] = statusStatus.doubles
-    this[SiteStatusTable.resolution] = statusStatus.resolution
-    this[SiteStatusTable.coverage] = statusStatus.coverage
-    this[SiteStatusTable.startedAt] = statusStatus.startedAt
-    this[SiteStatusTable.endedAt] = statusStatus.endedAt
-    this[SiteStatusTable.createdAt] = statusStatus.createdAt
+fun UpdateBuilder<*>.writeFull(siteStatus: SiteStatus) {
+    this[SiteStatusTable.integers] = siteStatus.integers
+    this[SiteStatusTable.doubles] = siteStatus.doubles
+    this[SiteStatusTable.resolution] = siteStatus.resolution
+    this[SiteStatusTable.coverage] = siteStatus.coverage
+    this[SiteStatusTable.startedAt] = siteStatus.startedAt
+    this[SiteStatusTable.endedAt] = siteStatus.endedAt
+    this[SiteStatusTable.createdAt] = siteStatus.createdAt
 }
 
 // fun UpdateBuilder<*>.writeUpdate(siteStatus: SiteStatus) {

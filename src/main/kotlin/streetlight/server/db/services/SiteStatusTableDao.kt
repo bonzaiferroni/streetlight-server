@@ -13,7 +13,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import streetlight.model.data.MetricResolution
-import streetlight.model.data.StatusStatus
+import streetlight.model.data.SiteStatus
 import streetlight.model.data.SiteStatusId
 import streetlight.server.db.tables.SiteEventTable
 import streetlight.server.db.tables.SiteStatusTable
@@ -26,9 +26,9 @@ import kotlin.time.Instant
 
 class SiteStatusTableDao : DbService() {
 
-    suspend fun create(statusStatus: StatusStatus) = dbQuery {
+    suspend fun create(siteStatus: SiteStatus) = dbQuery {
         SiteStatusTable.insert {
-            it.writeFull(statusStatus)
+            it.writeFull(siteStatus)
         }
     }
 
