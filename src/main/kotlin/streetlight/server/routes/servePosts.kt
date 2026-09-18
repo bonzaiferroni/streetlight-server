@@ -2,12 +2,14 @@ package streetlight.server.routes
 
 import io.ktor.server.routing.RoutingContext
 import kampfire.model.HttpProblem
+import kampfire.model.Ok
 import kampfire.model.toOk
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.readParam
 import klutch.server.readParamOrNull
 import streetlight.model.Api
+import streetlight.model.data.GalaxyId
 import streetlight.model.data.MapQuery
 import streetlight.model.data.PostCursor
 import streetlight.model.data.PostId
@@ -21,6 +23,15 @@ fun ApiScope.servePosts() {
             val query = mapQuery() ?: return@getApi HttpProblem.BadRequest
             val posts = dao.post.readBoundedPosts(callerId, query)
             readFeedMarks(posts, callerId, query.cursor).toOk()
+        }
+
+        getApi(Api.Posts.ReadFeed) { request ->
+            val galaxyId = readParamOrNull(request.galaxyId)
+            val cursor = readCursor(request)
+            val callerId = call.getIdentityOrNull()?.callerId
+            val posts = galaxyId?.let { dao.post.readGalaxyPosts(galaxyId, callerId, cursor) }
+                ?: dao.post.readHomePosts(callerId, cursor)
+            Ok(readFeedMarks(posts, callerId, cursor))
         }
     }
 }

@@ -1,7 +1,6 @@
 package streetlight.server.routes
 
 import io.ktor.server.routing.RoutingContext
-import kabinet.console.globalConsole
 import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.HttpProblem
@@ -52,22 +51,14 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.ReadMultiPosts) {
             val galaxyIds = it.data
             val identity = call.getIdentityOrNull()
-            Ok(dao.post.readGalaxyPosts(galaxyIds))
+            Ok(dao.post.readGalaxyPosts(galaxyIds, identity?.callerId))
         }
 
         getApi(Api.Galaxies.ReadPostId, { it.toRecordId() }) {
             val postId = it.data
             val identity = call.getIdentityOrNull()
             // td: add marks
-            dao.post.readPost(postId).toOutcome()
-        }
-
-        getApi(Api.Galaxies.ReadGalaxyFeed, { it.toRecordId() }) { request ->
-            val galaxyId = request.data
-            val cursor = readCursor(request.endpoint)
-            val callerId = call.getIdentityOrNull()?.callerId
-            val posts = dao.post.readGalaxyPosts(galaxyId, cursor)
-            Ok(readFeedMarks(posts, callerId, cursor))
+            dao.post.readPost(postId, identity?.callerId).toOutcome()
         }
 
         getApi(Api.Galaxies.ReadContent, { it.toSlug() }) {

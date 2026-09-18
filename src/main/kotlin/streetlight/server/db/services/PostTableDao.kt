@@ -1,6 +1,5 @@
 package streetlight.server.db.services
 
-import kampfire.model.GeoRect
 import klutch.db.DbService
 import klutch.db.any
 import klutch.db.count
@@ -45,7 +44,6 @@ import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
 import streetlight.model.data.MapQuery
 import streetlight.model.data.PostCursor
-import streetlight.model.data.SortDirection
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyMarkTable
@@ -116,32 +114,39 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) } == 1
     }
 
-    suspend fun readGalaxyPosts(galaxyIds: List<GalaxyId>, cursor: PostCursor = PostCursor.Default) = dbQuery {
-        readOrderedPosts(cursor) { PostTable.galaxyId.inList(galaxyIds) }
+    suspend fun readGalaxyPosts(galaxyIds: List<GalaxyId>, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(callerId, cursor) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readGalaxyPosts(galaxyId: GalaxyId, cursor: PostCursor = PostCursor.Default) = dbQuery {
-        readOrderedPosts(cursor) { PostTable.galaxyId.eq(galaxyId) }
+    suspend fun readGalaxyPosts(galaxyId: GalaxyId, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(callerId, cursor) { PostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readStarPosts(starId: StarId, cursor: PostCursor = PostCursor.Default) = dbQuery {
-        readOrderedPosts(cursor) { PostTable.starId.eq(starId.value) }
+    suspend fun readHomePosts(callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(callerId = callerId, cursor = cursor, joinGalaxyStar = callerId != null) {
+            callerId?.let { GalaxyStarTable.starId.eq(callerId) } ?: Op.TRUE
+        }
     }
 
-    suspend fun readHomePosts(cursor: PostCursor = PostCursor.Default, callerId: CallerId) = dbQuery {
-        readOrderedPosts(cursor, callerId) { GalaxyStarTable.starId.eq(callerId) }
+    suspend fun readStarPosts(starId: StarId, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+        readOrderedPosts(callerId, cursor) { PostTable.starId.eq(starId.value) }
     }
 
-    suspend fun readPost(postId: PostId) = dbQuery {
-        GalaxyPostAspect.query().where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
+    suspend fun readPost(postId: PostId, callerId: CallerId?) = dbQuery {
+        GalaxyPostAspect.query(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
     }
 
     suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
         PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) } == 1 // td: or admin, or moderator
     }
 
-    suspend fun readOrderedPosts(cursor: PostCursor = PostCursor.Default, callerId: CallerId? = null, filter: QueryFilter) = dbQuery {
-        GalaxyPostAspect.queryCursor(cursor, callerId)
+    suspend fun readOrderedPosts(
+        callerId: CallerId?,
+        cursor: PostCursor = PostCursor.Default,
+        joinGalaxyStar: Boolean = false,
+        filter: QueryFilter
+    ) = dbQuery {
+        GalaxyPostAspect.queryCursor(cursor, callerId, joinGalaxyStar)
             .where { filter() andIfNotNull GalaxyPostAspect.afterCursor(cursor) }
             .orderByCursor(cursor)
             .limit(PostCursor.DefaultLimit)

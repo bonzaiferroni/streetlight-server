@@ -10,7 +10,7 @@ import streetlight.model.data.HomeContent
 import streetlight.model.data.PostCursor
 
 suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: PostCursor = PostCursor.Default): HomeContent {
-    val posts = callerId?.let { dao.post.readHomePosts(cursor, callerId) } ?: dao.post.readOrderedPosts(cursor) { Op.TRUE }
+    val posts = dao.post.readHomePosts(callerId, cursor)
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
     return HomeContent(
         galaxies = galaxies,
@@ -25,7 +25,7 @@ suspend fun DaoScope.readGalaxyContent(
 ): GalaxyContent? {
     val galaxy = dao.galaxy.readGalaxy(slug, callerId) ?: return null
     val galaxyId = galaxy.galaxyId
-    val posts = dao.post.readGalaxyPosts(galaxyId, cursor)
+    val posts = dao.post.readGalaxyPosts(galaxyId, callerId, cursor)
     return GalaxyContent(
         galaxy = galaxy,
         feed = readFeedMarks(posts, callerId, cursor)

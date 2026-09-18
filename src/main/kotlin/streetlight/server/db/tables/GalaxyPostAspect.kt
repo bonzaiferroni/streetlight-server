@@ -68,16 +68,20 @@ object GalaxyPostAspect {
         return columns
     }
 
-    private fun baseQuery(callerId: CallerId? = null) = PostTable
+    private fun baseQuery(callerId: CallerId?, joinGalaxyStar: Boolean) = PostTable
         .leftJoin(EventTable)
         .join(LocationTable, JoinType.LEFT, PostTable.locationId, LocationTable.id)
         .leftJoin(MediaTable)
-        .joinCaller(callerId)
+        .joinCaller(callerId, joinGalaxyStar)
 
-    fun query(callerId: CallerId? = null) = baseQuery(callerId)
+    fun query(callerId: CallerId?, joinGalaxyStar: Boolean = false) = baseQuery(callerId, joinGalaxyStar)
         .select(GalaxyPostColumns)
 
-    fun queryCursor(cursor: PostCursor, callerId: CallerId? = null) = baseQuery(callerId)
+    fun queryCursor(
+        cursor: PostCursor,
+        callerId: CallerId?,
+        joinGalaxyStar: Boolean = false
+    ) = baseQuery(callerId, joinGalaxyStar)
         .joinCursor(cursor)
         .select(getColumns(cursor, callerId))
 
@@ -99,10 +103,11 @@ object GalaxyPostAspect {
     }
 }
 
-fun Join.joinCaller(callerId: CallerId?): Join {
+fun Join.joinCaller(callerId: CallerId?, joinGalaxyStar: Boolean): Join {
     if (callerId == null) return this
-    return join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
-        additionalConstraint = { GalaxyStarTable.starId.eq(callerId) })
+    val base = if (joinGalaxyStar) join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
+        additionalConstraint = { GalaxyStarTable.starId.eq(callerId) }) else this
+    return base
         .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId)
         .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
             additionalConstraint = { PostTable.postType.eq(PostType.Location)})
