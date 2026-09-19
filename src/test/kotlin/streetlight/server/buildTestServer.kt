@@ -3,17 +3,23 @@ package streetlight.server
 import kabinet.utils.Environment
 import kampfire.api.EmailAddress
 import klutch.db.services.SessionService
-import klutch.environment.readEnvFromPath
 import klutch.server.Authorizer
 import klutch.server.KoinProvider
 import klutch.server.ProviderScope
 import klutch.server.provide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import streetlight.agent.KoogParserClient
+import streetlight.server.db.services.SongTableService
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.AppEmail
+import streetlight.server.model.ConnectionService
 import streetlight.server.model.EmailRouter
+import streetlight.server.model.OmniService
 import streetlight.server.model.TestBlobClient
 import streetlight.server.model.TestEmailClient
 import streetlight.server.model.TestMapClient
@@ -24,9 +30,10 @@ import streetlight.server.model.EmailClient
 import streetlight.server.model.MapClient
 import streetlight.server.model.Server
 import streetlight.server.model.ServerScope
+import streetlight.server.routes.LocationParser
 
 fun buildTestServer(
-    env: Environment = readEnvFromPath(),
+    env: Environment = readTestEnvironment(),
     emailRouter: EmailRouter = EmailRouter(),
     daoFacade: DaoFacade = DaoFacade(),
     mapClient: MapClient = TestMapClient(),
@@ -36,6 +43,7 @@ fun buildTestServer(
     val koin = koinApplication {
         modules(module {
             single { env }
+            single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
             single { emailRouter }
             single { daoFacade }
             single { mapClient }
@@ -44,6 +52,11 @@ fun buildTestServer(
             single { ClientFacade(get(), get(), get()) }
             single { StarSessionService() } bind SessionService::class
             single { Authorizer(get()) }
+            single { ConnectionService() }
+            single { OmniService(get()) }
+            single { KoogParserClient(get()) }
+            single { LocationParser(get()) }
+            single { SongTableService() }
         })
     }.koin
 
