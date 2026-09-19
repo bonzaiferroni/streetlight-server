@@ -6,6 +6,7 @@ import kampfire.api.TableUuid
 import kampfire.api.Username
 import kampfire.api.obfuscatePassword
 import kampfire.model.AccountType
+import kampfire.model.UserRole
 import kampfire.model.LoginRequest
 import kampfire.model.Ok
 import kampfire.model.Outcome
@@ -19,6 +20,7 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
@@ -28,6 +30,7 @@ import streetlight.server.db.datascope.redeemEmailVerification
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
 import streetlight.server.db.tables.SessionTable
+import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toAuthToken
 import streetlight.server.model.Email
 import streetlight.server.model.EmailRouter
@@ -79,6 +82,20 @@ suspend fun TestServer.registerStar(
     signupRequestOf(username = username, email = email, password = password),
     authorizer,
 ).toDataOrThrow().let { StarId(it.value) }
+
+suspend fun TestServer.registerAdmin(
+    username: Username = TestDefault.username,
+    email: EmailAddress = TestDefault.emailAddress,
+    password: Password = TestDefault.password,
+): StarId {
+    val starId = registerStar(username, email, password)
+    transaction {
+        StarTable.update({ StarTable.id.eq(starId) }) {
+            it[roles] = listOf(UserRole.Admin.ordinal)
+        }
+    }
+    return starId
+}
 
 suspend fun TestServer.registerVerifiedStar(
     username: Username = TestDefault.username,

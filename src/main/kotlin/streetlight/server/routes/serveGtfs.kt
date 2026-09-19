@@ -18,9 +18,6 @@ import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.getApi
 import klutch.server.readParam
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import streetlight.model.Api
@@ -34,10 +31,6 @@ private val httpClient = HttpClient(CIO)
 private val console = globalConsole.getHandle(ApiScope::serveGtfs.name)
 
 fun ApiScope.serveGtfs() {
-    CoroutineScope(Dispatchers.IO).launch {
-        initGtfs()
-    }
-
     var vehiclePositionBytes: ByteArray? = null
     var contentType: ContentType = ContentType.Application.OctetStream
     var lastGtfsAt: Instant = Instant.DISTANT_PAST

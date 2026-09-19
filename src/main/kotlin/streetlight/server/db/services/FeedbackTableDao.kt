@@ -40,7 +40,7 @@ class FeedbackTableDao: DbService() {
 
     suspend fun feed(caller: Identity?) = dbQuery {
         FeedbackTable.selectAll().apply {
-            if (caller != null && !caller.roles.contains(UserRole.Admin)) {
+            if (caller?.roles?.contains(UserRole.Admin) != true) {
                 andWhere { FeedbackTable.isPrivate.eq(false) }
             }
         }.orderBy(FeedbackTable.createdAt, SortOrder.DESC).limit(100)

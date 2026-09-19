@@ -5,9 +5,12 @@ import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
+import com.microsoft.playwright.options.Cookie
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
+import klutch.db.model.Session
+import klutch.server.SESSION_COOKIE_NAME
 import klutch.server.provide
 import koala.html.AppScreen
 import kotlinx.coroutines.runBlocking
@@ -43,6 +46,7 @@ abstract class BrowserTest : DatabaseTest() {
                 session = server.provide<StarSessionService>(),
                 withMetrics = false,
                 withDatabase = false,
+                withTransit = false,
             )
         }.start(wait = false)
 
@@ -66,4 +70,14 @@ abstract class BrowserTest : DatabaseTest() {
 
     protected fun urlOf(screen: AppScreen) =
         "http://localhost:$port/" + screen.pathBase.trimStart('/')
+
+    protected fun signIn(session: Session) {
+        context.addCookies(
+            listOf(
+                Cookie(SESSION_COOKIE_NAME, session.token.value)
+                    .setDomain("localhost")
+                    .setPath("/")
+            )
+        )
+    }
 }

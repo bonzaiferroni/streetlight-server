@@ -15,6 +15,14 @@ fun latestFeedbackOrNull(): Feedback? = transaction {
         .singleOrNull()
 }
 
+fun latestDeviceAgentOrNull(): String? = transaction {
+    FeedbackTable.selectAll()
+        .orderBy(FeedbackTable.createdAt to SortOrder.DESC)
+        .limit(1)
+        .map { it[FeedbackTable.deviceAgent] }
+        .singleOrNull()
+}
+
 fun feedbackCount(): Int = transaction {
     FeedbackTable.selectAll().count().toInt()
 }

@@ -55,6 +55,7 @@ fun Application.streetlightModule(
     session: StarSessionService,
     withMetrics: Boolean = true,
     withDatabase: Boolean = true,
+    withTransit: Boolean = true,
 ) {
     install(Compression) {
         gzip { priority = 1.0 }
@@ -72,6 +73,9 @@ fun Application.streetlightModule(
     }
     configureAuth(session)
     configureWebSockets()
+    if (withTransit) {
+        configureTransit(server)
+    }
     install(SSE)
     serveApi(server)
     configureLogging()
