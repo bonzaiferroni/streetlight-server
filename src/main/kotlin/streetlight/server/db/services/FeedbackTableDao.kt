@@ -19,12 +19,12 @@ import kotlin.time.Clock
 class FeedbackTableDao: DbService() {
 
     suspend fun create(edit: FeedbackEdit, callerId: CallerId? = null) = dbQuery {
-        val record = edit.toRecord()
-        FeedbackTable.insert { it.writeFull(record, callerId) }.insertedCount == 1
+        FeedbackTable.insert { it.writeFull(edit, callerId) }.insertedCount == 1
     }
 
-    suspend fun update(feedback: Feedback) = dbQuery {
-        FeedbackTable.update({ FeedbackTable.id.eq(feedback.feedbackId) }) {
+    suspend fun update(feedback: FeedbackEdit) = dbQuery {
+        val feedbackId = feedback.feedbackId ?: error("feedbackId not found")
+        FeedbackTable.update({ FeedbackTable.id.eq(feedbackId) }) {
             it.writeUpdate(feedback)
         }
     }
@@ -47,14 +47,3 @@ class FeedbackTableDao: DbService() {
             .map { it.toFeedback() }
     }
 }
-
-private fun FeedbackEdit.toRecord() = Feedback(
-    feedbackId = FeedbackId.random(),
-    feedbackType = feedbackType,
-    username = Username.Empty, // set with trigger
-    text = text,
-    platform = platform,
-    isPrivate = isPrivate,
-    updatedAt = Clock.System.now(),
-    createdAt = Clock.System.now(),
-)
