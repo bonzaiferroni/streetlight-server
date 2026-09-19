@@ -12,7 +12,7 @@ import kotlin.test.BeforeTest
 
 abstract class DatabaseTest {
     companion object {
-        private val container = PostgreSQLContainer("postgres:14-alpine")
+        private val container = PostgreSQLContainer("postgres:18-alpine")
             .withReuse(true)
             .apply { start() }
 

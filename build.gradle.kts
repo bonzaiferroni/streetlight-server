@@ -99,7 +99,21 @@ ktor {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("e2e")
+    }
+}
+
+tasks.register<Test>("e2eTest") {
+    group = "verification"
+    description = "Runs browser tests against a real server and a real database"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform {
+        includeTags("e2e")
+    }
+    // the browser loads the compiled bundle, so it must exist before the server starts
+    dependsOn(":web:jsBrowserDevelopmentWebpack")
 }
 
 tasks.withType<ShadowJar> {
