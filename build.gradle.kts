@@ -10,7 +10,7 @@ group = "streetlight.server"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("io.ktor.server.cio.EngineMain")
 }
 
 dependencies {
@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation("org.postgresql:postgresql:42.7.3")
+    implementation(libs.postgresql)
     implementation(libs.exposed.migration.core)
     implementation(libs.exposed.migration.jdbc)
 
@@ -40,16 +40,15 @@ dependencies {
     implementation(libs.ktor.server.sse)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.cors)
-    implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.compression)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.rate.limit)
 
     implementation(libs.ktor.server.metrics.micrometer)
-    implementation("io.micrometer:micrometer-registry-prometheus:1.10.3")
+    implementation(libs.micrometer.registry.prometheus)
 
     implementation(libs.logback.classic)
-    implementation("net.logstash.logback:logstash-logback-encoder:9.0")
+    implementation(libs.logstash.logback.encoder)
 
     implementation(project(":model"))
     implementation(project(":kabinet"))
@@ -58,30 +57,33 @@ dependencies {
     implementation(project(":agent"))
     implementation(project(":koala"))
 
-    implementation("com.sksamuel.scrimage:scrimage-core:4.3.6")
-    implementation("com.sksamuel.scrimage:scrimage-webp:4.3.6")
+    implementation(libs.scrimage.core)
+    implementation(libs.scrimage.webp)
     implementation(libs.fleeksoft.ksoup)
-    implementation("org.mobilitydata:gtfs-realtime-bindings:0.0.8")
-    implementation(libs.ktor.serialization.kotlinx.cbor)
+    implementation(libs.gtfs.realtime.bindings)
 
-    implementation(platform("aws.sdk.kotlin:bom:1.6.52"))
-    implementation("aws.sdk.kotlin:s3")
+    implementation(platform(libs.aws.sdk.bom))
+    implementation(libs.aws.sdk.s3)
 
     api(project.dependencies.platform(libs.koin.bom))
     api(libs.koin.core)
 
+    implementation(libs.flexmark.html2md.converter)
+    implementation(libs.timeshape)
+
+    implementation(libs.hikaricp)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
+
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(libs.ktor.client.content.negotiation)
+    testImplementation(libs.playwright)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgresql)
-
-    implementation("com.vladsch.flexmark:flexmark-html2md-converter:0.64.8")
-    implementation("net.iakovlev:timeshape:2025b.28")
-
-    implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.flywaydb:flyway-core:13.7.0")
-    implementation("org.flywaydb:flyway-database-postgresql:13.7.0")
 }
 
 kotlin {
