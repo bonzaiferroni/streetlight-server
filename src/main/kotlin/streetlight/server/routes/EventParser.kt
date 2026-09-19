@@ -7,7 +7,7 @@ import kampfire.model.Problem
 import kampfire.model.toDataOr
 import kampfire.model.toDataOrNull
 import koala.toImage
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
 import streetlight.agent.fetchText
 import streetlight.agent.parseHtmlDocument
 import streetlight.model.data.EventEdit
@@ -21,7 +21,7 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
-suspend fun DataScope.parseEvent(request: ParseRequest, parser: KoogParserClient): Outcome<EventEdit> {
+suspend fun DataScope.parseEvent(request: ParseRequest, parser: HtmlParserClient): Outcome<EventEdit> {
     log.info { "parsing event" }
     val html = when (request) {
         is UrlParseRequest -> fetchText(request.url).toDataOrNull()?.text

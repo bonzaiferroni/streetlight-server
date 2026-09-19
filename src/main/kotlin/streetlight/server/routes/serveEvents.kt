@@ -17,13 +17,13 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
 
 private val console = globalConsole.getHandle(ApiScope::serveEvents.name)
 
 fun ApiScope.serveEvents() {
     val omni = provide<OmniService>()
-    val parser = provide<KoogParserClient>()
+    val parser = provide<HtmlParserClient>()
 
     getApi(Api.Events) {
         Ok(dao.event.readActiveEvents())

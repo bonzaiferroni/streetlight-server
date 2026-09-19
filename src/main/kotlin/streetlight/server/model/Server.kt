@@ -59,7 +59,7 @@ class DaoFacade(
 
 class ClientFacade(
     val blob: BlobClient,
-    val osm: MapClient,
+    val osm: MapReferenceClient,
     val postmark: EmailClient
 )
 

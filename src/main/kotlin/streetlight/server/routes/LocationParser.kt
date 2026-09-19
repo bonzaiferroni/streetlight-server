@@ -8,7 +8,7 @@ import kampfire.model.toDataOr
 import kampfire.model.toDataOrNull
 import kampfire.model.toUrl
 import koala.toImage
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
 import streetlight.agent.fetchText
 import streetlight.agent.parseHtmlDocument
 import streetlight.model.data.HtmlParseRequest
@@ -22,7 +22,7 @@ import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
 class LocationParser(
-    private val parser: KoogParserClient
+    private val parser: HtmlParserClient
 ) {
     suspend fun parseLocation(request: ParseRequest): Outcome<LocationEdit> {
         val html = when (request) {

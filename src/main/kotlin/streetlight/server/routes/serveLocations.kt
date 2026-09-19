@@ -13,7 +13,7 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
 import streetlight.model.data.FetchMode
 import streetlight.model.data.toOriginId
 import streetlight.server.db.datascope.createLocation
@@ -26,7 +26,7 @@ private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 fun ApiScope.serveLocations() {
     val parser = provide<LocationParser>()
     val omni = provide<OmniService>()
-    val koog = provide<KoogParserClient>()
+    val koog = provide<HtmlParserClient>()
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)

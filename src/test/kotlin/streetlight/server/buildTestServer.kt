@@ -13,7 +13,8 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
+import streetlight.server.model.TestHtmlParserClient
 import streetlight.server.db.services.SongTableService
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.AppEmail
@@ -22,12 +23,12 @@ import streetlight.server.model.EmailRouter
 import streetlight.server.model.OmniService
 import streetlight.server.model.TestBlobClient
 import streetlight.server.model.TestEmailClient
-import streetlight.server.model.TestMapClient
+import streetlight.server.model.TestMapReferenceClient
 import streetlight.server.model.BlobClient
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.EmailClient
-import streetlight.server.model.MapClient
+import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.Server
 import streetlight.server.model.ServerScope
 import streetlight.server.routes.LocationParser
@@ -36,7 +37,8 @@ fun buildTestServer(
     env: Environment = readTestEnvironment(),
     emailRouter: EmailRouter = EmailRouter(),
     daoFacade: DaoFacade = DaoFacade(),
-    mapClient: MapClient = TestMapClient(),
+    mapClient: MapReferenceClient = TestMapReferenceClient(),
+    htmlParserClient: HtmlParserClient = TestHtmlParserClient(),
     blobClient: BlobClient = TestBlobClient(),
     emailClient: (EmailRouter) -> EmailClient = { TestEmailClient(it) },
 ): TestServer {
@@ -54,7 +56,7 @@ fun buildTestServer(
             single { Authorizer(get()) }
             single { ConnectionService() }
             single { OmniService(get()) }
-            single { KoogParserClient(get()) }
+            single { htmlParserClient }
             single { LocationParser(get()) }
             single { SongTableService() }
         })

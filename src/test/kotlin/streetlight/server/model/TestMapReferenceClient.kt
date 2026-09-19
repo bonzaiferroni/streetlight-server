@@ -4,9 +4,8 @@ import kampfire.model.GeoPoint
 import streetlight.model.external.OSMCity
 import streetlight.model.external.OSMLocation
 import streetlight.model.external.OSMQuery
-import streetlight.server.model.MapClient
 
-class TestMapClient: MapClient {
+class TestMapReferenceClient: MapReferenceClient {
     override suspend fun search(point: GeoPoint): OSMLocation? {
         TODO("Not yet implemented")
     }

@@ -6,9 +6,10 @@ import kampfire.model.Problem
 import kampfire.model.Url
 import kampfire.model.toDataOr
 import kampfire.model.toUrl
-import streetlight.agent.KoogParserClient
+import streetlight.agent.HtmlParserClient
 import streetlight.agent.fetchText
 import streetlight.agent.parseHtmlDocument
+import streetlight.agent.readHtml
 import streetlight.agent.tryQuery
 import streetlight.model.data.SelectorSchema
 import streetlight.model.data.EventFeedSchema
@@ -18,7 +19,7 @@ import streetlight.server.model.ContentParse
 import streetlight.server.model.DataScope
 import streetlight.server.routes.SchemaParserText
 
-suspend fun DataScope.parseEventSchema(url: Url, koog: KoogParserClient): Outcome<List<SelectorSchema>> = tryOutcome {
+suspend fun DataScope.parseEventSchema(url: Url, koog: HtmlParserClient): Outcome<List<SelectorSchema>> = tryOutcome {
     val html = fetchText(url).toDataOr { return@tryOutcome it }.text
 
     val doc = parseHtmlDocument(html, url).toDataOr { return@tryOutcome it }
