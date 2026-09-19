@@ -1,4 +1,4 @@
-package streetlight.server.scenario
+package streetlight.server.integration
 
 import kampfire.api.Password
 import kampfire.api.obfuscatePassword
