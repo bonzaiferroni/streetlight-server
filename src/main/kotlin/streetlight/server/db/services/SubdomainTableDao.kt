@@ -4,6 +4,10 @@ import kampfire.api.Slug
 import kampfire.api.toSlug
 import klutch.db.DbService
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.not
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -27,6 +31,13 @@ class SubdomainTableDao: DbService() {
             it[SubdomainTable.updatedAt] = now
             it[SubdomainTable.createdAt] = now
         }.insertedCount
+    }
+
+    suspend fun isAvailable(slug: Slug, locationId: LocationId) = dbQuery {
+        SubdomainTable.select(SubdomainTable.id).where {
+            SubdomainTable.slug.eq(slug) and
+                (SubdomainTable.locationId.isNull() or not(SubdomainTable.locationId.eq(locationId)))
+        }.limit(1).none()
     }
 
     suspend fun delete(locationId: LocationId) = dbQuery {

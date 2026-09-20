@@ -39,7 +39,7 @@ import kotlin.time.Duration.Companion.minutes
 class PasswordResetTest: DatabaseTest() {
 
     @Test
-    fun `a sailor resets a forgotten password and sails on`() = runTest {
+    fun `a user resets a forgotten password and the old sessions end`() = runTest {
         with(server) {
             val sessionService = StarSessionService()
             val email = TestDefault.emailAddress
@@ -49,7 +49,7 @@ class PasswordResetTest: DatabaseTest() {
             val oldHash = assertNotNull(dao.star.readPasswordHash(starId))
 
             loginStar()
-            assertEquals(1, sessionCountOf(starId), "the sailor should be aboard")
+            assertEquals(1, sessionCountOf(starId), "the user should have one session")
 
             requestPasswordReset(email).toDataOrThrow()
             val token = latestMail(email).extractToken(Screen.PasswordReset)
@@ -62,10 +62,10 @@ class PasswordResetTest: DatabaseTest() {
             // the new password stands, the old one does not
             assertNotEquals(oldHash, assertNotNull(dao.star.readPasswordHash(starId)))
 
-            // every prior session is cast off
-            assertEquals(0, sessionCountOf(starId), "old sessions should be cut loose")
+            // every prior session is ended
+            assertEquals(0, sessionCountOf(starId), "old sessions should be ended")
 
-            // the token is spent — no second passage on the same ticket
+            // the token is consumed and cannot be used a second time
             val spent = assertNotNull(
                 dao.authToken.readToken(hashToken(token), AuthTokenType.PasswordReset)
             )
@@ -163,7 +163,7 @@ class PasswordResetTest: DatabaseTest() {
             assertEquals("This reset link has expired. Please request a new one.", refused.message)
             assertEquals(oldHash, assertNotNull(dao.star.readPasswordHash(starId)))
 
-            // the newest link still carries the sailor home
+            // the newest link still works
             redeemPasswordReset(
                 PasswordResetRequest(secondToken, Password("nu8!!ReefKnot@2").obfuscatePassword()),
                 sessionService,
@@ -182,9 +182,9 @@ class PasswordResetTest: DatabaseTest() {
             val oldHash = assertNotNull(dao.star.readPasswordHash(starId))
 
             loginStar()
-            assertEquals(1, sessionCountOf(starId), "the sailor should be aboard")
+            assertEquals(1, sessionCountOf(starId), "the user should have one session")
 
-            // the sailor lets the window close
+            // the user lets the token expire
             val staleToken = generateToken()
             createToken(starId, staleToken, email, AuthTokenType.PasswordReset, (-1).minutes)
 
@@ -253,7 +253,7 @@ class PasswordResetTest: DatabaseTest() {
             val email = TestDefault.emailAddress
             val starId = registerVerifiedStar(email = email)
 
-            // the mail ship founders
+            // mail delivery fails
             errorCode = 406
             requestPasswordReset(email).toDataOrThrow()
 

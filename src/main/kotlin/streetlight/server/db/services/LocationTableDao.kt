@@ -37,6 +37,7 @@ import klutch.utils.logger
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
@@ -104,8 +105,8 @@ class LocationTableDao : DbService() {
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insert { it.createLocation(location, callerId, SlugRecord(slug)) }
-            .resultedValues?.singleOrNull()?.toLocation()
+        LocationTable.insertReturning { it.createLocation(location, callerId, SlugRecord(slug)) }
+            .singleOrNull()?.toLocation()
     }
 
     suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {

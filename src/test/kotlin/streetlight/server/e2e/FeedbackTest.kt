@@ -61,7 +61,7 @@ class FeedbackTest : BrowserTest() {
     @Test
     fun `private feedback is kept out of the public feed`() {
         val anchor = "A public note that anyone may read."
-        val secret = "A private note meant only for the crew."
+        val secret = "A private note meant only for the team."
 
         seedFeedback(anchor, isPrivate = false)
 
@@ -78,7 +78,7 @@ class FeedbackTest : BrowserTest() {
     }
 
     @Test
-    fun `a signed-in sailor's feedback carries their username`() {
+    fun `a signed-in user's feedback carries their username`() {
         val text = "Signing in was easy enough."
 
         val session = runBlocking {
@@ -98,7 +98,7 @@ class FeedbackTest : BrowserTest() {
 
     @Test
     fun `an admin sees private feedback in the feed`() {
-        val secret = "A private note meant only for the crew."
+        val secret = "A private note meant only for the team."
 
         seedFeedback(secret, isPrivate = true)
 

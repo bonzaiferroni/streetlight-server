@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.days
 class EmailVerificationTest : DatabaseTest() {
 
     @Test
-    fun `a sailor verifies the address they registered with`() = runTest {
+    fun `a user verifies the address they registered with`() = runTest {
         with(server) {
             val email = TestDefault.emailAddress
             val starId = registerStar(email = email)
@@ -82,7 +82,7 @@ class EmailVerificationTest : DatabaseTest() {
     }
 
     @Test
-    fun `an address already held by another sailor is refused`() = runTest {
+    fun `an address already held by another user is refused`() = runTest {
         with(server) {
             val heldEmail = TestDefault.emailAddress
             registerStar(email = heldEmail)
@@ -116,7 +116,7 @@ class EmailVerificationTest : DatabaseTest() {
     }
 
     @Test
-    fun `a sailor changes to a new address and the old one is notified`() = runTest {
+    fun `a user changes to a new address and the old one is notified`() = runTest {
         with(server) {
             val oldEmail = TestDefault.emailAddress
             val newEmail = EmailAddress("dingo99@proton.me")

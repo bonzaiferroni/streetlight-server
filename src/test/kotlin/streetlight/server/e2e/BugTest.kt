@@ -43,7 +43,7 @@ class BugTest : BrowserTest() {
     }
 
     @Test
-    fun `a signed-in sailor's bug report carries their star id`() {
+    fun `a signed-in user's bug report carries their star id`() {
         val description = "The sign-in page keeps asking for my password twice."
 
         val (starId, session) = runBlocking {

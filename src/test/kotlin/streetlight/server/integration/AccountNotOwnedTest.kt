@@ -33,7 +33,7 @@ import kotlin.time.Duration.Companion.days
 class AccountNotOwnedTest : DatabaseTest() {
 
     @Test
-    fun `a sailor disavows an address someone else registered`() = runTest {
+    fun `a user disavows an address someone else registered`() = runTest {
         with(server) {
             val email = TestDefault.emailAddress
             val starId = registerStar(email = email)
@@ -118,7 +118,7 @@ class AccountNotOwnedTest : DatabaseTest() {
             val email = TestDefault.emailAddress
             val starId = registerVerifiedStar(email = email)
 
-            // a reset link is afloat for the address
+            // a reset link is outstanding for the address
             requestPasswordReset(email).toDataOrThrow()
             val resetToken = latestMail(email).extractToken(Screen.PasswordReset)
 

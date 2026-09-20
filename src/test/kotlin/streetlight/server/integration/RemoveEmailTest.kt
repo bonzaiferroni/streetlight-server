@@ -27,12 +27,12 @@ import kotlin.test.assertNull
 class RemoveEmailTest: DatabaseTest() {
 
     @Test
-    fun `a sailor with a verified address removes it with their password`() = runTest {
+    fun `a user with a verified address removes it with their password`() = runTest {
         with(server) {
             val email = TestDefault.emailAddress
             val starId = registerVerifiedStar(email = email)
 
-            // a reset link is afloat for that address
+            // a reset link is outstanding for that address
             requestPasswordReset(email).toDataOrThrow()
             val resetToken = latestMail(email).extractToken(Screen.PasswordReset)
 
@@ -77,7 +77,7 @@ class RemoveEmailTest: DatabaseTest() {
             assertEquals(EmailStatus.Verified, account.emailStatus)
 
             // and no notification went out for a change that never happened
-            assertEquals(mailBefore, emailRouter.count(email), "no notice should have sailed")
+            assertEquals(mailBefore, emailRouter.count(email), "no notice should have been sent")
         }
     }
 
@@ -99,7 +99,7 @@ class RemoveEmailTest: DatabaseTest() {
             assertNull(account.emailStatus)
 
             // the address was still told, even unverified
-            assertEquals(mailBefore + 1, emailRouter.count(email), "a notice should have sailed")
+            assertEquals(mailBefore + 1, emailRouter.count(email), "a notice should have been sent")
             assertEquals("Email changed", latestMail(email).subject)
 
             // the password is untouched

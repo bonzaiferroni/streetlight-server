@@ -5,13 +5,17 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.util.getOrFail
+import kampfire.api.isValid
 import kampfire.api.toSlug
+import kampfire.model.CoreProblem
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
+import kampfire.model.Problem
 import klutch.server.authGate
 import klutch.server.postApi
 import koala.PageResource
 import streetlight.model.Api
+import streetlight.model.data.SubdomainConfig
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.utils.subdomain
@@ -31,21 +35,40 @@ fun ApiScope.serveSubdomains(resource: PageResource) {
     }
 
     authGate {
+        postApi(Api.Locations.CheckSubdomain) {
+            call.requireAdminIdentity()
+            when (val problem = subdomainProblemOrNull(it.data)) {
+                null -> Ok(true)
+                HttpProblem.Conflict -> Ok(false)
+                else -> problem
+            }
+        }
+
         postApi(Api.Locations.UpdateSubdomain) {
             call.requireAdminIdentity()
             val config = it.data
+            subdomainProblemOrNull(config)?.let { problem -> return@postApi problem }
             when (val slug = config.slug) {
                 null -> {
                     if (dao.subdomain.delete(config.locationId) == 1) Ok(Unit)
                     else HttpProblem.NotFound
                 }
                 else -> {
-                    if (ReservedSubdomain.isReserved(slug.value)) HttpProblem.Conflict
-                    else if (dao.subdomain.upsert(config.locationId, slug) == 1) Ok(Unit)
+                    if (dao.subdomain.upsert(config.locationId, slug) == 1) Ok(Unit)
                     else HttpProblem.Conflict
                 }
             }
         }
+    }
+}
+
+private suspend fun ApiScope.subdomainProblemOrNull(config: SubdomainConfig): Problem? {
+    val slug = config.slug ?: return null
+    return when {
+        !slug.isValid() -> CoreProblem.InvalidSlug
+        ReservedSubdomain.isReserved(slug.value) -> HttpProblem.Conflict
+        !dao.subdomain.isAvailable(slug, config.locationId) -> HttpProblem.Conflict
+        else -> null
     }
 }
 
