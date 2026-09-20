@@ -10,12 +10,16 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.*
+import streetlight.model.ui.Screen
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 object BugTable: UuidTable("bug") {
     val starId = reference("star_id", StarTable, ReferenceOption.SET_NULL).nullable().index()
-    val description = text("text")
+    val buildId = text("build_id").nullable()
+    val screen = enumeration<Screen>("screen").nullable()
+    val path = text("path").nullable()
+    val description = text("description")
     val platform = enumeration<Platform>("platform")
     val deviceAgent = text("device_agent").nullable()
     val status = enumeration<BugStatus>("status")

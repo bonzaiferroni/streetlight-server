@@ -48,6 +48,7 @@ fun Application.serveApi(server: ServerScope) {
             serveTasks()
             serveMedia()
             serveFeedback()
+            serveBug()
             serveSiteStatus()
             serveWebhooks()
             serveAccountActions()
