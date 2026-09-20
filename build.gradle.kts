@@ -114,6 +114,8 @@ tasks.register<Test>("e2eTest") {
     }
     // the browser loads the compiled bundle, so it must exist before the server starts
     dependsOn(":web:jsBrowserDevelopmentWebpack")
+    // both suites share one database, so they must not run at the same time
+    mustRunAfter(tasks.test)
 }
 
 tasks.withType<ShadowJar> {
