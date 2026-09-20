@@ -17,7 +17,7 @@ import kotlin.test.assertNull
 class BugApiTest : ApiTest() {
 
     @Test
-    fun `a guest's bug report is stored`() = runApiTest {
+    fun `a signed-out user's bug report is stored`() = runApiTest {
         val edit = BugEdit(
             description = "The filters reset when I go back to the map.".toMarkdown(),
             platform = Platform.Web,
@@ -35,7 +35,7 @@ class BugApiTest : ApiTest() {
         assertEquals("/feedback", bug.path)
         assertEquals("test agent", bug.deviceAgent)
         assertEquals(BugStatus.Open, bug.status, "a new report starts open")
-        assertNull(bug.starId, "a guest leaves no star")
+        assertNull(bug.starId, "a signed-out user leaves no star")
         assertEquals("dev", bug.buildId, "the server stamps the build it is running")
         assertEquals(1, bugCount(), "one report should leave one row")
     }

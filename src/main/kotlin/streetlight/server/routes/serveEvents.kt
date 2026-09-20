@@ -5,6 +5,7 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import kabinet.console.globalConsole
+import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import kampfire.model.outcomeOf
 import kampfire.model.toOutcome
@@ -101,8 +102,10 @@ fun ApiScope.serveEvents() {
             val edit = request.data
             val title = requireNotNull(edit.title)
             val eventId = requireNotNull(edit.eventId)
+            dao.event.readEvent(eventId, identity.callerId) ?: return@postApi HttpProblem.NotFound
+            if (!dao.event.canEdit(eventId, identity.callerId)) return@postApi HttpProblem.NotAuthorized
 
-            updateEvent(eventId, identity.callerId, edit)?.also { outcome ->
+            updateEvent(eventId, identity.callerId, edit).also { outcome ->
                 if (outcome is Ok) {
                     val slug = outcome.data.slug
                     omni.sendEventUpdated(title, slug, identity.username)
@@ -112,8 +115,8 @@ fun ApiScope.serveEvents() {
 
         deleteApi(Api.Events.Delete) {
             val eventId = it.data
-            val starId = call.getIdentity().callerId
-            Ok(dao.event.deleteEvent(starId, eventId))
+            val identity = call.getIdentity()
+            Ok(dao.event.deleteEvent(identity.callerId, eventId, identity.isAdmin))
         }
 
         postApi(Api.Events.ParseSingleEvent) { request ->

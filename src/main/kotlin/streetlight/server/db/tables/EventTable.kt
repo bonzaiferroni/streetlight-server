@@ -19,7 +19,7 @@ import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 
 object EventTable : UuidTable("event"), SlugTable {
-    val scoutId = reference("scout_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
+    val hostId = reference("host_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable().index()
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
     override val slug = text("slug").uniqueIndex()
@@ -57,11 +57,11 @@ object EventTable : UuidTable("event"), SlugTable {
 
 val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStarTable.eventId, EventTable.starCount)
 val eventLocationSlugSync = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
-val eventUsernameSync = SyncValueTrigger(EventTable.scoutId, EventTable.scout, StarTable, StarTable.username)
+val eventUsernameSync = SyncValueTrigger(EventTable.hostId, EventTable.scout, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createEvent(event: Event, starId: CallerId?, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.createEvent(event: Event, hostId: CallerId?, slugRecord: SlugRecord) {
     this[EventTable.id] = event.eventId.value
-    this[EventTable.scoutId] = starId?.value
+    this[EventTable.hostId] = hostId?.value
     this[EventTable.locationId] = event.locationId.value
     this[EventTable.currentRequestId] = event.currentRequestId?.value
     this[EventTable.createdAt] = event.createdAt

@@ -36,10 +36,10 @@ import kotlin.test.assertNull
 class GalaxyApiTest : ApiTest() {
 
     @Test
-    fun `a guest cannot create a galaxy`() = runApiTest {
+    fun `a signed-out user cannot create a galaxy`() = runApiTest {
         postApi(Api.Galaxies.CreateGalaxy, galaxyEdit()).toProblemOrThrow()
 
-        assertEquals(0, galaxyCount(), "a guest should leave no galaxy behind")
+        assertEquals(0, galaxyCount(), "a signed-out user should leave no galaxy behind")
     }
 
     @Test

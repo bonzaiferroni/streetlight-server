@@ -24,9 +24,7 @@ fun initDb(server: ServerScope) {
     val env = server.provide<Environment>()
     val db = connectDb(env)
 
-    installTriggers(db)
-
-    if (env.buildMode == BuildMode.Development) raiseSchema(db)
+    if (env.buildMode == BuildMode.Development) raiseSchema(db) else installTriggers(db)
 
     runBlocking {
         initUsers(server)

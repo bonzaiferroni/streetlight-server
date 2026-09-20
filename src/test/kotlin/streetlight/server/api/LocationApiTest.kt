@@ -21,6 +21,7 @@ import streetlight.server.db.tables.LocationTable
 import streetlight.server.locationEdit
 import streetlight.server.loginStar
 import streetlight.server.registerAdmin
+import streetlight.server.seedLocation
 import streetlight.server.registerStar
 import streetlight.server.seedCity
 import streetlight.server.toDataOrThrow
@@ -31,12 +32,12 @@ import kotlin.test.assertEquals
 class LocationApiTest : ApiTest() {
 
     @Test
-    fun `a guest cannot create a location`() = runApiTest {
+    fun `a signed-out user cannot create a location`() = runApiTest {
         server.seedCity()
 
         postApi(Api.Locations.CreateLocation, locationEdit()).toProblemOrThrow()
 
-        assertEquals(0, locationCount(), "a guest should leave no location behind")
+        assertEquals(0, locationCount(), "a signed-out user should leave no location behind")
     }
 
     @Test
@@ -99,6 +100,20 @@ class LocationApiTest : ApiTest() {
         signIn(server.loginStar(ADMIN_USERNAME))
         postApi(Api.Locations.UpdateConfig, config).toDataOrThrow()
         assertEquals(ParseMode.Full, parseModeOf(location.locationId), "an admin should change the parse mode")
+    }
+
+    @Test
+    fun `a location search returns the locations matching the query`() = runApiTest {
+        val starId = registerUser("alice")
+        server.seedLocation(starId, "The Fox Den")
+        server.seedLocation(starId, "The Owl Nest")
+
+        val found = getApi(Api.Locations.Search) {
+            writeParam(it.query, "fox")
+            writeParam(it.limit, 10)
+        }.toDataOrThrow()
+
+        assertEquals(listOf("The Fox Den"), found.map { it.name }, "only the matching location should be found")
     }
 
     private fun setHost(locationId: LocationId, hostId: StarId) = transaction {

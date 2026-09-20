@@ -19,7 +19,7 @@ import kotlin.test.assertTrue
 class BugTest : BrowserTest() {
 
     @Test
-    fun `a guest reports a bug and is told it arrived`() {
+    fun `a signed-out user reports a bug and is told it arrived`() {
         val description = "The filters reset when I go back to the map."
 
         openBugReporter()
@@ -29,7 +29,7 @@ class BugTest : BrowserTest() {
         assertEquals(description, bug.description)
         assertEquals(Platform.Web, bug.platform)
         assertEquals(BugStatus.Open, bug.status, "a new report starts open")
-        assertNull(bug.starId, "a guest leaves no star")
+        assertNull(bug.starId, "a signed-out user leaves no star")
         assertEquals("dev", bug.buildId, "the server stamps the build it is running")
         assertNotNull(bug.screen, "the client should report the screen")
         assertNotNull(bug.path, "the client should report the path")

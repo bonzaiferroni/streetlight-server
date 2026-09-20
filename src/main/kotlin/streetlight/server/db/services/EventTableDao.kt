@@ -12,9 +12,13 @@ import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.Event
@@ -54,7 +58,7 @@ class EventTableDao: DbService() {
         val slug = EventTable.nextSlugOf(title)
         val event = edit.toEvent(eventId)
         EventTable.insert {
-            it.createEvent(event, callerId, SlugRecord(slug))
+            it.createEvent(event, callerId.takeIf { edit.isHost == true }, SlugRecord(slug))
         }
         readEvent(eventId, callerId)
     }
@@ -67,10 +71,17 @@ class EventTableDao: DbService() {
         val title = edit.title ?: error("title not found")
         val slugSync = EventTable.getSlugRecord(eventId, title)
         val event = edit.toEvent(eventId)
-        EventTable.update({ EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId)}) {
+        EventTable.update({ EventTable.id.eq(eventId) and (EventTable.hostId.isNull() or EventTable.hostId.eq(callerId)) }) {
             it.updateEvent(event, slugSync)
         }
         readEvent(eventId, callerId)
+    }
+
+    suspend fun canEdit(eventId: EventId, callerId: CallerId) = dbQuery {
+        EventTable.selectAll()
+            .where { EventTable.id.eq(eventId) and (EventTable.hostId.isNull() or EventTable.hostId.eq(callerId)) }
+            .limit(1)
+            .any()
     }
 
     suspend fun hasConflict(edit: EventEdit) = dbQuery {
@@ -83,8 +94,9 @@ class EventTableDao: DbService() {
         } > 0
     }
 
-    suspend fun deleteEvent(callerId: CallerId, eventId: EventId): Boolean = dbQuery {
-        EventTable.deleteSingle { EventTable.scoutId.eq(callerId) and EventTable.id.eq(eventId) }
+    suspend fun deleteEvent(callerId: CallerId, eventId: EventId, isAdmin: Boolean): Boolean = dbQuery {
+        val mayDelete: Op<Boolean> = if (isAdmin) Op.TRUE else EventTable.hostId.eq(callerId)
+        EventTable.deleteSingle { mayDelete and EventTable.id.eq(eventId) }
     }
 
     suspend fun readEventsInBounds(bounds: GeoRect, callerId: CallerId?) = dbQuery { // , after: LocalDate, before: LocalDate
@@ -144,7 +156,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     locationId = locationId ?: error("no location"),
     currentRequestId = null,
     slug = Slug.Empty, // set with trigger
-    scout = Username.Empty, // set with trigger
+    host = Username.Empty, // set with trigger
     title = title ?: error("no title"),
     description = description,
     contact = contact,

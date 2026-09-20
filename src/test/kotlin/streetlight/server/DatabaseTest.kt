@@ -22,6 +22,7 @@ abstract class DatabaseTest {
             password = container.password,
         ).also {
             TransactionManager.defaultDatabase = it
+            resetSchema(it)
             raiseSchema(it)
         }
     }
@@ -32,6 +33,13 @@ abstract class DatabaseTest {
     fun prepareScenario() {
         truncateAll(database)
         server = buildTestServer()
+    }
+}
+
+private fun resetSchema(db: Database) {
+    transaction(db) {
+        exec("DROP SCHEMA public CASCADE")
+        exec("CREATE SCHEMA public")
     }
 }
 

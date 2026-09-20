@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 class FeedbackTest : BrowserTest() {
 
     @Test
-    fun `a guest sends feedback and is told it arrived`() {
+    fun `a signed-out user sends feedback and is told it arrived`() {
         val text = "The map is lovely but the filters are hard to find."
 
         openFeedback()
@@ -32,7 +32,7 @@ class FeedbackTest : BrowserTest() {
         assertEquals(text.toMarkdown(), feedback.text)
         assertEquals(Platform.Web, feedback.platform)
         assertTrue(feedback.isPrivate, "feedback should be private unless the sender says otherwise")
-        assertNull(feedback.username, "a guest leaves no username")
+        assertNull(feedback.username, "a signed-out user leaves no username")
         assertEquals(1, feedbackCount(), "one send should leave one row")
 
         val deviceAgent = assertNotNull(latestDeviceAgentOrNull(), "the browser should report itself")
