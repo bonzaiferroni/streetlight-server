@@ -30,11 +30,18 @@ import streetlight.server.model.DaoFacade
 import streetlight.server.model.EmailClient
 import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.Server
+import streetlight.server.model.ServerConfig
 import streetlight.server.model.ServerScope
 import streetlight.server.routes.LocationParser
 
 fun buildTestServer(
     env: Environment = readTestEnvironment(),
+    serverConfig: ServerConfig = ServerConfig(
+        withMetrics = false,
+        withDatabase = false,
+        withTransit = false,
+        withRateLimits = false,
+    ),
     emailRouter: EmailRouter = EmailRouter(),
     daoFacade: DaoFacade = DaoFacade(),
     mapClient: MapReferenceClient = TestMapReferenceClient(),
@@ -45,6 +52,7 @@ fun buildTestServer(
     val koin = koinApplication {
         modules(module {
             single { env }
+            single { serverConfig }
             single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
             single { emailRouter }
             single { daoFacade }

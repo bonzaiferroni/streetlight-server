@@ -44,9 +44,6 @@ abstract class BrowserTest : DatabaseTest() {
             streetlightModule(
                 server = server,
                 session = server.provide<StarSessionService>(),
-                withMetrics = false,
-                withDatabase = false,
-                withTransit = false,
             )
         }.start(wait = false)
 

@@ -10,14 +10,16 @@ import io.ktor.server.plugins.ratelimit.RateLimitName
 import klutch.db.model.SessionIdentity
 import kotlin.time.Duration.Companion.seconds
 
-fun Application.configureRateLimits() {
+fun Application.configureRateLimits(withLimits: Boolean) {
+    val limit = if (withLimits) 5 else Int.MAX_VALUE
+
     install(RateLimit) {
         register(RateLimits.Login) {
-            rateLimiter(limit = 5, refillPeriod = 60.seconds)
+            rateLimiter(limit = limit, refillPeriod = 60.seconds)
             requestKey { call -> call.sessionIdOrIp() }
         }
         register(RateLimits.AccountActions) {
-            rateLimiter(limit = 5, refillPeriod = 60.seconds)
+            rateLimiter(limit = limit, refillPeriod = 60.seconds)
             requestKey { call -> call.sessionIdOrIp() }
         }
     }

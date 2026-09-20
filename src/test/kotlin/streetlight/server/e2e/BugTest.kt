@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import streetlight.model.data.BugStatus
 import streetlight.model.data.Platform
 import streetlight.model.ui.Screen
+import streetlight.server.bugCount
+import streetlight.server.latestBugRowOrNull
 import streetlight.server.loginStar
 import streetlight.server.registerStar
 import kotlin.test.assertEquals

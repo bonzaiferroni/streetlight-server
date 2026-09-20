@@ -7,10 +7,12 @@ import klutch.server.KoinProvider
 import klutch.server.configureAuth
 import klutch.server.provide
 import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.Server
+import streetlight.server.model.ServerConfig
 import streetlight.server.model.ServerScope
 import streetlight.server.model.serverModule
 import streetlight.server.plugins.*
@@ -34,7 +36,9 @@ fun Application.module() {
     }
 
     val koin = koinApplication {
-        modules(serverModule)
+        modules(serverModule, module {
+            single { ServerConfig(withMetrics = !isBenchmark) }
+        })
     }.koin
 
     val provider = KoinProvider(koin)
@@ -46,34 +50,32 @@ fun Application.module() {
     streetlightModule(
         server = server,
         session = session,
-        withMetrics = !isBenchmark,
     )
 }
 
 fun Application.streetlightModule(
     server: ServerScope,
     session: StarSessionService,
-    withMetrics: Boolean = true,
-    withDatabase: Boolean = true,
-    withTransit: Boolean = true,
 ) {
+    val config = server.provide<ServerConfig>()
+
     install(Compression) {
         gzip { priority = 1.0 }
     }
 
-    configureRateLimits()
-    if (withMetrics) {
+    configureRateLimits(config.withRateLimits)
+    if (config.withMetrics) {
         configureMetrics(server)
     }
     configureLogging()
     configureCors()
     configureSerialization()
-    if (withDatabase) {
+    if (config.withDatabase) {
         configureDatabases(server)
     }
     configureAuth(session)
     configureWebSockets()
-    if (withTransit) {
+    if (config.withTransit) {
         configureTransit(server)
     }
     install(SSE)

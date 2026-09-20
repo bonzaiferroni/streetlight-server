@@ -1,4 +1,4 @@
-package streetlight.server.e2e
+package streetlight.server
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
