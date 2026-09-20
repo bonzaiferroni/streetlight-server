@@ -37,9 +37,10 @@ fun ResultRow.toBug() = Bug(
     createdAt = this[BugTable.createdAt],
 )
 
-fun UpdateBuilder<*>.createBug(bug: BugEdit, callerId: CallerId?) {
+fun UpdateBuilder<*>.createBug(bug: BugEdit, callerId: CallerId?, buildId: String) {
     this[BugTable.id] = Uuid.random()
     this[BugTable.starId] = callerId?.value
+    this[BugTable.buildId] = buildId
     this[BugTable.status] = BugStatus.Open
     this[BugTable.createdAt] = Clock.System.now()
     updateBug(bug)
@@ -48,6 +49,8 @@ fun UpdateBuilder<*>.createBug(bug: BugEdit, callerId: CallerId?) {
 fun UpdateBuilder<*>.updateBug(bug: BugEdit) {
     this[BugTable.description] = bug.description.value
     this[BugTable.platform] = bug.platform
+    this[BugTable.screen] = bug.screen
+    this[BugTable.path] = bug.path
     this[BugTable.deviceAgent] = bug.deviceAgent
     this[BugTable.updatedAt] = Clock.System.now()
 }

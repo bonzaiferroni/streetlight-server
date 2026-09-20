@@ -47,6 +47,7 @@ class DaoFacade(
     val review: TaskTableDao = TaskTableDao(),
     val media: MediaTableDao = MediaTableDao(),
     val feedback: FeedbackTableDao = FeedbackTableDao(),
+    val bug: BugTableDao = BugTableDao(),
     val siteStatus: SiteStatusTableDao = SiteStatusTableDao(),
     val authToken: AuthTokenTableDao = AuthTokenTableDao(),
     val bouncedEmail: BouncedEmailTableDao = BouncedEmailTableDao(),
