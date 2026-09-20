@@ -42,13 +42,13 @@ import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createLocation
 import streetlight.server.db.tables.locationConfigContentQuery
 import streetlight.server.db.tables.locationLayoutQuery
 import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
 import streetlight.server.db.tables.toLocationDesign
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.updateLocation
 import streetlight.server.utils.toRecordId
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -78,7 +78,7 @@ class LocationTableDao : DbService() {
         val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId.value)
         LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.updateRecord(location, slugRecord)
+            it.updateLocation(location, slugRecord)
         }.singleOrNull()?.toLocation()
     }
 
@@ -104,7 +104,7 @@ class LocationTableDao : DbService() {
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insert { it.createRecord(location, callerId, SlugRecord(slug)) }
+        LocationTable.insert { it.createLocation(location, callerId, SlugRecord(slug)) }
             .resultedValues?.singleOrNull()?.toLocation()
     }
 

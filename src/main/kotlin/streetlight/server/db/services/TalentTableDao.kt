@@ -16,8 +16,8 @@ import streetlight.model.data.TalentId
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.TalentTable
 import streetlight.server.db.tables.toTalent
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.createTalent
+import streetlight.server.db.tables.updateTalent
 import streetlight.server.utils.toRecordId
 
 class TalentTableDao : DbService() {
@@ -36,13 +36,13 @@ class TalentTableDao : DbService() {
 
     suspend fun create(talent: Talent, callerId: CallerId): TalentId = dbQuery {
         TalentTable.insertAndGetId {
-            it.createRecord(talent, callerId)
+            it.createTalent(talent, callerId)
         }.value.toRecordId()
     }
 
     suspend fun create(talent: TalentEdit, callerId: CallerId): Talent? = dbQuery {
         val id: TalentId = TalentTable.insertAndGetId {
-            it.createRecord(Talent(
+            it.createTalent(Talent(
                 talentId = TalentId.random(),
                 name = talent.name,
                 description = talent.description,
@@ -60,7 +60,7 @@ class TalentTableDao : DbService() {
 
     suspend fun edit(talentId: TalentId, talent: TalentEdit, callerId: CallerId) = dbQuery {
         val updatedRows = TalentTable.update(where = { TalentTable.id.eq(talentId) and TalentTable.starId.eq(callerId) }) {
-            it.updateRecord(Talent(
+            it.updateTalent(Talent(
                 talentId = talentId,
                 name = talent.name,
                 description = talent.description,
@@ -80,7 +80,7 @@ class TalentTableDao : DbService() {
 
     suspend fun update(talent: Talent) = dbQuery {
         TalentTable.update(where = { TalentTable.id.eq(talent.talentId) }) {
-            it.updateRecord(talent)
+            it.updateTalent(talent)
         } == 1
     }
 

@@ -18,9 +18,9 @@ import streetlight.model.data.MediaEdit
 import streetlight.model.data.MediaId
 import streetlight.model.data.MediaType
 import streetlight.server.db.tables.MediaTable
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createMedia
 import streetlight.server.db.tables.toMedia
-import streetlight.server.db.tables.writeUpdate
+import streetlight.server.db.tables.updateMedia
 import kotlin.time.Clock
 
 class MediaTableDao: DbService() {
@@ -30,7 +30,7 @@ class MediaTableDao: DbService() {
         val slug = MediaTable.nextSlugOf(edit.title ?: mediaId.value.toString())
         val media = edit.toMedia(mediaId, slug)
         MediaTable.insert {
-            it.createRecord(media, callerId)
+            it.createMedia(media, callerId)
         }.resultedValues?.singleOrNull()?.toMedia()
     }
 
@@ -38,7 +38,7 @@ class MediaTableDao: DbService() {
         val mediaId = edit.mediaId.requireNotNull { "mediaId missing" }
         val media = edit.toMedia(mediaId)
         MediaTable.updateReturning(where = { MediaTable.id.eq(mediaId) and MediaTable.starId.eq(callerId) } ) {
-            it.writeUpdate(media)
+            it.updateMedia(media)
         }.singleOrNull()?.toMedia()
     }
 

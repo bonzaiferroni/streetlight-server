@@ -32,7 +32,7 @@ fun ResultRow.toSiteStatus() = SiteStatus(
     createdAt = this[SiteStatusTable.createdAt]
 )
 
-fun UpdateBuilder<*>.writeFull(siteStatus: SiteStatus) {
+fun UpdateBuilder<*>.createSiteStatus(siteStatus: SiteStatus) {
     this[SiteStatusTable.integers] = siteStatus.integers
     this[SiteStatusTable.doubles] = siteStatus.doubles
     this[SiteStatusTable.resolution] = siteStatus.resolution

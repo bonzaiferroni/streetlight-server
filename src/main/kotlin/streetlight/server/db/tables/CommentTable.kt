@@ -48,15 +48,15 @@ fun ResultRow.toCommentRow() = CommentRow(
     createdAt = this[CommentTable.createdAt],
 )
 
-fun UpdateBuilder<*>.createRecord(comment: CommentRow) {
+fun UpdateBuilder<*>.createComment(comment: CommentRow) {
     this[CommentTable.id] = comment.commentId.value
     this[CommentTable.parentId] = comment.parentId?.value
     this[CommentTable.starId] = comment.starId?.value
     this[CommentTable.createdAt] = comment.createdAt
-    updateRecord(comment)
+    updateComment(comment)
 }
 
-fun UpdateBuilder<*>.updateRecord(comment: CommentRow) {
+fun UpdateBuilder<*>.updateComment(comment: CommentRow) {
     this[CommentTable.text] = comment.text
     this[CommentTable.updatedAt] = comment.updatedAt
 }

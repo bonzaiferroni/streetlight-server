@@ -54,15 +54,15 @@ object MediaTable: UuidTable("media"), SlugTable {
 
 val mediaUsernameSync = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)
 
-fun UpdateBuilder<*>.createRecord(media: Media, callerId: CallerId) {
+fun UpdateBuilder<*>.createMedia(media: Media, callerId: CallerId) {
     this[MediaTable.id] = media.mediaId.value
     this[MediaTable.starId] = callerId.value
     this[MediaTable.mediaType] = media.mediaType
     this[MediaTable.createdAt] = media.createdAt
-    writeUpdate(media)
+    updateMedia(media)
 }
 
-fun UpdateBuilder<*>.writeUpdate(media: Media) {
+fun UpdateBuilder<*>.updateMedia(media: Media) {
     this[MediaTable.slug] = media.slug.value
     this[MediaTable.title] = media.title
     this[MediaTable.subtitle] = media.subtitle

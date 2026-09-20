@@ -19,7 +19,7 @@ import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
-import streetlight.server.db.tables.createToken
+import streetlight.server.db.tables.createAuthToken
 import streetlight.server.db.tables.toAuthToken
 import streetlight.server.plugins.logger
 import kotlin.time.Clock
@@ -28,7 +28,7 @@ import kotlin.time.Instant
 class AuthTokenTableDao: DbService() {
     suspend fun createToken(token: AuthToken) = dbQuery {
         AuthTokenTable.insert {
-            it.createToken(token)
+            it.createAuthToken(token)
         }
     }
 

@@ -39,7 +39,7 @@ import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.SessionTable
 import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createUser
 import streetlight.server.db.tables.toRoleSet
 import streetlight.server.db.tables.toUserRecord
 import streetlight.server.utils.toRecordId
@@ -97,7 +97,7 @@ class StarSessionService(): DbService(), SessionService {
         )
 
         StarTable.insertAndGetId {
-            it.createRecord(user)
+            it.createUser(user)
         }.let { StarId(it.value) }
     }
 

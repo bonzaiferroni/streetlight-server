@@ -28,13 +28,13 @@ fun ResultRow.toQuorum() = Quorum(
     createdAt = this[QuorumTable.createdAt]
 )
 
-fun UpdateBuilder<*>.createRecord(quorum: Quorum) {
+fun UpdateBuilder<*>.createQuorum(quorum: Quorum) {
     this[QuorumTable.id] = quorum.quorumId.value
     this[QuorumTable.createdAt] = quorum.createdAt
-    writeUpdate(quorum)
+    updateQuorum(quorum)
 }
 
-fun UpdateBuilder<*>.writeUpdate(quorum: Quorum) {
+fun UpdateBuilder<*>.updateQuorum(quorum: Quorum) {
     this[QuorumTable.recordId] = quorum.recordId
     this[QuorumTable.recordType] = quorum.recordType
     this[QuorumTable.question] = quorum.question

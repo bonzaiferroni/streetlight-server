@@ -15,8 +15,8 @@ import streetlight.model.data.TransitStopId
 import streetlight.server.db.tables.TransitRouteStopTable
 import streetlight.server.db.tables.TransitRouteTable
 import streetlight.server.db.tables.toTransitRoute
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.createTransitRoute
+import streetlight.server.db.tables.updateTransitRoute
 
 /**
  * Ahoy! This be the TransitRouteTableDao, managin' our charts and routes.
@@ -37,25 +37,25 @@ class TransitRouteTableDao : DbService() {
 
     suspend fun create(transitRoute: TransitRoute): TransitRouteId = dbQuery {
         TransitRouteTable.insertAndGetId {
-            it.createRecord(transitRoute)
+            it.createTransitRoute(transitRoute)
         }.value.let { TransitRouteId(it) }
     }
 
     suspend fun update(transitRoute: TransitRoute) = dbQuery {
         TransitRouteTable.update(where = { TransitRouteTable.id.eq(transitRoute.transitRouteId.value) }) {
-            it.updateRecord(transitRoute)
+            it.updateTransitRoute(transitRoute)
         } == 1
     }
 
     suspend fun upsert(transitRoute: TransitRoute) = dbQuery {
         TransitRouteTable.upsert(TransitRouteTable.id) {
-            it.createRecord(transitRoute)
+            it.createTransitRoute(transitRoute)
         }
     }
 
     suspend fun batchUpsert(transitRoutes: List<TransitRoute>) = dbQuery {
         TransitRouteTable.batchUpsert(transitRoutes, TransitRouteTable.id) {
-            this.createRecord(it)
+            this.createTransitRoute(it)
         }
     }
 

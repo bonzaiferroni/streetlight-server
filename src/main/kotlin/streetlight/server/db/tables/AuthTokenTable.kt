@@ -23,7 +23,7 @@ object AuthTokenTable: LongIdTable("auth_token") {
     val createdAt = timestamp("created_at")
 }
 
-fun UpdateBuilder<*>.createToken(authToken: AuthToken) {
+fun UpdateBuilder<*>.createAuthToken(authToken: AuthToken) {
     this[AuthTokenTable.starId] = authToken.starId.value
     this[AuthTokenTable.hashedToken] = authToken.hashedToken.value
     this[AuthTokenTable.tokenType] = authToken.tokenType

@@ -53,16 +53,16 @@ fun ResultRow.toCity() = City(
     geoRect = this[CityTable.geoBounds].toGeoBounds()
 )
 
-fun UpdateBuilder<*>.createRecord(city: City, stateId: StateId) {
+fun UpdateBuilder<*>.createCity(city: City, stateId: StateId) {
     this[CityTable.stateId] = stateId.value
     this[CityTable.slug] = city.slug.value
     this[CityTable.state] = city.state
     this[CityTable.country] = city.country
     this[CityTable.createdAt] = Clock.System.now()
-    updateRecord(city)
+    updateCity(city)
 }
 
-fun UpdateBuilder<*>.updateRecord(city: City) {
+fun UpdateBuilder<*>.updateCity(city: City) {
     this[CityTable.name] = city.name
     this[CityTable.mapRank] = city.mapRank
     this[CityTable.geoPoint] = city.geoPoint.toPGpoint()

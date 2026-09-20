@@ -22,13 +22,13 @@ fun ResultRow.toSpark() = Performer(
 )
 
 // Updaters
-fun UpdateBuilder<*>.createRecord(performer: Performer) {
+fun UpdateBuilder<*>.createPerformer(performer: Performer) {
     this[PerformerTable.id] = performer.performerId.value
     this[PerformerTable.starId] = performer.starId.value
-    updateRecord(performer)
+    updatePerformer(performer)
 }
 
-fun UpdateBuilder<*>.updateRecord(performer: Performer) {
+fun UpdateBuilder<*>.updatePerformer(performer: Performer) {
     this[PerformerTable.venmo] = performer.venmo
     this[PerformerTable.stageName] = performer.stageName
 }

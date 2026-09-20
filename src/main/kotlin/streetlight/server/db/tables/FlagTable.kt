@@ -28,13 +28,13 @@ fun ResultRow.toFlag() = Flag(
     createdAt = this[FlagTable.createdAt],
 )
 
-fun UpdateBuilder<*>.createRecord(flag: Flag) {
+fun UpdateBuilder<*>.createFlag(flag: Flag) {
     this[FlagTable.id] = flag.flagId.value
     this[FlagTable.createdAt] = flag.createdAt
-    writeUpdate(flag)
+    updateFlag(flag)
 }
 
-fun UpdateBuilder<*>.writeUpdate(flag: Flag) {
+fun UpdateBuilder<*>.updateFlag(flag: Flag) {
     this[FlagTable.flaggerId] = flag.flaggerId.value
     this[FlagTable.policyId] = flag.policyId?.value
     this[FlagTable.recordId] = flag.recordId

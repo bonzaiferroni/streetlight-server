@@ -22,13 +22,13 @@ object ParserTable: UuidTable("parser") {
     val createdAt = timestamp("created_at")
 }
 
-fun UpdateBuilder<*>.createOriginSchema(schema: Parser) {
+fun UpdateBuilder<*>.createParser(schema: Parser) {
     this[ParserTable.originId] = schema.originId.value
     this[ParserTable.createdAt] = schema.createdAt
-    updateOriginSchema(schema)
+    updateParser(schema)
 }
 
-fun UpdateBuilder<*>.updateOriginSchema(schema: Parser) {
+fun UpdateBuilder<*>.updateParser(schema: Parser) {
     this[ParserTable.schemaType] = schema.schemaType
     this[ParserTable.fetchMode] = schema.fetchMode
     this[ParserTable.schema] = schema.schema

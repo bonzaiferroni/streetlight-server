@@ -26,8 +26,10 @@ import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.CountryTable
 import streetlight.server.db.tables.StateTable
 import streetlight.server.db.tables.toCity
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.createCountry
+import streetlight.server.db.tables.createState
+import streetlight.server.db.tables.createCity
+import streetlight.server.db.tables.updateCity
 
 class CityTableDao : DbService() {
 
@@ -38,20 +40,20 @@ class CityTableDao : DbService() {
             CountryTable.name.eq(city.country)
         }.firstOrNull()?.let { it[CountryTable.id].value } ?: CountryTable.insertAndGetId {
             val country = countryOf(city.country)
-            it.createRecord(country)
+            it.createCountry(country)
         }.value
 
         val stateId = StateTable.select(StateTable.id).where {
             StateTable.name.eq(city.state) and StateTable.countryId.eq(countryId)
         }.firstOrNull()?.let { it[StateTable.id].value } ?: StateTable.insertAndGetId {
             val state = stateOf(city.state, city.country, CountryId(countryId))
-            it.createRecord(state)
+            it.createState(state)
         }.value
 
         val cityId = CityTable.select(CityTable.id).where {
             CityTable.name.eq(city.name) and CityTable.stateId.eq(stateId)
         }.firstOrNull()?.let { it[CityTable.id].value } ?: CityTable.insertAndGetId {
-            it.createRecord(city, StateId(stateId))
+            it.createCity(city, StateId(stateId))
         }.value
 
         CityId(cityId)
@@ -62,7 +64,7 @@ class CityTableDao : DbService() {
         val uniqueCountries = cities.map { it.country }.distinct()
         CountryTable.batchInsert(uniqueCountries, ignore = true) {
             val country = countryOf(it)
-            this.createRecord(country)
+            this.createCountry(country)
         }
         val countryIds: Map<String, Int> = CountryTable
             .selectAll()
@@ -73,7 +75,7 @@ class CityTableDao : DbService() {
         val uniqueStates = cities.map { it.state to it.country }.distinct()
         StateTable.batchInsert(uniqueStates, ignore = true) { (state, country) ->
             val state = stateOf(state, country, CountryId(countryIds.getValue(country)))
-            this.createRecord(state)
+            this.createState(state)
         }
         val stateIds: Map<Pair<String, String>, Int> = StateTable
             .innerJoin(CountryTable)
@@ -86,7 +88,7 @@ class CityTableDao : DbService() {
             val stateId = stateIds.getValue(it.state to it.country)
             val slug = CityTable.nextSlugOf("${it.name} ${it.state}")
             val city = it.copy(slug = slug)
-            this.createRecord(city, StateId(stateId))
+            this.createCity(city, StateId(stateId))
         }
 
         val cityNames = cities.map { it.name }.distinct()
@@ -109,7 +111,7 @@ class CityTableDao : DbService() {
 
     suspend fun update(city: City) = dbQuery {
         CityTable.update({ CityTable.id.eq(city.cityId.value)  }) {
-            it.updateRecord(city)
+            it.updateCity(city)
         } > 0
     }
 

@@ -39,14 +39,14 @@ fun ResultRow.toImageRecord() = ImageRecord(
     createdAt = this[ImageTable.createdAt]
 )
 
-fun UpdateBuilder<*>.createRecord(record: ImageRecord) {
+fun UpdateBuilder<*>.createImage(record: ImageRecord) {
     this[ImageTable.id] = record.imageId.value
     this[ImageTable.starId] = record.starId?.value
     this[ImageTable.createdAt] = record.createdAt
-    updateRecord(record)
+    updateImage(record)
 }
 
-fun UpdateBuilder<*>.updateRecord(record: ImageRecord) {
+fun UpdateBuilder<*>.updateImage(record: ImageRecord) {
     this[ImageTable.url] = record.image.url
     this[ImageTable.format] = record.format
     this[ImageTable.variants] = record.image.variants

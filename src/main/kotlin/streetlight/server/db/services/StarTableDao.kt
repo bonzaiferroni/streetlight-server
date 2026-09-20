@@ -21,7 +21,7 @@ import streetlight.server.db.tables.StarQuery
 import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toAccount
 import streetlight.server.db.tables.toStar
-import streetlight.server.db.tables.updateProfile
+import streetlight.server.db.tables.updateStar
 import streetlight.server.utils.toRecordId
 import kotlin.let
 
@@ -29,7 +29,7 @@ class StarTableDao: DbService() {
 
     suspend fun updateProfile(callerId: CallerId, edit: StarEdit) = dbQuery {
         StarTable.updateReturning(where = { StarTable.id.eq(callerId)}) {
-            it.updateProfile(edit)
+            it.updateStar(edit)
         }.singleOrNull()?.toStar()
     }
 

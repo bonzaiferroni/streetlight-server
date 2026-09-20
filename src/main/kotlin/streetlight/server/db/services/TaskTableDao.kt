@@ -22,12 +22,12 @@ import streetlight.server.db.tables.EditLogTable
 import streetlight.server.db.tables.QuorumTable
 import streetlight.server.db.tables.TaskTable
 import streetlight.server.db.tables.toQuorum
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createTask
 
 class TaskTableDao(): DbService() {
     suspend fun create(task: BaseTask) = dbQuery {
         TaskTable.insert {
-            it.createRecord(task)
+            it.createTask(task)
         }
     }
 

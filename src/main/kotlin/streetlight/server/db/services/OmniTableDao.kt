@@ -6,13 +6,13 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.OmniRecord
 import streetlight.server.db.tables.OmniTable
-import streetlight.server.db.tables.write
+import streetlight.server.db.tables.createOmni
 
 class OmniTableDao: DbService() {
 
     suspend fun create(record: OmniRecord) = dbQuery {
         OmniTable.insert {
-            it.write(record)
+            it.createOmni(record)
         }
     }
 

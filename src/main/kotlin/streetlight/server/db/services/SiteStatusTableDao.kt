@@ -19,7 +19,7 @@ import streetlight.server.db.tables.SiteEventTable
 import streetlight.server.db.tables.SiteStatusTable
 import streetlight.server.db.tables.toSiteEvent
 import streetlight.server.db.tables.toSiteStatus
-import streetlight.server.db.tables.writeFull
+import streetlight.server.db.tables.createSiteStatus
 import streetlight.server.plugins.logger
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -28,7 +28,7 @@ class SiteStatusTableDao : DbService() {
 
     suspend fun create(siteStatus: SiteStatus) = dbQuery {
         SiteStatusTable.insert {
-            it.writeFull(siteStatus)
+            it.createSiteStatus(siteStatus)
         }
     }
 

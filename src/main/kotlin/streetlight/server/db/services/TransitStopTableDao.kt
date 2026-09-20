@@ -12,7 +12,7 @@ import streetlight.model.data.TransitStopId
 import streetlight.server.db.tables.TransitRouteStopTable
 import streetlight.server.db.tables.TransitStopTable
 import streetlight.server.db.tables.toTransitStop
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createTransitStop
 
 class TransitStopTableDao : DbService() {
 
@@ -22,19 +22,19 @@ class TransitStopTableDao : DbService() {
 
     suspend fun createTransitStop(transitStop: TransitStop) = dbQuery {
         TransitStopTable.insertAndGetId {
-            it.createRecord(transitStop)
+            it.createTransitStop(transitStop)
         }
     }
 
     suspend fun upsert(transitStop: TransitStop) = dbQuery {
         TransitStopTable.upsert(TransitStopTable.id) {
-            it.createRecord(transitStop)
+            it.createTransitStop(transitStop)
         }
     }
 
     suspend fun batchUpsert(transitStops: List<TransitStop>) = dbQuery {
         TransitStopTable.batchUpsert(transitStops, TransitStopTable.id) {
-            this.createRecord(it)
+            this.createTransitStop(it)
         }
     }
 

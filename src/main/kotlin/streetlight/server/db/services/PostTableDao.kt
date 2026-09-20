@@ -57,10 +57,10 @@ import streetlight.server.db.tables.PostMarkCountTable
 import streetlight.server.db.tables.PostMarkTable
 import streetlight.server.db.tables.orderByCursor
 import streetlight.server.db.tables.toGalaxyPost
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createPost
 import streetlight.server.db.tables.toGalaxyMark
 import streetlight.server.db.tables.toPost
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.updatePost
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toStarId
 import kotlin.time.Clock
@@ -87,14 +87,14 @@ class PostTableDao : DbService() {
             getInitialContentStatus(record.galaxyId, callerId)
         } ?: FeedStatus.Live // td: figure out feedstatus for no callerId
 
-        PostTable.insert { it.createRecord(record, status) }
+        PostTable.insert { it.createPost(record, status) }
         PostTable.selectAll().where { PostTable.id.eq(record.postId) }.singleOrNull()?.toPost()
     }
 
     suspend fun update(postId: PostId, post: PostEdit, callerId: CallerId) = dbQuery {
         val post = post.toPostRecord(callerId)
         PostTable.updateReturning(where = { PostTable.id.eq(postId) and PostTable.starId.eq(callerId) }) {
-            it.updateRecord(post)
+            it.updatePost(post)
         }.singleOrNull()?.toPost()
     }
 

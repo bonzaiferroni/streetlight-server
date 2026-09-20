@@ -16,7 +16,7 @@ object OmniTable: UuidTable("omni") {
     val recordAt = timestamp("record_at").index()
 }
 
-fun UpdateBuilder<*>.write(record: OmniRecord) {
+fun UpdateBuilder<*>.createOmni(record: OmniRecord) {
     this[OmniTable.id] = Uuid.random()
     this[OmniTable.record] = record
     this[OmniTable.recordAt] = record.recordAt

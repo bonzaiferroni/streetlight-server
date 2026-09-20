@@ -23,16 +23,16 @@ object TaskTable : UuidTable("task") {
     val createdAt = timestamp("created_at")
 }
 
-fun UpdateBuilder<*>.createRecord(task: BaseTask) {
+fun UpdateBuilder<*>.createTask(task: BaseTask) {
     this[TaskTable.id] = task.taskId.value
     this[TaskTable.recordId] = task.recordId
     this[TaskTable.recordType] = task.recordType
     this[TaskTable.starId] = task.starId.value
     this[TaskTable.createdAt] = task.createdAt
-    writeUpdate(task)
+    updateTask(task)
 }
 
-fun UpdateBuilder<*>.writeUpdate(task: BaseTask) {
+fun UpdateBuilder<*>.updateTask(task: BaseTask) {
     this[TaskTable.decision] = task.decision
     this[TaskTable.status] = task.taskStatus
     this[TaskTable.updatedAt] = Clock.System.now()

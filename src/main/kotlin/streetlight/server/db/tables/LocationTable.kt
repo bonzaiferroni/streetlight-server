@@ -70,14 +70,14 @@ val locationScoutSync = SyncValueTrigger(LocationTable.scoutId, LocationTable.sc
 val locationStarCountTrigger = CounterTrigger(LocationTable, LocationStarTable, LocationStarTable.locationId, LocationTable.starCount)
 
 // Updaters
-fun UpdateBuilder<*>.createRecord(location: Location, starId: CallerId?, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.createLocation(location: Location, starId: CallerId?, slugRecord: SlugRecord) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.scoutId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
-    updateRecord(location, slugRecord)
+    updateLocation(location, slugRecord)
 }
 
-fun UpdateBuilder<*>.updateRecord(location: Location, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.updateLocation(location: Location, slugRecord: SlugRecord) {
     this[LocationTable.slug] = slugRecord.slug.value
     this[LocationTable.pastSlug] = slugRecord.pastSlug?.value
     this[LocationTable.mapId] = location.mapId

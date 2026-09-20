@@ -13,14 +13,14 @@ import streetlight.model.data.StarId
 import streetlight.model.data.ImageRecord
 import streetlight.server.db.tables.ImageTable
 import streetlight.server.db.tables.toImageRecord
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createImage
 import streetlight.server.db.tables.toImage
 
 class ImageTableDao : DbService() {
 
     suspend fun create(userFile: ImageRecord): ImageId = dbQuery {
         ImageTable.insertAndGetId {
-            it.createRecord(userFile)
+            it.createImage(userFile)
         }.value.let { ImageId(it) }
     }
 

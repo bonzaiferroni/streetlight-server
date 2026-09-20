@@ -19,13 +19,13 @@ import kotlin.time.Clock
 class FeedbackTableDao: DbService() {
 
     suspend fun create(edit: FeedbackEdit, callerId: CallerId? = null) = dbQuery {
-        FeedbackTable.insert { it.writeFull(edit, callerId) }.insertedCount == 1
+        FeedbackTable.insert { it.createFeedback(edit, callerId) }.insertedCount == 1
     }
 
     suspend fun update(feedback: FeedbackEdit) = dbQuery {
         val feedbackId = feedback.feedbackId ?: error("feedbackId not found")
         FeedbackTable.update({ FeedbackTable.id.eq(feedbackId) }) {
-            it.writeUpdate(feedback)
+            it.updateFeedback(feedback)
         }
     }
 

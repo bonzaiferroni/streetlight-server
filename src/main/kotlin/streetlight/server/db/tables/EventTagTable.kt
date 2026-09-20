@@ -20,12 +20,12 @@ fun ResultRow.toEventTag() = EventTag(
     description = this[EventTagTable.description]
 )
 
-fun UpdateBuilder<*>.createRecord(eventTag: EventTag) {
+fun UpdateBuilder<*>.createEventTag(eventTag: EventTag) {
     this[EventTagTable.id] = eventTag.eventTagId.value
-    updateRecord(eventTag)
+    updateEventTag(eventTag)
 }
 
-fun UpdateBuilder<*>.updateRecord(eventTag: EventTag) {
+fun UpdateBuilder<*>.updateEventTag(eventTag: EventTag) {
     this[EventTagTable.name] = eventTag.name
     this[EventTagTable.description] = eventTag.description
 }

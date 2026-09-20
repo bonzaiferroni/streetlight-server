@@ -24,12 +24,12 @@ fun ResultRow.toTransitStop() = TransitStop(
     description = this[TransitStopTable.description],
 )
 
-fun UpdateBuilder<*>.createRecord(transitStop: TransitStop) {
+fun UpdateBuilder<*>.createTransitStop(transitStop: TransitStop) {
     this[TransitStopTable.id] = transitStop.transitStopId.value
-    updateRecord(transitStop)
+    updateTransitStop(transitStop)
 }
 
-fun UpdateBuilder<*>.updateRecord(transitStop: TransitStop) {
+fun UpdateBuilder<*>.updateTransitStop(transitStop: TransitStop) {
     this[TransitStopTable.name] = transitStop.name
     this[TransitStopTable.latitude] = transitStop.latitude
     this[TransitStopTable.longitude] = transitStop.longitude

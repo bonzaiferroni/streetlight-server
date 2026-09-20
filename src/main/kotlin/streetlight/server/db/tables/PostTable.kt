@@ -48,7 +48,7 @@ val postEventLocationSync = SyncValueTrigger(PostTable.eventId, PostTable.locati
 val postGalaxyNameSync = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxyName, GalaxyTable, GalaxyTable.name)
 val postGalaxySlugSync = SyncValueTrigger(PostTable.galaxyId, PostTable.galaxySlug, GalaxyTable, GalaxyTable.slug)
 
-fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus) {
+fun UpdateBuilder<*>.createPost(post: PostRecord, status: FeedStatus) {
     this[PostTable.id] = post.postId.value
     this[PostTable.galaxyId] = post.galaxyId.value
     this[PostTable.starId] = post.starId?.value
@@ -58,10 +58,10 @@ fun UpdateBuilder<*>.createRecord(post: PostRecord, status: FeedStatus) {
     this[PostTable.postType] = post.postType
     this[PostTable.status] = status // initial status
     this[PostTable.createdAt] = post.createdAt
-    updateRecord(post)
+    updatePost(post)
 }
 
-fun UpdateBuilder<*>.updateRecord(post: PostRecord) {
+fun UpdateBuilder<*>.updatePost(post: PostRecord) {
     this[PostTable.title] = post.title
     this[PostTable.text] = post.text
     this[PostTable.updatedAt] = post.updatedAt

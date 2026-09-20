@@ -21,7 +21,6 @@ import streetlight.server.db.tables.LocationOriginTable
 import streetlight.server.db.tables.ParserTable
 import streetlight.server.db.tables.OriginTable
 import streetlight.server.db.tables.createOrigin
-import streetlight.server.db.tables.createOriginSchema
 import streetlight.server.db.tables.toOrigin
 import kotlin.time.Clock
 

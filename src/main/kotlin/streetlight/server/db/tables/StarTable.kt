@@ -72,14 +72,14 @@ fun ResultRow.toUserRecord() = UserRecord(
     updatedAt = this[StarTable.updatedAt],
 )
 
-fun UpdateBuilder<*>.createRecord(user: UserRecord) {
+fun UpdateBuilder<*>.createUser(user: UserRecord) {
     this[StarTable.id] = user.userId.value
     this[StarTable.accountType] = user.accountType
     this[StarTable.createdAt] = user.createdAt
-    updateRecord(user)
+    updateUser(user)
 }
 
-fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
+fun UpdateBuilder<*>.updateUser(user: UserRecord) {
     this[StarTable.username] = user.username.value
     this[StarTable.passwordHash] = user.passwordHash?.value
     this[StarTable.roles] = user.roles.map { role -> role.ordinal }.toList()
@@ -87,7 +87,7 @@ fun UpdateBuilder<*>.updateRecord(user: UserRecord) {
     this[StarTable.updatedAt] = user.updatedAt
 }
 
-fun UpdateBuilder<*>.updateProfile(edit: StarEdit) {
+fun UpdateBuilder<*>.updateStar(edit: StarEdit) {
     this[StarTable.description] = edit.description?.value
     this[StarTable.tagline] = edit.tagline
     this[StarTable.image] = edit.image

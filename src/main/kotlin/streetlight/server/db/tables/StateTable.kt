@@ -31,14 +31,14 @@ fun ResultRow.toState() = State(
     country = this[StateTable.country],
 )
 
-fun UpdateBuilder<*>.createRecord(state: State) {
+fun UpdateBuilder<*>.createState(state: State) {
     this[StateTable.countryId] = state.countryId.value
     this[StateTable.country] = state.country
     this[StateTable.createdAt] = Clock.System.now()
-    updateRecord(state)
+    updateState(state)
 }
 
-fun UpdateBuilder<*>.updateRecord(state: State) {
+fun UpdateBuilder<*>.updateState(state: State) {
     this[StateTable.name] = state.name
     this[StateTable.updatedAt] = Clock.System.now()
 }

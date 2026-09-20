@@ -12,7 +12,7 @@ import streetlight.model.data.RequestId
 import streetlight.model.data.SongId
 import streetlight.server.db.tables.RequestTable
 import streetlight.server.db.tables.toRequest
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createRequest
 
 class RequestTableDao: DbService() {
 
@@ -36,7 +36,7 @@ class RequestTableDao: DbService() {
             requesterName = newRequest.requesterName,
             createdAt = now,
         )
-        RequestTable.insert { it.createRecord(request) }
+        RequestTable.insert { it.createRequest(request) }
         request
     }
 
@@ -53,7 +53,7 @@ class RequestTableDao: DbService() {
             requesterName = newRequest.requesterName,
             createdAt = now,
         )
-        RequestTable.insert { it.createRecord(request) }
+        RequestTable.insert { it.createRequest(request) }
         request
     }
 }

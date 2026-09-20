@@ -14,7 +14,7 @@ import streetlight.model.data.Parser
 import streetlight.model.data.ParserId
 import streetlight.model.data.SelectorSchema
 import streetlight.server.db.tables.ParserTable
-import streetlight.server.db.tables.createOriginSchema
+import streetlight.server.db.tables.createParser
 import streetlight.server.db.tables.toParser
 import kotlin.time.Clock
 
@@ -22,7 +22,7 @@ class ParserTableDao: DbService() {
     suspend fun create(originId: OriginId, selectorSchema: SelectorSchema, fetchMode: FetchMode) = dbQuery {
         val schema = selectorSchema.toParser(originId, fetchMode)
         ParserTable.insert {
-            it.createOriginSchema(schema)
+            it.createParser(schema)
         }
         schema
     }

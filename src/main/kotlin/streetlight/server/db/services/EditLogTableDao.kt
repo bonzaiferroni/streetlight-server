@@ -15,7 +15,7 @@ import streetlight.model.data.EditType
 import streetlight.model.data.RecordEdit
 import streetlight.model.data.RecordId
 import streetlight.server.db.tables.EditLogTable
-import streetlight.server.db.tables.createRecord
+import streetlight.server.db.tables.createEditLog
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -24,7 +24,7 @@ class EditLogTableDao: DbService() {
     suspend fun create(editType: EditType, edit: RecordEdit, recordId: RecordId, callerId: CallerId) = dbQuery {
         val editLog = edit.toEditLog(recordId, editType)
         val editLogId = EditLogTable.insertAndGetId {
-            it.createRecord(editLog, callerId)
+            it.createEditLog(editLog, callerId)
         }.value.let { EditLogId(it) }
         editLogId
     }

@@ -39,14 +39,14 @@ fun ResultRow.toFeedback() = Feedback(
     createdAt = this[FeedbackTable.createdAt],
 )
 
-fun UpdateBuilder<*>.writeFull(feedback: FeedbackEdit, callerId: CallerId?) {
+fun UpdateBuilder<*>.createFeedback(feedback: FeedbackEdit, callerId: CallerId?) {
     this[FeedbackTable.id] = Uuid.random()
     this[FeedbackTable.starId] = callerId?.value
     this[FeedbackTable.createdAt] = Clock.System.now()
-    writeUpdate(feedback)
+    updateFeedback(feedback)
 }
 
-fun UpdateBuilder<*>.writeUpdate(feedback: FeedbackEdit) {
+fun UpdateBuilder<*>.updateFeedback(feedback: FeedbackEdit) {
     this[FeedbackTable.text] = feedback.text.value
     this[FeedbackTable.feedbackType] = feedback.feedbackType
     this[FeedbackTable.platform] = feedback.platform

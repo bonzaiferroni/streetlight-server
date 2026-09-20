@@ -29,8 +29,8 @@ import streetlight.server.db.tables.CommentTable
 import streetlight.server.db.tables.GalaxyCommentTable
 import streetlight.server.db.tables.MediaCommentTable
 import streetlight.server.db.tables.StarTable
-import streetlight.server.db.tables.createRecord
-import streetlight.server.db.tables.updateRecord
+import streetlight.server.db.tables.createComment
+import streetlight.server.db.tables.updateComment
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 import streetlight.server.utils.toStarId
@@ -43,7 +43,7 @@ class CommentTableDao : DbService() {
 
     suspend fun create(comment: CommentRow) = dbQuery {
         CommentTable.insertAndGetId {
-            it.createRecord(comment)
+            it.createComment(comment)
         }
         CommentTable.readById(comment.commentId.value).toComment()
     }
@@ -83,7 +83,7 @@ class CommentTableDao : DbService() {
     private fun insertComment(comment: NewComment, callerId: CallerId?): CommentId {
         val commentId = CommentId.random()
         CommentTable.insert {
-            it.createRecord(CommentRow(
+            it.createComment(CommentRow(
                 commentId = commentId,
                 parentId = comment.parentId,
                 starId = callerId?.toStarId(),
@@ -117,7 +117,7 @@ class CommentTableDao : DbService() {
 
     suspend fun update(comment: CommentRow) = dbQuery {
         CommentTable.update({ CommentTable.id eq comment.commentId.value }) {
-            it.updateRecord(comment)
+            it.updateComment(comment)
         }
         CommentTable.readById(comment.commentId.value).toComment()
     }
