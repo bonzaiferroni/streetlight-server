@@ -1,12 +1,12 @@
 package streetlight.server.db.tables
 
+import kampfire.api.Slug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.image
 import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
 import klutch.db.point
-import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.utils.toList
 import klutch.utils.toPGpoint
@@ -64,16 +64,15 @@ val galaxyEventCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.g
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
 
-fun UpdateBuilder<*>.createGalaxy(galaxy: Galaxy, callerId: CallerId, slugRecord: SlugRecord, city: City?) {
+fun UpdateBuilder<*>.createGalaxy(galaxy: Galaxy, callerId: CallerId, slug: Slug, city: City?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
     this[GalaxyTable.starId] = callerId.value
+    this[GalaxyTable.slug] = slug.value
     this[GalaxyTable.createdAt] = galaxy.createdAt
-    updateGalaxy(galaxy, slugRecord, city)
+    updateGalaxy(galaxy, city)
 }
 
-fun UpdateBuilder<*>.updateGalaxy(galaxy: Galaxy, slugRecord: SlugRecord, city: City?) {
-    this[GalaxyTable.slug] = slugRecord.slug.value
-    this[GalaxyTable.pastSlug] = slugRecord.pastSlug?.value
+fun UpdateBuilder<*>.updateGalaxy(galaxy: Galaxy, city: City?) {
     this[GalaxyTable.cityId] = city?.cityId?.value
     this[GalaxyTable.city] = city?.name
     this[GalaxyTable.name] = galaxy.name

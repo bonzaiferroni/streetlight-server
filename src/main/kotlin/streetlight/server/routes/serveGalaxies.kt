@@ -3,8 +3,11 @@ package streetlight.server.routes
 import io.ktor.server.routing.RoutingContext
 import kampfire.api.Slug
 import kampfire.api.toSlug
+import kampfire.api.isValid
+import kampfire.model.CoreProblem
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
+import kampfire.model.Problem
 import kampfire.model.Outcome
 import kampfire.model.toOutcome
 import kampfire.model.toDataOr
@@ -92,6 +95,9 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.CreateGalaxy) {
             val edit = it.data
             val identity = call.getIdentity()
+            val slug = edit.slug?.takeIf { slug -> slug.isValid() } ?: return@postApi CoreProblem.InvalidSlug
+            galaxyEditProblemOrNull(edit)?.let { problem -> return@postApi problem }
+            if (!dao.galaxy.isSlugAvailable(slug)) return@postApi HttpProblem.Conflict
             handleEdit(edit, identity) { city, edit ->
                 dao.galaxy.create(edit, identity.callerId, city).also { slug ->
                     val name = requireNotNull(edit.name) { "name not found" }
@@ -103,6 +109,11 @@ fun ApiScope.serveGalaxies() {
         postApi(Api.Galaxies.UpdateGalaxy) {
             val edit = it.data
             val identity = call.getIdentity()
+            val galaxyId = edit.galaxyId ?: return@postApi HttpProblem.BadRequest
+            if (!identity.isAdmin && !dao.galaxy.isHost(galaxyId, identity.callerId)) {
+                return@postApi HttpProblem.NotAuthorized
+            }
+            galaxyEditProblemOrNull(edit)?.let { problem -> return@postApi problem }
             handleEdit(edit, identity) { city, edit ->
                 dao.galaxy.update(edit, city).toOk()
             }
@@ -146,6 +157,11 @@ fun ApiScope.serveGalaxies() {
             Ok(Unit)
         }
     }
+}
+
+private fun galaxyEditProblemOrNull(edit: GalaxyEdit): Problem? = when {
+    !GalaxyEdit.isValidName(edit.name?.trim()) || edit.geoRect == null -> HttpProblem.BadRequest
+    else -> null
 }
 
 fun RoutingContext.readCursor(endpoint: CursorEndpoint): PostCursor {

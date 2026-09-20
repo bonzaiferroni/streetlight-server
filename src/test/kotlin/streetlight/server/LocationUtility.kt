@@ -12,6 +12,7 @@ import streetlight.model.data.StarId
 
 const val LOCATION_NAME = "The Fox Den"
 val DENVER = GeoPoint(-104.99, 39.74)
+val DENVER_AREA = GeoRect(GeoPoint(-105.1, 39.6), GeoPoint(-104.6, 39.9))
 
 suspend fun TestServer.seedCity(): CityId = dao.city.createCity(
     City(
@@ -23,7 +24,7 @@ suspend fun TestServer.seedCity(): CityId = dao.city.createCity(
         galaxyCount = 0,
         mapRank = null,
         geoPoint = DENVER,
-        geoRect = GeoRect(GeoPoint(-105.1, 39.6), GeoPoint(-104.6, 39.9)),
+        geoRect = DENVER_AREA,
     )
 )
 

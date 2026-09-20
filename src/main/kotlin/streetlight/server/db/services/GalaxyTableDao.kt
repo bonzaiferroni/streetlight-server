@@ -5,8 +5,10 @@ import kampfire.api.isValid
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.City
 import kotlin.time.Clock
@@ -14,8 +16,6 @@ import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.server.db.tables.GalaxyTable
-import klutch.db.tables.SlugRecord
-import klutch.db.tables.getDefinedSlugRecord
 import klutch.db.tables.isSlugAvailable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -40,7 +40,7 @@ class GalaxyTableDao : DbService() {
         val record = edit.toGalaxy()
 
         GalaxyTable.insert {
-            it.createGalaxy(record, callerId, SlugRecord(slug), city)
+            it.createGalaxy(record, callerId, slug, city)
         }
         GalaxyStarTable.insert {
             it[GalaxyStarTable.galaxyId] = record.galaxyId.value
@@ -65,13 +65,11 @@ class GalaxyTableDao : DbService() {
     }
 
     suspend fun update(edit: GalaxyEdit, city: City?) = dbQuery {
-        val slug = requireNotNull(edit.slug) { "Slug not found" }
         val galaxyId = requireNotNull(edit.galaxyId) { "galaxy id not found" }
-        val slugRecord = GalaxyTable.getDefinedSlugRecord(galaxyId, slug)
 
         val galaxy = edit.toGalaxy()
         GalaxyTable.update(where = { GalaxyTable.id.eq(galaxyId) }) {
-            it.updateGalaxy(galaxy, slugRecord, city)
+            it.updateGalaxy(galaxy, city)
         }
         GalaxyMarkTable.batchUpsert(edit.marks, GalaxyMarkTable.id,
             onUpdate = {
@@ -85,7 +83,18 @@ class GalaxyTableDao : DbService() {
             this[GalaxyMarkTable.name] = mark.name
             this[GalaxyMarkTable.createdAt] = Clock.System.now()
         }
-        slug
+        GalaxyTable.selectAll().where { GalaxyTable.id.eq(galaxyId) }.single()[GalaxyTable.slug].let(::Slug)
+    }
+
+    suspend fun isSlugAvailable(slug: Slug) = dbQuery {
+        GalaxyTable.isSlugAvailable(slug)
+    }
+
+    suspend fun isHost(galaxyId: GalaxyId, callerId: CallerId) = dbQuery {
+        GalaxyHostTable.selectAll()
+            .where { GalaxyHostTable.galaxyId.eq(galaxyId) and GalaxyHostTable.hostId.eq(callerId) }
+            .limit(1)
+            .any()
     }
 
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {
