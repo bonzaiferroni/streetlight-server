@@ -73,6 +73,7 @@ internal val dbTables = listOf(
     TaskTable,
     MediaTable,
     FeedbackTable,
+    BugTable,
     QuorumTable,
     PolicyTable,
     FlagTable,
@@ -123,6 +124,7 @@ private val syncValueTriggers get() = listOf(
     editUsernameSync,
     mediaUsernameSync,
     feedbackUsernameSync,
+    bugUsernameSync,
 )
 
 fun connectDb(url: String, user: String, password: String) = Database.connect(
