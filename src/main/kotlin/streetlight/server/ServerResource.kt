@@ -100,7 +100,6 @@ private val KtStyles = listOf(
 )
 
 private val Utilities = listOf(
-    LayoutUtilityCss,
     DisplayUtilityCss,
     TextUtilityCss,
 )
