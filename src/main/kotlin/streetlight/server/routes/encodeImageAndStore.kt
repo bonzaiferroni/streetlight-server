@@ -83,4 +83,5 @@ object ImageProblem {
     val ZeroDimension = Problem("Image has zero height or width.")
     val ZeroFrames = Problem("Animated image has zero frames.")
     val InvalidFormat = Problem("Invalid image format.")
+    val AnimatedWebp = Problem("Animated WebP is not supported. Use a GIF instead.")
 }

@@ -23,6 +23,9 @@ import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger(::encodeImage)
 
+private const val WEBP_QUALITY = 75
+private const val WEBP_EFFORT = 6
+
 @Suppress("ArrayInDataClass")
 data class ImageEncoding(
     val size: ImageSize,
@@ -42,6 +45,8 @@ fun encodeImage(
     println("Received ${bytes.size} bytes, first 8: ${bytes.take(8).map { it.toUByte() }}")
     val format = FormatDetector.detect(bytes.inputStream()).orElse(null) ?: return ImageProblem.InvalidFormat
 
+    if (format == Format.WEBP && bytes.isAnimatedWebp()) return ImageProblem.AnimatedWebp
+
     return if (format == Format.GIF) {
         resizeAnimatedImage(format, bytes, sizes)
     } else {
@@ -56,7 +61,7 @@ private fun resizeStaticImage(
 ): Outcome<EncodingResult> {
     val image = ImmutableImage.loader().fromBytes(bytes)
     if (image.height == 0) return ImageProblem.ZeroDimension
-    val writer = WebpWriter.DEFAULT.withQ(80)
+    val writer = WebpWriter.DEFAULT.withQ(WEBP_QUALITY).withM(WEBP_EFFORT)
     val aspectRatio = image.width / image.height.toFloat()
 
     val encodings = sizes.mapNotNull { size ->
@@ -78,7 +83,7 @@ private fun resizeStaticImage(
             .getOrNull()
     }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Encoding
 
-    return Ok(EncodingResult(format.toImageFormat(), encodings, aspectRatio))
+    return Ok(EncodingResult(ImageFormat.WEBP, encodings, aspectRatio))
 }
 
 /**
@@ -100,6 +105,7 @@ private fun resizeAnimatedImage(
     val firstFrame = gif.getFrame(0)
     if (firstFrame.height == 0) return ImageProblem.ZeroDimension
     val aspectRatio = firstFrame.width / firstFrame.height.toFloat()
+    val animatedWriter = Gif2WebpWriter.DEFAULT.withLossy().withQ(WEBP_QUALITY).withM(WEBP_EFFORT)
     val delay = runCatching { gif.getDelay(0) }
         .getOrDefault(Duration.ofMillis(200))
 
@@ -130,14 +136,14 @@ private fun resizeAnimatedImage(
 
             // Step 2: re-read intermediate GIF and convert to animated WebP
             val resizedGif = AnimatedGifReader.read(ImageSource.of(gifOut.toByteArray()))
-            val webpBytes = resizedGif.bytes(Gif2WebpWriter.DEFAULT)
+            val webpBytes = resizedGif.bytes(animatedWriter)
 
             ImageEncoding(size, webpBytes)
         }.onFailure { logger.error { it } }
             .getOrNull()
     }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Encoding
 
-    return Ok(EncodingResult(format.toImageFormat(), encodings, aspectRatio))
+    return Ok(EncodingResult(ImageFormat.WEBP, encodings, aspectRatio))
 }
 
 private fun targetDimensions(
@@ -185,6 +191,10 @@ private fun Graphics2D.useQuality() {
     setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
     setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 }
+
+// VP8X chunk starts at byte 12, its flags byte is at 20, animation is bit 1
+private fun ByteArray.isAnimatedWebp(): Boolean =
+    size > 20 && decodeToString(12, 16) == "VP8X" && (this[20].toInt() and 0x02) != 0
 
 private fun Format.toImageFormat() = when(this) {
     Format.PNG -> ImageFormat.PNG
