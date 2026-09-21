@@ -3,6 +3,7 @@ package streetlight.server.model
 import kampfire.api.Slug
 import klutch.db.model.CallerId
 import org.jetbrains.exposed.v1.core.Op
+import streetlight.model.data.CityListContent
 import streetlight.model.data.EntityFeed
 import streetlight.model.data.FeedEntity
 import streetlight.model.data.GalaxyContent
@@ -16,6 +17,11 @@ suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: PostCursor = P
         galaxies = galaxies,
         feed = readFeedMarks(posts, callerId, cursor)
     )
+}
+
+suspend fun DaoScope.readCityListContent(): CityListContent {
+    val cities = dao.city.readTopCities()
+    return CityListContent(cities = cities)
 }
 
 suspend fun DaoScope.readGalaxyContent(

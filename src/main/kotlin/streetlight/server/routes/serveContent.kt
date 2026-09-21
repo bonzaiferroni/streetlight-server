@@ -7,6 +7,7 @@ import klutch.server.getApi
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
+import streetlight.server.model.readCityListContent
 import streetlight.server.model.readHomeContent
 
 fun ApiScope.serveContent() {
@@ -15,6 +16,10 @@ fun ApiScope.serveContent() {
         getApi(Api.Content.Home) {
             val identity = call.getIdentityOrNull()
             readHomeContent(identity?.callerId).toOutcome()
+        }
+
+        getApi(Api.Content.CityList) {
+            readCityListContent().toOutcome()
         }
     }
 }

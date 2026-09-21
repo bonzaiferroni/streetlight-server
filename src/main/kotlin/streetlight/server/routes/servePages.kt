@@ -50,6 +50,7 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.Home -> renderHome(caller?.callerId, resource)
             Screen.AboutApp -> renderAboutApp(resource)
             Screen.Location -> renderLocation(arg, caller, resource)
+            Screen.CityList -> renderCityList(resource)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId, resource)
             Screen.Star -> renderStar(arg, caller, resource)
             Screen.Event -> renderEvent(arg, caller?.callerId, resource)
@@ -140,6 +141,16 @@ suspend fun ApiScope.renderHome(callerId: CallerId?, resource: PageResource): Ht
     return HtmlRender {
         appPage("Home", Screen.Galaxy, resource) {
             homeShell(content)
+        }
+    }
+}
+
+suspend fun ApiScope.renderCityList(resource: PageResource): HtmlRender {
+    val content = readCityListContent()
+
+    return HtmlRender {
+        appPage("Cities", Screen.CityList, resource) {
+            cityListShell(content)
         }
     }
 }
