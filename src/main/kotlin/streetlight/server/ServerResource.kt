@@ -1,6 +1,5 @@
 package streetlight.server
 
-import koala.CssFile
 import koala.JsBundle
 import koala.PageResource
 import koala.modifier.*
@@ -28,7 +27,6 @@ import streetlight.web.ui.LayoutStyleCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
 import streetlight.web.ui.TextDeltaCss
-import java.io.File
 
 class ServerResource(mode: BuildMode): PageResource {
 
@@ -71,7 +69,6 @@ private val KtStyles = listOf(
     FeatureImageCss,
     GridColumnsCss,
     SwapCss,
-    TextUtilitySheet,
     NavMenuCss,
     BodyCss,
     HrCss,
@@ -99,36 +96,23 @@ private val KtStyles = listOf(
     CuratorMenuStyle,
 )
 
-private val Utilities = listOf(
-    DisplayUtilityCss,
-    TextUtilityCss,
-)
-
 private fun BuildStyles() = buildString {
-    // debug at runtime like this:
-    // println(TextUtilityCss.toStylesheet())
+    appendLine(ResetCss)
     appendLine(StylesCss)
     appendLine(TypographyCss)
     appendLine(LayoutCss)
     appendLine(ThemeCss)
     appendLine(MagicCss)
     appendLine(ButtonCss)
-
-
-    // css files located in /www/css
-    CssFile.forEach {
-        appendLine(File("../${it.url}").readText())
-    }
+    appendLine(GeoMapCss)
 
     // styles declared with elements in koala.html
     KtStyles.forEach {
         appendLine(it)
     }
 
-    // utilities declared in koala.css
-    Utilities.forEach {
-        appendLine(it.toStylesheet())
-    }
+    appendLine(DisplayCss)
+    appendLine(TextCss)
 }
 
 class ServerBundle(mode: BuildMode): JsBundle {
