@@ -3,6 +3,7 @@ package streetlight.server.db.tables
 import kampfire.api.Slug
 import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
+import klutch.db.SyncValueTrigger
 import klutch.db.image
 import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
@@ -61,6 +62,7 @@ val galaxyLocationCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTabl
     "NEW.post_type = ${PostType.Location.ordinal}")
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
+val galaxyCitySync = SyncValueTrigger(GalaxyTable.cityId, GalaxyTable.city, CityTable, CityTable.name)
 
 fun UpdateBuilder<*>.createGalaxy(galaxy: Galaxy, callerId: CallerId, slug: Slug, city: City?) {
     this[GalaxyTable.id] = galaxy.galaxyId.value
@@ -72,7 +74,6 @@ fun UpdateBuilder<*>.createGalaxy(galaxy: Galaxy, callerId: CallerId, slug: Slug
 
 fun UpdateBuilder<*>.updateGalaxy(galaxy: Galaxy, city: City?) {
     this[GalaxyTable.cityId] = city?.cityId?.value
-    this[GalaxyTable.city] = city?.name
     this[GalaxyTable.name] = galaxy.name
     this[GalaxyTable.tagline] = galaxy.tagline
     this[GalaxyTable.description] = galaxy.description

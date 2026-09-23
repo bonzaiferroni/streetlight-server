@@ -110,6 +110,7 @@ private val syncValueTriggers get() = listOf(
     cityStateSync,
     cityCountrySync,
     locationCitySync,
+    galaxyCitySync,
     locationStateSync,
     postUsernameSync,
     postEventLocationSync,
