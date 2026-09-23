@@ -1,6 +1,8 @@
 package streetlight.server.routes
 
 import kampfire.api.Slug
+import kampfire.api.toSlug
+import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.authGate
@@ -11,10 +13,13 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.City
 import streetlight.model.data.CityId
+import streetlight.model.data.EntityCursor
 import streetlight.model.external.OSMCity
 import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
+import streetlight.server.model.readCityContent
+import streetlight.server.model.readCityFeed
 
 fun ApiScope.serveCity() {
     val osm = provide<MapReferenceClient>()
@@ -60,6 +65,17 @@ fun ApiScope.serveCity() {
             val identity = call.getIdentityOrNull()
 
             dao.city.readCityPosts(it.data, identity?.callerId).toOutcome()
+        }
+
+        getApi(Api.Cities.ReadContent, { it.toSlug() }) {
+            val identity = call.getIdentityOrNull()
+            Ok(readCityContent(it.data, identity?.callerId) ?: return@getApi HttpProblem.NotFound)
+        }
+
+        getApi(Api.Cities.ReadFeed) { request ->
+            val cityId = readParam(request.cityId)
+            val cursor = readCursor(request) as? EntityCursor.Time ?: return@getApi HttpProblem.BadRequest
+            Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, cursor))
         }
     }
 }

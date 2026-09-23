@@ -1,6 +1,5 @@
 package streetlight.server.db.tables
 
-import kampfire.api.TableId
 import kampfire.api.toSlug
 import kampfire.api.toUsername
 import klutch.db.model.CallerId
@@ -30,7 +29,7 @@ import streetlight.model.data.EventPost
 import streetlight.model.data.GalaxyTrace
 import streetlight.model.data.LocationPost
 import streetlight.model.data.Post
-import streetlight.model.data.PostCursor
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.PostType
 import streetlight.model.data.SortDirection
 import streetlight.server.utils.toRecordId
@@ -55,8 +54,8 @@ object GalaxyPostAspect {
 
     val GalaxyPostColumns = (EventLocationColumns + LocationAspect.columns + PostColumns + MediaColumns).distinct()
 
-    private fun getColumns(cursor: PostCursor, callerId: CallerId?): List<Expression<*>> {
-        val markCursor = cursor as? PostCursor.Mark
+    private fun getColumns(cursor: EntityCursor, callerId: CallerId?): List<Expression<*>> {
+        val markCursor = cursor as? EntityCursor.Mark
         if (markCursor == null && callerId == null) return GalaxyPostColumns
         val columns = mutableListOf<Expression<*>>()
         columns.addAll(GalaxyPostColumns)
@@ -78,7 +77,7 @@ object GalaxyPostAspect {
         .select(GalaxyPostColumns)
 
     fun queryCursor(
-        cursor: PostCursor,
+        cursor: EntityCursor,
         callerId: CallerId?,
         joinGalaxyStar: Boolean = false
     ) = baseQuery(callerId, joinGalaxyStar)
@@ -87,16 +86,16 @@ object GalaxyPostAspect {
 
     val MarkCount = Coalesce(PostMarkCountTable.count, intLiteral(0))
 
-    fun afterCursor(cursor: PostCursor): Op<Boolean>? {
-        val postId = cursor.postId ?: return null
+    fun afterCursor(cursor: EntityCursor): Op<Boolean>? {
+        val postId = cursor.recordId ?: return null
         return when (cursor) {
-            is PostCursor.Time -> cursor.recordAt?.let {
+            is EntityCursor.Time -> cursor.recordAt?.let {
                 afterCursor(PostTable.createdAt, it, PostTable.id, postId, cursor.direction)
             }
-            is PostCursor.Lean -> cursor.postLean?.let {
+            is EntityCursor.Lean -> cursor.postLean?.let {
                 afterCursor(PostTable.lean, it, PostTable.id, postId, cursor.direction)
             }
-            is PostCursor.Mark -> cursor.count?.let {
+            is EntityCursor.Mark -> cursor.count?.let {
                 afterCursor(MarkCount, it, PostTable.id, postId, cursor.direction)
             }
         }
@@ -113,23 +112,23 @@ fun Join.joinCaller(callerId: CallerId?, joinGalaxyStar: Boolean): Join {
             additionalConstraint = { PostTable.postType.eq(PostType.Location)})
 }
 
-fun Join.joinCursor(cursor: PostCursor): Join {
-    if (cursor is PostCursor.Mark) {
+fun Join.joinCursor(cursor: EntityCursor): Join {
+    if (cursor is EntityCursor.Mark) {
         return join(PostMarkCountTable, JoinType.LEFT, PostTable.id, PostMarkCountTable.postId,
             additionalConstraint = { PostMarkCountTable.galaxyMarkId.eq(cursor.markId) })
     }
     return this
 }
 
-fun Query.orderByCursor(cursor: PostCursor): Query {
+fun Query.orderByCursor(cursor: EntityCursor): Query {
     val order = when (cursor.direction) {
         SortDirection.Descending -> SortOrder.DESC_NULLS_LAST
         SortDirection.Ascending -> SortOrder.ASC_NULLS_LAST
     }
     return when (cursor) {
-        is PostCursor.Mark -> orderBy(GalaxyPostAspect.MarkCount to order, PostTable.id to order)
-        is PostCursor.Lean -> orderBy(PostTable.lean to order, PostTable.id to order)
-        is PostCursor.Time -> orderBy(PostTable.createdAt to order, PostTable.id to order)
+        is EntityCursor.Mark -> orderBy(GalaxyPostAspect.MarkCount to order, PostTable.id to order)
+        is EntityCursor.Lean -> orderBy(PostTable.lean to order, PostTable.id to order)
+        is EntityCursor.Time -> orderBy(PostTable.createdAt to order, PostTable.id to order)
     }
 }
 
@@ -139,13 +138,13 @@ fun <T : Comparable<T>> afterCursor(
     sortColumn: ExpressionWithColumnType<T>,
     sortValue: T,
     idColumn: Column<EntityID<Uuid>>,
-    idValue: TableId<Uuid>,
+    idValue: Uuid,
     direction: SortDirection,
 ): Op<Boolean> = when (direction) {
     SortDirection.Descending ->
-        sortColumn.less(sortValue) or (sortColumn.eq(sortValue) and idColumn.less(idValue.value))
+        sortColumn.less(sortValue) or (sortColumn.eq(sortValue) and idColumn.less(idValue))
     SortDirection.Ascending ->
-        sortColumn.greater(sortValue) or (sortColumn.eq(sortValue) and idColumn.greater(idValue.value))
+        sortColumn.greater(sortValue) or (sortColumn.eq(sortValue) and idColumn.greater(idValue))
 }
 
 fun ResultRow.toGalaxyPost() = when (this[PostTable.postType]) {

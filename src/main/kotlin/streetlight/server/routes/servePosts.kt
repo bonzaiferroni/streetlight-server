@@ -11,7 +11,7 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.MapQuery
-import streetlight.model.data.PostCursor
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.PostId
 import streetlight.model.data.SortDirection
 import streetlight.server.model.*
@@ -42,7 +42,7 @@ private fun RoutingContext.mapQuery(): MapQuery? {
     val seen = readParamOrNull(it.seen)
     val postId = readParamOrNull(it.postId)?.let { PostId(it) }
     val postLean = readParamOrNull(it.postLean)
-    val cursor = if (postId != null && postLean != null) PostCursor.Lean(SortDirection.Descending, postId, postLean)
-    else PostCursor.Lean.Default
+    val cursor = if (postId != null && postLean != null) EntityCursor.Lean(SortDirection.Descending, postId.value, postLean)
+    else EntityCursor.Lean.Default
     return MapQuery(view, seen, cursor)
 }

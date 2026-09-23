@@ -43,7 +43,7 @@ import streetlight.model.data.MarkUpdate
 import streetlight.model.data.MediaId
 import streetlight.model.data.CuratorType
 import streetlight.model.data.MapQuery
-import streetlight.model.data.PostCursor
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.getCuratorType
 import streetlight.server.db.tables.GalaxyHostTable
 import streetlight.server.db.tables.GalaxyMarkTable
@@ -114,21 +114,21 @@ class PostTableDao : DbService() {
         PostTable.deleteWhere { PostTable.id.eq(postId) } == 1
     }
 
-    suspend fun readGalaxyPosts(galaxyIds: List<GalaxyId>, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readGalaxyPosts(galaxyIds: List<GalaxyId>, callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default) = dbQuery {
         readOrderedPosts(callerId, cursor) { PostTable.galaxyId.inList(galaxyIds) }
     }
 
-    suspend fun readGalaxyPosts(galaxyId: GalaxyId, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readGalaxyPosts(galaxyId: GalaxyId, callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default) = dbQuery {
         readOrderedPosts(callerId, cursor) { PostTable.galaxyId.eq(galaxyId) }
     }
 
-    suspend fun readHomePosts(callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readHomePosts(callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default) = dbQuery {
         readOrderedPosts(callerId = callerId, cursor = cursor, joinGalaxyStar = callerId != null) {
             callerId?.let { GalaxyStarTable.starId.eq(callerId) } ?: Op.TRUE
         }
     }
 
-    suspend fun readStarPosts(starId: StarId, callerId: CallerId?, cursor: PostCursor = PostCursor.Default) = dbQuery {
+    suspend fun readStarPosts(starId: StarId, callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default) = dbQuery {
         readOrderedPosts(callerId, cursor) { PostTable.starId.eq(starId.value) }
     }
 
@@ -142,14 +142,14 @@ class PostTableDao : DbService() {
 
     suspend fun readOrderedPosts(
         callerId: CallerId?,
-        cursor: PostCursor = PostCursor.Default,
+        cursor: EntityCursor = EntityCursor.Default,
         joinGalaxyStar: Boolean = false,
         filter: QueryFilter
     ) = dbQuery {
         GalaxyPostAspect.queryCursor(cursor, callerId, joinGalaxyStar)
             .where { filter() andIfNotNull GalaxyPostAspect.afterCursor(cursor) }
             .orderByCursor(cursor)
-            .limit(PostCursor.DefaultLimit)
+            .limit(EntityCursor.DefaultLimit)
             .map { it.toGalaxyPost() }
     }
 

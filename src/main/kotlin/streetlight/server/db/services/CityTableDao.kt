@@ -25,6 +25,7 @@ import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.data.Country
 import streetlight.model.data.CountryId
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
@@ -36,6 +37,7 @@ import streetlight.server.db.tables.createCountry
 import streetlight.server.db.tables.createState
 import streetlight.server.db.tables.createCity
 import streetlight.server.db.tables.updateCity
+import kotlin.time.Clock
 
 class CityTableDao : DbService() {
 
@@ -169,9 +171,13 @@ class CityTableDao : DbService() {
     }
 
     suspend fun readCityPosts(slug: Slug, callerId: CallerId?) = dbQuery {
-        cityPostQuery(callerId) {
-            CityTable.slug.eq(slug)
-        }
+        val cityId = CityTable.select(CityTable.id).where { CityTable.slug.eq(slug) }
+            .firstOrNull()?.let { CityId(it[CityTable.id].value) } ?: return@dbQuery emptyList()
+        cityEntityQuery(cityId, callerId, eventsStartingAfter = Clock.System.now())
+    }
+
+    suspend fun readCityFeed(cityId: CityId, callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {
+        cityEntityQuery(cityId, callerId, cursor)
     }
 }
 

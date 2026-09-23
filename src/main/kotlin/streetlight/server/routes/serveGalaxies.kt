@@ -27,7 +27,7 @@ import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.MarkId
-import streetlight.model.data.PostCursor
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.PostId
 
 fun ApiScope.serveGalaxies() {
@@ -164,18 +164,18 @@ private fun galaxyEditProblemOrNull(edit: GalaxyEdit): Problem? = when {
     else -> null
 }
 
-fun RoutingContext.readCursor(endpoint: CursorEndpoint): PostCursor {
-    val postId = readParamOrNull(endpoint.postId)?.let { PostId(it) }
+fun RoutingContext.readCursor(endpoint: CursorEndpoint): EntityCursor {
+    val recordId = readParamOrNull(endpoint.recordId)
     val markId = readParamOrNull(endpoint.markId)
     if (markId != null) {
-        return PostCursor.Mark(MarkId(markId), postId, readParamOrNull(endpoint.count))
+        return EntityCursor.Mark(MarkId(markId), recordId, readParamOrNull(endpoint.count))
     }
-    val direction = readParamOrNull(endpoint.direction) ?: return PostCursor.Default
+    val direction = readParamOrNull(endpoint.direction) ?: return EntityCursor.Default
     val lean = readParamOrNull(endpoint.lean)
     val recordAt = readParamOrNull(endpoint.recordAt)
     return when {
-        lean != null -> PostCursor.Lean(direction, postId, lean)
-        recordAt != null -> PostCursor.Time(direction, postId, recordAt)
-        else -> PostCursor.Time(direction, postId, null)
+        lean != null -> EntityCursor.Lean(direction, recordId, lean)
+        recordAt != null -> EntityCursor.Time(direction, recordId, recordAt)
+        else -> EntityCursor.Time(direction, recordId, null)
     }
 }

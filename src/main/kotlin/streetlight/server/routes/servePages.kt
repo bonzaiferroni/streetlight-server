@@ -51,6 +51,7 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.AboutApp -> renderAboutApp(resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityList -> renderCityList(resource)
+            Screen.City -> renderCity(arg, caller?.callerId, resource)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId, resource)
             Screen.Star -> renderStar(arg, caller, resource)
             Screen.Event -> renderEvent(arg, caller?.callerId, resource)
@@ -151,6 +152,17 @@ suspend fun ApiScope.renderCityList(resource: PageResource): HtmlRender {
     return HtmlRender {
         appPage("Cities", Screen.CityList, resource) {
             cityListShell(content)
+        }
+    }
+}
+
+suspend fun ApiScope.renderCity(arg: String?, callerId: CallerId?, resource: PageResource): HtmlRender? {
+    val slug = arg?.toSlug() ?: return null
+    val content = readCityContent(slug, callerId) ?: return null
+
+    return HtmlRender {
+        appPage(content.city.name, Screen.City, resource) {
+            cityShell(content)
         }
     }
 }
