@@ -66,7 +66,7 @@ private val KtStyles = listOf(
     DialogCss,
     LottieCss,
     IconButtonCss,
-    FeatureImageCss,
+    ContainImageCss,
     GridColumnsCss,
     SwapCss,
     RouteDockCss,
