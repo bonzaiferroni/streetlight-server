@@ -25,6 +25,7 @@ object CityTable : UuidTable("city"), SlugTable {
     val name = text("name")
     val aliases = array<String>("aliases").default(emptyList())
     val galaxyCount = integer("galaxy_count").default(0)
+    val locationCount = integer("location_count").default(0)
     val state = text("state")
     val country = text("country")
     val geoPoint = point("geo_point") // index
@@ -39,6 +40,7 @@ object CityTable : UuidTable("city"), SlugTable {
 }
 
 val cityGalaxyTrigger = CounterTrigger(CityTable, GalaxyTable, GalaxyTable.cityId, CityTable.galaxyCount)
+val cityLocationCountTrigger = CounterTrigger(CityTable, LocationTable, LocationTable.cityId, CityTable.locationCount)
 val cityStateSync = SyncValueTrigger(CityTable.stateId, CityTable.state, StateTable, StateTable.name)
 val cityCountrySync = SyncValueTrigger(CityTable.stateId, CityTable.country, StateTable, StateTable.country)
 
@@ -49,6 +51,7 @@ fun ResultRow.toCity() = City(
     state = this[CityTable.state],
     country = this[CityTable.country],
     galaxyCount = this[CityTable.galaxyCount],
+    locationCount = this[CityTable.locationCount],
     mapRank = this[CityTable.mapRank],
     geoPoint = this[CityTable.geoPoint].toGeoPoint(),
     geoRect = this[CityTable.geoBounds].toGeoBounds()
