@@ -72,6 +72,7 @@ fun OSMCity.toCity() = City(
     country = country,
     galaxyCount = 0,
     locationCount = 0,
+    eventCount = 0,
     mapRank = importance,
     geoPoint = geoPoint,
     geoRect = geoRect,

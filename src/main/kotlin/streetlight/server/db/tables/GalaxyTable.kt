@@ -59,8 +59,6 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
 
 val galaxyLocationCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.locationCount,
     "NEW.post_type = ${PostType.Location.ordinal}")
-val galaxyEventCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.eventCount,
-    "NEW.post_type = ${PostType.Event.ordinal}")
 val galaxyPostCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.postCount)
 val galaxyStarTrigger = CounterTrigger(GalaxyTable, GalaxyStarTable, GalaxyStarTable.galaxyId, GalaxyTable.starCount)
 

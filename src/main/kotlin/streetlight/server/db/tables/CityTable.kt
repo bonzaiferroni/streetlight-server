@@ -26,6 +26,7 @@ object CityTable : UuidTable("city"), SlugTable {
     val aliases = array<String>("aliases").default(emptyList())
     val galaxyCount = integer("galaxy_count").default(0)
     val locationCount = integer("location_count").default(0)
+    val eventCount = integer("event_count").default(0)
     val state = text("state")
     val country = text("country")
     val geoPoint = point("geo_point") // index
@@ -52,6 +53,7 @@ fun ResultRow.toCity() = City(
     country = this[CityTable.country],
     galaxyCount = this[CityTable.galaxyCount],
     locationCount = this[CityTable.locationCount],
+    eventCount = this[CityTable.eventCount],
     mapRank = this[CityTable.mapRank],
     geoPoint = this[CityTable.geoPoint].toGeoPoint(),
     geoRect = this[CityTable.geoBounds].toGeoBounds()

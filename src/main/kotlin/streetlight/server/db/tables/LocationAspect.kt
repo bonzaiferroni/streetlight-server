@@ -38,6 +38,7 @@ object LocationAspect {
         LocationTable.links,
         LocationTable.image,
         LocationTable.starCount,
+        LocationTable.eventCount,
         LocationTable.updatedAt,
         LocationTable.createdAt,
     )
@@ -74,6 +75,7 @@ fun ResultRow.toLocation() = Location(
     extraLinks = this[LocationTable.links],
     image = this[LocationTable.image],
     starCount = this[LocationTable.starCount],
+    eventCount = this[LocationTable.eventCount],
     isLit = this.getOrNull(LocationStarTable.starId) != null,
     updatedAt = this[LocationTable.updatedAt],
     createdAt = this[LocationTable.createdAt],

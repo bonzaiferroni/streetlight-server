@@ -7,9 +7,14 @@ import klutch.db.tables.nextSlugOf
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.coalesce
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.intLiteral
 import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.sum
+import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
@@ -24,6 +29,7 @@ import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
 import streetlight.server.db.tables.CountryTable
+import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.StateTable
 import streetlight.server.db.tables.toCity
 import streetlight.server.db.tables.createCountry
@@ -151,6 +157,15 @@ class CityTableDao : DbService() {
         CityTable.select(CityTable.id).where {
             CityTable.name.eq(city) and CityTable.state.eq(state)
         }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
+    }
+
+    // reads LocationTable.eventCount, so it follows LocationTableDao.updateEventCounts
+    suspend fun updateEventCounts() = dbQuery {
+        val upcoming = LocationTable.select(coalesce(LocationTable.eventCount.sum(), intLiteral(0)))
+            .where { LocationTable.cityId.eq(CityTable.id) }
+        CityTable.update({ CityTable.eventCount.neq(wrapAsExpression<Int>(upcoming)) }) {
+            it[CityTable.eventCount] = upcoming
+        }
     }
 
     suspend fun readCityPosts(slug: Slug, callerId: CallerId?) = dbQuery {

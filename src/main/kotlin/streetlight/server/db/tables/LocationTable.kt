@@ -46,6 +46,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)
+    val eventCount = integer("event_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val eventsUrl = text("events_url").nullable()
     val image = image("image").nullable()

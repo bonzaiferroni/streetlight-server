@@ -6,16 +6,26 @@ import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.countDistinct
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.City
 import kotlin.time.Clock
+import kotlin.time.Instant
 import streetlight.model.data.Galaxy
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
+import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.GalaxyTable
+import streetlight.server.db.tables.PostTable
 import klutch.db.tables.isSlugAvailable
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -99,6 +109,15 @@ class GalaxyTableDao : DbService() {
 
     suspend fun delete(galaxyId: GalaxyId) = dbQuery {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
+    }
+
+    suspend fun updateEventCounts(now: Instant) = dbQuery {
+        val upcoming = PostTable.join(EventTable, JoinType.INNER, PostTable.eventId, EventTable.id)
+            .select(EventTable.id.countDistinct())
+            .where { PostTable.galaxyId.eq(GalaxyTable.id) and EventTable.startsAt.greater(now) }
+        GalaxyTable.update({ GalaxyTable.eventCount.neq(wrapAsExpression(upcoming)) }) {
+            it[GalaxyTable.eventCount] = upcoming
+        }
     }
 
     suspend fun readGalaxy(slug: Slug, callerId: CallerId?) = dbQuery {

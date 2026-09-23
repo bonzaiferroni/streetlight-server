@@ -16,12 +16,17 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.andIfNotNull
+import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import kotlin.time.Clock
 import streetlight.model.data.Location
@@ -93,6 +98,14 @@ class LocationTableDao : DbService() {
     suspend fun updateCheckedAt(locationId: LocationId, checkedAt: Instant = Clock.System.now()) = dbQuery {
         LocationTable.update({ LocationTable.id.eq(locationId) }) {
             it[LocationTable.checkedAt] = checkedAt
+        }
+    }
+
+    suspend fun updateEventCounts(now: Instant) = dbQuery {
+        val upcoming = EventTable.select(EventTable.id.count())
+            .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greater(now) }
+        LocationTable.update({ LocationTable.eventCount.neq(wrapAsExpression<Int>(upcoming)) }) {
+            it[LocationTable.eventCount] = upcoming
         }
     }
 
@@ -211,6 +224,7 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     hours = hours,
     website = website,
     starCount = null,
+    eventCount = 0,
     isLit = false,
     eventsUrl = eventsUrl,
     extraLinks = extraLinks,

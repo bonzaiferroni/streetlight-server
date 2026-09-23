@@ -98,7 +98,6 @@ private val counterTriggers get() = listOf(
     cityGalaxyTrigger,
     cityLocationCountTrigger,
     galaxyStarTrigger,
-    galaxyEventCountTrigger,
     galaxyLocationCountTrigger,
     galaxyPostCountTrigger,
     eventStarCountTrigger,
