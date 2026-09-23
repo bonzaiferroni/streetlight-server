@@ -21,7 +21,9 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.City
+import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
 import streetlight.model.data.Country
 import streetlight.model.data.CountryId
@@ -174,6 +176,19 @@ class CityTableDao : DbService() {
         val cityId = CityTable.select(CityTable.id).where { CityTable.slug.eq(slug) }
             .firstOrNull()?.let { CityId(it[CityTable.id].value) } ?: return@dbQuery emptyList()
         cityEntityQuery(cityId, callerId, eventsStartingAfter = Clock.System.now())
+    }
+
+    suspend fun update(edit: CityEdit) = dbQuery {
+        CityTable.updateReturning(where = { CityTable.id.eq(edit.cityId) }) { it.updateCity(edit) }
+            .singleOrNull()?.toCity()
+    }
+
+    // name and state are unique together
+    suspend fun isNameTaken(cityId: CityId, name: String) = dbQuery {
+        val stateId = CityTable.select(CityTable.stateId).where { CityTable.id.eq(cityId) }
+            .singleOrNull()?.get(CityTable.stateId) ?: return@dbQuery false
+        CityTable.select(CityTable.id).where { CityTable.name.eq(name) and CityTable.stateId.eq(stateId) }
+            .any { it[CityTable.id].value != cityId.value }
     }
 
     suspend fun readCityFeed(cityId: CityId, callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {

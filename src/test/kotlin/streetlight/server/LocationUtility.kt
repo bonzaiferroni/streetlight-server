@@ -24,6 +24,7 @@ suspend fun TestServer.seedCity(): CityId = dao.city.createCity(
         galaxyCount = 0,
         locationCount = 0,
         eventCount = 0,
+        image = null,
         mapRank = null,
         geoPoint = DENVER,
         geoRect = DENVER_AREA,

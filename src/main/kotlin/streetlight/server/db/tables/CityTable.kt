@@ -3,7 +3,9 @@ package streetlight.server.db.tables
 import kampfire.api.toSlug
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
+import klutch.db.image
 import klutch.db.point
+import kampfire.model.ImageSize
 import klutch.db.tables.SlugTable
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
@@ -14,6 +16,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.City
+import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
 import streetlight.model.data.StateId
 import kotlin.time.Clock
@@ -32,8 +35,18 @@ object CityTable : UuidTable("city"), SlugTable {
     val geoPoint = point("geo_point") // index
     val geoBounds = array<Double>("geo_bounds")
     val mapRank = float("map_rank").nullable()
+    val image = image("image").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    val imageConfig = imageConfigOf(
+        table = this,
+        column = image,
+        ImageSize.Large,
+        ImageSize.Medium,
+        ImageSize.Small,
+        ImageSize.Thumb,
+    )
 
     init {
         uniqueIndex(name, stateId)
@@ -54,6 +67,7 @@ fun ResultRow.toCity() = City(
     galaxyCount = this[CityTable.galaxyCount],
     locationCount = this[CityTable.locationCount],
     eventCount = this[CityTable.eventCount],
+    image = this[CityTable.image],
     mapRank = this[CityTable.mapRank],
     geoPoint = this[CityTable.geoPoint].toGeoPoint(),
     geoRect = this[CityTable.geoBounds].toGeoBounds()
@@ -67,6 +81,12 @@ fun UpdateBuilder<*>.createCity(city: City, stateId: StateId) {
     this[CityTable.country] = city.country
     this[CityTable.createdAt] = Clock.System.now()
     updateCity(city)
+}
+
+fun UpdateBuilder<*>.updateCity(edit: CityEdit) {
+    this[CityTable.name] = edit.name ?: error("name not found")
+    this[CityTable.image] = edit.image
+    this[CityTable.updatedAt] = Clock.System.now()
 }
 
 fun UpdateBuilder<*>.updateCity(city: City) {

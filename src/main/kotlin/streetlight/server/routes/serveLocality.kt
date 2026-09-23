@@ -8,6 +8,7 @@ import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.getApi
+import klutch.server.postApi
 import klutch.server.readParam
 import klutch.server.readParamOrNull
 import streetlight.model.Api
@@ -17,6 +18,8 @@ import streetlight.model.data.EntityCursor
 import streetlight.model.external.OSMCity
 import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.ApiScope
+import streetlight.server.db.datascope.updateCity
+import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.model.readCityContent
 import streetlight.server.model.readCityFeed
@@ -78,6 +81,12 @@ fun ApiScope.serveCity() {
             Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, cursor))
         }
     }
+
+    authGate {
+        postApi(Api.Cities.UpdateCity) { request ->
+            updateCity(call.getIdentity().callerId, request.data)
+        }
+    }
 }
 
 fun OSMCity.toCity() = City(
@@ -89,6 +98,7 @@ fun OSMCity.toCity() = City(
     galaxyCount = 0,
     locationCount = 0,
     eventCount = 0,
+    image = null,
     mapRank = importance,
     geoPoint = geoPoint,
     geoRect = geoRect,
