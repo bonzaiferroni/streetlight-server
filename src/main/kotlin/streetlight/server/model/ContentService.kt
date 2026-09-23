@@ -2,19 +2,13 @@ package streetlight.server.model
 
 import kampfire.api.Slug
 import kampfire.api.Username
-import klutch.db.model.CallerId
 import klutch.db.model.Identity
 import koala.model.DocId
-import org.jetbrains.exposed.v1.core.Op
 import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent
-import streetlight.model.data.GalaxyContent
 import streetlight.model.data.EntityFeed
-import streetlight.model.data.FeedEntity
-import streetlight.model.data.HomeContent
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
-import streetlight.model.data.PostCursor
 import streetlight.model.data.StarContent
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree

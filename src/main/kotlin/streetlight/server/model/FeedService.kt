@@ -2,10 +2,9 @@ package streetlight.server.model
 
 import kampfire.api.Slug
 import klutch.db.model.CallerId
-import org.jetbrains.exposed.v1.core.Op
 import streetlight.model.data.CityListContent
 import streetlight.model.data.EntityFeed
-import streetlight.model.data.FeedEntity
+import streetlight.model.data.Entity
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
 import streetlight.model.data.PostCursor
@@ -39,7 +38,7 @@ suspend fun DaoScope.readGalaxyContent(
 }
 
 suspend fun DaoScope.readFeedMarks(
-    posts: List<FeedEntity>,
+    posts: List<Entity>,
     callerId: CallerId?,
     cursor: PostCursor = PostCursor.Default
 ): EntityFeed {
@@ -49,7 +48,7 @@ suspend fun DaoScope.readFeedMarks(
     return EntityFeed(posts, feedMarks, postMarks, nextCursor)
 }
 
-fun PostCursor.next(entities: List<FeedEntity>): PostCursor? {
+fun PostCursor.next(entities: List<Entity>): PostCursor? {
     val lastPost = entities.takeIf { it.size >= PostCursor.DefaultLimit }?.last()?.post ?: return null
     return when (this) {
         is PostCursor.Time -> copy(postId = lastPost.postId, recordAt = lastPost.createdAt)
