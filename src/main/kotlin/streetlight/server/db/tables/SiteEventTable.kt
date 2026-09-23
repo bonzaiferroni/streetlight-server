@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.timestamp
@@ -11,7 +12,7 @@ object SiteEventTable: UuidTable("site_event") {
     val time = timestamp("time")
 
     init {
-        id.withDefinition("DEFAULT gen_random_uuid()")
+        id.defaultExpression(CustomFunction("gen_random_uuid", id.columnType))
     }
 }
 

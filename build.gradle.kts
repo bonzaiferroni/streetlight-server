@@ -135,3 +135,12 @@ tasks.register<JavaExec>("generateMigration") {
         args = listOf(name)
     }
 }
+
+tasks.register<JavaExec>("checkMigration") {
+    group = "database"
+    description = "Diffs the table definitions against a shadow database and prints any statements a migration still needs"
+    mainClass.set("streetlight.server.tools.GenerateMigrationKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    workingDir = projectDir
+    args = listOf("--check")
+}

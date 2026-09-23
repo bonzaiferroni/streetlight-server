@@ -40,7 +40,7 @@ object StarTable: UuidTable("star") {
     val accountType = enumeration<AccountType>("account_type")
     val emailStatus = enumeration<EmailStatus>("email_status").nullable()
     val scoutLevel = integer("scout_level").default(0)
-    val stripId = text("strip_id").nullable()
+    val stripeId = text("stripe_id").nullable()
     val venmoId = text("venmo_id").nullable()
     val paypalId = text("paypal_id").nullable()
     val cashAppId = text("cashapp_id").nullable()

@@ -14,12 +14,16 @@ import streetlight.server.EnvKey
 import streetlight.server.db.dbTables
 import java.io.File
 import java.sql.DriverManager
+import kotlin.system.exitProcess
 
 private const val MIGRATION_DIR = "src/main/resources/db/migration"
 private const val SHADOW_DB = "streetlight_shadow"
 
+private const val CHECK_FLAG = "--check"
+
 fun main(args: Array<String>) {
-    val description = args.firstOrNull() ?: error("usage: generateMigration <description>")
+    val description = args.firstOrNull() ?: error("usage: generateMigration <description> | $CHECK_FLAG")
+    val isCheck = description == CHECK_FLAG
     val env = SystemEnvironment.fromSystem(readEnvFromPathOrNull())
     val user = env.read(EnvKey.DB_USER)
     val password = env.read(EnvKey.DB_PASSWORD)
@@ -30,6 +34,7 @@ fun main(args: Array<String>) {
 
     admin("drop database if exists $SHADOW_DB")
     admin("create database $SHADOW_DB")
+    var pending = emptyList<String>()
     try {
         Flyway.configure()
             .dataSource("$base/$SHADOW_DB", user, password)
@@ -38,6 +43,14 @@ fun main(args: Array<String>) {
             .migrate()
 
         val db = Database.connect("$base/$SHADOW_DB", driver = "org.postgresql.Driver", user = user, password = password)
+        if (isCheck) {
+            pending = transaction(db) {
+                MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray(), withLogs = false)
+            }
+            if (pending.isEmpty()) println("no schema changes since the last migration")
+            else pending.forEach { println(it) }
+            return
+        }
         val name = "V${nextMigrationVersion()}__$description"
         transaction(db) {
             MigrationUtils.generateMigrationScript(
@@ -56,6 +69,7 @@ fun main(args: Array<String>) {
         }
     } finally {
         admin("drop database if exists $SHADOW_DB")
+        if (pending.isNotEmpty()) exitProcess(1)
     }
 }
 
