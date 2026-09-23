@@ -7,6 +7,7 @@ import koala.html.*
 import koala.model.AltitudeCss
 import koala.model.MarkerSheet
 import streetlight.server.utils.printToFile
+import streetlight.web.layouts.CellGridCss
 import streetlight.web.layouts.FeedProtoCss
 import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
@@ -84,6 +85,7 @@ private val KtStyles = listOf(
     EarthCss,
     TalkLogCss,
     FeedProtoCss,
+    CellGridCss,
     StarToggleCss,
     MarkerSheet,
     AltitudeCss,
