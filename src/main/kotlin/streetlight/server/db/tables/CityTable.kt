@@ -10,15 +10,16 @@ import klutch.utils.toGeoPoint
 import klutch.utils.toList
 import klutch.utils.toPGpoint
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.City
 import streetlight.model.data.CityId
 import streetlight.model.data.StateId
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
-object CityTable : IntIdTable("city"), SlugTable {
+object CityTable : UuidTable("city"), SlugTable {
     val stateId = reference("state_id", StateTable.id).index()
     override val slug = text("slug").index()
     val name = text("name")
@@ -54,6 +55,7 @@ fun ResultRow.toCity() = City(
 )
 
 fun UpdateBuilder<*>.createCity(city: City, stateId: StateId) {
+    this[CityTable.id] = Uuid.random()
     this[CityTable.stateId] = stateId.value
     this[CityTable.slug] = city.slug.value
     this[CityTable.state] = city.state

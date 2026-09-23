@@ -16,7 +16,7 @@ val DENVER_AREA = GeoRect(GeoPoint(-105.1, 39.6), GeoPoint(-104.6, 39.9))
 
 suspend fun TestServer.seedCity(): CityId = dao.city.createCity(
     City(
-        cityId = CityId.empty,
+        cityId = CityId.random(),
         slug = Slug("denver-colorado"),
         name = "Denver",
         state = "Colorado",

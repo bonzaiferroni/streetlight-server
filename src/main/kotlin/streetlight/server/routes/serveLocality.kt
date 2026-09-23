@@ -65,7 +65,7 @@ fun ApiScope.serveCity() {
 }
 
 fun OSMCity.toCity() = City(
-    cityId = CityId.empty,
+    cityId = CityId.random(),
     slug = Slug.Empty,
     name = name,
     state = state,
