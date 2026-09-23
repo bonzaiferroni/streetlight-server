@@ -4,6 +4,8 @@ import kampfire.api.toSlug
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
+import klutch.db.jsonbConfig
+import klutch.utils.transformMarkdown
 import klutch.db.point
 import kampfire.model.ImageSize
 import klutch.db.tables.SlugTable
@@ -15,9 +17,11 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.City
 import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
+import streetlight.model.data.ExtraLink
 import streetlight.model.data.StateId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -36,6 +40,8 @@ object CityTable : UuidTable("city"), SlugTable {
     val geoBounds = array<Double>("geo_bounds")
     val mapRank = float("map_rank").nullable()
     val image = image("image").nullable()
+    val description = text("description").transformMarkdown().nullable()
+    val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
 
@@ -68,6 +74,8 @@ fun ResultRow.toCity() = City(
     locationCount = this[CityTable.locationCount],
     eventCount = this[CityTable.eventCount],
     image = this[CityTable.image],
+    description = this[CityTable.description],
+    links = this[CityTable.links],
     mapRank = this[CityTable.mapRank],
     geoPoint = this[CityTable.geoPoint].toGeoPoint(),
     geoRect = this[CityTable.geoBounds].toGeoBounds()
@@ -86,6 +94,8 @@ fun UpdateBuilder<*>.createCity(city: City, stateId: StateId) {
 fun UpdateBuilder<*>.updateCity(edit: CityEdit) {
     this[CityTable.name] = edit.name ?: error("name not found")
     this[CityTable.image] = edit.image
+    this[CityTable.description] = edit.description
+    this[CityTable.links] = edit.links
     this[CityTable.updatedAt] = Clock.System.now()
 }
 

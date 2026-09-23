@@ -74,6 +74,8 @@ class CityLocationCountTest : DatabaseTest() {
             locationCount = 0,
             eventCount = 0,
             image = null,
+            description = null,
+            links = null,
             mapRank = null,
             geoPoint = GeoPoint(-105.27, 40.01),
             geoRect = GeoRect(GeoPoint(-105.3, 39.95), GeoPoint(-105.2, 40.1)),
