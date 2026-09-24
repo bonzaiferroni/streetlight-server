@@ -17,11 +17,9 @@ import streetlight.model.data.GalaxyId
 import streetlight.model.data.LightEdit
 import streetlight.model.data.ToggleType
 import streetlight.model.data.LocationId
-import streetlight.model.data.PostId
 import streetlight.server.db.tables.EventStarTable
 import streetlight.server.db.tables.GalaxyStarTable
 import streetlight.server.db.tables.LocationStarTable
-import streetlight.server.db.tables.PostMarkTable
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -56,25 +54,16 @@ class LightTableDao : DbService() {
         createdAt = LocationStarTable.createdAt,
     )
 
-    private val postLight = LightConfig(
-        lightTable = PostMarkTable,
-        lightStarId = PostMarkTable.starId,
-        lightForeignId = PostMarkTable.postId,
-        createdAt = PostMarkTable.createdAt,
-    )
-
     // -- public API --
 
     suspend fun readEventLights(callerId: CallerId) = readLights(eventLight, callerId) { EventId(it) }
     suspend fun readGalaxyLights(callerId: CallerId) = readLights(galaxyLight, callerId) { GalaxyId(it) }
     suspend fun readLocationLights(callerId: CallerId) = readLights(locationLight, callerId) { LocationId(it) }
-    suspend fun readPostLights(callerId: CallerId) = readLights(postLight, callerId) { PostId(it) }
 
     suspend fun editLight(edit: LightEdit, callerId: CallerId) = when (edit.toggleType) {
         ToggleType.Event -> editLight(eventLight, edit, callerId)
         ToggleType.Galaxy -> editLight(galaxyLight, edit, callerId)
         ToggleType.Location -> editLight(locationLight, edit, callerId)
-        ToggleType.Post -> editLight(postLight, edit, callerId)
     }
 
     suspend fun editLights(edits: List<LightEdit>, callerId: CallerId): Boolean {

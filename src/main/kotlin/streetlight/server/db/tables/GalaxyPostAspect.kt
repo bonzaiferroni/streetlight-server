@@ -111,9 +111,10 @@ fun Join.joinCaller(callerId: CallerId?, joinGalaxyStar: Boolean): Join {
     val base = if (joinGalaxyStar) join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
         additionalConstraint = { GalaxyStarTable.starId.eq(callerId) }) else this
     return base
-        .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId)
+        .join(EventStarTable, JoinType.LEFT, PostTable.eventId, EventStarTable.eventId,
+            additionalConstraint = { EventStarTable.starId.eq(callerId) })
         .join(LocationStarTable, JoinType.LEFT, PostTable.locationId, LocationStarTable.locationId,
-            additionalConstraint = { PostTable.postType.eq(PostType.Location)})
+            additionalConstraint = { PostTable.postType.eq(PostType.Location) and LocationStarTable.starId.eq(callerId) })
 }
 
 /** Joins the tally of the cursor's mark, for a mark cursor. */

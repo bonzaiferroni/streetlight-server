@@ -75,7 +75,7 @@ fun renderAccountLockdownConfirm(token: Token, resource: PageResource): HtmlRend
             },
             resource = resource,
         ) {
-            formSubmit("Remove My Address", token, Api.AccountAction.AccountNotOwned)
+            formSubmit("Lock My Account", token, Api.AccountAction.LockdownAccount)
         }
     }
 }
