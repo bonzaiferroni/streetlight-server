@@ -10,6 +10,7 @@ import io.ktor.server.plugins.ratelimit.RateLimitName
 import klutch.db.model.SessionIdentity
 import kotlin.time.Duration.Companion.seconds
 
+/** Installs the rate limits of [RateLimits], or unlimited ones when [withLimits] is off. */
 fun Application.configureRateLimits(withLimits: Boolean) {
     val limit = if (withLimits) 5 else Int.MAX_VALUE
 

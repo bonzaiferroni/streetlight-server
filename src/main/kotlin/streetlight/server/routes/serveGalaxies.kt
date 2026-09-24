@@ -164,6 +164,7 @@ private fun galaxyEditProblemOrNull(edit: GalaxyEdit): Problem? = when {
     else -> null
 }
 
+/** The feed cursor in the query of [endpoint]: by mark, by lean, or by time, or the default without a direction. */
 fun RoutingContext.readCursor(endpoint: CursorEndpoint): EntityCursor {
     val recordId = readParamOrNull(endpoint.recordId)
     val markId = readParamOrNull(endpoint.markId)

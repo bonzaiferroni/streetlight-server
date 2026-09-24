@@ -23,6 +23,7 @@ object TransitRouteTable: IdTable<String>("transit_route") {
     override val primaryKey = PrimaryKey(id)
 }
 
+/** The stops of each transit route. */
 object TransitRouteStopTable: Table("transit_route_stop") {
     val transitRouteId = reference("transit_route_id", TransitRouteTable.id, onDelete = ReferenceOption.CASCADE)
     val transitStopId = reference("transit_stop_id", TransitStopTable.id, onDelete = ReferenceOption.CASCADE)

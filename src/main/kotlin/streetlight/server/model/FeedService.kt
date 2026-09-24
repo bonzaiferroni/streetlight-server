@@ -12,6 +12,7 @@ import streetlight.model.data.HomeContent
 import streetlight.server.db.services.cityRecordId
 import streetlight.model.data.EntityCursor
 
+/** The home page: the top galaxies and the page of posts at [cursor]. */
 suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default): HomeContent {
     val posts = dao.post.readHomePosts(callerId, cursor)
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
@@ -29,6 +30,7 @@ suspend fun DaoScope.readCityContent(slug: Slug, callerId: CallerId?): CityConte
     )
 }
 
+/** The page of a city's feed at [cursor], with the cursor of the next page when this one is full. */
 suspend fun DaoScope.readCityFeed(
     cityId: CityId,
     callerId: CallerId?,
@@ -60,6 +62,7 @@ suspend fun DaoScope.readGalaxyContent(
     )
 }
 
+/** A feed of [posts] with the marks of their galaxies and the caller's marks on each post. */
 suspend fun DaoScope.readFeedMarks(
     posts: List<Entity>,
     callerId: CallerId?,
@@ -71,6 +74,7 @@ suspend fun DaoScope.readFeedMarks(
     return EntityFeed(posts, feedMarks, postMarks, nextCursor)
 }
 
+/** The cursor after [entities], or `null` when they did not fill a page. */
 fun EntityCursor.next(entities: List<Entity>): EntityCursor? {
     val lastPost = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.post ?: return null
     return when (this) {

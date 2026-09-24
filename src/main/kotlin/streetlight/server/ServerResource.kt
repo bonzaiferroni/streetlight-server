@@ -34,6 +34,12 @@ import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
 import streetlight.web.ui.TextDeltaCss
 
+/**
+ * The resources of every server-rendered page: the script bundle, the stylesheet built from the Kotlin styles,
+ * and the head script.
+ *
+ * In development the stylesheet is also written to `debug/site-styles.css`.
+ */
 class ServerResource(mode: BuildMode): PageResource {
 
     override val bundle = ServerBundle(mode)

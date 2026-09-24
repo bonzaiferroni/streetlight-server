@@ -35,6 +35,7 @@ import streetlight.model.data.SortDirection
 import streetlight.server.utils.toRecordId
 import kotlin.uuid.Uuid
 
+/** Reads posts with the record each one posts: an event, a location, or media. */
 object GalaxyPostAspect {
     val PostColumns = listOf(
         PostTable.id,
@@ -76,6 +77,7 @@ object GalaxyPostAspect {
     fun query(callerId: CallerId?, joinGalaxyStar: Boolean = false) = baseQuery(callerId, joinGalaxyStar)
         .select(GalaxyPostColumns)
 
+    /** Posts joined as [cursor] needs to order them, with whether the caller has lit each. */
     fun queryCursor(
         cursor: EntityCursor,
         callerId: CallerId?,
@@ -86,6 +88,7 @@ object GalaxyPostAspect {
 
     val MarkCount = Coalesce(PostMarkCountTable.count, intLiteral(0))
 
+    /** The condition for posts after [cursor], or `null` for the first page. */
     fun afterCursor(cursor: EntityCursor): Op<Boolean>? {
         val postId = cursor.recordId ?: return null
         return when (cursor) {
@@ -102,6 +105,7 @@ object GalaxyPostAspect {
     }
 }
 
+/** Joins the caller's lights on each post's record, and on its galaxy when [joinGalaxyStar]. */
 fun Join.joinCaller(callerId: CallerId?, joinGalaxyStar: Boolean): Join {
     if (callerId == null) return this
     val base = if (joinGalaxyStar) join(GalaxyStarTable, JoinType.LEFT, PostTable.galaxyId, GalaxyStarTable.galaxyId,
@@ -112,6 +116,7 @@ fun Join.joinCaller(callerId: CallerId?, joinGalaxyStar: Boolean): Join {
             additionalConstraint = { PostTable.postType.eq(PostType.Location)})
 }
 
+/** Joins the tally of the cursor's mark, for a mark cursor. */
 fun Join.joinCursor(cursor: EntityCursor): Join {
     if (cursor is EntityCursor.Mark) {
         return join(PostMarkCountTable, JoinType.LEFT, PostTable.id, PostMarkCountTable.postId,
@@ -120,6 +125,7 @@ fun Join.joinCursor(cursor: EntityCursor): Join {
     return this
 }
 
+/** Orders by the cursor's value, then by id, with nulls last. */
 fun Query.orderByCursor(cursor: EntityCursor): Query {
     val order = when (cursor.direction) {
         SortDirection.Descending -> SortOrder.DESC_NULLS_LAST
@@ -134,6 +140,7 @@ fun Query.orderByCursor(cursor: EntityCursor): Query {
 
 
 
+/** The rows after ([sortValue], [idValue]) in [direction], with the id breaking ties. */
 fun <T : Comparable<T>> afterCursor(
     sortColumn: ExpressionWithColumnType<T>,
     sortValue: T,

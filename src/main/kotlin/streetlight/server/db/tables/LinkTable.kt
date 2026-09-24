@@ -21,6 +21,7 @@ object LinkTable: UuidTable("link") {
     val createdAt = timestamp("created_at")
 }
 
+/** Other URLs that lead to a link, such as its redirects. */
 object LinkAliasTable: UuidTable("link_alias") {
     val linkId = reference("link_id", LinkTable, ReferenceOption.CASCADE).index()
     val url = text("url").uniqueIndex()

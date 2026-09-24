@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.jdbc.select
 import kotlin.uuid.Uuid
 
+/** The image column of a table and the sizes its images are stored at. */
 class TableImageConfig(
     val table: UuidTable,
     val column: Column<Image?>,

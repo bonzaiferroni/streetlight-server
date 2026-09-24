@@ -21,6 +21,7 @@ import streetlight.model.data.toEdit
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
+/** Reads a location from a web page, filling its gaps from the page's meta tags. */
 class LocationParser(
     private val parser: HtmlParserClient
 ) {

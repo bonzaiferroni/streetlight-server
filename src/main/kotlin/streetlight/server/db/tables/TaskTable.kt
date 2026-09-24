@@ -13,6 +13,7 @@ import streetlight.model.data.StarId
 import streetlight.model.data.TaskStatus
 import kotlin.time.Clock
 
+/** The review tasks asked of each star. */
 object TaskTable : UuidTable("task") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
     val recordId = uuid("record_id").index()

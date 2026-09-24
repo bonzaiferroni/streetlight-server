@@ -48,6 +48,7 @@ fun ApiScope.serveFiles() {
 //    }
 }
 
+/** Serves the web bundle of [buildMode] with its cache policy. */
 fun Route.serveBundle(buildMode: BuildMode) {
     staticFiles(buildMode.bundleBuildPath, File(buildMode.bundleDir)) {
         modify { _, call ->

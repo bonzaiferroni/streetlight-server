@@ -46,6 +46,7 @@ object LocationAspect {
     val starColumns = columns + LocationStarTable.starId
 }
 
+/** Locations, with whether the caller has lit each. */
 fun locationQuery(callerId: CallerId?) = LocationTable
     .join(LocationStarTable, JoinType.LEFT, LocationTable.id, LocationStarTable.locationId,
         additionalConstraint = LocationStarTable.getConstraint(callerId))

@@ -48,6 +48,7 @@ internal suspend fun DataScope.createToken(
     }
 }
 
+/** Records the bounced address of [bounce] and marks the accounts with it as bounced. */
 suspend fun DataScope.recordBounce(bounce: PostmarkBounce) {
     val email = bounce.email.toEmailAddress()
 

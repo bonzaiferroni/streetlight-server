@@ -4,6 +4,7 @@ import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 
+/** The sign-in sessions of each star, stored as hashes of their tokens. */
 object SessionTable: UuidTable("session") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).index()
     val tokenHash = char("token_hash", 64).uniqueIndex()

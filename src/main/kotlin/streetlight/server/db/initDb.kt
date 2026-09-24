@@ -19,6 +19,12 @@ import streetlight.server.buildMode
 import streetlight.server.db.tables.*
 import streetlight.server.model.ServerScope
 
+/**
+ * Connects the database and brings its schema up to date, then seeds the users and policies.
+ *
+ * In development the schema is raised from the table definitions; in production Flyway migrates it and only the
+ * triggers are installed.
+ */
 fun initDb(server: ServerScope) {
     dbLog.logInfo("initializing db")
     val env = server.provide<Environment>()
@@ -32,6 +38,7 @@ fun initDb(server: ServerScope) {
     }
 }
 
+/** Creates the triggers that keep counts and copied values in sync. */
 fun installTriggers(db: Database) {
     transaction(db) {
         counterTriggers.forEach { createCounterTrigger(it) }
@@ -132,6 +139,7 @@ fun connectDb(url: String, user: String, password: String) = Database.connect(
     password = password,
 )
 
+/** Connects a pool to the database of [env] and runs its pending Flyway migrations. */
 fun connectDb(env: Environment): Database {
     val dataSource = HikariDataSource(HikariConfig().apply {
         jdbcUrl = env.read(EnvKey.DB_URL)
@@ -148,6 +156,7 @@ fun connectDb(env: Environment): Database {
     return Database.connect(dataSource)
 }
 
+/** Alters the schema to match the table definitions, and creates the triggers. */
 fun raiseSchema(db: Database) {
     transaction(db) {
         MigrationUtils.statementsRequiredForDatabaseMigration(*dbTables.toTypedArray())

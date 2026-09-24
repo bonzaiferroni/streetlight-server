@@ -13,6 +13,7 @@ import kabinet.utils.Environment
 import kampfire.model.Url
 import kampfire.model.toUrl
 
+/** A [BlobClient] on S3-compatible storage. */
 class S3BlobClient(env: Environment): BlobClient {
     private val bucket = env.read("S3_BUCKET")
     private val endpoint = env.read("S3_ENDPOINT")

@@ -136,6 +136,7 @@ fun ApiScope.serveLocations() {
     }
 }
 
+/** The caller's identity; throws when the caller is not an admin. */
 fun RoutingCall.requireAdminIdentity(): Identity {
     val identity = getIdentity()
     if (!identity.isAdmin) throw UnauthorizedUserException()

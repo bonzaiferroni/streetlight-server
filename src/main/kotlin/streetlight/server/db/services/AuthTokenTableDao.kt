@@ -25,6 +25,7 @@ import streetlight.server.plugins.logger
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+/** The single-use tokens sent by email. A token is consumed rather than deleted. */
 class AuthTokenTableDao: DbService() {
     suspend fun createToken(token: AuthToken) = dbQuery {
         AuthTokenTable.insert {
@@ -38,6 +39,7 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
+    /** Consumes the star's open tokens, except the lockdown tokens issued before [exceptLockdownBefore]. */
     suspend fun consumeAllUserTokens(starId: StarId, exceptLockdownBefore: Long) = dbQuery {
         AuthTokenTable.update({
             AuthTokenTable.starId.eq(starId) and
@@ -51,6 +53,7 @@ class AuthTokenTableDao: DbService() {
         }
     }
 
+    /** Consumes the star's open tokens sent to [email], except lockdown tokens. */
     suspend fun consumeAllTokensForEmail(starId: StarId, email: EmailAddress) = dbQuery {
         AuthTokenTable.update({
             AuthTokenTable.starId.eq(starId) and
@@ -68,6 +71,7 @@ class AuthTokenTableDao: DbService() {
             .singleOrNull()?.toAuthToken()
     }
 
+    /** Consumes the token if still open, returning the count updated. */
     suspend fun consumeToken(tokenId: Long, instant: Instant) = dbQuery {
         AuthTokenTable.update({
             AuthTokenTable.id.eq(tokenId) and AuthTokenTable.consumedAt.isNull()

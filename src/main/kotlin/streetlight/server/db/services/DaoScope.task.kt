@@ -16,6 +16,7 @@ import streetlight.server.model.DaoScope
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
+/** Asks the scout who has waited longest for a task to review the edit [editLogId]. */
 suspend fun DaoScope.createEditTask(editLogId: EditLogId) {
     val now = Clock.System.now()
     val reviewerIds = findUniverseScouts(1)

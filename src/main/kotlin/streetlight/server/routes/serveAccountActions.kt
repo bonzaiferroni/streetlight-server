@@ -132,6 +132,7 @@ fun ApiScope.serveAccountActions() {
 
 private fun Parameters.getToken() = this["token"]?.let { Token(it) }
 
+/** Leaves [message] in a short-lived cookie for the page at [path] to show. */
 fun ApplicationCall.writeCookieMessage(message: String, path: String, expiration: Duration = 1.minutes) {
     response.cookies.append(
         Cookie(
@@ -145,6 +146,7 @@ fun ApplicationCall.writeCookieMessage(message: String, path: String, expiration
     )
 }
 
+/** The message left for the page at [path], clearing it. */
 fun ApplicationCall.readCookieMessage(path: String): String? {
     val message = request.cookies[MESSAGE_COOKIE_NAME] ?: return null
     response.cookies.append(

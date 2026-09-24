@@ -24,6 +24,7 @@ import kotlin.time.Duration.Companion.days
 private val console = KotlinLogging.logger("initGtfs")
 private val httpClient = HttpClient(CIO)
 
+/** Loads RTD's GTFS routes and stops once, when none are stored. The feed is cached on disk for a month. */
 suspend fun DataScope.initGtfs() {
     if (dao.transitRoute.readAllRoutes().isNotEmpty()) return
     console.info { "initializing gtfs" }
@@ -111,6 +112,7 @@ suspend fun DataScope.initGtfs() {
     }
 }
 
+/** Passes each file of [zipBytes] named in [wanted] to [consume] as text. */
 suspend fun unzipSelected(
     zipBytes: ByteArray,
     wanted: Set<String>,
@@ -129,6 +131,7 @@ suspend fun unzipSelected(
     }
 }
 
+/** Maps each line of [csv] to a value. Fields are split on [delimiter] without handling quotes. */
 fun <T> parseCsv(
     csv: String,
     delimiter: Char = ',',

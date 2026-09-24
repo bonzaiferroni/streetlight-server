@@ -15,6 +15,10 @@ import kotlin.time.Instant
 
 private val log = KotlinLogging.logger(SiteStatusDaemon::class.simpleName!!)
 
+/**
+ * Records the site's metrics at each [MetricResolution]: the finest sampled from Micrometer, each coarser one
+ * aggregated from the one before.
+ */
 class SiteStatusDaemon(
     private val dao: DaoFacade,
     private val registry: MeterRegistry
@@ -22,6 +26,7 @@ class SiteStatusDaemon(
     private val previousCounters = mutableMapOf<SiteMetric, Long>()
     private val previousSnapshots = mutableMapOf<SiteMetric, TimerSnapshot>()
 
+    /** Records until cancelled, at each aligned boundary of the finest resolution. */
     suspend fun start() {
         val finest = MetricResolution.entries.first()
         var nextTick = Clock.System.now().nextAlignedBoundary(finest)

@@ -23,6 +23,13 @@ import streetlight.server.model.Email
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+/**
+ * Locks the account of a lockdown [token], sent when its password or email changed.
+ *
+ * The account is signed out everywhere and its password disabled, and the address the token was sent to is
+ * restored as its verified email, then sent a reset link. When another account has since verified that address,
+ * it cannot be restored, and the address is told to contact support.
+ */
 suspend fun DataScope.redeemAccountLockdown(token: Token, sessionService: SessionService): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()
     val hashedToken = hashToken(token)

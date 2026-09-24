@@ -10,6 +10,7 @@ import klutch.server.Authorizer
 import streetlight.model.data.StarId
 import streetlight.server.model.DataScope
 
+/** Creates a registered user and asks them to verify their email. Fails when the email is registered already. */
 suspend fun DataScope.createRegisteredUser(request: SignUpRequest, authorizer: Authorizer): Outcome<TableUuid> {
     request.email?.let { email ->
         if (dao.star.readAccount(email) != null) return Problem("That email is already registered.")

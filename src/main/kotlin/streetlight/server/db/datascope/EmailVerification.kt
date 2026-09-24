@@ -27,6 +27,12 @@ import streetlight.server.model.Email
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+/**
+ * Sets [email] as the star's unverified email and sends it a verification link, with a link to disown the
+ * account.
+ *
+ * A previous address is told of the change first. Fails for a bounced address or one in use by another account.
+ */
 suspend fun DataScope.requestEmailVerification(starId: StarId, email: EmailAddress): Outcome<Unit> = tryOutcome {
     val account = dao.star.readAccount(starId) ?: return@tryOutcome Problem("Account not found.")
     val emailNow = account.email
@@ -81,6 +87,7 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: EmailAddre
     Ok(Unit)
 }
 
+/** Verifies the email a [token] was sent to, returning the message to show. */
 suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = tryOutcome {
     val now = Clock.System.now()
     val hashedToken = hashToken(token)
@@ -106,6 +113,7 @@ suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = t
     Ok("Success! This email has been verified.")
 }
 
+/** Tells [email] that the account's credentials changed, with a lockdown link. Returns `false` when sending fails. */
 suspend fun DataScope.sendCredentialChangeNotification(starId: StarId, email: EmailAddress): Boolean {
     val token = generateToken()
     val url = AccountLockdownRoute(token).toAbsolutePath()

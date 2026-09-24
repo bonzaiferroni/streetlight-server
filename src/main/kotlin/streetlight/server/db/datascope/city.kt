@@ -11,6 +11,7 @@ import streetlight.server.db.tables.CityTable
 import streetlight.server.model.DataScope
 import streetlight.server.routes.checkImageAndStore
 
+/** Updates a city with [edit], storing a new image. Fails for a blank or taken name. */
 suspend fun DataScope.updateCity(
     callerId: CallerId,
     edit: CityEdit,

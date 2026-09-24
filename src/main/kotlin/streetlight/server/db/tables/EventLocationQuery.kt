@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventLocation
 import streetlight.server.utils.toRecordId
 
+/** Events with their locations, and whether the caller has lit each. */
 fun eventLocationQuery(callerId: CallerId?) = EventTable
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,

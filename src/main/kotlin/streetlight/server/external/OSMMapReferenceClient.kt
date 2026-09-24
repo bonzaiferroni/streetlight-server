@@ -17,6 +17,7 @@ import streetlight.model.external.OSMQuery
 import streetlight.model.external.toOSMCity
 import streetlight.server.model.MapReferenceClient
 
+/** Finds places with OpenStreetMap's Nominatim. */
 class OSMMapReferenceClient(
     userAgent: String = "Streetlight/1.0"
 ): MapReferenceClient {

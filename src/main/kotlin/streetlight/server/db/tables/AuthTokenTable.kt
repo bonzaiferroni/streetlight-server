@@ -13,6 +13,7 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import kotlin.time.Instant
 
+/** The single-use tokens sent by email, stored as hashes. */
 object AuthTokenTable: LongIdTable("auth_token") {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     val hashedToken = char("hashed_token", 64).uniqueIndex()

@@ -21,6 +21,10 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
 
+/**
+ * Reads an event from a web page, filling its image, description, and title from the page's meta tags when the
+ * parse lacks them.
+ */
 suspend fun DataScope.parseEvent(request: ParseRequest, parser: HtmlParserClient): Outcome<EventEdit> {
     log.info { "parsing event" }
     val html = when (request) {

@@ -32,6 +32,7 @@ fun ResultRow.toStar() = Star(
     createdAt = this[StarTable.createdAt],
 )
 
+/** The value of [column] when the star's identity is public, or `null`. */
 fun <T> ResultRow.getIfVisibilityPublic(column: Column<T>): T? = when (this[StarTable.identityVisibility]) {
     IdentityVisibility.Public -> this[column]
     else -> null

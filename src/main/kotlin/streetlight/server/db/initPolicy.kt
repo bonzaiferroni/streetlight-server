@@ -8,6 +8,7 @@ import streetlight.model.data.SeedPolicy
 import streetlight.server.db.services.PolicyDao
 import kotlin.time.Clock
 
+/** Creates each [SeedPolicy] not yet stored, matched by label. */
 suspend fun initPolicy() = suspendTransaction {
     val dao = PolicyDao()
     val now = Clock.System.now()

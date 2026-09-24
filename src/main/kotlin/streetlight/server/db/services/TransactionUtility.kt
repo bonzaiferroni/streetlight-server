@@ -9,6 +9,7 @@ import klutch.utils.logger
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
+/** Runs [block] in a transaction, returning [valueOnError] when it throws. */
 suspend fun <T> tryQuery(
     valueOnError: T,
     maxAttempts: Int = defaultMaxAttempts,
@@ -29,6 +30,7 @@ private val defaultMaxAttempts: Int = 1
 
 private val log = KotlinLogging.logger(DbService::class)
 
+/** Runs [block], returning [outcomeOnError] when it throws. Cancellation is rethrown. */
 suspend fun <T> tryOutcome(
     outcomeOnError: Outcome<T> = Problem("There was an internal error"),
     block: suspend () -> Outcome<T>

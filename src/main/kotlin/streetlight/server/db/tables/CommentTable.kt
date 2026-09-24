@@ -25,6 +25,7 @@ object CommentTable: UuidTable("comment") {
     val createdAt = timestamp("created_at").index()
 }
 
+/** The comments on each galaxy. */
 object GalaxyCommentTable: Table("galaxy_comment") {
     val galaxyId = reference("galaxy_id", GalaxyTable, ReferenceOption.CASCADE).index()
     val commentId = reference("comment_id", CommentTable, ReferenceOption.CASCADE).index()
@@ -32,6 +33,7 @@ object GalaxyCommentTable: Table("galaxy_comment") {
     override val primaryKey = PrimaryKey(galaxyId, commentId)
 }
 
+/** The comments on each media. */
 object MediaCommentTable: Table("media_comment") {
     val mediaId = reference("media_id", MediaTable, ReferenceOption.CASCADE).index()
     val commentId = reference("comment_id", CommentTable, ReferenceOption.CASCADE).index()

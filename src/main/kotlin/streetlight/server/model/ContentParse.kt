@@ -2,6 +2,7 @@ package streetlight.server.model
 
 import kotlinx.serialization.Serializable
 
+/** The result of reading content from a web page, and whether it held the content expected and all of it. */
 @Serializable
 data class ContentParse<T>(
     val isExpectedContent: Boolean,

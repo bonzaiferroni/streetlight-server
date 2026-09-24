@@ -19,6 +19,12 @@ import streetlight.server.model.ContentParse
 import streetlight.server.model.DataScope
 import streetlight.server.routes.SchemaParserText
 
+/**
+ * Finds the selectors of the events at [url]: those of the feed, and those of an event's own page when the feed
+ * links to one.
+ *
+ * The feed schema alone is returned, with a reason, when the event page cannot be read.
+ */
 suspend fun DataScope.parseEventSchema(url: Url, koog: HtmlParserClient): Outcome<List<SelectorSchema>> = tryOutcome {
     val html = fetchText(url).toDataOr { return@tryOutcome it }.text
 
@@ -85,6 +91,7 @@ private fun String.titleTokens(): Set<String> =
         .filter { it.isNotBlank() }
         .toSet()
 
+/** Whether the words of two titles overlap by more than [threshold] of the shorter title. */
 fun titlesOverlap(first: String, second: String, threshold: Float = 0.5f): Boolean {
     val a = first.titleTokens()
     val b = second.titleTokens()

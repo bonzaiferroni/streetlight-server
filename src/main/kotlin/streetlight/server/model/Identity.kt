@@ -13,6 +13,7 @@ import klutch.db.model.SessionIdentity
 import streetlight.model.data.StarId
 import kotlin.uuid.Uuid
 
+/** The identity of the caller's session, or `null` when not signed in. */
 fun RoutingCall.getIdentityOrNull() = principal<SessionIdentity>()?.identity
 fun RoutingCall.getIdentity() = getIdentityOrNull() ?: error("identity not found")
 

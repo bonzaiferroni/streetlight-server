@@ -31,6 +31,7 @@ class ParserTableDao: DbService() {
         ParserTable.selectAll().where { ParserTable.originId.eq(originId.value) }.map { it.toParser() }
     }
 
+    /** Records a parse, counting consecutive failures. */
     suspend fun updateResult(parserId: ParserId, isSuccess: Boolean) = dbQuery {
         val now = Clock.System.now()
         ParserTable.update({ ParserTable.id.eq(parserId) }) {

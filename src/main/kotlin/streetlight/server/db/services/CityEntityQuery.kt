@@ -24,7 +24,11 @@ import streetlight.server.db.tables.toLocation
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-// A location and each of its events are separate entities, read by separate queries
+/**
+ * The locations of a city and the events at them, a page at [cursor] or all of them without one.
+ *
+ * A location and each of its events are separate entities, read by separate queries and merged into one page.
+ */
 fun cityEntityQuery(
     cityId: CityId,
     callerId: CallerId?,

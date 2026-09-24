@@ -9,6 +9,7 @@ import kotlin.time.Instant
 
 private val log = KotlinLogging.logger(TableDaemon::class.simpleName!!)
 
+/** Refreshes the upcoming event counts of locations, cities, and galaxies every fifteen minutes. */
 class TableDaemon(
     private val dao: DaoFacade,
 ) {

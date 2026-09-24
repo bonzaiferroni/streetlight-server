@@ -6,6 +6,7 @@ import kabinet.clients.readMetaContent
 import kampfire.model.Url
 import kampfire.model.toUrl
 
+/** The title, description, and image a page declares in its meta tags. */
 fun Document.readHtmlMetaInfo() = MetaInfo(
     title = readTitle(),
     description = readDescription(),
@@ -18,6 +19,7 @@ data class MetaInfo(
     val image: Url?,
 )
 
+/** The content of the first meta tag named by one of [propertyValues], in order. */
 fun Document.readMetaContent(vararg propertyValues: String) = propertyValues.firstNotNullOfOrNull {
     this.selectFirst("meta[property=\"$it\"]")?.attribute("content")?.value
         ?: this.selectFirst("meta[name=\"$it\"]")?.attribute("content")?.value

@@ -11,6 +11,7 @@ import streetlight.model.data.OmniRecord
 import java.util.UUID
 import kotlin.uuid.Uuid
 
+/** The record of site activity. */
 object OmniTable: UuidTable("omni") {
     val record = jsonb<OmniRecord>("record", jsonbConfig)
     val recordAt = timestamp("record_at").index()

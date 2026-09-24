@@ -8,6 +8,7 @@ import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 
+/** Matches a host one label below one of [roots], and passes that label as the `subdomain` parameter. */
 class SubdomainSelector(private vararg val roots: String) : RouteSelector() {
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val host = context.call.request.host()
@@ -21,5 +22,6 @@ class SubdomainSelector(private vararg val roots: String) : RouteSelector() {
     }
 }
 
+/** Routes [build] for hosts one label below one of [roots]. */
 fun Route.subdomain(vararg roots: String, build: Route.() -> Unit): Route =
     createChild(SubdomainSelector(*roots)).apply(build)

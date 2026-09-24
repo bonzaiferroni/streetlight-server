@@ -16,6 +16,7 @@ import streetlight.model.data.OmniMessage
 import streetlight.model.data.OmniRecord
 import kotlin.time.Clock
 
+/** Broadcasts site activity to [logFlow], and stores each message that is a record. */
 class OmniService(private val dao: DaoFacade) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

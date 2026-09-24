@@ -33,6 +33,7 @@ class SubdomainTableDao: DbService() {
         }.insertedCount
     }
 
+    /** Whether [slug] is free for [locationId]: unused, or already its own. */
     suspend fun isAvailable(slug: Slug, locationId: LocationId) = dbQuery {
         SubdomainTable.select(SubdomainTable.id).where {
             SubdomainTable.slug.eq(slug) and
@@ -44,6 +45,7 @@ class SubdomainTableDao: DbService() {
         SubdomainTable.deleteWhere { SubdomainTable.locationId.eq(locationId) }
     }
 
+    /** The slug of the location a subdomain belongs to. */
     suspend fun readLocationSlug(subdomainSlug: Slug) = dbQuery {
         SubdomainTable.leftJoin(LocationTable).select(LocationTable.slug).where {
                 SubdomainTable.slug.eq(subdomainSlug)

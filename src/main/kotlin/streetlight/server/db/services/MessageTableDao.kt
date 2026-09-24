@@ -34,6 +34,7 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class MessageTableDao: DbService() {
+    /** Starts a chat between the caller and [recipientId] with its first message. */
     suspend fun create(caller: Identity, recipientId: StarId, message: NewMessage) = dbQuery {
         val chatId = ChatId(Uuid.random())
         val messageId = MessageId(Uuid.random())
@@ -73,6 +74,7 @@ class MessageTableDao: DbService() {
         Message(messageId, chatId, caller.username, message.content, now)
     }
 
+    /** Adds a reply to a chat, or returns `null` when the caller is not in it. */
     suspend fun create(caller: Identity, message: ReplyMessage) = dbQuery {
         val messageId = MessageId(Uuid.random())
         val now = Clock.System.now()

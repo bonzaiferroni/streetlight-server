@@ -72,6 +72,7 @@ private suspend fun ApiScope.subdomainProblemOrNull(config: SubdomainConfig): Pr
     }
 }
 
+/** Subdomains a location cannot take. */
 object ReservedSubdomain {
     /** Infrastructure and standard service names — collisions here break tooling. */
     private val infrastructure = setOf(

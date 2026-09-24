@@ -163,7 +163,7 @@ class CityTableDao : DbService() {
         }.firstOrNull()?.let { CityId(it[CityTable.id].value) }
     }
 
-    // reads LocationTable.eventCount, so it follows LocationTableDao.updateEventCounts
+    /** Sums the upcoming event counts of each city's locations; run after `LocationTableDao.updateEventCounts`. */
     suspend fun updateEventCounts() = dbQuery {
         val upcoming = LocationTable.select(coalesce(LocationTable.eventCount.sum(), intLiteral(0)))
             .where { LocationTable.cityId.eq(CityTable.id) }
@@ -184,6 +184,7 @@ class CityTableDao : DbService() {
     }
 
     // name and state are unique together
+    /** Whether a city other than [cityId] has [name]. */
     suspend fun isNameTaken(cityId: CityId, name: String) = dbQuery {
         val stateId = CityTable.select(CityTable.stateId).where { CityTable.id.eq(cityId) }
             .singleOrNull()?.get(CityTable.stateId) ?: return@dbQuery false

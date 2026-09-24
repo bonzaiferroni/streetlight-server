@@ -22,6 +22,7 @@ import streetlight.server.model.Email
 import streetlight.server.model.EmailClient
 import streetlight.server.model.SendEmailResult
 
+/** Sends email through Postmark. */
 class PostmarkEmailClient(env: Environment): EmailClient {
     private val token = env.read("POSTMARK_SERVER_TOKEN")
     // private val fromAddress = env.read("POSTMARK_FROM_ADDRESS")
@@ -99,6 +100,7 @@ fun PostmarkResponse.toMailResult() = SendEmailResult(
     message = message
 )
 
+/** The bounce Postmark reports to the webhook. */
 @Serializable
 data class PostmarkBounce(
     @SerialName("RecordType") val recordType: String,

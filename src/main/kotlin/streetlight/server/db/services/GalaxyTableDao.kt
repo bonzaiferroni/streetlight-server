@@ -111,6 +111,7 @@ class GalaxyTableDao : DbService() {
         GalaxyTable.deleteWhere { GalaxyTable.id.eq(galaxyId) } == 1
     }
 
+    /** Counts the upcoming events posted to each galaxy. */
     suspend fun updateEventCounts(now: Instant) = dbQuery {
         val upcoming = PostTable.join(EventTable, JoinType.INNER, PostTable.eventId, EventTable.id)
             .select(EventTable.id.countDistinct())

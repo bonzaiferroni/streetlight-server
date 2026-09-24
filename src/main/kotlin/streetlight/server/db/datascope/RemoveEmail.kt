@@ -10,6 +10,7 @@ import streetlight.model.data.StarId
 import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 
+/** Removes the star's email, with their [password] when it is verified, and tells the address. */
 suspend fun DataScope.removeEmail(starId: StarId, password: Password?): Outcome<Unit> = tryOutcome {
     val account = dao.star.readAccount(starId) ?: error("account not found")
     val email = account.email ?: error("email not found")

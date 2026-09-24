@@ -1,5 +1,6 @@
 package streetlight.server.utils
 
+/** This text without its tags, with its character entities decoded. */
 fun String.stripHtml(): String {
     val sb = StringBuilder(length)
     var inTag = false

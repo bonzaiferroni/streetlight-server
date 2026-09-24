@@ -9,6 +9,7 @@ import streetlight.server.db.datascope.recordBounce
 import streetlight.server.external.PostmarkBounce
 import streetlight.server.model.ApiScope
 
+/** Receives Postmark's bounce reports at a path holding a secret, recording each address it marks inactive. */
 fun ApiScope.serveWebhooks() {
     val postmarkWebhookSecret = provide(Environment::class).read("POSTMARK_WEBHOOK_SECRET")
     post("/webhooks/postmark/{secret}") {

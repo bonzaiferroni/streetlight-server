@@ -10,6 +10,7 @@ import kampfire.model.Url
 
 private val console = globalConsole.getHandle(::downloadImage.name)
 
+/** The bytes at [url], fetched as a browser would, or `null` when the fetch fails. */
 suspend fun downloadImage(url: Url): ByteArray? {
     try {
         return httpClient.get(url.value).readRawBytes()

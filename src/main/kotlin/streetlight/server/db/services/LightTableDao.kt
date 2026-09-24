@@ -32,6 +32,7 @@ private class LightConfig(
     val createdAt: Column<Instant>,
 )
 
+/** The items each star has lit, one table per kind of item. */
 class LightTableDao : DbService() {
 
     private val eventLight = LightConfig(

@@ -22,6 +22,10 @@ import java.io.File
 
 fun main(args: Array<String>): Unit = io.ktor.server.cio.EngineMain.main(args)
 
+/**
+ * The Ktor module named in the server config. It builds the services with Koin and starts [streetlightModule];
+ * the `streetlight.benchmark` property turns metrics off.
+ */
 fun Application.module() {
     println(File(".").absolutePath)
 
@@ -53,6 +57,7 @@ fun Application.module() {
     )
 }
 
+/** Installs the server's plugins and routes, each optional one by the [ServerConfig] that [server] provides. */
 fun Application.streetlightModule(
     server: ServerScope,
     session: StarSessionService,

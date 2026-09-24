@@ -24,6 +24,7 @@ import streetlight.server.db.tables.createOrigin
 import streetlight.server.db.tables.toOrigin
 import kotlin.time.Clock
 
+/** The web origins that location data is read from, and how each is fetched. */
 class OriginTableDao : DbService() {
 
     suspend fun readOrCreateOrigin(originId: OriginId) = dbQuery {
@@ -34,6 +35,7 @@ class OriginTableDao : DbService() {
         }
     }
 
+    /** Marks an origin as needing a scripted fetch, since its plain HTML was incomplete. */
     suspend fun registerIncomplete(originId: OriginId) = dbQuery {
         OriginTable.update({ OriginTable.id.eq(originId.value)}) {
             it[OriginTable.fetchMode] = FetchMode.Scripting

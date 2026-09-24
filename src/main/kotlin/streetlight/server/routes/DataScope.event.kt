@@ -20,6 +20,7 @@ import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 import streetlight.server.utils.toStarId
 
+/** Creates an event with its image stored. Fails when the same event exists at the same place and time. */
 suspend fun DataScope.createEvent(
     callerId: CallerId?,
     edit: EventEdit,
@@ -35,6 +36,7 @@ suspend fun DataScope.createEvent(
     Ok(event)
 }
 
+/** Updates an event with its image stored, and logs the edit. */
 suspend fun DataScope.updateEvent(
     eventId: EventId,
     callerId: CallerId,

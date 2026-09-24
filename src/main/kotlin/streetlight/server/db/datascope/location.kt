@@ -18,6 +18,10 @@ import streetlight.server.routes.checkImageAndStore
 import streetlight.server.utils.TimeZones
 import streetlight.server.utils.toStarId
 
+/**
+ * Creates a location in its city, created when new, and logs the edit. The edit is sent for review when it asks
+ * for one or the caller is a new scout.
+ */
 suspend fun DataScope.createLocation(
     callerId: CallerId,
     edit: LocationEdit,
@@ -36,6 +40,7 @@ suspend fun DataScope.createLocation(
     Ok(location)
 }
 
+/** Updates a location in its city, created when new, and logs the edit. */
 suspend fun DataScope.updateLocation(
     locationId: LocationId,
     callerId: CallerId,
@@ -51,6 +56,7 @@ suspend fun DataScope.updateLocation(
     Ok(location)
 }
 
+/** [edit] with its image stored and its time zone found from its point. */
 suspend fun DataScope.prepareLocation(callerId: CallerId, edit: LocationEdit): Outcome<LocationEdit> {
     val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
         .toDataOr { return it }

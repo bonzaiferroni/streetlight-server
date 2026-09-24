@@ -38,6 +38,7 @@ data class EncodingResult(
     val aspect: Float,
 )
 
+/** Resizes an image to each of [sizes], keeping a GIF animated. Fails for an unknown format or an animated WebP. */
 fun encodeImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,

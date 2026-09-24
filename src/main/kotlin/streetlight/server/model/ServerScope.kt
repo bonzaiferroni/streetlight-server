@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
+/** The scope of server code: data access, external clients, and service lookup. */
 interface ServerScope: DataScope, ProviderScope
 
 interface DataScope: DaoScope, ClientScope {
@@ -21,6 +22,7 @@ interface DataScope: DaoScope, ClientScope {
 interface DaoScope {
     val dao: DaoFacade
 
+    /** Runs [block] in a database transaction, tried up to [maxAttempts] times, logging its SQL when [addLogger]. */
     suspend fun <T> transaction(
         maxAttempts: Int = TRANSACTION_MAX_ATTEMPTS,
         addLogger: Boolean = false,
@@ -43,6 +45,7 @@ interface ClientScope {
     val client: ClientFacade
 }
 
+/** The scope of route definitions: routing together with the server. */
 interface ApiScope: Routing, ServerScope
 
 class ServerRouting(

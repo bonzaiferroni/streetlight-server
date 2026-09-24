@@ -136,10 +136,12 @@ class PostTableDao : DbService() {
         GalaxyPostAspect.query(callerId).where { PostTable.id.eq(postId) }.firstOrNull()?.toGalaxyPost()
     }
 
+    /** Removes a post the caller made. */
     suspend fun removePost(postId: PostId, identity: Identity) = dbQuery {
         PostTable.deleteWhere { PostTable.id.eq(postId) and PostTable.starId.eq(identity.callerId.value) } == 1 // td: or admin, or moderator
     }
 
+    /** A page of posts matching [filter], ordered by [cursor]. */
     suspend fun readOrderedPosts(
         callerId: CallerId?,
         cursor: EntityCursor = EntityCursor.Default,
@@ -153,6 +155,7 @@ class PostTableDao : DbService() {
             .map { it.toGalaxyPost() }
     }
 
+    /** The mark tallies of each post, and whether the caller made each mark. */
     suspend fun readPostMarks(postIds: List<PostId>, callerId: CallerId?): Map<PostId, List<MarkTally>> = dbQuery {
         val isCaller = callerId?.let { PostMarkTable.starId.eq(it) } ?: Op.FALSE
 
@@ -173,6 +176,10 @@ class PostTableDao : DbService() {
             }
     }
 
+    /**
+     * Marks or unmarks a post for the caller and recounts its tallies and lean. Marking under a polar curator
+     * clears the caller's other marks.
+     */
     suspend fun updateMark(update: MarkUpdate, callerId: CallerId) = dbQuery {
         val isSuccess = if (update.isMarked) {
             val feedMarks = MarkAspect.queryPostMarks().where { PostTable.id.eq(update.postId) }.map { it.toGalaxyMark() }
@@ -228,6 +235,7 @@ class PostTableDao : DbService() {
         }
     }
 
+    /** The posts placed in the query's view, leaving out those in views already seen. */
     suspend fun readBoundedPosts(callerId: CallerId?, query: MapQuery) = dbQuery {
         val excluded = query.seen?.takeIf { it.isNotEmpty() }?.map { rect ->
             LocationTable.geoPoint.inRect(rect) or MediaTable.geoPoint.inRect(rect)

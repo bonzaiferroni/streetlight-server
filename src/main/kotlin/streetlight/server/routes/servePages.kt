@@ -33,6 +33,10 @@ import java.io.File
 
 private val console = KotlinLogging.logger("server") //globalConsole.getHandle(ApiScope::servePages.name)
 
+/**
+ * Serves the HTML of each screen, rendered on the server when its screen has a renderer and as the bare client
+ * otherwise.
+ */
 fun ApiScope.servePages(resource: PageResource) {
 //    get("/event-portal/{id}") {
 //        val eventId = call.parameters["id"]?.let { EventId(it) } ?: return@get
@@ -127,6 +131,7 @@ data class HtmlRender(
     val block: HTML.() -> Unit
 )
 
+/** The app page without server-rendered content, for the client to fill. */
 suspend fun ApiScope.renderClientBase(screen: AppScreen, resource: PageResource): HtmlRender {
     return HtmlRender {
         // td: add loading message

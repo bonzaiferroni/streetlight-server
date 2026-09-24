@@ -34,6 +34,11 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
+/**
+ * Changes the caller's password, keeping [sessionId] and signing out their other sessions.
+ *
+ * The current password is required when the account has an email, and the new one must differ.
+ */
 suspend fun DataScope.changePasswordFromSession(
     callerId: CallerId,
     request: PasswordChange,

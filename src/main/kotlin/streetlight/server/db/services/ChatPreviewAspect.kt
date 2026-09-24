@@ -13,6 +13,7 @@ import streetlight.server.db.tables.ChatStarTable
 import streetlight.server.db.tables.ChatTable
 import streetlight.server.db.tables.StarTable
 
+/** Reads chats as a star's previews of them. */
 object ChatPreviewAspect {
     val columns = with(ChatTable) {
         listOf(
@@ -25,6 +26,7 @@ object ChatPreviewAspect {
         .join(ChatTable, JoinType.INNER) { ChatTable.id.eq(ChatStarTable.chatId) }
         .select(columns)
 
+    /** The badges of the members of each chat in [rows]. */
     fun queryBadges(rows: List<ResultRow>) = ChatStarTable
         .join(StarTable, JoinType.INNER) { StarTable.id.eq(ChatStarTable.starId) }
         .select(ChatStarTable.chatId, StarTable.username, StarTable.image)

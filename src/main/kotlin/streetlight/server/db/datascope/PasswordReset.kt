@@ -27,6 +27,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
+/** Sets the password of a reset token's account and signs out all its sessions. */
 suspend fun DataScope.redeemPasswordReset(
     request: PasswordResetRequest,
     sessionService: SessionService,
@@ -64,6 +65,10 @@ suspend fun DataScope.redeemPasswordReset(
     Ok(Unit)
 }
 
+/**
+ * Sends a reset link to the account with [email]. The outcome is the same whether or not an account has it, so
+ * the result reveals nothing.
+ */
 suspend fun DataScope.requestPasswordReset(email: EmailAddress): Outcome<Unit> = tryOutcome(Ok(Unit)) {
     // Ok(Unit) is returned in all branches for account security reasons
     if (dao.bouncedEmail.readIsBounced(email)) return@tryOutcome Ok(Unit)

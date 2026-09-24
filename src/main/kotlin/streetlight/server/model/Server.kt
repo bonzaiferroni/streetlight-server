@@ -23,6 +23,7 @@ class Server(
     )
 }
 
+/** The data access object of each table group, as `dao.city`. */
 class DaoFacade(
     val location: LocationTableDao = LocationTableDao(),
     val galaxy: GalaxyTableDao = GalaxyTableDao(),
@@ -58,12 +59,14 @@ class DaoFacade(
     val message: MessageTableDao = MessageTableDao(),
 )
 
+/** The clients of external services. */
 class ClientFacade(
     val blob: BlobClient,
     val osm: MapReferenceClient,
     val postmark: EmailClient
 )
 
+/** The site's own email addresses. */
 class AppEmail(
     val primary: EmailAddress,
     val support: EmailAddress,

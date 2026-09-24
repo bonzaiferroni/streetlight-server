@@ -24,6 +24,7 @@ object ChatTable: UuidTable("chat") {
     val createdAt = timestamp("created_at")
 }
 
+/** The members of each chat, with when each last read it and archived it. */
 object ChatStarTable: Table("chat_star") {
     val chatId = reference("chat_id", ChatTable, ReferenceOption.CASCADE)
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).index()

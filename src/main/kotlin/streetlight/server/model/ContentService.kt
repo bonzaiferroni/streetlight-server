@@ -13,6 +13,7 @@ import streetlight.model.data.StarContent
 import streetlight.web.doc.SiteDocTable
 import streetlight.web.doc.SiteDocTree
 
+/** The page content of the location [slug]. The caller can edit it when it has no host or they are its host. */
 suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): LocationContent? {
     val locationLayout = dao.location.readDesign(slug, identity?.callerId) ?: return null
     val location = locationLayout.location

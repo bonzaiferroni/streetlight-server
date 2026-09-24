@@ -12,6 +12,7 @@ import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 
+/** Events, with whether the caller has lit each. */
 fun eventQuery(callerId: CallerId?) = EventTable
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
         additionalConstraint = EventStarTable.getConstraint(callerId))

@@ -5,6 +5,7 @@ import streetlight.model.external.OSMCity
 import streetlight.model.external.OSMLocation
 import streetlight.model.external.OSMQuery
 
+/** Finds places and cities on a map. */
 interface MapReferenceClient {
     suspend fun search(point: GeoPoint): OSMLocation?
     suspend fun search(query: OSMQuery): List<OSMLocation>?

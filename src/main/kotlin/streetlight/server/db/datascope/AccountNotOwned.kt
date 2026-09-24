@@ -10,6 +10,7 @@ import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import kotlin.time.Clock
 
+/** Marks the email of an account as not owned, for a [token] sent to that address by someone who did not sign up. */
 suspend fun DataScope.redeemAccountNotOwned(token: Token): Outcome<Unit> = tryOutcome {
     val now = Clock.System.now()
     val hashedToken = hashToken(token)

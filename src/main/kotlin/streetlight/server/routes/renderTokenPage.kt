@@ -13,6 +13,7 @@ import streetlight.web.pages.formSubmit
 import streetlight.web.pages.messagePage
 import streetlight.web.shells.passwordResetForm
 
+/** The page of an emailed token link, by its type, or `null` without a token. */
 suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType, resource: PageResource): HtmlRender? {
     val token = arg?.let { Token(it) } ?: return null
 
@@ -24,6 +25,7 @@ suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType, res
     }
 }
 
+/** Verifies the email of [token] and shows the result. */
 suspend fun ApiScope.renderVerifyEmail(token: Token, resource: PageResource): HtmlRender {
     val outcome = redeemEmailVerification(token)
     val title = when(outcome) {
@@ -40,6 +42,7 @@ suspend fun ApiScope.renderVerifyEmail(token: Token, resource: PageResource): Ht
     }
 }
 
+/** Asks to confirm removing the address from the account; the confirmation posts [token]. */
 fun renderAccountNotOwnedConfirm(token: Token, resource: PageResource): HtmlRender {
     return HtmlRender {
         messagePage(
@@ -53,6 +56,7 @@ fun renderAccountNotOwnedConfirm(token: Token, resource: PageResource): HtmlRend
     }
 }
 
+/** Asks to confirm locking down the account; the confirmation posts [token]. */
 fun renderAccountLockdownConfirm(token: Token, resource: PageResource): HtmlRender {
     return HtmlRender {
         messagePage(

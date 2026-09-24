@@ -9,6 +9,7 @@ import streetlight.model.data.*
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 
+/** Reports of records that break a policy. */
 object FlagTable: UuidTable("flag") {
     val flaggerId = reference("flagger_id", StarTable, ReferenceOption.CASCADE).index()
     val policyId = reference("policy_id", PolicyTable, ReferenceOption.CASCADE).index().nullable()

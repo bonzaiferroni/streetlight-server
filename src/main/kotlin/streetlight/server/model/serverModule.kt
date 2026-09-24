@@ -20,6 +20,7 @@ import streetlight.server.external.OSMMapReferenceClient
 import streetlight.server.external.PostmarkEmailClient
 import streetlight.server.routes.LocationParser
 
+/** The server's services, one of each. */
 val serverModule = module {
     single { SystemEnvironment.fromSystem(readEnvFromPathOrNull()) }
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }

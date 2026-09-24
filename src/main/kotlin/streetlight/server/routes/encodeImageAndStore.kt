@@ -17,6 +17,10 @@ import streetlight.server.model.DataScope
 import streetlight.server.utils.toStarId
 import kotlin.time.Clock
 
+/**
+ * Encodes [bytes] at each of [sizes], stores each file, and records the image, taking its name and attribution
+ * from [meta].
+ */
 suspend fun DataScope.encodeImageAndStore(
     bytes: ByteArray,
     callerId: CallerId?,

@@ -9,6 +9,7 @@ import streetlight.model.data.QuorumId
 import streetlight.model.data.RecordType
 import streetlight.model.data.Question
 
+/** A question about a record, decided by its reviewers. */
 object QuorumTable : UuidTable("quorum") {
     val recordId = uuid("record_id").index()
     val recordType = enumeration<RecordType>("record_type")

@@ -11,6 +11,7 @@ import streetlight.model.data.SelectorSchema
 import streetlight.model.data.Parser
 import streetlight.model.data.SchemaType
 
+/** The selectors that read events from an origin's pages, with how often they fail. */
 object ParserTable: UuidTable("parser") {
     val originId = reference("origin_id", OriginTable, ReferenceOption.CASCADE).index()
     val schemaType = enumeration<SchemaType>("schema_type")

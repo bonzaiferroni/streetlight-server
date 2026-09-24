@@ -27,6 +27,7 @@ private val console = globalConsole.getHandle(SongTableService::class)
 
 class SongTableService(): DbService() {
 
+    /** Removes and returns the oldest song request of the event, when the caller hosts it. */
     suspend fun takeNextSong(userId: TableUuid, eventId: EventId, since: Instant) = dbQuery {
         val nextRequest = EventTable.innerJoin(RequestTable).select(RequestTable.columns)
             .where { EventTable.hostId.eq(userId) and RequestTable.eventId.eq(eventId) }

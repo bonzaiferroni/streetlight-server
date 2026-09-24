@@ -101,6 +101,7 @@ class LocationTableDao : DbService() {
         }
     }
 
+    /** Counts the upcoming events of each location, updating only the counts that changed. */
     suspend fun updateEventCounts(now: Instant) = dbQuery {
         val upcoming = EventTable.select(EventTable.id.count())
             .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greater(now) }
@@ -147,6 +148,7 @@ class LocationTableDao : DbService() {
         locationQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
     }
 
+    /** The first location with the name or the address, ignoring case. */
     suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
         if (name != null && address != null) {
             LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) or it.address.lowerCase().eq(address.lowercase()) }
@@ -192,6 +194,7 @@ class LocationTableDao : DbService() {
         }.singleOrNull()?.toLocationConfigContent()
     }
 
+    /** The locations with an events page not checked within [interval]. */
     suspend fun readCheckable(interval: Duration) = dbQuery {
         locationConfigContentQuery().where {
              LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
@@ -233,6 +236,7 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     createdAt = Clock.System.now()
 )
 
+/** The text a location's slug is made from: its name and city, or its id. */
 fun LocationEdit.getSlugBase(locationId: LocationId) = when {
     name != null && city != null -> "$name-$city"
     else -> locationId.value.toString()

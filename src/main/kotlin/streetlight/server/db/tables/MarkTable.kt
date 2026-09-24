@@ -11,6 +11,7 @@ import streetlight.model.data.Lean
 //    val createdAt = timestamp("created_at")
 //}
 
+/** The marks a galaxy offers for curating its posts. */
 object GalaxyMarkTable: UuidTable("galaxy_mark") {
     val galaxyId = reference("galaxy_id", GalaxyTable, ReferenceOption.CASCADE).index()
 //    val markId = reference("mark_id", MarkTable, ReferenceOption.CASCADE).nullable().index()
@@ -23,6 +24,7 @@ object GalaxyMarkTable: UuidTable("galaxy_mark") {
     }
 }
 
+/** The marks each star has made on each post. */
 object PostMarkTable: Table("post_mark"), StarIdTable {
     val postId = reference("post_id", PostTable, ReferenceOption.CASCADE).index()
     override val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).index()
@@ -32,6 +34,7 @@ object PostMarkTable: Table("post_mark"), StarIdTable {
     override val primaryKey = PrimaryKey(postId, starId, galaxyMarkId)
 }
 
+/** The tally of each mark on each post. */
 object PostMarkCountTable: Table("post_mark_count") {
     val postId = reference("post_id", PostTable, ReferenceOption.CASCADE)
     val galaxyMarkId = reference("galaxy_mark_id", GalaxyMarkTable, ReferenceOption.CASCADE)

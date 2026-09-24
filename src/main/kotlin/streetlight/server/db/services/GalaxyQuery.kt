@@ -16,6 +16,7 @@ import streetlight.server.db.tables.GalaxyTable
 import streetlight.server.db.tables.getConstraint
 import streetlight.server.utils.toRecordId
 
+/** Galaxies with whether the caller has lit each. */
 fun galaxyQuery(callerId: CallerId?) = GalaxyTable
     .join(GalaxyStarTable, JoinType.LEFT, GalaxyTable.id, GalaxyStarTable.galaxyId,
         additionalConstraint = GalaxyStarTable.getConstraint(callerId))

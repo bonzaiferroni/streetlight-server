@@ -20,6 +20,7 @@ import streetlight.server.utils.starId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
+/** The live comments of one talk space, sent to each of its clients. */
 class TalkSpace(
     val spaceId: Uuid,
     val space: SpaceType,
@@ -42,6 +43,7 @@ class TalkSpace(
         clientCount++
     }
 
+    /** Removes a client, returning whether none remain. */
     fun removeClient(): Boolean {
         return --clientCount == 0
     }

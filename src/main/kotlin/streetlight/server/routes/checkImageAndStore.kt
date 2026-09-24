@@ -18,6 +18,10 @@ import streetlight.server.db.tables.TableImageConfig
 import streetlight.server.model.DataScope
 import kotlin.uuid.Uuid
 
+/**
+ * The image to save on the row [rowId] of [config]'s table: `null` for a blank image, the current one when
+ * unchanged, or a new one stored at the table's sizes.
+ */
 suspend fun DataScope.checkImageAndStore(
     callerId: CallerId?,
     rowId: TableId<Uuid>?,
@@ -39,6 +43,7 @@ suspend fun DataScope.checkImageAndStore(
 }
 
 
+/** The stored image of [image]: read by its id, or downloaded from its URL and stored at [sizes]. */
 suspend fun DataScope.provisionImageAndStore(
     userId: CallerId?,
     image: Image,
@@ -57,6 +62,7 @@ suspend fun DataScope.provisionImageAndStore(
     }
 }
 
+/** The format of an image from its leading bytes, or `null` when unsupported. */
 fun detectFormatFromImage(bytes: ByteArray): ImageFormat? {
     fun has(prefix: ByteArray): Boolean =
         bytes.size >= prefix.size && prefix.indices.all { i -> bytes[i] == prefix[i] }
@@ -82,6 +88,10 @@ fun detectFormatFromImage(bytes: ByteArray): ImageFormat? {
     return null
 }
 
+/**
+ * The format of an uploaded image, or `null` after responding with the reason it was refused: empty, over 32 MB,
+ * unsupported, or not declared as an image.
+ */
 suspend fun RoutingContext.validateImage(
     bytes: ByteArray,
 ): ImageFormat? {

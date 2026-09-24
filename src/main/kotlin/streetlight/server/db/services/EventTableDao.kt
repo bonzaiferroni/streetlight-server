@@ -77,6 +77,7 @@ class EventTableDao: DbService() {
         readEvent(eventId, callerId)
     }
 
+    /** Whether the caller hosts the event, or it has no host. */
     suspend fun canEdit(eventId: EventId, callerId: CallerId) = dbQuery {
         EventTable.selectAll()
             .where { EventTable.id.eq(eventId) and (EventTable.hostId.isNull() or EventTable.hostId.eq(callerId)) }
@@ -84,6 +85,7 @@ class EventTableDao: DbService() {
             .any()
     }
 
+    /** Whether an event with the same title starts at the same time at the same location. */
     suspend fun hasConflict(edit: EventEdit) = dbQuery {
         val title = edit.title ?: error("no title")
         val startsAt = edit.startsAt ?: error("no time")
@@ -94,6 +96,7 @@ class EventTableDao: DbService() {
         } > 0
     }
 
+    /** Deletes an event the caller hosts, or any event for an admin. */
     suspend fun deleteEvent(callerId: CallerId, eventId: EventId, isAdmin: Boolean): Boolean = dbQuery {
         val mayDelete: Op<Boolean> = if (isAdmin) Op.TRUE else EventTable.hostId.eq(callerId)
         EventTable.deleteSingle { mayDelete and EventTable.id.eq(eventId) }
