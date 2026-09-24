@@ -2,8 +2,11 @@ package streetlight.server
 
 import koala.JsBundle
 import koala.PageResource
+import koala.interop.buildHeadScript
 import koala.modifier.*
 import koala.html.*
+import koala.interop.HeadScriptConfig
+import koala.interop.RootSwitch
 import koala.model.AltitudeCss
 import koala.model.MarkerSheet
 import streetlight.server.utils.printToFile
@@ -19,6 +22,8 @@ import koala.markdown.MarkdownCss
 import koala.model.GlowControlCss
 import koala.model.LazyColumnCss
 import koala.model.TextEditorCss
+import streetlight.web.layouts.FeedMode
+import streetlight.web.layouts.FeedRow
 import streetlight.web.ui.StarToggleCss
 import streetlight.web.ui.BodyCss
 import streetlight.web.ui.CuratorMenuStyle
@@ -33,6 +38,7 @@ class ServerResource(mode: BuildMode): PageResource {
 
     override val bundle = ServerBundle(mode)
     override val styles = BuildStyles()
+    override val headScript = buildHeadScript(headScriptConfig)
 
     init {
         if (mode == BuildMode.Development) {
@@ -121,5 +127,11 @@ class ServerBundle(mode: BuildMode): JsBundle {
     override val web = jsFileOf("web.js", basePath = mode.bundleBuildPath)
     override val passwordReset = jsFileOf("passwordReset.js", basePath = mode.bundleBuildPath)
 }
+
+private val headScriptConfig = HeadScriptConfig(
+    rootSwitches = listOf(
+        RootSwitch(FeedRow.Mode, FeedMode.Grid),
+    ),
+)
 
 
