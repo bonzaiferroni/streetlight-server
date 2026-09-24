@@ -116,6 +116,26 @@ class LocationApiTest : ApiTest() {
         assertEquals(listOf("The Fox Den"), found.map { it.name }, "only the matching location should be found")
     }
 
+    @Test
+    fun `a location search with a partial city name finds locations in that city`() = runApiTest {
+        val starId = registerUser("alice")
+        server.seedLocation(starId, "The Fox Den")
+
+        val found = getApi(Api.Locations.Search) {
+            writeParam(it.query, "fox")
+            writeParam(it.city, "Den")
+            writeParam(it.limit, 10)
+        }.toDataOrThrow()
+        val missed = getApi(Api.Locations.Search) {
+            writeParam(it.query, "fox")
+            writeParam(it.city, "Bou")
+            writeParam(it.limit, 10)
+        }.toDataOrThrow()
+
+        assertEquals(listOf("The Fox Den"), found.map { it.name }, "the start of the city name should match")
+        assertEquals(emptyList(), missed.map { it.name }, "the start of another city name should not match")
+    }
+
     private fun setHost(locationId: LocationId, hostId: StarId) = transaction {
         LocationTable.update({ LocationTable.id.eq(locationId) }) { it[LocationTable.hostId] = hostId.value }
     }
