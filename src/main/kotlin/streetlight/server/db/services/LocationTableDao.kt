@@ -128,7 +128,7 @@ class LocationTableDao : DbService() {
         val queryMatch = LocationTable.name.lowerCase().like("%$query%") or
                 LocationTable.address.lowerCase().like("$query%") // td: proper address search
         val cityMatch = city?.let {
-            LocationTable.city.lowerCase().eq(city.lowercase())
+            LocationTable.city.lowerCase().like("${city.lowercase()}%")
         }
         val stateMatch = state?.let {
             LocationTable.state.lowerCase().eq(state.lowercase())
