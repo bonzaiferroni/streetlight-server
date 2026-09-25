@@ -23,6 +23,7 @@ class TestHtmlParserClient: HtmlParserClient {
         doc: Document,
         instructions: String,
         type: KType,
+        retryCount: Int,
     ): Outcome<T> = Problem("No parse result is configured for $type")
 
     override suspend fun <T> readImage(url: String, instructions: String, type: KType): T? = null
