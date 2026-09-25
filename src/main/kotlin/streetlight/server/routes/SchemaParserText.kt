@@ -39,6 +39,12 @@ Given those considerations, the selector values you provide should be the minima
 The selectors should not specifically target elements within the head.
 """
 
+    /** Closes each selector instruction, so the last thing the model reads is what kind of value to write. */
+    val SelectorReminder = """
+Respond with CSS selectors only. Never copy the text, dates, prices, names or urls that a selector
+would return; the selector is what locates them. A value that is not a CSS selector is wrong.
+"""
+
     val EventFeedSelectorsInstructions = """
 Read the following HTML. We believe it is a calendar page or feed with a listing of events at a particular location.
 Your role is to extract a set of CSS selectors that can be used to parse the page for event information.
@@ -94,6 +100,8 @@ For the content object, determine the following:
 * date: This selector should return an element with text content about the date of the event.
 * time: This selector should return an element with text content about the time of the event. 
     - It may be the same as date.
+
+$SelectorReminder
 """
 
     val EventPageSelectorsInstructions = """
@@ -133,5 +141,7 @@ For the content object, determine the following:
 * ageMin: This selector should return an element with text content about the minimum age required to attend the event.
 * contact: This selector should return an element with text content providing an email address, phone number,
     or social media link offered for the express purpose of contacting someone about the event.
+
+$SelectorReminder
 """
 }
