@@ -30,7 +30,12 @@ fun initDb(server: ServerScope) {
     val env = server.provide<Environment>()
     val db = connectDb(env)
 
-    if (env.buildMode == BuildMode.Development) raiseSchema(db) else installTriggers(db)
+    if (env.buildMode == BuildMode.Development) {
+        raiseSchema(db)
+    } else {
+        migrateSchema(env)
+        installTriggers(db)
+    }
 
     runBlocking {
         initUsers(server)
@@ -139,7 +144,7 @@ fun connectDb(url: String, user: String, password: String) = Database.connect(
     password = password,
 )
 
-/** Connects a pool to the database of [env] and runs its pending Flyway migrations. */
+/** Connects a pool to the database of [env]. */
 fun connectDb(env: Environment): Database {
     val dataSource = HikariDataSource(HikariConfig().apply {
         jdbcUrl = env.read(EnvKey.DB_URL)
@@ -148,12 +153,15 @@ fun connectDb(env: Environment): Database {
         maximumPoolSize = 10
     })
 
+    return Database.connect(dataSource)
+}
+
+/** Runs the pending Flyway migrations on the database of [env]. */
+fun migrateSchema(env: Environment) {
     Flyway.configure()
-        .dataSource(dataSource)
+        .dataSource(env.read(EnvKey.DB_URL), env.read(EnvKey.DB_USER), env.read(EnvKey.DB_PASSWORD))
         .load()
         .migrate()
-
-    return Database.connect(dataSource)
 }
 
 /** Alters the schema to match the table definitions, and creates the triggers. */
