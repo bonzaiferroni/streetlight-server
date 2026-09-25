@@ -1,0 +1,6 @@
+ALTER TABLE "location" ADD event_count INT DEFAULT 0 NOT NULL;
+ALTER TABLE city ADD location_count INT DEFAULT 0 NOT NULL;
+ALTER TABLE city ADD event_count INT DEFAULT 0 NOT NULL;
+ALTER TABLE city ADD image JSONB NULL;
+ALTER TABLE city ADD description TEXT NULL;
+ALTER TABLE city ADD links JSONB NULL;

@@ -132,6 +132,7 @@ private fun BuildStyles() = buildString {
 class ServerBundle(mode: BuildMode): JsBundle {
     override val web = jsFileOf("web.js", basePath = mode.bundleBuildPath)
     override val passwordReset = jsFileOf("passwordReset.js", basePath = mode.bundleBuildPath)
+    override val koala = jsFileOf("koala.js", basePath = mode.bundleBuildPath)
 }
 
 private val headScriptConfig = HeadScriptConfig(

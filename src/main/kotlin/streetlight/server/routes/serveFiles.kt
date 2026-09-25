@@ -13,6 +13,7 @@ import streetlight.server.buildMode
 import streetlight.server.bundleCacheControl
 import streetlight.server.bundleDir
 import streetlight.server.bundleBuildPath
+import streetlight.server.DEV_KOALA_BUNDLE_DIR
 import streetlight.server.model.ApiScope
 import java.io.File
 
@@ -48,11 +49,21 @@ fun ApiScope.serveFiles() {
 //    }
 }
 
-/** Serves the web bundle of [buildMode] with its cache policy. */
+/**
+ * Serves the web and Koala bundles of [buildMode] with their cache policy, both under [bundleBuildPath]. In
+ * development a file missing from the web bundle directory falls through to [DEV_KOALA_BUNDLE_DIR].
+ */
 fun Route.serveBundle(buildMode: BuildMode) {
     staticFiles(buildMode.bundleBuildPath, File(buildMode.bundleDir)) {
         modify { _, call ->
             call.response.header(HttpHeaders.CacheControl, buildMode.bundleCacheControl)
+        }
+    }
+    if (buildMode == BuildMode.Development) {
+        staticFiles(buildMode.bundleBuildPath, File(DEV_KOALA_BUNDLE_DIR)) {
+            modify { _, call ->
+                call.response.header(HttpHeaders.CacheControl, buildMode.bundleCacheControl)
+            }
         }
     }
 }

@@ -19,11 +19,14 @@ val Environment.buildMode get() = when (val value = read(EnvKey.BUILD_ENV)) {
     else -> error("unknown ${EnvKey.BUILD_ENV}: $value")
 }
 
-/** The directory the web bundle is served from. */
+/** The directory the web bundle is served from. In production it also holds the Koala bundle. */
 val BuildMode.bundleDir get() = when (this) {
     BuildMode.Development -> "../web/build/kotlin-webpack/js/developmentExecutable/"
     BuildMode.Production -> "../bundle/"
 }
+
+/** The directory the Koala bundle is served from in development. */
+const val DEV_KOALA_BUNDLE_DIR = "../koala/build/kotlin-webpack/js/productionExecutable/"
 
 /**
  * The URL path of the bundle of this build. A production path changes with each build, so its files can be
