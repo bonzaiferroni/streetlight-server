@@ -1,5 +1,6 @@
 package streetlight.server.model
 
+import kabinet.utils.Environment
 import klutch.db.services.SessionService
 import klutch.environment.SystemEnvironment
 import klutch.environment.readEnvFromPath
@@ -15,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import streetlight.agent.HtmlParserClient
 import streetlight.agent.KoogHtmlParserClient
+import streetlight.agent.readLmConfig
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.external.OSMMapReferenceClient
 import streetlight.server.external.PostmarkEmailClient
@@ -28,7 +30,7 @@ val serverModule = module {
 
     // clients
     single { OSMMapReferenceClient() } bind MapReferenceClient::class
-    single { KoogHtmlParserClient(get()) } bind HtmlParserClient::class
+    single { KoogHtmlParserClient(get<Environment>().readLmConfig()) } bind HtmlParserClient::class
     single { S3BlobClient(get()) } bind BlobClient::class
     single { LocationParser(get()) }
     single { PostmarkEmailClient(get()) } bind EmailClient::class

@@ -35,7 +35,7 @@ dependencies {
 
     implementation(libs.ktor.server.auth.jvm)
     implementation(libs.ktor.server.auth.jwt.jvm)
-    implementation(libs.ktor.server.netty.jvm)
+    implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.sse)
@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.rate.limit)
 
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.server.metrics.micrometer)
     implementation(libs.micrometer.registry.prometheus)
 
@@ -79,8 +81,6 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.ktor.client.cio)
-    testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.playwright)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.junit)
