@@ -43,6 +43,12 @@ The selectors should not specifically target elements within the head.
     val SelectorReminder = """
 Respond with CSS selectors only. Never copy the text, dates, prices, names or urls that a selector
 would return; the selector is what locates them. A value that is not a CSS selector is wrong.
+
+Build every selector only from tags, classes, ids and attribute values that appear in the HTML above. Never
+guess at a name or value that is not in the page. When the page has no element for a field, its value is null.
+
+Use standard CSS selector syntax. Beyond it, only these pseudo-classes are supported: :contains(text),
+:containsOwn(text), :has(selector) and :matches(regex). Any other pseudo-class, such as :has-text, will fail.
 """
 
     val EventFeedSelectorsInstructions = """
@@ -89,6 +95,8 @@ For the content object, determine the following:
 * eventLocation: This selector should return the name of the event location if it is present within the event element.
 * title: This selector should return an element with text content that reflects the event title.
 * link: This selector should return an anchor element with a href attribute with an absolute or relative address to an event page.
+    - The event page is the event's own page on this site. Never choose a link to a ticket vendor or any other outside site,
+      even when it is the only link that names the event.
     - It may be the same as title.
     - Unlike the other elements, the information in the href attribute will be used and not the text content.
 * image: This selector should return an img element with a src attribute referencing an image for the event.

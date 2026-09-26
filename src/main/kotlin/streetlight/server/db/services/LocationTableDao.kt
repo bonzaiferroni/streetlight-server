@@ -194,11 +194,11 @@ class LocationTableDao : DbService() {
         }.singleOrNull()?.toLocationConfigContent()
     }
 
-    /** The locations with an events page not checked within [interval]. */
+    /** The locations with an events page not checked within [interval], oldest first. */
     suspend fun readCheckable(interval: Duration) = dbQuery {
         locationConfigContentQuery().where {
              LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
-         }.map { it.toLocationConfigContent() }
+         }.orderBy(LocationTable.createdAt, SortOrder.ASC).map { it.toLocationConfigContent() }
     }
 
     suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {
