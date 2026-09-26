@@ -18,6 +18,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
@@ -138,6 +139,13 @@ class EventTableDao: DbService() {
         }
             .orderBy(EventTable.startsAt, SortOrder.ASC)
             .map { it.toEvent() }
+    }
+
+    /** The events at the location starting within [from] until [until]. */
+    suspend fun readEventsBetween(locationId: LocationId, from: Instant, until: Instant) = dbQuery {
+        EventTable.read {
+            it.locationId.eq(locationId) and it.startsAt.greaterEq(from) and it.startsAt.less(until)
+        }.map { it.toEvent() }
     }
 
     suspend fun readEventAt(locationId: LocationId, startsAt: Instant) = dbQuery {

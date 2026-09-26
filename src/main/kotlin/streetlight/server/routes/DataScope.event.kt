@@ -20,14 +20,20 @@ import streetlight.server.db.tables.LocationTable
 import streetlight.server.model.DataScope
 import streetlight.server.utils.toStarId
 
-/** Creates an event with its image stored. Fails when the same event exists at the same place and time. */
+/**
+ * Creates an event with its image stored. Fails when the same event exists at the same place and time, or when
+ * its image cannot be stored and [isImageRequired]; otherwise the event is created without the image.
+ */
 suspend fun DataScope.createEvent(
     callerId: CallerId?,
     edit: EventEdit,
+    isImageRequired: Boolean = true,
 ): Outcome<Event> = transaction {
     if (dao.event.hasConflict(edit)) return@transaction Problem("Event already exists")
-    val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)
-        .toDataOr { return@transaction it }
+    val image = when (val stored = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)) {
+        is Ok -> stored.data
+        is Problem -> if (isImageRequired) return@transaction stored else null
+    }
 
     log("creating event: ${edit.title}")
     val event = dao.event.createEvent(callerId, edit.copy(image = image)) ?: return@transaction CoreProblem.Something

@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.ktor.server.rate.limit)
 
     implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.apache5)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.server.metrics.micrometer)
     implementation(libs.micrometer.registry.prometheus)
