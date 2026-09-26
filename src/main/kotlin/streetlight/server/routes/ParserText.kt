@@ -34,14 +34,14 @@ object ParserText {
     """.trimIndent()
 
     val locationInstructions = """
-        Read the following html. We believe it is information about a venue or location that hosts events.
+        Read the html above. We believe it is information about a venue or location that hosts events.
         
         Try to determine the following:
         $locationProperties
     """.trimIndent()
 
     val coldInstructions = """
-        Read the following html. We believe it is information about an event or a list of events. It might also
+        Read the html above. We believe it is information about an event or a list of events. It might also
         have information about an event location. You will parse information about the events and their location.
               
         For the location, determine the following:
@@ -52,14 +52,14 @@ object ParserText {
 """.trimIndent()
 
     val multiEventInstructions = """
-        Read the following html. We believe it is information about an event or a list of events. 
+        Read the html above. We believe it is information about an event or a list of events. 
         
         For each event, determine the following:
         $eventProperties
     """.trimIndent()
 
     val singleEventInstructions = """
-        Read the following html. We believe it is information about an event.
+        Read the html above. We believe it is information about an event.
         
         Determine the following:
         $eventProperties

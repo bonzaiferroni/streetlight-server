@@ -51,8 +51,16 @@ Use standard CSS selector syntax. Beyond it, only these pseudo-classes are suppo
 :containsOwn(text), :has(selector) and :matches(regex). Any other pseudo-class, such as :has-text, will fail.
 """
 
+    /** The kinds of gathering that count as an event. */
+    val EventDefinition = """
+An event can be any kind of gathering: a concert, a class or workshop, a lecture, a market, a meetup,
+a festival, a game.
+"""
+
     val EventFeedSelectorsInstructions = """
-Read the following HTML. We believe it is a calendar page or feed with a listing of events at a particular location.
+Read the HTML above. We believe it is a calendar page or feed with a listing of events at a particular location.
+
+$EventDefinition
 Your role is to extract a set of CSS selectors that can be used to parse the page for event information.
 Remember that you are not providing the details themselves, only the selectors that will be used to
 query the document. 
@@ -113,7 +121,9 @@ $SelectorReminder
 """
 
     val EventPageSelectorsInstructions = """
-Read the following HTML. We believe it is a page with detailed information about a single event at a particular location.
+Read the HTML above. We believe it is a page with detailed information about a single event at a particular location.
+
+$EventDefinition
 Your role is to extract a set of CSS selectors that can be used to parse the page for event information.
 Remember that you are not providing the details themselves, only the selectors that will be used to
 query the document. 
