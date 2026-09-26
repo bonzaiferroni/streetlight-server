@@ -20,6 +20,7 @@ import streetlight.model.data.UrlParseRequest
 import streetlight.model.data.toEdit
 import streetlight.server.utils.readHtmlMetaInfo
 import streetlight.server.utils.stripHtml
+import streetlight.agent.ParserText
 
 /** Reads a location from a web page, filling its gaps from the page's meta tags. */
 class LocationParser(
