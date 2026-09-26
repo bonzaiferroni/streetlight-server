@@ -43,7 +43,6 @@ fun encodeImage(
     bytes: ByteArray,
     sizes: List<ImageSize>,
 ): Outcome<EncodingResult> {
-    println("Received ${bytes.size} bytes, first 8: ${bytes.take(8).map { it.toUByte() }}")
     val format = FormatDetector.detect(bytes.inputStream()).orElse(null) ?: return ImageProblem.InvalidFormat
 
     if (format == Format.WEBP && bytes.isAnimatedWebp()) return ImageProblem.AnimatedWebp

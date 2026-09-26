@@ -39,9 +39,9 @@ suspend fun DataScope.encodeImageAndStore(
         val filename = "$filenameRoot-${size.label}.${format.ext}"
         val url = saveS3ImageFile(encodedBytes, format, filename)
             ?: error("unable to save image: $filename")
-        log("saved remote image: $filename")
         ImageVariant(size, url)
     }.takeIf { it.isNotEmpty() } ?: return ImageProblem.Saving
+    log("saved ${variants.size} remote images: $filenameRoot")
 
     val url = variants.largest ?: error("largest image not found")
 

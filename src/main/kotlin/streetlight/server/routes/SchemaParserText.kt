@@ -39,7 +39,7 @@ Given those considerations, the selector values you provide should be the minima
 The selectors should not specifically target elements within the head.
 """
 
-    /** Closes each selector instruction, so the last thing the model reads is what kind of value to write. */
+    /** Closes each selector instruction. */
     val SelectorReminder = """
 Respond with CSS selectors only. Never copy the text, dates, prices, names or urls that a selector
 would return; the selector is what locates them. A value that is not a CSS selector is wrong.

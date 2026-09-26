@@ -8,7 +8,10 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.Link
 import streetlight.model.data.LinkAlias
+import streetlight.model.data.LinkAccess
+import streetlight.model.data.LinkContent
 import streetlight.model.data.LinkId
+import streetlight.model.data.ParseOutcome
 import streetlight.model.data.SchemaType
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -19,6 +22,10 @@ object LinkTable: UuidTable("link") {
     val schemaType = enumeration<SchemaType>("schema_type").nullable()
     val fetchedAt = timestamp("fetched_at")
     val createdAt = timestamp("created_at")
+    val access = enumeration<LinkAccess>("access")
+    val content = enumeration<LinkContent>("content").nullable()
+    val parseOutcome = enumeration<ParseOutcome>("parse_outcome").nullable()
+    val parseNote = text("parse_note").nullable()
 }
 
 /** Other URLs that lead to a link, such as its redirects. */
@@ -39,6 +46,10 @@ fun UpdateBuilder<*>.createLink(link: Link) {
 fun UpdateBuilder<*>.updateLink(link: Link) {
     this[LinkTable.fetchedAt] = link.fetchedAt
     this[LinkTable.schemaType] = link.schemaType
+    this[LinkTable.access] = link.access
+    this[LinkTable.content] = link.content
+    this[LinkTable.parseOutcome] = link.parseOutcome
+    this[LinkTable.parseNote] = link.parseNote
 }
 
 fun UpdateBuilder<*>.createLinkAlias(alias: LinkAlias) {

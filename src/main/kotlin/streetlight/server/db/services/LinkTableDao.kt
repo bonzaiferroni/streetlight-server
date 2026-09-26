@@ -62,4 +62,8 @@ fun ResultRow.toLink() = Link(
     schemaType = this[LinkTable.schemaType],
     fetchedAt = this[LinkTable.fetchedAt],
     createdAt = this[LinkTable.createdAt],
+    access = this[LinkTable.access],
+    content = this[LinkTable.content],
+    parseOutcome = this[LinkTable.parseOutcome],
+    parseNote = this[LinkTable.parseNote],
 )
