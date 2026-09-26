@@ -32,6 +32,7 @@ import kotlin.time.Clock
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
+import streetlight.model.data.MapId
 import streetlight.model.data.LocationInfo
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
@@ -112,7 +113,7 @@ class LocationTableDao : DbService() {
 
     suspend fun create(
         cityId: CityId,
-        callerId: CallerId,
+        callerId: CallerId?,
         edit: LocationEdit,
     ) = dbQuery {
         val locationId = LocationId.random()
@@ -158,6 +159,11 @@ class LocationTableDao : DbService() {
         } else if (address != null) {
             LocationTable.readFirstOrNull { it.address.lowerCase().eq(address.lowercase()) }?.toLocation()
         } else null
+    }
+
+    /** The location of the map place [mapId]. */
+    suspend fun readLocationByMapId(mapId: MapId) = dbQuery {
+        LocationTable.readFirstOrNull { it.mapId.eq(mapId) }?.toLocation()
     }
 
     suspend fun readLocationAt(point: GeoPoint) = dbQuery {

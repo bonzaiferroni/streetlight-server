@@ -19,11 +19,11 @@ import streetlight.server.utils.TimeZones
 import streetlight.server.utils.toStarId
 
 /**
- * Creates a location in its city, created when new, and logs the edit. The edit is sent for review when it asks
- * for one or the caller is a new scout.
+ * Creates a location in its city, created when new, and logs the edit of a caller. The edit is sent for review
+ * when it asks for one or the caller is a new scout.
  */
 suspend fun DataScope.createLocation(
-    callerId: CallerId,
+    callerId: CallerId?,
     edit: LocationEdit,
 ): Outcome<Location> = transaction {
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
@@ -31,6 +31,7 @@ suspend fun DataScope.createLocation(
 
     log("creating location: ${preparedEdit.label}")
     val location = dao.location.create(cityId, callerId, preparedEdit) ?: return@transaction CoreProblem.Something
+    callerId ?: return@transaction Ok(location)
     val editLogId = dao.editLog.create(EditType.Create, location.toEdit(), location.locationId, callerId)
     val star = dao.star.readStar(callerId.toStarId()) ?: error("star not found")
 
@@ -57,7 +58,7 @@ suspend fun DataScope.updateLocation(
 }
 
 /** [edit] with its image stored and its time zone found from its point. */
-suspend fun DataScope.prepareLocation(callerId: CallerId, edit: LocationEdit): Outcome<LocationEdit> {
+suspend fun DataScope.prepareLocation(callerId: CallerId?, edit: LocationEdit): Outcome<LocationEdit> {
     val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
         .toDataOr { return it }
     val geoPoint = edit.geoPoint ?: error("GeoPoint not found")

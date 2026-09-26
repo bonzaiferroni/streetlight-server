@@ -55,8 +55,13 @@ class OSMMapReferenceClient(
                 query.state?.let { parameters.append("state", it) }
                 query.country?.let { parameters.append("country", it) }
                 query.postalcode?.let { parameters.append("postalcode", it) }
+                query.bounds?.let {
+                    parameters.append("viewbox", "${it.sw.lng},${it.sw.lat},${it.ne.lng},${it.ne.lat}")
+                    parameters.append("bounded", "1")
+                }
                 parameters.append("format", "jsonv2")
                 parameters.append("addressdetails", "1")
+                parameters.append("extratags", "1")
                 parameters.append("limit", query.limit.toString())
             }
         }.body()
