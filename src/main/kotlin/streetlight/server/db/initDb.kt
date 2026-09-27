@@ -96,6 +96,7 @@ internal val dbTables = listOf(
     LocationOriginTable,
     LinkTable,
     LinkAliasTable,
+    EventFeedTable,
     SubdomainTable,
     MessageTable,
     ChatTable,
