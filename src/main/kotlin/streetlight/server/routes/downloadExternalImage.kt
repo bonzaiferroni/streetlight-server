@@ -9,7 +9,7 @@ import io.ktor.client.statement.readRawBytes
 import io.ktor.http.isSuccess
 import kabinet.console.globalConsole
 import kampfire.model.Url
-import streetlight.agent.StreetlightAgent
+import streetlight.server.model.StreetlightAgent
 
 private val console = globalConsole.getHandle(::downloadImage.name)
 

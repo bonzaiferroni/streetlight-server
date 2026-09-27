@@ -14,13 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
-import streetlight.agent.HtmlParserClient
-import streetlight.agent.KoogHtmlParserClient
-import streetlight.agent.readLmConfig
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.external.OSMMapReferenceClient
 import streetlight.server.external.PostmarkEmailClient
-import streetlight.server.routes.LocationParser
 
 /** The server's services, one of each. */
 val serverModule = module {
@@ -30,9 +26,7 @@ val serverModule = module {
 
     // clients
     single { OSMMapReferenceClient() } bind MapReferenceClient::class
-    single { KoogHtmlParserClient(get<Environment>().readLmConfig()) } bind HtmlParserClient::class
     single { S3BlobClient(get()) } bind BlobClient::class
-    single { LocationParser(get()) }
     single { PostmarkEmailClient(get()) } bind EmailClient::class
     single { ClientFacade(get(), get(), get()) }
 

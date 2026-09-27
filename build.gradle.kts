@@ -58,7 +58,6 @@ dependencies {
     implementation(project(":kabinet"))
     implementation(project(":klutch"))
     implementation(project(":web"))
-    implementation(project(":agent"))
     implementation(project(":koala"))
 
     implementation(libs.scrimage.core)

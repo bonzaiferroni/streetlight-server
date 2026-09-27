@@ -13,8 +13,6 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import streetlight.agent.HtmlParserClient
-import streetlight.server.model.TestHtmlParserClient
 import streetlight.server.db.services.SongTableService
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.model.AppEmail
@@ -32,7 +30,6 @@ import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.Server
 import streetlight.server.model.ServerConfig
 import streetlight.server.model.ServerScope
-import streetlight.server.routes.LocationParser
 
 fun buildTestServer(
     env: Environment = readTestEnvironment(),
@@ -45,7 +42,6 @@ fun buildTestServer(
     emailRouter: EmailRouter = EmailRouter(),
     daoFacade: DaoFacade = DaoFacade(),
     mapClient: MapReferenceClient = TestMapReferenceClient(),
-    htmlParserClient: HtmlParserClient = TestHtmlParserClient(),
     blobClient: BlobClient = TestBlobClient(),
     emailClient: (EmailRouter) -> EmailClient = { TestEmailClient(it) },
 ): TestServer {
@@ -64,8 +60,6 @@ fun buildTestServer(
             single { Authorizer(get()) }
             single { ConnectionService() }
             single { OmniService(get()) }
-            single { htmlParserClient }
-            single { LocationParser(get()) }
             single { SongTableService() }
         })
     }.koin

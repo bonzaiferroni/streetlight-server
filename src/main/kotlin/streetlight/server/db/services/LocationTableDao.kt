@@ -54,6 +54,8 @@ import streetlight.server.db.tables.locationConfigContentQuery
 import streetlight.server.db.tables.locationLayoutQuery
 import streetlight.server.db.tables.locationQuery
 import streetlight.server.db.tables.toLocationConfigContent
+import streetlight.server.db.tables.toLocationEventFeedOrNull
+import streetlight.server.db.tables.LocationAspect
 import streetlight.server.db.tables.toLocationDesign
 import streetlight.server.db.tables.updateLocation
 import streetlight.server.utils.toRecordId
@@ -200,11 +202,11 @@ class LocationTableDao : DbService() {
         }.singleOrNull()?.toLocationConfigContent()
     }
 
-    /** The locations with an events page not checked within [interval], oldest first. */
-    suspend fun readCheckable(interval: Duration) = dbQuery {
-        locationConfigContentQuery().where {
+    /** The events pages of the locations not checked within [interval], oldest first. */
+    suspend fun readCheckableFeeds(interval: Duration) = dbQuery {
+        LocationTable.select(LocationAspect.columns + LocationTable.parseMode).where {
              LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
-         }.orderBy(LocationTable.createdAt, SortOrder.ASC).map { it.toLocationConfigContent() }
+         }.orderBy(LocationTable.createdAt, SortOrder.ASC).mapNotNull { it.toLocationEventFeedOrNull() }
     }
 
     suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {

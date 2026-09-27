@@ -10,7 +10,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import streetlight.model.data.EventFeedId
 import streetlight.server.db.tables.EventFeedTable
-import streetlight.server.db.tables.toEventFeed
+import streetlight.server.db.tables.toGeneralEventFeed
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -22,7 +22,7 @@ class EventFeedTableDao : DbService() {
     suspend fun readCheckable(interval: Duration) = dbQuery {
         EventFeedTable.selectAll().where {
             EventFeedTable.checkedAt.isNull() or EventFeedTable.checkedAt.less(Clock.System.now() - interval)
-        }.orderBy(EventFeedTable.createdAt, SortOrder.ASC).map { it.toEventFeed() }
+        }.orderBy(EventFeedTable.createdAt, SortOrder.ASC).map { it.toGeneralEventFeed() }
     }
 
     suspend fun updateCheckedAt(eventFeedId: EventFeedId, checkedAt: Instant = Clock.System.now()) = dbQuery {

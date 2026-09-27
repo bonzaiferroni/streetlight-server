@@ -5,6 +5,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.LocationConfig
 import streetlight.model.data.LocationConfigContent
+import streetlight.model.data.LocationEventFeed
 import streetlight.server.utils.toRecordId
 
 object LocationConfigQuery {
@@ -26,6 +27,13 @@ fun ResultRow.toLocationConfigContent() = LocationConfigContent(
     location = toLocation(),
     config = toLocationConfig(),
 )
+
+/** The events page of the location of this row, or null when it has none. */
+fun ResultRow.toLocationEventFeedOrNull(): LocationEventFeed? {
+    val location = toLocation()
+    val url = location.eventsUrl ?: return null
+    return LocationEventFeed(location, url, this[LocationTable.parseMode])
+}
 
 fun ResultRow.toLocationConfig() = LocationConfig(
     locationId = toRecordId(LocationTable.id),

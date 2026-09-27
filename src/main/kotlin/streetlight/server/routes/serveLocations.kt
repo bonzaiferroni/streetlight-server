@@ -3,8 +3,8 @@ package streetlight.server.routes
 import io.ktor.server.routing.RoutingCall
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
+import kampfire.model.HttpProblem
 import kampfire.model.Ok
-import kampfire.model.Problem
 import kampfire.model.kilometers
 import kampfire.model.toOutcome
 import klutch.db.model.Identity
@@ -13,20 +13,14 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.agent.HtmlParserClient
-import streetlight.model.data.FetchMode
-import streetlight.model.data.toOriginId
 import streetlight.server.db.datascope.createLocation
-import streetlight.server.db.datascope.parseEventSchema
 import streetlight.server.db.datascope.updateLocation
 import streetlight.server.utils.TimeZones
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)
 
 fun ApiScope.serveLocations() {
-    val parser = provide<LocationParser>()
     val omni = provide<OmniService>()
-    val koog = provide<HtmlParserClient>()
 
     getApi(Api.Locations.Search) { endpoint ->
         val query = readParam(endpoint.query)
@@ -63,8 +57,8 @@ fun ApiScope.serveLocations() {
         //                else -> dao.location.updateLocation(locationId, starId, edit, imageSet)
         //            }.toResponse()
 
-        postApi(Api.Locations.ParseLocation) { request ->
-            parser.parseLocation(request.data)
+        postApi(Api.Locations.ParseLocation) {
+            HttpProblem.NotImplemented
         }
 
         getApi(Api.Locations.ReadContent) {
@@ -112,8 +106,7 @@ fun ApiScope.serveLocations() {
         }
 
         postApi(Api.Locations.ParseEventSchema) {
-            call.requireAdminIdentity()
-            parseEventSchema(it.data, koog)
+            HttpProblem.NotImplemented
         }
 
         postApi(Api.Locations.UpdateConfig) {
@@ -123,15 +116,7 @@ fun ApiScope.serveLocations() {
         }
 
         postApi(Api.Locations.UploadSchemas) {
-            call.requireAdminIdentity()
-            val urlSchemas = it.data
-            val originId = urlSchemas.url.toOriginId() ?: return@postApi Problem("Invalid url: ${urlSchemas.url}")
-            dao.origin.readOrCreateOrigin(originId)
-            urlSchemas.schemas.forEach { schema ->
-                dao.parser.create(originId, schema, FetchMode.Basic)
-                dao.origin.linkLocation(originId, urlSchemas.locationId)
-            }
-            Ok(Unit)
+            HttpProblem.NotImplemented
         }
     }
 }

@@ -7,7 +7,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
-import streetlight.model.data.EventFeed
+import streetlight.model.data.GeneralEventFeed
 import streetlight.server.utils.toRecordId
 
 /** The pages listing local events at many locations, with when each was last read. */
@@ -20,7 +20,7 @@ object EventFeedTable: UuidTable("event_feed") {
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 }
 
-fun ResultRow.toEventFeed() = EventFeed(
+fun ResultRow.toGeneralEventFeed() = GeneralEventFeed(
     eventFeedId = toRecordId(EventFeedTable.id),
     name = this[EventFeedTable.name],
     url = this[EventFeedTable.url].toUrl(),

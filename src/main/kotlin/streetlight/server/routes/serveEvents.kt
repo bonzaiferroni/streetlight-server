@@ -18,13 +18,11 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
-import streetlight.agent.HtmlParserClient
 
 private val console = globalConsole.getHandle(ApiScope::serveEvents.name)
 
 fun ApiScope.serveEvents() {
     val omni = provide<OmniService>()
-    val parser = provide<HtmlParserClient>()
 
     getApi(Api.Events) {
         Ok(dao.event.readActiveEvents())
@@ -119,10 +117,8 @@ fun ApiScope.serveEvents() {
             Ok(dao.event.deleteEvent(identity.callerId, eventId, identity.isAdmin))
         }
 
-        postApi(Api.Events.ParseSingleEvent) { request ->
-            val request = request.data
-
-            parseEvent(request, parser)
+        postApi(Api.Events.ParseSingleEvent) {
+            HttpProblem.NotImplemented
         }
 
         getApi(Api.Events.ReadLights) {
