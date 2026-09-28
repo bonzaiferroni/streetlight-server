@@ -67,7 +67,7 @@ fun ApiScope.serveStars() {
         postApi(Api.Stars.CreateLead) { request ->
             val identity = call.requireAdminIdentity()
             val lead = request.data
-            if (lead.leadType != LeadType.Location) return@postApi Problem("Only location leads can be submitted.")
+            if (lead.leadType !in submittableLeadTypes) return@postApi Problem("Only location and event leads can be submitted.")
             if (!lead.url.isAbsolute) return@postApi Problem("That isn't a web address.")
             if (dao.lead.readLeadByUrl(lead.url.normalize()) != null) return@postApi Problem("That one is already on our list.")
             Ok(dao.lead.create(lead, identity.starId))
@@ -79,3 +79,5 @@ fun ApiScope.serveStars() {
         }
     }
 }
+
+private val submittableLeadTypes = setOf(LeadType.Location, LeadType.Event)

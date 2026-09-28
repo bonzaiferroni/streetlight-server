@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
+import streetlight.model.data.EventLead
 import streetlight.model.data.GeneralEventFeed
 import streetlight.model.data.Lead
 import streetlight.model.data.LeadType
@@ -43,6 +44,12 @@ fun ResultRow.toLead(): Lead = when (val leadType = this[LeadTable.leadType]) {
         createdAt = this[LeadTable.createdAt],
     )
     LeadType.Location -> LocationLead(
+        leadId = toRecordId(LeadTable.id),
+        initialUrl = this[LeadTable.url].toUrl().normalize(),
+        checkedAt = this[LeadTable.checkedAt],
+        createdAt = this[LeadTable.createdAt],
+    )
+    LeadType.Event -> EventLead(
         leadId = toRecordId(LeadTable.id),
         initialUrl = this[LeadTable.url].toUrl().normalize(),
         checkedAt = this[LeadTable.checkedAt],
