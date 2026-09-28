@@ -1,6 +1,10 @@
 package streetlight.server.routes
 
 import kampfire.model.Ok
+import kampfire.model.Problem
+import kampfire.model.normalize
+import streetlight.model.data.LeadType
+import streetlight.server.utils.starId
 import kampfire.model.toDataOr
 import kampfire.model.toOutcome
 import klutch.server.postApi
@@ -58,6 +62,15 @@ fun ApiScope.serveStars() {
         getApi(Api.Stars.ReadAccount) {
             val callerId = call.getIdentity().callerId
             dao.star.readAccount(callerId.toStarId()).toOutcome()
+        }
+
+        postApi(Api.Stars.CreateLead) { request ->
+            val identity = call.requireAdminIdentity()
+            val lead = request.data
+            if (lead.leadType != LeadType.Location) return@postApi Problem("Only location leads can be submitted.")
+            if (!lead.url.isAbsolute) return@postApi Problem("That isn't a web address.")
+            if (dao.lead.readLeadByUrl(lead.url.normalize()) != null) return@postApi Problem("That one is already on our list.")
+            Ok(dao.lead.create(lead, identity.starId))
         }
 
         getApi(Api.Stars.ReadProfileConfig) {
