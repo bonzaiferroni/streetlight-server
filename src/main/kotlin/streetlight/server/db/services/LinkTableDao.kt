@@ -42,14 +42,11 @@ class LinkTableDao: DbService() {
         }
     }
 
-    suspend fun readLinkByAlias(url: Url) = dbQuery {
+    /** The link known by [url], as one of its aliases or its own url. */
+    suspend fun readLink(url: Url) = dbQuery {
         LinkAliasTable.leftJoin(LinkTable).select(LinkTable.columns).where {
             LinkAliasTable.url.eq(url.value)
-        }.singleOrNull()?.toLink()
-    }
-
-    suspend fun readLink(url: Url) = dbQuery {
-        LinkTable.selectAll().where {
+        }.singleOrNull()?.toLink() ?: LinkTable.selectAll().where {
             LinkTable.url.eq(url.value)
         }.singleOrNull()?.toLink()
     }
