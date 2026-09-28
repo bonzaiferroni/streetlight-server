@@ -53,7 +53,7 @@ class DaoFacade(
     val authToken: AuthTokenTableDao = AuthTokenTableDao(),
     val bouncedEmail: BouncedEmailTableDao = BouncedEmailTableDao(),
     val origin: OriginTableDao = OriginTableDao(),
-    val eventFeed: EventFeedTableDao = EventFeedTableDao(),
+    val lead: LeadTableDao = LeadTableDao(),
     val link: LinkTableDao = LinkTableDao(),
     val parser: ParserTableDao = ParserTableDao(),
     val subdomain: SubdomainTableDao = SubdomainTableDao(),

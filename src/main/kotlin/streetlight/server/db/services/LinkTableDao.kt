@@ -62,5 +62,4 @@ fun ResultRow.toLink() = Link(
     access = this[LinkTable.access],
     content = this[LinkTable.content],
     parseOutcome = this[LinkTable.parseOutcome],
-    parseNote = this[LinkTable.parseNote],
 )

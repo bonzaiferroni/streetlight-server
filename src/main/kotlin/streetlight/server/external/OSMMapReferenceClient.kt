@@ -48,6 +48,7 @@ class OSMMapReferenceClient(
     override suspend fun search(query: OSMQuery): List<OSMLocation>? =
         client.get("https://nominatim.openstreetmap.org/search") {
             url {
+                query.query?.let { parameters.append("q", it) }
                 query.amenity?.let { parameters.append("amenity", it) }
                 query.street?.let { parameters.append("street", it) }
                 query.city?.let { parameters.append("city", it) }

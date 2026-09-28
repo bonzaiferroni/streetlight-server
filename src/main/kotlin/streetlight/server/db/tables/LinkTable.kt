@@ -25,7 +25,6 @@ object LinkTable: UuidTable("link") {
     val access = enumeration<LinkAccess>("access")
     val content = enumeration<LinkContent>("content").nullable()
     val parseOutcome = enumeration<ParseOutcome>("parse_outcome").nullable()
-    val parseNote = text("parse_note").nullable()
 }
 
 /** Other URLs that lead to a link, such as its redirects. */
@@ -49,7 +48,6 @@ fun UpdateBuilder<*>.updateLink(link: Link) {
     this[LinkTable.access] = link.access
     this[LinkTable.content] = link.content
     this[LinkTable.parseOutcome] = link.parseOutcome
-    this[LinkTable.parseNote] = link.parseNote
 }
 
 fun UpdateBuilder<*>.createLinkAlias(alias: LinkAlias) {
