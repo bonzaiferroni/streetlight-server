@@ -245,7 +245,9 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
 )
 
 /** The text a location's slug is made from: its name and city, or its id. */
+/** The base of the location's slug: its name and city, or its address and city when it has no name, or its id. */
 fun LocationEdit.getSlugBase(locationId: LocationId) = when {
-    name != null && city != null -> "$name-$city"
+    !name.isNullOrBlank() && city != null -> "$name-$city"
+    !address.isNullOrBlank() && city != null -> "$address-$city"
     else -> locationId.value.toString()
 }
