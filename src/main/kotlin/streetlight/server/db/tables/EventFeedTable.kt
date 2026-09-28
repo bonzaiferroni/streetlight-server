@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import kampfire.model.normalize
 import kampfire.model.toUrl
 import klutch.db.point
 import klutch.utils.toGeoPoint
@@ -20,10 +21,11 @@ object EventFeedTable: UuidTable("event_feed") {
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 }
 
+/** The general event feed of this row, its url normalized. */
 fun ResultRow.toGeneralEventFeed() = GeneralEventFeed(
     eventFeedId = toRecordId(EventFeedTable.id),
     name = this[EventFeedTable.name],
-    url = this[EventFeedTable.url].toUrl(),
+    initialUrl = this[EventFeedTable.url].toUrl().normalize(),
     geoPoint = this[EventFeedTable.geoPoint].toGeoPoint(),
     timeZoneId = this[EventFeedTable.timezoneId],
     checkedAt = this[EventFeedTable.checkedAt],
