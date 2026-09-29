@@ -26,11 +26,13 @@ import kotlin.time.Instant
 class LeadTableDao : DbService() {
 
     /** The leads due a read, oldest first: those never read, and event feeds not read within [interval]. */
-    suspend fun readCheckable(interval: Duration) = dbQuery {
+    suspend fun readCheckable(interval: Duration, limit: Int) = dbQuery {
         LeadTable.selectAll().where {
             LeadTable.checkedAt.isNull() or
                 (LeadTable.leadType.eq(LeadType.EventFeed) and LeadTable.checkedAt.less(Clock.System.now() - interval))
-        }.orderBy(LeadTable.createdAt, SortOrder.ASC).map { it.toLead() }
+        }.orderBy(LeadTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .map { it.toLead() }
     }
 
     /** The lead of [url], or null when there is none. */

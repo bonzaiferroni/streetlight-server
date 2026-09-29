@@ -32,6 +32,7 @@ import kotlin.time.Clock
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
+import streetlight.model.data.ParseMode
 import streetlight.model.data.MapId
 import streetlight.model.data.LocationInfo
 import streetlight.server.db.tables.EventTable
@@ -202,11 +203,14 @@ class LocationTableDao : DbService() {
         }.singleOrNull()?.toLocationConfigContent()
     }
 
-    /** The events pages of the locations not checked within [interval], oldest first. */
-    suspend fun readCheckableFeeds(interval: Duration) = dbQuery {
+    /** The events pages of the locations not checked within [interval] whose parse mode reads them, oldest first. */
+    suspend fun readCheckableFeeds(interval: Duration, limit: Int) = dbQuery {
         LocationTable.select(LocationAspect.columns + LocationTable.parseMode).where {
-             LocationTable.eventsUrl.isNotNull() and (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
-         }.orderBy(LocationTable.createdAt, SortOrder.ASC).mapNotNull { it.toLocationEventFeedOrNull() }
+             LocationTable.eventsUrl.isNotNull() and LocationTable.parseMode.neq(ParseMode.None) and
+                 (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
+         }.orderBy(LocationTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .mapNotNull { it.toLocationEventFeedOrNull() }
     }
 
     suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {
