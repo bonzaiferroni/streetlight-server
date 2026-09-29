@@ -34,14 +34,15 @@ object LeadTable: UuidTable("lead") {
 
 /** The lead of this row, of the kind its type names, its url normalized. */
 fun ResultRow.toLead(): Lead = when (val leadType = this[LeadTable.leadType]) {
-    LeadType.EventFeed -> GeneralEventFeed(
+    LeadType.EventFeed, LeadType.EventScan -> GeneralEventFeed(
         leadId = toRecordId(LeadTable.id),
-        name = requireNotNull(this[LeadTable.name]) { "event feed lead without a name" },
+        name = this[LeadTable.name] ?: this[LeadTable.url],
         initialUrl = this[LeadTable.url].toUrl().normalize(),
         geoPoint = requireNotNull(this[LeadTable.geoPoint]) { "event feed lead without a geo point" }.toGeoPoint(),
         timeZoneId = requireNotNull(this[LeadTable.timezoneId]) { "event feed lead without a time zone" },
         checkedAt = this[LeadTable.checkedAt],
         createdAt = this[LeadTable.createdAt],
+        leadType = leadType,
     )
     LeadType.Location -> LocationLead(
         leadId = toRecordId(LeadTable.id),

@@ -35,8 +35,8 @@ class OriginTableDao : DbService() {
         }
     }
 
-    /** Marks an origin as needing a scripted fetch, since its plain HTML was incomplete. */
-    suspend fun registerIncomplete(originId: OriginId) = dbQuery {
+    /** Marks an origin as needing a scripted fetch, since its plain HTML lacked content drawn by scripting. */
+    suspend fun registerScriptingRequired(originId: OriginId) = dbQuery {
         OriginTable.update({ OriginTable.id.eq(originId.value)}) {
             it[OriginTable.fetchMode] = FetchMode.Scripting
         }
