@@ -14,4 +14,4 @@ fun Document.readMetaContent(vararg propertyValues: String) = propertyValues.fir
 /** The image a page declares in its meta tags. */
 fun Document.readImageUrl() = this.readMetaContent("image", "og:image", "twitter:image")?.let {
     if (it.startsWith("//")) "https:$it" else it
-}?.toUrl()
+}?.replace(" ", "%20")?.toUrl()

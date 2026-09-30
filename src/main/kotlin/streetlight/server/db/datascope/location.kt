@@ -3,6 +3,7 @@ package streetlight.server.db.datascope
 import kampfire.model.CoreProblem
 import kampfire.model.Ok
 import kampfire.model.Outcome
+import kampfire.model.Problem
 import kampfire.model.toDataOr
 import klutch.db.model.CallerId
 import streetlight.model.data.EditType
@@ -20,14 +21,16 @@ import streetlight.server.utils.toStarId
 
 /**
  * Creates a location in its city, created when new, and logs the edit of a caller. The edit is sent for review
- * when it asks for one or the caller is a new scout.
+ * when it asks for one or the caller is a new scout. Fails when its image cannot be stored and [isImageRequired];
+ * otherwise the location is created without the image.
  */
 suspend fun DataScope.createLocation(
     callerId: CallerId?,
     edit: LocationEdit,
+    isImageRequired: Boolean = true,
 ): Outcome<Location> = transaction {
     val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
-    val preparedEdit = prepareLocation(callerId, edit).toDataOr { return@transaction it }
+    val preparedEdit = prepareLocation(callerId, edit, isImageRequired).toDataOr { return@transaction it }
 
     log("creating location: ${preparedEdit.label}")
     val location = dao.location.create(cityId, callerId, preparedEdit) ?: return@transaction CoreProblem.Something
@@ -57,10 +60,19 @@ suspend fun DataScope.updateLocation(
     Ok(location)
 }
 
-/** [edit] with its image stored and its time zone found from its point. */
-suspend fun DataScope.prepareLocation(callerId: CallerId?, edit: LocationEdit): Outcome<LocationEdit> {
-    val image = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)
-        .toDataOr { return it }
+/**
+ * [edit] with its image stored and its time zone found from its point, or without the image when it cannot be
+ * stored and not [isImageRequired].
+ */
+suspend fun DataScope.prepareLocation(
+    callerId: CallerId?,
+    edit: LocationEdit,
+    isImageRequired: Boolean = true,
+): Outcome<LocationEdit> {
+    val image = when (val stored = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)) {
+        is Ok -> stored.data
+        is Problem -> if (isImageRequired) return stored else null
+    }
     val geoPoint = edit.geoPoint ?: error("GeoPoint not found")
     val timezoneId = TimeZones.zoneIdAt(geoPoint) ?: error("timezone query unsuccess")
     return Ok(edit.copy(image = image, timezoneId = timezoneId))
