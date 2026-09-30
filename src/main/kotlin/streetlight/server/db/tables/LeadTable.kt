@@ -55,6 +55,7 @@ fun ResultRow.toLead(): Lead = when (val leadType = this[LeadTable.leadType]) {
     LeadType.Event -> EventLead(
         leadId = toRecordId(LeadTable.id),
         initialUrl = this[LeadTable.url].toUrl().normalize(),
+        content = this[LeadTable.contentText],
         checkedAt = this[LeadTable.checkedAt],
         createdAt = this[LeadTable.createdAt],
     )

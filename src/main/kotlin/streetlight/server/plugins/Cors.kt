@@ -16,6 +16,7 @@ fun Application.configureCors() {
         allowHost("192.168.1.100:8080")
         allowHost("localhost:8080")
         allowHost("streetlight.ing")
+        allowOrigins { it.startsWith("moz-extension://") || it.startsWith("chrome-extension://") }
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.AccessControlAllowOrigin)
         allowCredentials = true

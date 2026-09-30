@@ -47,6 +47,7 @@ class LeadTableDao : DbService() {
             it[LeadTable.url] = lead.url.normalize().value
             it[LeadTable.starId] = starId.value
             it[LeadTable.galaxyId] = lead.galaxyId?.value
+            it[LeadTable.contentText] = lead.content
         }.value.let { LeadId(it) }
     }
 
