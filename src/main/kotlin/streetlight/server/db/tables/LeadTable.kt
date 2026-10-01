@@ -29,6 +29,7 @@ object LeadTable: UuidTable("lead") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val galaxyId = reference("galaxy_id", GalaxyTable, onDelete = ReferenceOption.SET_NULL).nullable()
     val contentText = text("content_text").nullable()
+    val isRsvp = bool("is_rsvp").default(false)
     val checkedAt = timestamp("checked_at").nullable()
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 }
@@ -44,6 +45,7 @@ fun ResultRow.toLead(): Lead = when (val leadType = this[LeadTable.leadType]) {
         checkedAt = this[LeadTable.checkedAt],
         createdAt = this[LeadTable.createdAt],
         leadType = leadType,
+        isRsvp = this[LeadTable.isRsvp],
     )
     LeadType.Location -> LocationLead(
         leadId = toRecordId(LeadTable.id),

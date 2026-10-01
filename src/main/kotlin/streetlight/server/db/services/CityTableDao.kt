@@ -143,7 +143,7 @@ class CityTableDao : DbService() {
 //        }
 //    }
 
-    suspend fun readTopCities(limit: Int = 10) = dbQuery {
+    suspend fun readTopCities(limit: Int = 100) = dbQuery {
         CityTable.selectAll()
             .orderBy(CityTable.galaxyCount, SortOrder.DESC)
             .limit(limit)

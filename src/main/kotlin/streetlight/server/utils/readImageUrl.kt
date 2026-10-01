@@ -1,6 +1,7 @@
 package streetlight.server.utils
 
 import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.internal.StringUtil
 import com.fleeksoft.ksoup.nodes.Document
 import kabinet.clients.readMetaContent
 import kampfire.model.toUrl
@@ -11,7 +12,12 @@ fun Document.readMetaContent(vararg propertyValues: String) = propertyValues.fir
         ?: this.selectFirst("meta[name=\"$it\"]")?.attribute("content")?.value
 }
 
-/** The image a page declares in its meta tags, or null when it declares none with an absolute url. */
-fun Document.readImageUrl() = this.readMetaContent("image", "og:image", "twitter:image")?.let {
+/**
+ * The image a page declares in its meta tags, a relative url resolved against the page when [resolveIfRelative], or
+ * null when it declares none with an absolute url.
+ */
+fun Document.readImageUrl(resolveIfRelative: Boolean) = this.readMetaContent("image", "og:image", "twitter:image")?.let {
     if (it.startsWith("//")) "https:$it" else it
-}?.replace(" ", "%20")?.toUrl()?.takeIf { it.isAbsolute }
+}?.replace(" ", "%20")
+    ?.let { if (resolveIfRelative) StringUtil.resolve(baseUri(), it) else it }
+    ?.toUrl()?.takeIf { it.isAbsolute }

@@ -31,7 +31,10 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import kotlin.time.Clock
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
+import kampfire.model.normalize
+import kampfire.model.toUrl
 import streetlight.model.data.LocationId
+import streetlight.model.data.LocationLead
 import streetlight.model.data.ParseMode
 import streetlight.model.data.MapId
 import streetlight.model.data.LocationInfo
@@ -97,6 +100,12 @@ class LocationTableDao : DbService() {
         LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
             it[LocationTable.parseMode] = config.parseMode
             it[LocationTable.design] = config.design
+        }
+    }
+
+    suspend fun updateCheckedFeedAt(locationId: LocationId, checkedAt: Instant = Clock.System.now()) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.checkedFeedAt] = checkedAt
         }
     }
 
@@ -208,10 +217,28 @@ class LocationTableDao : DbService() {
     suspend fun readCheckableFeeds(interval: Duration, limit: Int) = dbQuery {
         LocationTable.select(LocationAspect.columns + LocationTable.parseMode).where {
              LocationTable.eventsUrl.isNotNull() and LocationTable.parseMode.neq(ParseMode.None) and
-                 (LocationTable.checkedAt.isNull() or LocationTable.checkedAt.less(Clock.System.now() - interval))
+                 (LocationTable.checkedFeedAt.isNull() or LocationTable.checkedFeedAt.less(Clock.System.now() - interval))
          }.orderBy(LocationTable.createdAt, SortOrder.ASC)
             .limit(limit)
             .mapNotNull { it.toLocationEventFeedOrNull() }
+    }
+
+    /** Leads to read the websites of up to [limit] locations without a host whose website was never read, oldest first. */
+    suspend fun readCheckableWebsites(limit: Int) = dbQuery {
+        LocationTable.select(LocationTable.id, LocationTable.website, LocationTable.createdAt).where {
+            LocationTable.website.isNotNull() and LocationTable.checkedAt.isNull() and LocationTable.hostId.isNull()
+        }.orderBy(LocationTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .map { row ->
+                LocationLead(
+                    leadId = null,
+                    initialUrl = requireNotNull(row[LocationTable.website]).toUrl().normalize(),
+                    content = null,
+                    checkedAt = null,
+                    createdAt = row[LocationTable.createdAt],
+                    locationId = row.toRecordId(LocationTable.id),
+                )
+            }
     }
 
     suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {
