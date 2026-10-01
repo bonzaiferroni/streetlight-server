@@ -80,13 +80,14 @@ class LocationTableDao : DbService() {
     suspend fun update(
         locationId: LocationId,
         cityId: CityId?,
-        callerId: CallerId,
+        callerId: CallerId?,
         edit: LocationEdit,
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
-        val isOwnerOrNull = LocationTable.hostId.isNull() or LocationTable.hostId.eq(callerId.value)
+        val isOwnerOrNull = callerId?.let { LocationTable.hostId.isNull() or LocationTable.hostId.eq(it.value) }
+            ?: LocationTable.hostId.isNull()
         LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
             it.updateLocation(location, slugRecord)
         }.singleOrNull()?.toLocation()
