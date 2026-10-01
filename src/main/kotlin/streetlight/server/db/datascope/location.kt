@@ -20,7 +20,7 @@ import streetlight.server.utils.TimeZones
 import streetlight.server.utils.toStarId
 
 /**
- * Creates a location in its city, created when new, and logs the edit of a caller. The edit is sent for review
+ * Creates a location in its city when it names one, the city created when new, and logs the edit of a caller. The edit is sent for review
  * when it asks for one or the caller is a new scout. Fails when its image cannot be stored and [isImageRequired];
  * otherwise the location is created without the image.
  */
@@ -29,7 +29,7 @@ suspend fun DataScope.createLocation(
     edit: LocationEdit,
     isImageRequired: Boolean = true,
 ): Outcome<Location> = transaction {
-    val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
+    val cityId = edit.city?.let { readOrCreateCity(it, edit.state) ?: error("city not found: $it") }
     val preparedEdit = prepareLocation(callerId, edit, isImageRequired).toDataOr { return@transaction it }
 
     log("creating location: ${preparedEdit.label}")
@@ -44,13 +44,13 @@ suspend fun DataScope.createLocation(
     Ok(location)
 }
 
-/** Updates a location in its city, created when new, and logs the edit. */
+/** Updates a location in its city when it names one, the city created when new, and logs the edit. */
 suspend fun DataScope.updateLocation(
     locationId: LocationId,
     callerId: CallerId,
     edit: LocationEdit,
 ): Outcome<Location> = transaction {
-    val cityId = readOrCreateCity(edit.city, edit.state) ?: error("city not found: ${edit.city}")
+    val cityId = edit.city?.let { readOrCreateCity(it, edit.state) ?: error("city not found: $it") }
     val preparedEdit = prepareLocation(callerId, edit).toDataOr { return@transaction it }
 
     log("updating location: ${preparedEdit.label}")

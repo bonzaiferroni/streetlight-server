@@ -79,7 +79,7 @@ class LocationTableDao : DbService() {
 
     suspend fun update(
         locationId: LocationId,
-        cityId: CityId,
+        cityId: CityId?,
         callerId: CallerId,
         edit: LocationEdit,
     ) = dbQuery {
@@ -115,7 +115,7 @@ class LocationTableDao : DbService() {
     }
 
     suspend fun create(
-        cityId: CityId,
+        cityId: CityId?,
         callerId: CallerId?,
         edit: LocationEdit,
     ) = dbQuery {
@@ -218,7 +218,7 @@ class LocationTableDao : DbService() {
     }
 }
 
-fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
+fun LocationEdit.toLocation(cityId: CityId?, locationId: LocationId) = Location(
     locationId = locationId,
     cityId = cityId,
     mapId = mapId,
@@ -248,10 +248,10 @@ fun LocationEdit.toLocation(cityId: CityId, locationId: LocationId) = Location(
     createdAt = Clock.System.now()
 )
 
-/** The text a location's slug is made from: its name and city, or its id. */
-/** The base of the location's slug: its name and city, or its address and city when it has no name, or its id. */
-fun LocationEdit.getSlugBase(locationId: LocationId) = when {
-    !name.isNullOrBlank() && city != null -> "$name-$city"
-    !address.isNullOrBlank() && city != null -> "$address-$city"
-    else -> locationId.value.toString()
-}
+/**
+ * The base of the location's slug: its name or else its address, with its city when it has one, or its id when it
+ * has neither.
+ */
+fun LocationEdit.getSlugBase(locationId: LocationId) = (name?.takeIf { it.isNotBlank() } ?: address?.takeIf { it.isNotBlank() })
+    ?.let { base -> city?.let { "$base-$it" } ?: base }
+    ?: locationId.value.toString()

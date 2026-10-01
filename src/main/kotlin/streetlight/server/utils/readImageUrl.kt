@@ -11,7 +11,7 @@ fun Document.readMetaContent(vararg propertyValues: String) = propertyValues.fir
         ?: this.selectFirst("meta[name=\"$it\"]")?.attribute("content")?.value
 }
 
-/** The image a page declares in its meta tags. */
+/** The image a page declares in its meta tags, or null when it declares none with an absolute url. */
 fun Document.readImageUrl() = this.readMetaContent("image", "og:image", "twitter:image")?.let {
     if (it.startsWith("//")) "https:$it" else it
-}?.replace(" ", "%20")?.toUrl()
+}?.replace(" ", "%20")?.toUrl()?.takeIf { it.isAbsolute }
