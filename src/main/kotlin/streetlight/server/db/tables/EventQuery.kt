@@ -8,7 +8,6 @@ import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.Event
-import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 import streetlight.server.utils.toRecordIdOrNull
 
@@ -25,6 +24,8 @@ val EventColumns = listOf(
     EventTable.scout,
     EventTable.title,
     EventTable.description,
+    EventTable.eventType,
+    EventTable.eventSubtype,
     EventTable.status,
     EventTable.contact,
     EventTable.ageMin,
@@ -51,6 +52,8 @@ fun ResultRow.toEvent() = Event(
     host = this[EventTable.scout].toUsername(),
     title = this[EventTable.title],
     description = this[EventTable.description],
+    eventType = this[EventTable.eventType],
+    eventSubtype = this[EventTable.eventSubtype],
     status = this[EventTable.status],
     contact = this[EventTable.contact],
     ageMin = this[EventTable.ageMin],
