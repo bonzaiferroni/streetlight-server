@@ -159,7 +159,7 @@ class EventTableDao: DbService() {
 
     /** The events not yet given any tag. */
     suspend fun readUntaggedEvents() = dbQuery {
-        eventQuery(null).map { it.toEvent() }.filter { it.tags.isEmpty() }
+        eventQuery(null).map { it.toEvent() }.filter { it.tags.isNullOrEmpty() }
     }
 
     suspend fun updateTags(eventId: EventId, tags: List<EventTag>) = dbQuery {
