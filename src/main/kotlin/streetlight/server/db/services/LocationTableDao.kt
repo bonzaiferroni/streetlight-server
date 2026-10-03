@@ -25,7 +25,6 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.wrapAsExpression
-import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import kotlin.time.Clock
@@ -265,7 +264,7 @@ fun LocationEdit.toLocation(cityId: CityId?, locationId: LocationId) = Location(
     state = state,
     resources = resources ?: emptySet(),
     hours = hours,
-    website = website,
+    url = website,
     starCount = null,
     eventCount = 0,
     isLit = false,

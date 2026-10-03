@@ -76,7 +76,7 @@ fun UpdateBuilder<*>.createEvent(event: Event, hostId: CallerId?, slugRecord: Sl
 fun UpdateBuilder<*>.updateEvent(event: Event, slugRecord: SlugRecord) {
     this[EventTable.slug] = slugRecord.slug.value
     this[EventTable.pastSlug] = slugRecord.pastSlug?.value
-    this[EventTable.website] = event.website?.value
+    this[EventTable.website] = event.url?.value
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description

@@ -95,7 +95,7 @@ fun UpdateBuilder<*>.updateLocation(location: Location, slugRecord: SlugRecord) 
     this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
     this[LocationTable.hours] = location.hours
-    this[LocationTable.website] = location.website?.value
+    this[LocationTable.website] = location.url?.value
     this[LocationTable.eventsUrl] = location.eventsUrl?.value
     this[LocationTable.links] = location.extraLinks
     this[LocationTable.updatedAt] = location.updatedAt
