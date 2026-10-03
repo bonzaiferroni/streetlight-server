@@ -28,6 +28,8 @@ val EventLocationColumns = listOf(
     EventTable.image,
     EventTable.title,
     EventTable.description,
+    EventTable.eventType,
+    EventTable.eventSubtype,
     EventTable.cost,
     EventTable.status,
     EventTable.startsAt,

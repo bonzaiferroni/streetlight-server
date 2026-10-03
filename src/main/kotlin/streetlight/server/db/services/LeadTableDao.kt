@@ -25,12 +25,12 @@ import kotlin.time.Instant
 /** The leads the crawler is given by hand or by users. */
 class LeadTableDao : DbService() {
 
-    /** The leads due a read, oldest first: those never read, and event feeds not read within [interval]. */
+    /** The leads due a read, in the order of their random ids: those never read, and event feeds not read within [interval]. */
     suspend fun readCheckable(interval: Duration, limit: Int) = dbQuery {
         LeadTable.selectAll().where {
             LeadTable.checkedAt.isNull() or
                 (LeadTable.leadType.eq(LeadType.EventFeed) and LeadTable.checkedAt.less(Clock.System.now() - interval))
-        }.orderBy(LeadTable.createdAt, SortOrder.ASC)
+        }.orderBy(LeadTable.id, SortOrder.ASC)
             .limit(limit)
             .map { it.toLead() }
     }
