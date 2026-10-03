@@ -16,8 +16,6 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
-import streetlight.model.data.EventSubtype
-import streetlight.model.data.EventType
 import streetlight.model.data.ExtraLink
 
 object EventTable : UuidTable("event"), SlugTable {
@@ -30,8 +28,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val locationSlug = text("location_slug").index().default("")
     val title = text("title")
     val description = text("description").transformMarkdown().nullable()
-    val eventType = enumeration<EventType>("event_type").nullable()
-    val eventSubtype = enumeration<EventSubtype>("event_subtype").nullable()
+    val tags = array<Int>("tags").default(emptyList())
     val status = enumeration<EventStatus>("status")
     val contact = text("contact").nullable()
     val ageMin = integer("age_min").nullable()
@@ -47,6 +44,10 @@ object EventTable : UuidTable("event"), SlugTable {
     val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    init {
+        index(null, false, tags, indexType = "GIN")
+    }
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -79,8 +80,7 @@ fun UpdateBuilder<*>.updateEvent(event: Event, slugRecord: SlugRecord) {
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description
-    this[EventTable.eventType] = event.eventType
-    this[EventTable.eventSubtype] = event.eventSubtype
+    this[EventTable.tags] = event.tags.map { it.ordinal }
     this[EventTable.status] = event.status
     this[EventTable.contact] = event.contact
     this[EventTable.ageMin] = event.ageMin

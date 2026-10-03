@@ -26,6 +26,7 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventId
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
+import streetlight.model.data.EventTag
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.EventTable
 import streetlight.server.db.tables.LocationTable
@@ -156,6 +157,17 @@ class EventTableDao: DbService() {
         eventLocationQuery(callerId).where { EventTable.id.inList(eventIds) }.map { it.toEventLocation() }
     }
 
+    /** The events not yet given any tag. */
+    suspend fun readUntaggedEvents() = dbQuery {
+        eventQuery(null).map { it.toEvent() }.filter { it.tags.isEmpty() }
+    }
+
+    suspend fun updateTags(eventId: EventId, tags: List<EventTag>) = dbQuery {
+        EventTable.update({ EventTable.id.eq(eventId) }) {
+            it[EventTable.tags] = tags.map { tag -> tag.ordinal }
+        }
+    }
+
     suspend fun readImageUrl(eventId: EventId) = dbQuery {
         EventTable.select(EventTable.image).where { EventTable.id.eq(eventId) }
             .firstOrNull()?.getOrNull(EventTable.image)
@@ -170,8 +182,7 @@ private fun EventEdit.toEvent(eventId: EventId) = Event(
     host = Username.Empty, // set with trigger
     title = title ?: error("no title"),
     description = description,
-    eventType = eventType,
-    eventSubtype = eventSubtype,
+    tags = tags,
     contact = contact,
     status = EventStatus.Pending,
     ageMin = ageMin,

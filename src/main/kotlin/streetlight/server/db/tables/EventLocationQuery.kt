@@ -9,6 +9,7 @@ import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
+import streetlight.model.data.EventTag
 import streetlight.model.data.EventLocation
 import streetlight.server.utils.toRecordId
 
@@ -28,8 +29,7 @@ val EventLocationColumns = listOf(
     EventTable.image,
     EventTable.title,
     EventTable.description,
-    EventTable.eventType,
-    EventTable.eventSubtype,
+    EventTable.tags,
     EventTable.cost,
     EventTable.status,
     EventTable.startsAt,
@@ -58,8 +58,7 @@ fun ResultRow.toEventLocation() = EventLocation(
     eventImage = this[EventTable.image],
     title = this[EventTable.title],
     description = this[EventTable.description],
-    eventType = this[EventTable.eventType],
-    eventSubtype = this[EventTable.eventSubtype],
+    tags = this[EventTable.tags].map { EventTag.entries[it] },
     cost = this[EventTable.cost],
     status = this[EventTable.status],
     visibility = (0..20).random(),
