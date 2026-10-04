@@ -4,19 +4,17 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.get
-import kabinet.utils.Environment
 import kampfire.api.ActionResult
 import kampfire.api.toSlug
 import kampfire.api.toUsername
 import klutch.db.model.CallerId
 import klutch.db.model.Identity
 import klutch.server.authGate
-import klutch.server.provide
 import koala.PageResource
 import koala.html.AppScreen
 import koala.html.SlugOrNullParse
 import koala.html.IdParse
-import koala.html.SegmentParse
+import koala.html.PathParse
 import koala.html.SlugParse
 import koala.html.StaticParse
 import koala.html.UsernameParse
@@ -25,8 +23,6 @@ import kotlinx.html.HTML
 import streetlight.model.data.AuthTokenType
 import streetlight.server.model.*
 import streetlight.model.ui.Screen
-import streetlight.server.ServerResource
-import streetlight.server.buildMode
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -80,7 +76,7 @@ fun ApiScope.servePages(resource: PageResource) {
                 is IdParse -> listOf("${screen.pathBase}/{${parse.label}}")
                 is UuidParse -> listOf("${screen.pathBase}/{${parse.label}}")
                 is StaticParse -> listOf(screen.pathBase)
-                is SegmentParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" } + screen.pathBase
+                is PathParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" } + screen.pathBase
             }
 
             paths.forEach { path ->
