@@ -29,6 +29,7 @@ class DaoFacade(
     val galaxy: GalaxyTableDao = GalaxyTableDao(),
     val star: StarTableDao = StarTableDao(),
     val post: PostTableDao = PostTableDao(),
+    val earth: EarthDao = EarthDao(),
     val song: SongTableDao = SongTableDao(),
     val event: EventTableDao = EventTableDao(),
     val rendition: RenditionTableDao = RenditionTableDao(),
