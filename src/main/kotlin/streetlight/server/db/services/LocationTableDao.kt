@@ -13,6 +13,7 @@ import klutch.db.model.CallerId
 import klutch.db.readFirstOrNull
 import klutch.db.withinRadius
 import klutch.utils.eq
+import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.andIfNotNull
@@ -22,6 +23,7 @@ import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.wrapAsExpression
@@ -50,6 +52,7 @@ import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
 import streetlight.model.data.LocationConfig
+import streetlight.server.db.tables.joinWith
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.createLocation
@@ -118,8 +121,29 @@ class LocationTableDao : DbService() {
     suspend fun updateEventCounts(now: Instant) = dbQuery {
         val upcoming = EventTable.select(EventTable.id.count())
             .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greater(now) }
-        LocationTable.update({ LocationTable.eventCount.neq(wrapAsExpression<Int>(upcoming)) }) {
+        LocationTable.update({ LocationTable.eventCount.neq(wrapAsExpression(upcoming)) }) {
             it[LocationTable.eventCount] = upcoming
+        }
+    }
+
+    /** Every location, with its point and the start of its next event after [now]. */
+    suspend fun readPriorityInputs(now: Instant) = dbQuery {
+        val nextEventAt = EventTable.startsAt.min()
+        LocationTable.joinWith(EventTable) { EventTable.startsAt.greater(now) }
+            .select(LocationTable.id, LocationTable.geoPoint, nextEventAt)
+            .groupBy(LocationTable.id)
+            .map {
+                LocationPriorityInput(
+                    locationId = LocationId(it[LocationTable.id].value),
+                    geoPoint = it[LocationTable.geoPoint].toGeoPoint(),
+                    nextEventAt = it[nextEventAt],
+                )
+            }
+    }
+
+    suspend fun updateMapPriority(locationId: LocationId, mapPriority: Double) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.mapPriority] = mapPriority
         }
     }
 
@@ -282,3 +306,10 @@ fun LocationEdit.toLocation(cityId: CityId?, locationId: LocationId) = Location(
 fun LocationEdit.getSlugBase(locationId: LocationId) = (name?.takeIf { it.isNotBlank() } ?: address?.takeIf { it.isNotBlank() })
     ?.let { base -> city?.let { "$base-$it" } ?: base }
     ?: locationId.value.toString()
+
+/** The facts a location's map priority is drawn from. */
+data class LocationPriorityInput(
+    val locationId: LocationId,
+    val geoPoint: GeoPoint,
+    val nextEventAt: Instant?,
+)

@@ -23,7 +23,6 @@ import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.readParamOrNull
 import streetlight.model.CursorEndpoint
-import streetlight.model.LeanCursorEndpoint
 import streetlight.model.MarkCursorEndpoint
 import streetlight.model.TimeCursorEndpoint
 import streetlight.model.data.City

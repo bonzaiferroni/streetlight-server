@@ -167,7 +167,7 @@ class CityTableDao : DbService() {
     suspend fun updateEventCounts() = dbQuery {
         val upcoming = LocationTable.select(coalesce(LocationTable.eventCount.sum(), intLiteral(0)))
             .where { LocationTable.cityId.eq(CityTable.id) }
-        CityTable.update({ CityTable.eventCount.neq(wrapAsExpression<Int>(upcoming)) }) {
+        CityTable.update({ CityTable.eventCount.neq(wrapAsExpression(upcoming)) }) {
             it[CityTable.eventCount] = upcoming
         }
     }

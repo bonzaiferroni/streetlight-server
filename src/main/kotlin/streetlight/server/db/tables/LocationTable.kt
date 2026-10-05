@@ -42,6 +42,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val mapRank = float("map_rank").nullable()
     val mapCategory = text("map_category").nullable()
     val mapType = text("map_type").nullable()
+    val mapPriority = double("map_priority").nullable()
     val resources = array<Int>("resources")
     val hours = jsonb<HoursSchedule>("hours", jsonbConfig).nullable()
     val parseMode = enumeration<ParseMode>("parse_mode").default(ParseMode.Partial)

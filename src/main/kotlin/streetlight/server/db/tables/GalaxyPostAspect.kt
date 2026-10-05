@@ -16,6 +16,8 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.DoubleColumnType
+import org.jetbrains.exposed.v1.core.castTo
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.intLiteral
@@ -95,8 +97,8 @@ object GalaxyPostAspect {
             is EntityCursor.Time -> cursor.recordAt?.let {
                 afterCursor(PostTable.createdAt, it, PostTable.id, postId, cursor.direction)
             }
-            is EntityCursor.Lean -> cursor.postLean?.let {
-                afterCursor(PostTable.lean, it, PostTable.id, postId, cursor.direction)
+            is EntityCursor.Score -> cursor.score?.let {
+                afterCursor(PostTable.lean.castTo(DoubleColumnType()), it, PostTable.id, postId, cursor.direction)
             }
             is EntityCursor.Mark -> cursor.count?.let {
                 afterCursor(MarkCount, it, PostTable.id, postId, cursor.direction)
@@ -134,7 +136,7 @@ fun Query.orderByCursor(cursor: EntityCursor): Query {
     }
     return when (cursor) {
         is EntityCursor.Mark -> orderBy(GalaxyPostAspect.MarkCount to order, PostTable.id to order)
-        is EntityCursor.Lean -> orderBy(PostTable.lean to order, PostTable.id to order)
+        is EntityCursor.Score -> orderBy(PostTable.lean to order, PostTable.id to order)
         is EntityCursor.Time -> orderBy(PostTable.createdAt to order, PostTable.id to order)
     }
 }

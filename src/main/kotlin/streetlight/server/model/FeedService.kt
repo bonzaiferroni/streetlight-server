@@ -14,6 +14,7 @@ import streetlight.model.data.EntityCursor
 import streetlight.model.data.EventLocation
 import streetlight.model.data.Location
 import streetlight.model.data.LocationId
+import streetlight.model.data.MapQuery
 
 /** The home page: the top galaxies and the page of posts at [cursor]. */
 suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default): HomeContent {
@@ -44,6 +45,15 @@ suspend fun DaoScope.readCityFeed(
         cursor.copy(recordId = it.cityRecordId, recordAt = it.createdAt)
     }
     return EntityFeed(entities, nextCursor = nextCursor)
+}
+
+/** The page of map groups in the view of [query], with the cursor of the next page when this one is full. */
+suspend fun DaoScope.readEarthFeed(query: MapQuery): EntityFeed {
+    val groups = dao.earth.readBoundedEntities(query)
+    val nextCursor = groups.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
+        query.cursor.copy(recordId = it.locationId.value, score = it.score)
+    }
+    return EntityFeed(groups, nextCursor = nextCursor)
 }
 
 /** The page of upcoming events at [locationIds] at [cursor], with locations that have none following them. */
@@ -99,7 +109,7 @@ fun EntityCursor.next(entities: List<Entity>): EntityCursor? {
     val lastPost = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.post ?: return null
     return when (this) {
         is EntityCursor.Time -> copy(recordId = lastPost.postId.value, recordAt = lastPost.createdAt)
-        is EntityCursor.Lean -> copy(recordId = lastPost.postId.value, postLean = lastPost.lean ?: 0)
+        is EntityCursor.Score -> copy(recordId = lastPost.postId.value, score = lastPost.lean?.toDouble() ?: 0.0)
         is EntityCursor.Mark -> copy(recordId = lastPost.postId.value, count = lastPost.markCount ?: 0)
     }
 }
