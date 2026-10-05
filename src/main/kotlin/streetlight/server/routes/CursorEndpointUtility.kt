@@ -11,7 +11,7 @@ import streetlight.model.data.MarkId
 /** The time cursor in the query of [TimeCursorEndpoint], descending without a direction. */
 context(context: RoutingContext)
 fun TimeCursorEndpoint.readTimeCursor() = EntityCursor.Time(
-    direction = context.readParamOrNull(directionParam) ?: EntityCursor.Default.direction,
+    direction = directionParam?.let { context.readParamOrNull(it) } ?: EntityCursor.Default.direction,
     recordId = context.readParamOrNull(recordIdParam),
     recordAt = context.readParamOrNull(recordAtParam),
 )
@@ -19,7 +19,7 @@ fun TimeCursorEndpoint.readTimeCursor() = EntityCursor.Time(
 /** The lean cursor in the query of [LeanCursorEndpoint], descending without a direction. */
 context(context: RoutingContext)
 fun LeanCursorEndpoint.readLeanCursor() = EntityCursor.Lean(
-    direction = context.readParamOrNull(directionParam) ?: EntityCursor.Lean.Default.direction,
+    direction = directionParam?.let { context.readParamOrNull(it) } ?: EntityCursor.Lean.Default.direction,
     recordId = context.readParamOrNull(recordIdParam),
     postLean = context.readParamOrNull(leanParam),
 )
