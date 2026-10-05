@@ -27,7 +27,7 @@ fun ApiScope.servePosts() {
 
         getApi(Api.Posts.ReadFeed) { request ->
             val galaxyId = readParamOrNull(request.galaxyId)
-            val cursor = readCursor(request)
+            val cursor = request.readCursor()
             val callerId = call.getIdentityOrNull()?.callerId
             val posts = galaxyId?.let { dao.post.readGalaxyPosts(galaxyId, callerId, cursor) }
                 ?: dao.post.readHomePosts(callerId, cursor)
@@ -38,10 +38,10 @@ fun ApiScope.servePosts() {
 
 context(context: RoutingContext)
 private fun MapEndpoint.mapQuery(): MapQuery? {
-    val view = context.readParam(view) ?: return null
-    val seen = context.readParamOrNull(seen)
-    val postId = context.readParamOrNull(recordId)?.let { PostId(it) }
-    val postLean = context.readParamOrNull(score)
+    val view = context.readParam(viewParam) ?: return null
+    val seen = context.readParamOrNull(seenParam)
+    val postId = context.readParamOrNull(recordIdParam)?.let { PostId(it) }
+    val postLean = context.readParamOrNull(scoreParam)
     val cursor = if (postId != null && postLean != null) EntityCursor.Lean(SortDirection.Descending, postId.value, postLean)
     else EntityCursor.Lean.Default
     return MapQuery(view, seen, cursor)

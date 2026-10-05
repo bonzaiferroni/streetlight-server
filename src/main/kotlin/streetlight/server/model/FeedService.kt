@@ -11,6 +11,9 @@ import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
 import streetlight.server.db.services.cityRecordId
 import streetlight.model.data.EntityCursor
+import streetlight.model.data.EventLocation
+import streetlight.model.data.Location
+import streetlight.model.data.LocationId
 
 /** The home page: the top galaxies and the page of posts at [cursor]. */
 suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default): HomeContent {
@@ -39,6 +42,23 @@ suspend fun DaoScope.readCityFeed(
     val entities = dao.city.readCityFeed(cityId, callerId, cursor)
     val nextCursor = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
         cursor.copy(recordId = it.cityRecordId, recordAt = it.createdAt)
+    }
+    return EntityFeed(entities, nextCursor = nextCursor)
+}
+
+/** The page of upcoming events at [locationIds] at [cursor], with locations that have none following them. */
+suspend fun DaoScope.readInflateFeed(
+    locationIds: Collection<LocationId>,
+    callerId: CallerId?,
+    cursor: EntityCursor.Time,
+): EntityFeed {
+    val entities = dao.earth.readLocationIds(locationIds, callerId, cursor)
+    val nextCursor = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
+        when (it) {
+            is EventLocation -> cursor.copy(recordId = it.eventId.value, recordAt = it.startsAt)
+            is Location -> cursor.copy(recordId = it.locationId.value, recordAt = null)
+            else -> error("not an earth entity: $it")
+        }
     }
     return EntityFeed(entities, nextCursor = nextCursor)
 }

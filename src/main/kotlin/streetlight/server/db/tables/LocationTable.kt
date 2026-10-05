@@ -10,6 +10,8 @@ import klutch.utils.*
 import klutch.db.point
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -70,6 +72,10 @@ val locationStateSync = SyncValueTrigger(LocationTable.cityId, LocationTable.sta
 val locationHostSync = SyncValueTrigger(LocationTable.hostId, LocationTable.host, StarTable, StarTable.username)
 val locationScoutSync = SyncValueTrigger(LocationTable.scoutId, LocationTable.scout, StarTable, StarTable.username)
 val locationStarCountTrigger = CounterTrigger(LocationTable, LocationStarTable, LocationStarTable.locationId, LocationTable.starCount)
+
+/** Left joins each location's events, limited by [additionalConstraint]. */
+fun LocationTable.joinWith(table: EventTable, additionalConstraint: (() -> Op<Boolean>)? = null) =
+    join(table, JoinType.LEFT, id, table.locationId, additionalConstraint = additionalConstraint)
 
 // Updaters
 fun UpdateBuilder<*>.createLocation(location: Location, starId: CallerId?, slugRecord: SlugRecord) {

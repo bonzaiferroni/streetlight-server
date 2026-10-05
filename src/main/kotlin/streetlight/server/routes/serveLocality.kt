@@ -77,7 +77,7 @@ fun ApiScope.serveCity() {
 
         getApi(Api.Cities.ReadFeed) { request ->
             val cityId = readParam(request.cityId)
-            val cursor = readCursor(request) as? EntityCursor.Time ?: return@getApi HttpProblem.BadRequest
+            val cursor = request.readCursor() as? EntityCursor.Time ?: return@getApi HttpProblem.BadRequest
             Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, cursor))
         }
     }

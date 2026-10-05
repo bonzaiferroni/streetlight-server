@@ -18,35 +18,37 @@ fun eventLocationQuery(callerId: CallerId?) = EventTable
     .join(LocationTable, JoinType.LEFT, EventTable.locationId, LocationTable.id)
     .join(EventStarTable, JoinType.LEFT, EventTable.id, EventStarTable.eventId,
         additionalConstraint = getConstraint(callerId) { EventStarTable.starId.eq(it) })
-    .select(EventLocationColumns)
+    .select(EventLocationAspect.columns)
 
-val EventLocationColumns = listOf(
-    EventTable.id,
-    EventTable.locationId,
-    EventTable.slug,
-    EventTable.scout,
-    EventTable.website,
-    EventTable.image,
-    EventTable.title,
-    EventTable.description,
-    EventTable.tags,
-    EventTable.cost,
-    EventTable.status,
-    EventTable.startsAt,
-    EventTable.endsAt,
-    EventTable.links,
-    EventTable.starCount,
-    EventTable.createdAt,
-    EventTable.updatedAt,
-    LocationTable.slug,
-    LocationTable.image,
-    LocationTable.name,
-    LocationTable.description,
-    LocationTable.address,
-    LocationTable.city,
-    LocationTable.website,
-    LocationTable.geoPoint,
-)
+object EventLocationAspect {
+    val columns = listOf(
+        EventTable.id,
+        EventTable.locationId,
+        EventTable.slug,
+        EventTable.scout,
+        EventTable.website,
+        EventTable.image,
+        EventTable.title,
+        EventTable.description,
+        EventTable.tags,
+        EventTable.cost,
+        EventTable.status,
+        EventTable.startsAt,
+        EventTable.endsAt,
+        EventTable.links,
+        EventTable.starCount,
+        EventTable.createdAt,
+        EventTable.updatedAt,
+        LocationTable.slug,
+        LocationTable.image,
+        LocationTable.name,
+        LocationTable.description,
+        LocationTable.address,
+        LocationTable.city,
+        LocationTable.website,
+        LocationTable.geoPoint,
+    )
+}
 
 fun ResultRow.toEventLocation() = EventLocation(
     eventId = toRecordId(EventTable.id),

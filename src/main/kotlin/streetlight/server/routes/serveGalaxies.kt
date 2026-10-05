@@ -23,12 +23,14 @@ import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.readParamOrNull
 import streetlight.model.CursorEndpoint
+import streetlight.model.LeanCursorEndpoint
+import streetlight.model.MarkCursorEndpoint
+import streetlight.model.TimeCursorEndpoint
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.MarkId
 import streetlight.model.data.EntityCursor
-import streetlight.model.data.PostId
 
 fun ApiScope.serveGalaxies() {
     val omni = provide<OmniService>()
@@ -164,19 +166,3 @@ private fun galaxyEditProblemOrNull(edit: GalaxyEdit): Problem? = when {
     else -> null
 }
 
-/** The feed cursor in the query of [endpoint]: by mark, by lean, or by time, or the default without a direction. */
-fun RoutingContext.readCursor(endpoint: CursorEndpoint): EntityCursor {
-    val recordId = readParamOrNull(endpoint.recordId)
-    val markId = readParamOrNull(endpoint.markId)
-    if (markId != null) {
-        return EntityCursor.Mark(MarkId(markId), recordId, readParamOrNull(endpoint.count))
-    }
-    val direction = readParamOrNull(endpoint.direction) ?: return EntityCursor.Default
-    val lean = readParamOrNull(endpoint.lean)
-    val recordAt = readParamOrNull(endpoint.recordAt)
-    return when {
-        lean != null -> EntityCursor.Lean(direction, recordId, lean)
-        recordAt != null -> EntityCursor.Time(direction, recordId, recordAt)
-        else -> EntityCursor.Time(direction, recordId, null)
-    }
-}

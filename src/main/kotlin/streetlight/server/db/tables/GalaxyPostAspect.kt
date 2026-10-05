@@ -53,7 +53,7 @@ object GalaxyPostAspect {
         PostTable.updatedAt,
     )
 
-    val GalaxyPostColumns = (EventLocationColumns + LocationAspect.columns + PostColumns + MediaColumns).distinct()
+    val GalaxyPostColumns = (EventLocationAspect.columns + LocationAspect.columns + PostColumns + MediaColumns).distinct()
 
     private fun getColumns(cursor: EntityCursor, callerId: CallerId?): List<Expression<*>> {
         val markCursor = cursor as? EntityCursor.Mark
