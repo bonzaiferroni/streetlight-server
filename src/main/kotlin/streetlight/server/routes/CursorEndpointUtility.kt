@@ -12,18 +12,18 @@ import streetlight.model.data.MapQuery
 import streetlight.model.data.MarkId
 import streetlight.model.data.SortDirection
 
-/** The time cursor in the query of [TimeCursorEndpoint], descending without a direction. */
+/** The time cursor in the query of [TimeCursorEndpoint], or its default direction without one. */
 context(context: RoutingContext)
 fun TimeCursorEndpoint.readTimeCursor() = EntityCursor.Time(
-    direction = directionParam?.let { context.readParamOrNull(it) } ?: EntityCursor.Default.direction,
+    direction = directionParam?.let { context.readParamOrNull(it) } ?: defaultDirection,
     recordId = context.readParamOrNull(recordIdParam),
     recordAt = context.readParamOrNull(recordAtParam),
 )
 
-/** The score cursor in the query of [ScoreCursorEndpoint], descending without a direction. */
+/** The score cursor in the query of [ScoreCursorEndpoint], or its default direction without one. */
 context(context: RoutingContext)
 fun ScoreCursorEndpoint.readScoreCursor() = EntityCursor.Score(
-    direction = directionParam?.let { context.readParamOrNull(it) } ?: EntityCursor.Score.Default.direction,
+    direction = directionParam?.let { context.readParamOrNull(it) } ?: defaultDirection,
     recordId = context.readParamOrNull(recordIdParam),
     score = context.readParamOrNull(scoreParam),
 )
