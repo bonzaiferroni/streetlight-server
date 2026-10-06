@@ -56,23 +56,6 @@ suspend fun DaoScope.readEarthFeed(query: MapQuery): EntityFeed {
     return EntityFeed(groups, nextCursor = nextCursor)
 }
 
-/** The page of upcoming events at [locationIds] at [cursor], with locations that have none following them. */
-suspend fun DaoScope.readInflateFeed(
-    locationIds: Collection<LocationId>,
-    callerId: CallerId?,
-    cursor: EntityCursor.Time,
-): EntityFeed {
-    val entities = dao.earth.readLocationIds(locationIds, callerId, cursor)
-    val nextCursor = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
-        when (it) {
-            is EventLocation -> cursor.copy(recordId = it.eventId.value, recordAt = it.startsAt)
-            is Location -> cursor.copy(recordId = it.locationId.value, recordAt = null)
-            else -> error("not an earth entity: $it")
-        }
-    }
-    return EntityFeed(entities, nextCursor = nextCursor)
-}
-
 suspend fun DaoScope.readCityListContent(): CityListContent {
     val cities = dao.city.readTopCities()
     return CityListContent(cities = cities)

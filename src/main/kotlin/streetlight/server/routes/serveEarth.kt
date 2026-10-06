@@ -9,7 +9,6 @@ import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.model.readEarthFeed
-import streetlight.server.model.readInflateFeed
 
 fun ApiScope.serveEarth() {
     getApi(Api.EarthNode.Query) {
@@ -19,9 +18,8 @@ fun ApiScope.serveEarth() {
 
     authGate(optional = true) {
         getApi(Api.EarthNode.Inflate) {
-            val locationIds = readParam(it.locationIdsParam)
-            val cursor = it.readTimeCursor()
-            Ok(readInflateFeed(locationIds, call.getIdentityOrNull()?.callerId, cursor))
+            val locationId = readParam(it.locationIdParam)
+            Ok(dao.earth.readLocationId(locationId, call.getIdentityOrNull()?.callerId))
         }
     }
 }

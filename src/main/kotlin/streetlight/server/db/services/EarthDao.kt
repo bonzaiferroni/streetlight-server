@@ -3,6 +3,7 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.db.inRect
+import klutch.utils.eq
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -48,10 +49,9 @@ class EarthDao: DbService() {
             .map { it.toEventGroup() }
     }
 
-    suspend fun readLocationIds(
-        locationIds: Collection<LocationId>,
+    suspend fun readLocationId(
+        locationId: LocationId,
         callerId: CallerId?,
-        cursor: EntityCursor.Time
     ): List<Entity> = dbQuery {
         LocationTable.joinWith(EventTable) {
             EventTable.startsAt.greaterEq(Clock.System.now())
@@ -62,9 +62,8 @@ class EarthDao: DbService() {
                 selectEventStar(callerId)
                 selectLocationStar(callerId)
             }
-            .where { LocationTable.id.inList(locationIds) }
-            .whereAfterEvent(cursor)
-            .orderByEvent(cursor)
+            .where { LocationTable.id.eq(locationId) }
+            .orderBy(EventTable.startsAt, SortOrder.ASC_NULLS_LAST)
             .limit(EntityCursor.DefaultLimit)
             .map {
                 if (it.getOrNull(EventTable.id) != null) {
