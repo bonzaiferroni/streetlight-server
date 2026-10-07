@@ -45,7 +45,7 @@ class EarthDao: DbService() {
             .whereInView(query)
             .whereAfterScore(query.cursor)
             .orderByScore(query.cursor)
-            .limit(EntityCursor.DefaultLimit)
+            .limit(EntityCursor.MapLimit)
             .map { it.toEventGroup() }
     }
 

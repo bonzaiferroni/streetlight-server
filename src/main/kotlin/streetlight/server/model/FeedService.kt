@@ -50,7 +50,7 @@ suspend fun DaoScope.readCityFeed(
 /** The page of map groups in the view of [query], with the cursor of the next page when this one is full. */
 suspend fun DaoScope.readEarthFeed(query: MapQuery): EntityFeed {
     val groups = dao.earth.readBoundedEntities(query)
-    val nextCursor = groups.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
+    val nextCursor = groups.takeIf { it.size >= EntityCursor.MapLimit }?.last()?.let {
         query.cursor.copy(recordId = it.locationId.value, score = it.score)
     }
     return EntityFeed(groups, nextCursor = nextCursor)
