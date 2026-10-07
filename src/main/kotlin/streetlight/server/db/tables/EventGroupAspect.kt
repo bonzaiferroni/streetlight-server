@@ -51,6 +51,7 @@ fun LocationTable.joinWith(aspect: EventGroupAspect) =
 fun ResultRow.toEventGroup() = EventGroup(
     locationId = LocationId(this[LocationTable.id].value),
     label = getOrNull(EventGroupAspect.eventTitle) ?: this[LocationTable.name] ?: this[LocationTable.address] ?: "",
+    locationName = this[LocationTable.name],
     image = this[EventGroupAspect.eventImage] ?: this[LocationTable.image],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     eventCount = this[LocationTable.eventCount],
