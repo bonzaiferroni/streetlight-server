@@ -28,6 +28,10 @@ fun ApiScope.serveEvents() {
         Ok(dao.event.readActiveEvents())
     }
 
+    getApi(Api.Events.ReadFeed) { request ->
+        Ok(readEventFeed(request.readTimeCursor()))
+    }
+
     get("/qr") {
         val event = dao.event.readActiveEvents().firstOrNull()
         if (event == null) {

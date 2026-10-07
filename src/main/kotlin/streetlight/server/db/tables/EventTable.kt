@@ -9,6 +9,7 @@ import klutch.db.model.CallerId
 import klutch.db.tables.SlugRecord
 import klutch.db.tables.SlugTable
 import klutch.utils.transformMarkdown
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -40,7 +41,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
     val starCount = integer("star_count").default(0)
-    val startsAt = timestamp("starts_at").nullable()
+    val startsAt = timestamp("starts_at").nullable().index()
     val endsAt = timestamp("ends_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
@@ -63,6 +64,9 @@ object EventTable : UuidTable("event"), SlugTable {
 val eventStarCountTrigger = CounterTrigger(EventTable, EventStarTable, EventStarTable.eventId, EventTable.starCount)
 val eventLocationSlugSync = SyncValueTrigger(EventTable.locationId, EventTable.locationSlug, LocationTable, LocationTable.slug)
 val eventUsernameSync = SyncValueTrigger(EventTable.hostId, EventTable.scout, StarTable, StarTable.username)
+
+/** Joins each event's location. */
+fun EventTable.joinWith(table: LocationTable) = join(table, JoinType.INNER, locationId, table.id)
 
 fun UpdateBuilder<*>.createEvent(event: Event, hostId: CallerId?, slugRecord: SlugRecord) {
     this[EventTable.id] = event.eventId.value

@@ -6,6 +6,7 @@ import streetlight.model.data.CityContent
 import streetlight.model.data.CityId
 import streetlight.model.data.CityListContent
 import streetlight.model.data.EntityFeed
+import streetlight.model.data.FeedSource
 import streetlight.model.data.Entity
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
@@ -16,14 +17,23 @@ import streetlight.model.data.Location
 import streetlight.model.data.LocationId
 import streetlight.model.data.MapQuery
 
-/** The home page: the top galaxies and the page of posts at [cursor]. */
-suspend fun DaoScope.readHomeContent(callerId: CallerId?, cursor: EntityCursor = EntityCursor.Default): HomeContent {
-    val posts = dao.post.readHomePosts(callerId, cursor)
+/** The home page: the top galaxies, and the first page of posts for a caller or of upcoming events without one. */
+suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     val galaxies = dao.galaxy.readTopGalaxies(callerId, 3)
-    return HomeContent(
-        galaxies = galaxies,
-        feed = readFeedMarks(posts, callerId, cursor)
-    )
+    val feed = when (callerId) {
+        null -> readEventFeed()
+        else -> readFeedMarks(dao.post.readHomePosts(callerId, EntityCursor.Default), callerId)
+    }
+    return HomeContent(galaxies = galaxies, feed = feed)
+}
+
+/** The page of upcoming events at [cursor], with the cursor of the next page when this one is full. */
+suspend fun DaoScope.readEventFeed(cursor: EntityCursor.Time = EntityCursor.Upcoming): EntityFeed {
+    val events = dao.event.readUpcomingEvents(cursor)
+    val nextCursor = events.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
+        cursor.copy(recordId = it.eventId.value, recordAt = it.startsAt)
+    }
+    return EntityFeed(events, nextCursor = nextCursor, source = FeedSource.Events)
 }
 
 suspend fun DaoScope.readCityContent(slug: Slug, callerId: CallerId?): CityContent? {
@@ -44,7 +54,7 @@ suspend fun DaoScope.readCityFeed(
     val nextCursor = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
         cursor.copy(recordId = it.cityRecordId, recordAt = it.createdAt)
     }
-    return EntityFeed(entities, nextCursor = nextCursor)
+    return EntityFeed(entities, nextCursor = nextCursor, source = FeedSource.City)
 }
 
 /** The page of map groups in the view of [query], with the cursor of the next page when this one is full. */

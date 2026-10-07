@@ -75,38 +75,6 @@ class EarthDao: DbService() {
     }
 }
 
-/**
- * Filters locations joined with their events to the rows after [cursor].
- *
- * Event rows come first, then rows of locations without events.
- */
-private fun Query.whereAfterEvent(cursor: EntityCursor.Time): Query {
-    val recordId = cursor.recordId ?: return this
-    val recordAt = cursor.recordAt
-    val isLocationOnly = EventTable.id.isNull()
-    val afterLocation = when (cursor.direction) {
-        SortDirection.Descending -> LocationTable.id.less(recordId)
-        SortDirection.Ascending -> LocationTable.id.greater(recordId)
-    }
-    if (recordAt == null) return andWhere { isLocationOnly and afterLocation }
-    val afterEvent = when (cursor.direction) {
-        SortDirection.Descending -> EventTable.startsAt.less(recordAt) or
-            (EventTable.startsAt.eq(recordAt) and EventTable.id.less(recordId))
-        SortDirection.Ascending -> EventTable.startsAt.greater(recordAt) or
-            (EventTable.startsAt.eq(recordAt) and EventTable.id.greater(recordId))
-    }
-    return andWhere { isLocationOnly or afterEvent }
-}
-
-/** Orders locations joined with their events as [whereAfterEvent] pages them. */
-private fun Query.orderByEvent(cursor: EntityCursor.Time): Query {
-    val order = when (cursor.direction) {
-        SortDirection.Descending -> SortOrder.DESC_NULLS_LAST
-        SortDirection.Ascending -> SortOrder.ASC_NULLS_LAST
-    }
-    return orderBy(EventTable.startsAt to order, EventTable.id to order, LocationTable.id to order)
-}
-
 /** Filters locations to those in the view of [query], leaving out the areas it has seen. */
 private fun Query.whereInView(query: MapQuery): Query = andWhere {
     query.seen.orEmpty().fold(LocationTable.geoPoint.inRect(query.view)) { op, rect ->

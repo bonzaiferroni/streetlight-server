@@ -19,6 +19,14 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.jdbc.Query
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import streetlight.model.data.EntityCursor
+import streetlight.model.data.SortDirection
+import streetlight.server.db.tables.EventLocationAspect
+import streetlight.server.db.tables.joinWith
+import streetlight.server.db.tables.selectWith
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
@@ -160,6 +168,40 @@ class EventTableDao: DbService() {
         EventTable.select(EventTable.image).where { EventTable.id.eq(eventId) }
             .firstOrNull()?.getOrNull(EventTable.image)
     }
+
+    /** The page of upcoming events after [cursor], in the order of their start. */
+    suspend fun readUpcomingEvents(cursor: EntityCursor.Time) = dbQuery {
+        EventTable.joinWith(LocationTable)
+            .selectWith(EventLocationAspect.columns)
+            .where { EventTable.startsAt.greaterEq(Clock.System.now()) }
+            .whereAfterStart(cursor)
+            .orderByStart(cursor)
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toEventLocation() }
+    }
+}
+
+/** Filters events to those after [cursor] by their start. */
+private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {
+    val recordId = cursor.recordId ?: return this
+    val recordAt = cursor.recordAt ?: return this
+    return andWhere {
+        when (cursor.direction) {
+            SortDirection.Descending -> EventTable.startsAt.less(recordAt) or
+                (EventTable.startsAt.eq(recordAt) and EventTable.id.less(recordId))
+            SortDirection.Ascending -> EventTable.startsAt.greater(recordAt) or
+                (EventTable.startsAt.eq(recordAt) and EventTable.id.greater(recordId))
+        }
+    }
+}
+
+/** Orders events as [whereAfterStart] pages them. */
+private fun Query.orderByStart(cursor: EntityCursor.Time): Query {
+    val order = when (cursor.direction) {
+        SortDirection.Descending -> SortOrder.DESC
+        SortDirection.Ascending -> SortOrder.ASC
+    }
+    return orderBy(EventTable.startsAt to order, EventTable.id to order)
 }
 
 private fun EventEdit.toEvent(eventId: EventId) = Event(
