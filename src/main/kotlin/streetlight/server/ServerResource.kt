@@ -23,7 +23,7 @@ import koala.model.GlowControlCss
 import koala.model.LazyColumnCss
 import koala.model.TextEditorCss
 import streetlight.web.layouts.FeedMode
-import streetlight.web.layouts.FeedRow
+import streetlight.web.layouts.FeedRowStyle
 import streetlight.web.ui.StarToggleCss
 import streetlight.web.ui.BodyCss
 import streetlight.web.ui.CuratorMenuStyle
@@ -137,7 +137,7 @@ class ServerBundle(mode: BuildMode): JsBundle {
 
 private val headScriptConfig = HeadScriptConfig(
     rootSwitches = listOf(
-        RootSwitch(FeedRow.Mode, FeedMode.Grid),
+        RootSwitch(FeedRowStyle.Mode, FeedMode.Grid),
     ),
 )
 
