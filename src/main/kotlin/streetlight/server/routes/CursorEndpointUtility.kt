@@ -18,6 +18,7 @@ fun TimeCursorEndpoint.readTimeCursor() = EntityCursor.Time(
     direction = directionParam?.let { context.readParamOrNull(it) } ?: defaultDirection,
     recordId = context.readParamOrNull(recordIdParam),
     recordAt = context.readParamOrNull(recordAtParam),
+    tag = tagParam?.let { context.readParamOrNull(it) },
 )
 
 /** The score cursor in the query of [ScoreCursorEndpoint], or its default direction without one. */

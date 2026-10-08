@@ -11,6 +11,7 @@ import klutch.db.inRect
 import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.readFirstOrNull
+import klutch.utils.arrayContains
 import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
@@ -189,6 +190,7 @@ class EventTableDao: DbService() {
             }
             .where { EventTable.startsAt.greaterEq(Clock.System.now()) }
             .whereInCity(cityId)
+            .whereTagged(cursor.tag)
             .whereAfterStart(cursor)
             .orderByStart(cursor)
             .limit(EntityCursor.DefaultLimit)
@@ -199,6 +201,10 @@ class EventTableDao: DbService() {
 /** Filters events to those at locations in [cityId], or leaves them all without one. */
 private fun Query.whereInCity(cityId: CityId?): Query =
     cityId?.let { andWhere { LocationTable.cityId.eq(it) } } ?: this
+
+/** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
+private fun Query.whereTagged(tag: Int?): Query =
+    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
 
 /** Filters events to those after [cursor] by their start. */
 private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {
