@@ -16,6 +16,7 @@ import streetlight.web.pages.AppBodyCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import streetlight.web.ui.RouteDockCss
+import streetlight.web.ui.TagFilterMenuCss
 import koala.jsFileOf
 import koala.markdown.MarkdownCss
 import koala.model.GlowControlCss
@@ -82,6 +83,7 @@ private val KtStyles = listOf(
     GridColumnsCss,
     SwapCss,
     RouteDockCss,
+    TagFilterMenuCss,
     BodyCss,
     HrCss,
     GlowControlCss,
