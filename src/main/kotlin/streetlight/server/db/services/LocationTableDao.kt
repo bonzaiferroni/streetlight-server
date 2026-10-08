@@ -185,16 +185,16 @@ class LocationTableDao : DbService() {
         locationQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
     }
 
-    /** The first location with the name or the address, ignoring case. */
-    suspend fun readLocationAt(name: String?, address: String?) = dbQuery {
-        if (name != null && address != null) {
-            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) or it.address.lowerCase().eq(address.lowercase()) }
-                ?.toLocation()
-        } else if (name != null) {
-            LocationTable.readFirstOrNull { it.name.lowerCase().eq(name.lowercase()) }?.toLocation()
-        } else if (address != null) {
-            LocationTable.readFirstOrNull { it.address.lowerCase().eq(address.lowercase()) }?.toLocation()
-        } else null
+    /** The locations with the name or the address, ignoring case. */
+    suspend fun readLocationsAt(name: String?, address: String?): List<Location> = dbQuery {
+        val condition = when {
+            name != null && address != null ->
+                LocationTable.name.lowerCase().eq(name.lowercase()) or LocationTable.address.lowerCase().eq(address.lowercase())
+            name != null -> LocationTable.name.lowerCase().eq(name.lowercase())
+            address != null -> LocationTable.address.lowerCase().eq(address.lowercase())
+            else -> return@dbQuery emptyList()
+        }
+        LocationTable.selectAll().where(condition).map { it.toLocation() }
     }
 
     /** The location of the map place [mapId]. */

@@ -26,6 +26,9 @@ import streetlight.model.data.EntityCursor
 import streetlight.model.data.SortDirection
 import streetlight.server.db.tables.EventLocationAspect
 import streetlight.server.db.tables.joinWith
+import streetlight.server.db.tables.joinEventStar
+import streetlight.server.db.tables.selectEventStar
+import streetlight.model.data.CityId
 import streetlight.server.db.tables.selectWith
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.select
@@ -169,17 +172,33 @@ class EventTableDao: DbService() {
             .firstOrNull()?.getOrNull(EventTable.image)
     }
 
-    /** The page of upcoming events after [cursor], in the order of their start. */
-    suspend fun readUpcomingEvents(cursor: EntityCursor.Time) = dbQuery {
+    /**
+     * The page of upcoming events after [cursor], in the order of their start, as seen by [callerId].
+     *
+     * Limited to the events in [cityId] when given.
+     */
+    suspend fun readUpcomingEvents(
+        cursor: EntityCursor.Time,
+        callerId: CallerId? = null,
+        cityId: CityId? = null,
+    ) = dbQuery {
         EventTable.joinWith(LocationTable)
-            .selectWith(EventLocationAspect.columns)
+            .joinEventStar(callerId)
+            .selectWith(EventLocationAspect.columns) {
+                selectEventStar(callerId)
+            }
             .where { EventTable.startsAt.greaterEq(Clock.System.now()) }
+            .whereInCity(cityId)
             .whereAfterStart(cursor)
             .orderByStart(cursor)
             .limit(EntityCursor.DefaultLimit)
             .map { it.toEventLocation() }
     }
 }
+
+/** Filters events to those at locations in [cityId], or leaves them all without one. */
+private fun Query.whereInCity(cityId: CityId?): Query =
+    cityId?.let { andWhere { LocationTable.cityId.eq(it) } } ?: this
 
 /** Filters events to those after [cursor] by their start. */
 private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {

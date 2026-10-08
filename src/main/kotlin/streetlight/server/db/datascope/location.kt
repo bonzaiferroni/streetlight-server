@@ -11,6 +11,7 @@ import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
 import streetlight.model.data.toEdit
+import streetlight.model.utils.expandAddress
 import streetlight.server.db.services.createEditTask
 import streetlight.server.db.services.readOrCreateCity
 import streetlight.server.db.tables.LocationTable
@@ -66,8 +67,8 @@ suspend fun DataScope.updateLocation(
 }
 
 /**
- * [edit] with its image stored and its time zone found from its point, or without the image when it cannot be
- * stored and not [isImageRequired].
+ * [edit] with its image stored, its address expanded and its time zone found from its point, or without the image
+ * when it cannot be stored and not [isImageRequired].
  */
 suspend fun DataScope.prepareLocation(
     callerId: CallerId?,
@@ -80,7 +81,7 @@ suspend fun DataScope.prepareLocation(
     }
     val geoPoint = edit.geoPoint ?: error("GeoPoint not found")
     val timezoneId = TimeZones.zoneIdAt(geoPoint) ?: error("timezone query unsuccess")
-    return Ok(edit.copy(image = image, timezoneId = timezoneId))
+    return Ok(edit.copy(image = image, address = edit.address?.expandAddress(), timezoneId = timezoneId))
 }
 
 //private suspend fun <T> DataScope.handleEdit(

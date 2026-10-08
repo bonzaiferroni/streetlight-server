@@ -14,7 +14,6 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.model.data.City
 import streetlight.model.data.CityId
-import streetlight.model.data.EntityCursor
 import streetlight.model.external.OSMCity
 import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.ApiScope
@@ -77,8 +76,7 @@ fun ApiScope.serveCity() {
 
         getApi(Api.Cities.ReadFeed) { request ->
             val cityId = readParam(request.cityId)
-            val cursor = request.readCursor() as? EntityCursor.Time ?: return@getApi HttpProblem.BadRequest
-            Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, cursor))
+            Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, request.readTimeCursor()))
         }
     }
 

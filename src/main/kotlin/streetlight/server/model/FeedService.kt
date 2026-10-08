@@ -10,7 +10,6 @@ import streetlight.model.data.FeedSource
 import streetlight.model.data.Entity
 import streetlight.model.data.GalaxyContent
 import streetlight.model.data.HomeContent
-import streetlight.server.db.services.cityRecordId
 import streetlight.model.data.EntityCursor
 import streetlight.model.data.EventLocation
 import streetlight.model.data.Location
@@ -27,14 +26,14 @@ suspend fun DaoScope.readHomeContent(callerId: CallerId?): HomeContent {
     return HomeContent(galaxies = galaxies, feed = feed)
 }
 
-/** The page of upcoming events at [cursor], with the cursor of the next page when this one is full. */
-suspend fun DaoScope.readEventFeed(cursor: EntityCursor.Time = EntityCursor.Upcoming): EntityFeed {
-    val events = dao.event.readUpcomingEvents(cursor)
-    val nextCursor = events.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
-        cursor.copy(recordId = it.eventId.value, recordAt = it.startsAt)
-    }
-    return EntityFeed(events, nextCursor = nextCursor, source = FeedSource.Events)
-}
+/**
+ * The page of upcoming events at [cursor] as seen by [callerId], with the cursor of the next page when this one is
+ * full.
+ */
+suspend fun DaoScope.readEventFeed(
+    cursor: EntityCursor.Time = EntityCursor.Upcoming,
+    callerId: CallerId? = null,
+): EntityFeed = upcomingFeedOf(dao.event.readUpcomingEvents(cursor, callerId), cursor, FeedSource.Events)
 
 suspend fun DaoScope.readCityContent(slug: Slug, callerId: CallerId?): CityContent? {
     val city = dao.city.readCity(slug) ?: return null
@@ -44,17 +43,19 @@ suspend fun DaoScope.readCityContent(slug: Slug, callerId: CallerId?): CityConte
     )
 }
 
-/** The page of a city's feed at [cursor], with the cursor of the next page when this one is full. */
+/** The page of a city's upcoming events at [cursor], with the cursor of the next page when this one is full. */
 suspend fun DaoScope.readCityFeed(
     cityId: CityId,
     callerId: CallerId?,
-    cursor: EntityCursor.Time = EntityCursor.Default,
-): EntityFeed {
-    val entities = dao.city.readCityFeed(cityId, callerId, cursor)
-    val nextCursor = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
-        cursor.copy(recordId = it.cityRecordId, recordAt = it.createdAt)
+    cursor: EntityCursor.Time = EntityCursor.Upcoming,
+): EntityFeed = upcomingFeedOf(dao.event.readUpcomingEvents(cursor, callerId, cityId), cursor, FeedSource.City)
+
+/** A feed of upcoming [events] read at [cursor], continuing from the last when they fill a page. */
+private fun upcomingFeedOf(events: List<EventLocation>, cursor: EntityCursor.Time, source: FeedSource): EntityFeed {
+    val nextCursor = events.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
+        cursor.copy(recordId = it.eventId.value, recordAt = it.startsAt)
     }
-    return EntityFeed(entities, nextCursor = nextCursor, source = FeedSource.City)
+    return EntityFeed(events, nextCursor = nextCursor, source = source)
 }
 
 /** The page of map groups in the view of [query], with the cursor of the next page when this one is full. */

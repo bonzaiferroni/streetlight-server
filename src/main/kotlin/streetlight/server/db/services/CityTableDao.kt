@@ -27,7 +27,6 @@ import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
 import streetlight.model.data.Country
 import streetlight.model.data.CountryId
-import streetlight.model.data.EntityCursor
 import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
@@ -190,10 +189,6 @@ class CityTableDao : DbService() {
             .singleOrNull()?.get(CityTable.stateId) ?: return@dbQuery false
         CityTable.select(CityTable.id).where { CityTable.name.eq(name) and CityTable.stateId.eq(stateId) }
             .any { it[CityTable.id].value != cityId.value }
-    }
-
-    suspend fun readCityFeed(cityId: CityId, callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {
-        cityEntityQuery(cityId, callerId, cursor)
     }
 }
 

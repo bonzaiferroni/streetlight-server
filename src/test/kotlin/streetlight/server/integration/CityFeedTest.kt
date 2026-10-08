@@ -24,30 +24,32 @@ import kotlin.uuid.Uuid
 class CityFeedTest : DatabaseTest() {
 
     @Test
-    fun `paging a city feed returns each location and event once`() = runTest {
+    fun `paging a city feed returns each upcoming event once, soonest first`() = runTest {
         with(server) {
             val scoutId = registerStar()
             val expected = mutableSetOf<Uuid>()
             repeat(20) { i ->
                 val location = seedLocation(scoutId, name = "Venue $i")
-                val eventId = seedEvent(scoutId, location, "Show $i", LocalDate(2020, 3, 14))
-                expected += location.locationId.value
-                expected += eventId
+                expected += seedEvent(scoutId, location, "Show $i", LocalDate(2030, 3, 1 + i))
+                expected += seedEvent(scoutId, location, "Encore $i", LocalDate(2030, 4, 1 + i))
+                seedEvent(scoutId, location, "Past Show $i", LocalDate(2020, 3, 14))
             }
+            seedLocation(scoutId, name = "Quiet Venue")
             val cityId = dao.city.readCityId("Denver", "Colorado") ?: error("city was not seeded")
 
             val first = readCityFeed(cityId, null)
             val cursor = first.nextCursor as? EntityCursor.Time ?: error("the first page should lead to a second")
             val second = readCityFeed(cityId, null, cursor)
             val entities = first.entities + second.entities
-            val seen = entities.map { it.cityRecordId }
+            val events = entities.filterIsInstance<EventLocation>()
+            val seen = events.map { it.eventId.value }
 
             assertEquals(EntityCursor.DefaultLimit, first.entities.size, "the first page should be full")
             assertNull(second.nextCursor, "the second page should be the last")
-            assertEquals(seen.size, seen.toSet().size, "no entity should appear twice")
-            assertEquals(expected, seen.toSet(), "every location and event should appear")
-            assertEquals(20, entities.count { it is Location }, "each location should be its own entity")
-            assertEquals(20, entities.count { it is EventLocation }, "each event should be its own entity")
+            assertEquals(entities.size, events.size, "the feed should hold only events")
+            assertEquals(seen.size, seen.toSet().size, "no event should appear twice")
+            assertEquals(expected, seen.toSet(), "every upcoming event and no past event should appear")
+            assertEquals(events.sortedBy { it.startsAt }, events, "events should come soonest first")
         }
     }
 
