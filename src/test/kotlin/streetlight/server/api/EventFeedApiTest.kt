@@ -43,6 +43,42 @@ class EventFeedApiTest : ApiTest() {
         assertEquals(tagged, seen.toSet(), "every concert and nothing else should appear")
     }
 
+    @Test
+    fun `the event feed searched by a word holds events whose title or location name holds it, in any case`() = runApiTest {
+        val scoutId = registerUser("scout")
+        val cafe = server.seedLocation(scoutId, "Mercury Cafe")
+        val stage = server.seedLocation(scoutId, "Open Air Stage")
+        val date = LocalDate(2030, 1, 1)
+        val expected = setOf(
+            server.seedEvent(scoutId.value, cafe.locationId, "Open Mic Night", date, null),
+            server.seedEvent(scoutId.value, cafe.locationId, "Poetry open mic", date, null),
+            server.seedEvent(scoutId.value, stage.locationId, "Jazz Brunch", date, null),
+        )
+        server.seedEvent(scoutId.value, cafe.locationId, "Trivia", date, null)
+
+        val seen = readFeedIds(EntityCursor.Upcoming.copy(search = "OPEN"))
+
+        assertEquals(expected, seen, "every event with the word in its title or location name, and no other, should appear")
+    }
+
+    @Test
+    fun `the event feed searched and filtered by a tag holds only events matching both`() = runApiTest {
+        val scoutId = registerUser("scout")
+        val location = server.seedLocation(scoutId, "Mercury Cafe")
+        val date = LocalDate(2030, 1, 1)
+        val expected = server.seedEvent(scoutId.value, location.locationId, "Open Mic Night", date, EventTag.OpenMic)
+        server.seedEvent(scoutId.value, location.locationId, "Open Studio", date, EventTag.Arts)
+        server.seedEvent(scoutId.value, location.locationId, "Songwriter Night", date, EventTag.OpenMic)
+
+        val seen = readFeedIds(EntityCursor.Upcoming.copy(tag = EventTag.OpenMic.ordinal, search = "open"))
+
+        assertEquals(setOf(expected), seen, "only the open mic whose title holds the word should appear")
+    }
+
+    private suspend fun ApiTestScope.readFeedIds(cursor: EntityCursor.Time): Set<Uuid> =
+        getApi(Api.Events.ReadFeed) { writeTimeCursor(it, cursor) }.toDataOrThrow()
+            .entities.map { (it as EventLocation).eventId.value }.toSet()
+
     private suspend fun TestServer.seedEvent(
         scoutId: Uuid,
         locationId: LocationId,

@@ -13,6 +13,9 @@ import klutch.db.read
 import klutch.db.readFirstOrNull
 import klutch.utils.arrayContains
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.LikePattern
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -191,6 +194,7 @@ class EventTableDao: DbService() {
             .where { EventTable.startsAt.greaterEq(Clock.System.now()) }
             .whereInCity(cityId)
             .whereTagged(cursor.tag)
+            .whereNameContains(cursor.search)
             .whereAfterStart(cursor)
             .orderByStart(cursor)
             .limit(EntityCursor.DefaultLimit)
@@ -205,6 +209,12 @@ private fun Query.whereInCity(cityId: CityId?): Query =
 /** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
 private fun Query.whereTagged(tag: Int?): Query =
     tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
+
+/** Filters events to those whose title or location name holds [search] in any case, or leaves them all without one. */
+private fun Query.whereNameContains(search: String?): Query = search?.lowercase()?.let { text ->
+    val pattern = LikePattern.ofLiteral(text).let { LikePattern("%${it.pattern}%", it.escapeChar) }
+    andWhere { EventTable.title.lowerCase().like(pattern) or LocationTable.name.lowerCase().like(pattern) }
+} ?: this
 
 /** Filters events to those after [cursor] by their start. */
 private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {
