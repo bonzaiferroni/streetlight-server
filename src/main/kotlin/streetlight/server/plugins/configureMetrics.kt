@@ -12,7 +12,8 @@ import streetlight.server.model.ServerScope
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
-fun Application.configureMetrics(server: ServerScope) {
+/** Installs Micrometer metrics, and records them with a [SiteStatusDaemon] when [withStatusDaemon]. */
+fun Application.configureMetrics(server: ServerScope, withStatusDaemon: Boolean) {
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val daemon = SiteStatusDaemon(server.dao, registry)
     install(MicrometerMetrics) {
@@ -23,8 +24,10 @@ fun Application.configureMetrics(server: ServerScope) {
             .build()
     }
 
-    launch {
-        daemon.start()
+    if (withStatusDaemon) {
+        launch {
+            daemon.start()
+        }
     }
 }
 

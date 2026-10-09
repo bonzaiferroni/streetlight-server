@@ -69,15 +69,15 @@ fun Application.streetlightModule(
     }
 
     configureRateLimits(config.withRateLimits)
+    if (config.withDatabase) {
+        configureDatabases(server)
+    }
     if (config.withMetrics) {
-        configureMetrics(server)
+        configureMetrics(server, withStatusDaemon = config.withDatabase)
     }
     configureLogging()
     configureCors()
     configureSerialization()
-    if (config.withDatabase) {
-        configureDatabases(server)
-    }
     configureAuth(session)
     configureWebSockets()
     if (config.withTransit) {

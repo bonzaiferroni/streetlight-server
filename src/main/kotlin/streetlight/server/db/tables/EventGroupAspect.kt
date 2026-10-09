@@ -80,7 +80,7 @@ fun Query.whereNameContains(search: String?): Query = search?.lowercase()?.let {
 
 fun ResultRow.toEventGroup() = EventGroup(
     locationId = LocationId(this[LocationTable.id].value),
-    label = getOrNull(EventGroupAspect.eventTitle) ?: this[LocationTable.name] ?: this[LocationTable.address] ?: "",
+    label = this[EventGroupAspect.eventTitle],
     locationName = this[LocationTable.name],
     image = this[EventGroupAspect.eventImage] ?: this[LocationTable.image],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
