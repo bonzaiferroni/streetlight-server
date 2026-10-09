@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import klutch.utils.arrayContains
 import klutch.utils.toGeoPoint
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.Op
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventGroup
 import streetlight.model.data.EventTag
@@ -18,11 +20,16 @@ import streetlight.model.data.LocationId
 /** A location with its next event, as an [EventGroup] reads it. */
 object EventGroupAspect {
     /** The next event of each location, or none when it has no upcoming event. */
-    val nextEvent = EventTable.select(EventTable.id, EventTable.title, EventTable.image, EventTable.tags, EventTable.startsAt)
-        .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greaterEq(CurrentTimestamp) }
-        .orderBy(EventTable.startsAt to SortOrder.ASC, EventTable.id to SortOrder.ASC)
-        .limit(1)
-        .alias("next_event")
+    private val nextEvent = nextEventOf(null)
+
+    /** The next upcoming event of each location, of those carrying the tag of ordinal [tag] when given. */
+    fun nextEventOf(tag: Int?) =
+        EventTable.select(EventTable.id, EventTable.title, EventTable.image, EventTable.tags, EventTable.startsAt)
+            .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greaterEq(CurrentTimestamp) }
+            .apply { tag?.let { andWhere { EventTable.tags.arrayContains(it) } } }
+            .orderBy(EventTable.startsAt to SortOrder.ASC, EventTable.id to SortOrder.ASC)
+            .limit(1)
+            .alias("next_event")
 
     val eventTitle = nextEvent[EventTable.title]
     val eventImage = nextEvent[EventTable.image]
@@ -44,9 +51,13 @@ object EventGroupAspect {
     )
 }
 
-/** Left joins each location's next event, as [EventGroupAspect] reads it. */
-fun LocationTable.joinWith(aspect: EventGroupAspect) =
-    join(aspect.nextEvent, JoinType.LEFT, lateral = true) { Op.TRUE }
+/**
+ * Joins each location's next event, as [EventGroupAspect] reads it.
+ *
+ * With a [tag], the next event is the next one carrying it, and a location without one is left out.
+ */
+fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null) =
+    join(aspect.nextEventOf(tag), if (tag != null) JoinType.INNER else JoinType.LEFT, lateral = true) { Op.TRUE }
 
 fun ResultRow.toEventGroup() = EventGroup(
     locationId = LocationId(this[LocationTable.id].value),

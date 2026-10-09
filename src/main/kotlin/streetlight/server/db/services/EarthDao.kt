@@ -3,6 +3,7 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.db.inRect
+import klutch.utils.arrayContains
 import klutch.utils.eq
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -40,7 +41,7 @@ import kotlin.time.Clock
 
 class EarthDao: DbService() {
     suspend fun readBoundedEntities(query: MapQuery): List<EventGroup> = dbQuery {
-        LocationTable.joinWith(EventGroupAspect)
+        LocationTable.joinWith(EventGroupAspect, query.cursor.tag)
             .selectWith(EventGroupAspect.columns)
             .whereInView(query)
             .whereAfterScore(query.cursor)
@@ -52,6 +53,7 @@ class EarthDao: DbService() {
     suspend fun readLocationId(
         locationId: LocationId,
         callerId: CallerId?,
+        tag: Int? = null,
     ): List<Entity> = dbQuery {
         LocationTable.joinWith(EventTable) {
             EventTable.startsAt.greaterEq(Clock.System.now())
@@ -63,6 +65,7 @@ class EarthDao: DbService() {
                 selectLocationStar(callerId)
             }
             .where { LocationTable.id.eq(locationId) }
+            .whereTagged(tag)
             .orderBy(EventTable.startsAt, SortOrder.ASC_NULLS_LAST)
             .limit(EntityCursor.DefaultLimit)
             .map {
@@ -74,6 +77,10 @@ class EarthDao: DbService() {
             }
     }
 }
+
+/** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
+private fun Query.whereTagged(tag: Int?): Query =
+    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
 
 /** Filters locations to those in the view of [query], leaving out the areas it has seen. */
 private fun Query.whereInView(query: MapQuery): Query = andWhere {
