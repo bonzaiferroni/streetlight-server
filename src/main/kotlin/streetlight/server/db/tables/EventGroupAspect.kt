@@ -2,7 +2,6 @@ package streetlight.server.db.tables
 
 import klutch.utils.arrayContains
 import klutch.utils.toGeoPoint
-import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.LikePattern
 import org.jetbrains.exposed.v1.core.Op
@@ -25,7 +24,7 @@ import streetlight.model.data.LocationId
 
 /** A location with its next event, as an [EventGroup] reads it. */
 object EventGroupAspect {
-    /** The next event of each location, or none when it has no upcoming event. */
+    /** The next event of each location. */
     private val nextEvent = nextEventOf(null, null)
 
     /**
@@ -62,14 +61,12 @@ object EventGroupAspect {
 }
 
 /**
- * Joins each location's next event, as [EventGroupAspect] reads it.
+ * Joins each location's next event, as [EventGroupAspect] reads it, leaving out a location without one.
  *
- * With a [tag] or [search], the next event is the next one that matches, and a location without one is left out.
+ * With a [tag] or [search], the next event is the next one that matches.
  */
-fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null, search: String? = null): Join {
-    val joinType = if (tag != null || search != null) JoinType.INNER else JoinType.LEFT
-    return join(aspect.nextEventOf(tag, search), joinType, lateral = true) { Op.TRUE }
-}
+fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null, search: String? = null) =
+    join(aspect.nextEventOf(tag, search), JoinType.INNER, lateral = true) { Op.TRUE }
 
 /** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
 fun Query.whereTagged(tag: Int?): Query =
