@@ -21,7 +21,8 @@ fun ApiScope.serveEarth() {
         getApi(Api.EarthNode.Inflate) {
             val locationId = readParam(it.locationIdParam)
             val tag = readParamOrNull(it.tagParam)
-            Ok(dao.earth.readLocationId(locationId, call.getIdentityOrNull()?.callerId, tag))
+            val search = readParamOrNull(it.searchParam)?.trim()?.takeIf { it.isNotEmpty() }
+            Ok(dao.earth.readLocationId(locationId, call.getIdentityOrNull()?.callerId, tag, search))
         }
     }
 }

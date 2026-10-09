@@ -3,7 +3,6 @@ package streetlight.server.db.services
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.db.inRect
-import klutch.utils.arrayContains
 import klutch.utils.eq
 import klutch.utils.inList
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -33,6 +32,8 @@ import streetlight.server.db.tables.joinWith
 import streetlight.server.db.tables.joinLocationStar
 import streetlight.server.db.tables.selectWith
 import streetlight.server.db.tables.toEventGroup
+import streetlight.server.db.tables.whereNameContains
+import streetlight.server.db.tables.whereTagged
 import streetlight.server.db.tables.toEventLocation
 import streetlight.server.db.tables.toLocation
 import streetlight.server.db.tables.selectEventStar
@@ -41,7 +42,7 @@ import kotlin.time.Clock
 
 class EarthDao: DbService() {
     suspend fun readBoundedEntities(query: MapQuery): List<EventGroup> = dbQuery {
-        LocationTable.joinWith(EventGroupAspect, query.cursor.tag)
+        LocationTable.joinWith(EventGroupAspect, query.cursor.tag, query.cursor.search)
             .selectWith(EventGroupAspect.columns)
             .whereInView(query)
             .whereAfterScore(query.cursor)
@@ -54,6 +55,7 @@ class EarthDao: DbService() {
         locationId: LocationId,
         callerId: CallerId?,
         tag: Int? = null,
+        search: String? = null,
     ): List<Entity> = dbQuery {
         LocationTable.joinWith(EventTable) {
             EventTable.startsAt.greaterEq(Clock.System.now())
@@ -66,6 +68,7 @@ class EarthDao: DbService() {
             }
             .where { LocationTable.id.eq(locationId) }
             .whereTagged(tag)
+            .whereNameContains(search)
             .orderBy(EventTable.startsAt, SortOrder.ASC_NULLS_LAST)
             .limit(EntityCursor.DefaultLimit)
             .map {
@@ -77,10 +80,6 @@ class EarthDao: DbService() {
             }
     }
 }
-
-/** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
-private fun Query.whereTagged(tag: Int?): Query =
-    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
 
 /** Filters locations to those in the view of [query], leaving out the areas it has seen. */
 private fun Query.whereInView(query: MapQuery): Query = andWhere {

@@ -2,7 +2,9 @@ package streetlight.server.db.tables
 
 import klutch.utils.arrayContains
 import klutch.utils.toGeoPoint
+import org.jetbrains.exposed.v1.core.Join
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.LikePattern
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
@@ -10,7 +12,11 @@ import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventGroup
@@ -20,13 +26,17 @@ import streetlight.model.data.LocationId
 /** A location with its next event, as an [EventGroup] reads it. */
 object EventGroupAspect {
     /** The next event of each location, or none when it has no upcoming event. */
-    private val nextEvent = nextEventOf(null)
+    private val nextEvent = nextEventOf(null, null)
 
-    /** The next upcoming event of each location, of those carrying the tag of ordinal [tag] when given. */
-    fun nextEventOf(tag: Int?) =
+    /**
+     * The next upcoming event of each location, of those carrying the tag of ordinal [tag] and matching [search]
+     * when given.
+     */
+    fun nextEventOf(tag: Int?, search: String?) =
         EventTable.select(EventTable.id, EventTable.title, EventTable.image, EventTable.tags, EventTable.startsAt)
             .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greaterEq(CurrentTimestamp) }
-            .apply { tag?.let { andWhere { EventTable.tags.arrayContains(it) } } }
+            .whereTagged(tag)
+            .whereNameContains(search)
             .orderBy(EventTable.startsAt to SortOrder.ASC, EventTable.id to SortOrder.ASC)
             .limit(1)
             .alias("next_event")
@@ -54,10 +64,22 @@ object EventGroupAspect {
 /**
  * Joins each location's next event, as [EventGroupAspect] reads it.
  *
- * With a [tag], the next event is the next one carrying it, and a location without one is left out.
+ * With a [tag] or [search], the next event is the next one that matches, and a location without one is left out.
  */
-fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null) =
-    join(aspect.nextEventOf(tag), if (tag != null) JoinType.INNER else JoinType.LEFT, lateral = true) { Op.TRUE }
+fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null, search: String? = null): Join {
+    val joinType = if (tag != null || search != null) JoinType.INNER else JoinType.LEFT
+    return join(aspect.nextEventOf(tag, search), joinType, lateral = true) { Op.TRUE }
+}
+
+/** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
+fun Query.whereTagged(tag: Int?): Query =
+    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
+
+/** Filters events to those whose title or location name holds [search] in any case, or leaves them all without one. */
+fun Query.whereNameContains(search: String?): Query = search?.lowercase()?.let { text ->
+    val pattern = LikePattern.ofLiteral(text).let { LikePattern("%${it.pattern}%", it.escapeChar) }
+    andWhere { EventTable.title.lowerCase().like(pattern) or LocationTable.name.lowerCase().like(pattern) }
+} ?: this
 
 fun ResultRow.toEventGroup() = EventGroup(
     locationId = LocationId(this[LocationTable.id].value),

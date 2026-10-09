@@ -49,6 +49,7 @@ fun MapEndpoint.mapQuery(): MapQuery? {
     val recordId = context.readParamOrNull(recordIdParam)
     val score = context.readParamOrNull(scoreParam)
     val tag = tagParam?.let { context.readParamOrNull(it) }
-    val cursor = EntityCursor.Score(SortDirection.Descending, recordId, score, tag)
+    val search = searchParam?.let { context.readParamOrNull(it) }?.trim()?.takeIf { it.isNotEmpty() }
+    val cursor = EntityCursor.Score(SortDirection.Descending, recordId, score, tag, search)
     return MapQuery(view, seen, cursor)
 }

@@ -11,11 +11,7 @@ import klutch.db.inRect
 import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.readFirstOrNull
-import klutch.utils.arrayContains
 import klutch.utils.eq
-import org.jetbrains.exposed.v1.core.LikePattern
-import org.jetbrains.exposed.v1.core.like
-import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -43,6 +39,8 @@ import streetlight.model.data.EventEdit
 import streetlight.model.data.EventStatus
 import streetlight.model.data.LocationId
 import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.whereNameContains
+import streetlight.server.db.tables.whereTagged
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.eventLocationQuery
 import klutch.db.tables.SlugRecord
@@ -205,16 +203,6 @@ class EventTableDao: DbService() {
 /** Filters events to those at locations in [cityId], or leaves them all without one. */
 private fun Query.whereInCity(cityId: CityId?): Query =
     cityId?.let { andWhere { LocationTable.cityId.eq(it) } } ?: this
-
-/** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
-private fun Query.whereTagged(tag: Int?): Query =
-    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
-
-/** Filters events to those whose title or location name holds [search] in any case, or leaves them all without one. */
-private fun Query.whereNameContains(search: String?): Query = search?.lowercase()?.let { text ->
-    val pattern = LikePattern.ofLiteral(text).let { LikePattern("%${it.pattern}%", it.escapeChar) }
-    andWhere { EventTable.title.lowerCase().like(pattern) or LocationTable.name.lowerCase().like(pattern) }
-} ?: this
 
 /** Filters events to those after [cursor] by their start. */
 private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {
