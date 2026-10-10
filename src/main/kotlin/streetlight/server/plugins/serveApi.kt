@@ -49,6 +49,7 @@ fun Application.serveApi(server: ServerScope) {
             serveTasks()
             serveMedia()
             serveEntities()
+            serveFeeds()
             serveFeedback()
             serveBug()
             serveSiteStatus()

@@ -175,22 +175,26 @@ class EventTableDao: DbService() {
     }
 
     /**
-     * The page of upcoming events after [cursor], in the order of their start, as seen by [callerId].
+     * The page after [cursor] of the events starting from [since], now by default, in the order of their start, as
+     * seen by [callerId].
      *
-     * Limited to the events in [cityId] when given.
+     * Limited to the events in [cityId] or at [locationId] when given.
      */
     suspend fun readUpcomingEvents(
         cursor: EntityCursor.Time,
         callerId: CallerId? = null,
         cityId: CityId? = null,
+        locationId: LocationId? = null,
+        since: Instant = Clock.System.now(),
     ) = dbQuery {
         EventTable.joinWith(LocationTable)
             .joinEventStar(callerId)
             .selectWith(EventLocationAspect.columns) {
                 selectEventStar(callerId)
             }
-            .where { EventTable.startsAt.greaterEq(Clock.System.now()) }
+            .where { EventTable.startsAt.greaterEq(since) }
             .whereInCity(cityId)
+            .whereAtLocation(locationId)
             .whereTagged(cursor.tag)
             .whereNameContains(cursor.search)
             .whereAfterStart(cursor)
@@ -203,6 +207,10 @@ class EventTableDao: DbService() {
 /** Filters events to those at locations in [cityId], or leaves them all without one. */
 private fun Query.whereInCity(cityId: CityId?): Query =
     cityId?.let { andWhere { LocationTable.cityId.eq(it) } } ?: this
+
+/** Filters events to those at [locationId], or leaves them all without one. */
+private fun Query.whereAtLocation(locationId: LocationId?): Query =
+    locationId?.let { andWhere { EventTable.locationId.eq(it) } } ?: this
 
 /** Filters events to those after [cursor] by their start. */
 private fun Query.whereAfterStart(cursor: EntityCursor.Time): Query {

@@ -1,5 +1,6 @@
 package streetlight.server.api
 
+import kampfire.model.HttpProblem
 import klutch.db.model.CallerId
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -8,11 +9,15 @@ import streetlight.model.data.EntityCursor
 import streetlight.model.data.EventEdit
 import streetlight.model.data.EventLocation
 import streetlight.model.data.EventTag
+import streetlight.model.data.FeedContext
+import streetlight.model.data.FeedType
+import streetlight.model.data.FeedRequest
+import streetlight.model.data.FeedSource
 import streetlight.model.data.LocationId
-import streetlight.model.writeTimeCursor
 import streetlight.server.TestServer
 import streetlight.server.seedLocation
 import streetlight.server.toDataOrThrow
+import streetlight.server.toProblemOrThrow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.uuid.Uuid
@@ -33,9 +38,9 @@ class EventFeedApiTest : ApiTest() {
         server.seedEvent(scoutId.value, location.locationId, "Untagged", LocalDate(2030, 1, 2), null)
 
         val cursor = EntityCursor.Upcoming.copy(tag = EventTag.Concert.ordinal)
-        val first = getApi(Api.Events.ReadFeed) { writeTimeCursor(it, cursor) }.toDataOrThrow()
+        val first = readHomeEvents(cursor)
         val next = first.nextCursor as? EntityCursor.Time ?: error("the first page should lead to a second")
-        val second = getApi(Api.Events.ReadFeed) { writeTimeCursor(it, next) }.toDataOrThrow()
+        val second = readHomeEvents(next)
         val seen = (first.entities + second.entities).map { (it as EventLocation).eventId.value }
 
         assertEquals(EventTag.Concert.ordinal, next.tag, "the next page should keep the tag")
@@ -75,9 +80,20 @@ class EventFeedApiTest : ApiTest() {
         assertEquals(setOf(expected), seen, "only the open mic whose title holds the word should appear")
     }
 
+    @Test
+    fun `a feed read for a type its context does not offer is refused`() = runApiTest {
+        val request = FeedRequest(FeedSource(FeedContext.Home, FeedType.Locations), EntityCursor.Default)
+
+        val problem = postApi(Api.Feeds.Read, request).toProblemOrThrow()
+
+        assertEquals(HttpProblem.BadRequest, problem, "the home context offers no locations feed")
+    }
+
+    private suspend fun ApiTestScope.readHomeEvents(cursor: EntityCursor.Time) =
+        postApi(Api.Feeds.Read, FeedRequest(FeedSource(FeedContext.Home, FeedType.Events), cursor)).toDataOrThrow()
+
     private suspend fun ApiTestScope.readFeedIds(cursor: EntityCursor.Time): Set<Uuid> =
-        getApi(Api.Events.ReadFeed) { writeTimeCursor(it, cursor) }.toDataOrThrow()
-            .entities.map { (it as EventLocation).eventId.value }.toSet()
+        readHomeEvents(cursor).entities.map { (it as EventLocation).eventId.value }.toSet()
 
     private suspend fun TestServer.seedEvent(
         scoutId: Uuid,

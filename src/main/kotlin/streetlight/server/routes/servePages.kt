@@ -21,8 +21,10 @@ import koala.html.UsernameParse
 import koala.html.UuidParse
 import kotlinx.html.HTML
 import streetlight.model.data.AuthTokenType
+import streetlight.model.data.FeedType
 import streetlight.server.model.*
 import streetlight.model.ui.Screen
+import streetlight.model.ui.readFeedType
 import streetlight.web.pages.*
 import streetlight.web.shells.*
 import java.io.File
@@ -47,11 +49,11 @@ fun ApiScope.servePages(resource: PageResource) {
 
     suspend fun renderScreen(screen: Screen, arg: String?, caller: Identity?, call: ApplicationCall): HtmlRender? {
         return when (screen) {
-            Screen.Home -> renderHome(caller?.callerId, resource)
+            Screen.Home -> renderHome(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.AboutApp -> renderAboutApp(resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityList -> renderCityList(resource)
-            Screen.City -> renderCity(arg, caller?.callerId, resource)
+            Screen.City -> renderCity(arg, caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId, resource)
             Screen.Star -> renderStar(arg, caller, resource)
             Screen.Event -> renderEvent(arg, caller?.callerId, resource)
@@ -136,9 +138,8 @@ suspend fun ApiScope.renderClientBase(screen: AppScreen, resource: PageResource)
     }
 }
 
-suspend fun ApiScope.renderHome(callerId: CallerId?, resource: PageResource): HtmlRender {
-    // console.log(callerId)
-    val content = readHomeContent(callerId)
+suspend fun ApiScope.renderHome(callerId: CallerId?, feed: FeedType?, resource: PageResource): HtmlRender {
+    val content = readHomeContent(callerId, feed)
 
     return HtmlRender {
         appPage("Home", Screen.Galaxy, resource) {
@@ -157,9 +158,9 @@ suspend fun ApiScope.renderCityList(resource: PageResource): HtmlRender {
     }
 }
 
-suspend fun ApiScope.renderCity(arg: String?, callerId: CallerId?, resource: PageResource): HtmlRender? {
+suspend fun ApiScope.renderCity(arg: String?, callerId: CallerId?, feed: FeedType?, resource: PageResource): HtmlRender? {
     val slug = arg?.toSlug() ?: return null
-    val content = readCityContent(slug, callerId) ?: return null
+    val content = readCityContent(slug, callerId, feed) ?: return null
 
     return HtmlRender {
         appPage(content.city.name, Screen.City, resource) {

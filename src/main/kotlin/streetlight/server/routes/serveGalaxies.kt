@@ -22,9 +22,6 @@ import streetlight.server.model.*
 import klutch.server.authGate
 import klutch.server.provide
 import klutch.server.readParamOrNull
-import streetlight.model.CursorEndpoint
-import streetlight.model.MarkCursorEndpoint
-import streetlight.model.TimeCursorEndpoint
 import streetlight.model.data.City
 import streetlight.model.data.GalaxyConfig
 import streetlight.model.data.GalaxyEdit

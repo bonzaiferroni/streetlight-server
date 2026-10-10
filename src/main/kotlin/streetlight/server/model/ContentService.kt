@@ -6,7 +6,7 @@ import klutch.db.model.Identity
 import koala.model.DocId
 import streetlight.model.data.DocContent
 import streetlight.model.data.EventUpdaterContent
-import streetlight.model.data.EntityFeed
+import streetlight.model.data.FeedContext
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
 import streetlight.model.data.StarContent
@@ -17,12 +17,11 @@ import streetlight.web.doc.SiteDocTree
 suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): LocationContent? {
     val locationLayout = dao.location.readDesign(slug, identity?.callerId) ?: return null
     val location = locationLayout.location
-    val events = dao.event.readLocationEvents(slug, identity?.callerId)
     val canEdit =
         location.host == null || location.host == identity?.username // || callerId?.roles?.contains(UserRole.Admin) == true
     return LocationContent(
         location = location,
-        events = events,
+        feed = readLocationEventFeed(location.locationId, identity?.callerId),
         design = locationLayout.design,
         canEdit = canEdit,
     )
@@ -55,10 +54,9 @@ suspend fun DaoScope.readEventUpdaterContent(slug: Slug): EventUpdaterContent? {
 
 suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): StarContent? {
     val star = dao.star.readStar(username, caller?.callerId, true) ?: return null
-    val posts = dao.media.readMedia(username, caller?.callerId)
     return StarContent(
         star = star,
-        feed = EntityFeed(posts),
+        feed = readMediaFeed(FeedContext.Star(username)),
         isCaller = caller?.username == star.username
     )
 }

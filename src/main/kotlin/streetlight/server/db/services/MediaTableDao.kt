@@ -8,16 +8,21 @@ import klutch.db.model.CallerId
 import klutch.db.read
 import klutch.db.tables.nextSlugOf
 import klutch.utils.eq
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.andIfNotNull
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.updateReturning
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.Media
 import streetlight.model.data.MediaEdit
 import streetlight.model.data.MediaId
 import streetlight.model.data.MediaType
 import streetlight.server.db.tables.MediaTable
+import streetlight.server.db.tables.afterCursor
 import streetlight.server.db.tables.createMedia
 import streetlight.server.db.tables.toMedia
 import streetlight.server.db.tables.updateMedia
@@ -46,9 +51,17 @@ class MediaTableDao: DbService() {
         MediaTable.read { it.slug.eq(slug) }.firstOrNull()?.toMedia()
     }
 
-    suspend fun readMedia(username: Username, callerId: CallerId?) = dbQuery {
-        // td: add mediaLight
-        MediaTable.selectAll().where { MediaTable.username.eq(username) }.map { it.toMedia() }
+    /** The page after [cursor] of media newest first, those of [username] alone when given. */
+    suspend fun readNewestMedia(cursor: EntityCursor.Time, username: Username? = null) = dbQuery {
+        val after = cursor.recordAt?.let { recordAt ->
+            cursor.recordId?.let { afterCursor(MediaTable.createdAt, recordAt, MediaTable.id, it, cursor.direction) }
+        }
+        val byStar = username?.let { MediaTable.username.eq(it) }
+        MediaTable.selectAll()
+            .where { Op.TRUE andIfNotNull byStar andIfNotNull after }
+            .orderBy(MediaTable.createdAt to SortOrder.DESC, MediaTable.id to SortOrder.DESC)
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toMedia() }
     }
 }
 

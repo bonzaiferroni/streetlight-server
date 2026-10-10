@@ -51,7 +51,9 @@ import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import streetlight.model.data.CityId
+import streetlight.model.data.EntityCursor
 import streetlight.model.data.LocationConfig
+import streetlight.server.db.tables.afterCursor
 import streetlight.server.db.tables.joinWith
 import streetlight.server.db.tables.toEvent
 import streetlight.server.db.tables.toLocation
@@ -204,6 +206,18 @@ class LocationTableDao : DbService() {
 
     suspend fun readLocationAt(point: GeoPoint) = dbQuery {
         LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
+    }
+
+    /** The page after [cursor] of the named locations in [cityId], newest first, as seen by [callerId]. */
+    suspend fun readCityLocations(cityId: CityId, callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {
+        val after = cursor.recordAt?.let { recordAt ->
+            cursor.recordId?.let { afterCursor(LocationTable.createdAt, recordAt, LocationTable.id, it, cursor.direction) }
+        }
+        locationQuery(callerId)
+            .where { LocationTable.cityId.eq(cityId) and LocationTable.name.isNotNull() andIfNotNull after }
+            .orderBy(LocationTable.createdAt to SortOrder.DESC, LocationTable.id to SortOrder.DESC)
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toLocation() }
     }
 
     suspend fun readTop(count: Int) = dbQuery {

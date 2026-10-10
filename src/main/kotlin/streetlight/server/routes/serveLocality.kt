@@ -21,7 +21,6 @@ import streetlight.server.db.datascope.updateCity
 import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.model.readCityContent
-import streetlight.server.model.readCityFeed
 
 fun ApiScope.serveCity() {
     val osm = provide<MapReferenceClient>()
@@ -71,12 +70,8 @@ fun ApiScope.serveCity() {
 
         getApi(Api.Cities.ReadContent, { it.toSlug() }) {
             val identity = call.getIdentityOrNull()
-            Ok(readCityContent(it.data, identity?.callerId) ?: return@getApi HttpProblem.NotFound)
-        }
-
-        getApi(Api.Cities.ReadFeed) { request ->
-            val cityId = readParam(request.cityId)
-            Ok(readCityFeed(cityId, call.getIdentityOrNull()?.callerId, request.readTimeCursor()))
+            val feed = readParamOrNull(Api.Cities.ReadContent.feed)
+            Ok(readCityContent(it.data, identity?.callerId, feed) ?: return@getApi HttpProblem.NotFound)
         }
     }
 
