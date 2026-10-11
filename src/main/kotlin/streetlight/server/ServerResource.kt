@@ -33,6 +33,8 @@ import streetlight.web.component.StarToggleCss
 import streetlight.web.layout.BodyCss
 import streetlight.web.component.CuratorMenuStyle
 import streetlight.web.view.InboxCss
+import streetlight.web.view.ConnectCss
+import streetlight.web.component.ConnectPickerCss
 import streetlight.web.view.LayoutBuilderCss
 import streetlight.web.layout.LayoutStyleCss
 import streetlight.web.page.StreetlightCss
@@ -121,6 +123,8 @@ private val KtStyles = listOf(
     LayoutStyleCss,
     InboxCss,
     CuratorMenuStyle,
+    ConnectPickerCss,
+    ConnectCss,
 )
 
 private fun BuildStyles() = buildString {
