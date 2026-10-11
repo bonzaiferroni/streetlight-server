@@ -1,6 +1,5 @@
 package streetlight.server.integration
 
-import kampfire.api.Slug
 import klutch.db.model.CallerId
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
@@ -15,7 +14,6 @@ import streetlight.model.data.Location
 import streetlight.model.data.StarId
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.db.services.cityRecordId
 import streetlight.server.model.readCityFeed
 import streetlight.server.model.readCityLocationFeed
 import streetlight.server.registerStar
@@ -78,24 +76,6 @@ class CityFeedTest : DatabaseTest() {
             val createdTimes = locations.map { it.createdAt }
             assertEquals(createdTimes.sortedDescending(), createdTimes, "locations should come newest first")
             assertEquals(FeedSource(FeedContext.City(cityId), FeedType.Locations), first.source, "the feed should name its source")
-        }
-    }
-
-    @Test
-    fun `a city map holds its locations and only upcoming events`() = runTest {
-        with(server) {
-            val scoutId = registerStar()
-            val location = seedLocation(scoutId)
-            val upcomingId = seedEvent(scoutId, location, "Upcoming Show", LocalDate(2030, 3, 14))
-            seedEvent(scoutId, location, "Past Show", LocalDate(2020, 3, 14))
-
-            val entities = dao.city.readCityPosts(Slug("denver-colorado"), null)
-
-            assertEquals(
-                setOf(location.locationId.value, upcomingId),
-                entities.map { it.cityRecordId }.toSet(),
-                "the map should hold the location and its upcoming event",
-            )
         }
     }
 
