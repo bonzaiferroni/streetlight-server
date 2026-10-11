@@ -52,7 +52,8 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.Home -> renderHome(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.AboutApp -> renderAboutApp(resource)
             Screen.Location -> renderLocation(arg, caller, resource)
-            Screen.CityList -> renderCityList(resource)
+            Screen.CityFeed -> renderCityFeed(resource)
+            Screen.GalaxyFeed -> renderGalaxyFeed(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.City -> renderCity(arg, caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId, resource)
             Screen.Star -> renderStar(arg, caller, resource)
@@ -148,12 +149,22 @@ suspend fun ApiScope.renderHome(callerId: CallerId?, feed: FeedType?, resource: 
     }
 }
 
-suspend fun ApiScope.renderCityList(resource: PageResource): HtmlRender {
-    val content = readCityListContent()
+suspend fun ApiScope.renderCityFeed(resource: PageResource): HtmlRender {
+    val content = readCityFeedContent()
 
     return HtmlRender {
-        appPage("Cities", Screen.CityList, resource) {
-            cityListShell(content)
+        appPage("Cities", Screen.CityFeed, resource) {
+            cityFeedShell(content)
+        }
+    }
+}
+
+suspend fun ApiScope.renderGalaxyFeed(callerId: CallerId?, feed: FeedType?, resource: PageResource): HtmlRender {
+    val content = readGalaxyFeedContent(callerId, feed)
+
+    return HtmlRender {
+        appPage("Galaxies", Screen.GalaxyFeed, resource) {
+            galaxyFeedShell(content)
         }
     }
 }

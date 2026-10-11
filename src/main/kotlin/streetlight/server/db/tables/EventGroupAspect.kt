@@ -72,6 +72,12 @@ fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null, search: S
 fun Query.whereTagged(tag: Int?): Query =
     tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
 
+/** A pattern matching text that holds [search] in any case, or `null` without a search. */
+fun containsPatternOf(search: String?): LikePattern? = search?.lowercase()?.let { text ->
+    val literal = LikePattern.ofLiteral(text)
+    LikePattern("%${literal.pattern}%", literal.escapeChar)
+}
+
 /** Filters events to those whose title or location name holds [search] in any case, or leaves them all without one. */
 fun Query.whereNameContains(search: String?): Query = search?.lowercase()?.let { text ->
     val pattern = LikePattern.ofLiteral(text).let { LikePattern("%${it.pattern}%", it.escapeChar) }

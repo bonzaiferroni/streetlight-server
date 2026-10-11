@@ -40,6 +40,15 @@ import streetlight.server.db.tables.createGalaxy
 import streetlight.server.db.tables.toGalaxyMark
 import streetlight.server.db.tables.updateGalaxy
 import kotlin.uuid.Uuid
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.andIfNotNull
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.or
+import streetlight.model.data.EntityCursor
+import streetlight.model.data.SortDirection
+import streetlight.server.db.tables.afterCursor
+import streetlight.server.db.tables.containsPatternOf
 
 class GalaxyTableDao : DbService() {
 
@@ -152,6 +161,56 @@ class GalaxyTableDao : DbService() {
     suspend fun readUserGalaxies(callerId: CallerId) = dbQuery {
         galaxyQuery(callerId).where { GalaxyStarTable.starId.eq(callerId) }.map { it.toGalaxy() }
     }
+
+    /** The page at [cursor] of the galaxies [callerId] has lit, by name, holding its search. */
+    suspend fun readStarGalaxies(callerId: CallerId, cursor: EntityCursor.Name) = dbQuery {
+        val after = cursor.name?.let { name ->
+            cursor.recordId?.let { afterCursor(GalaxyNameKey, name, GalaxyTable.id, it, cursor.direction) }
+        }
+        galaxyQuery(callerId)
+            .where { GalaxyStarTable.starId.eq(callerId) andIfNotNull after andIfNotNull galaxyHolds(cursor.search) }
+            .orderBy(GalaxyNameKey to cursor.direction.toSortOrder(), GalaxyTable.id to cursor.direction.toSortOrder())
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toGalaxy() }
+    }
+
+    /** The page at [cursor] of every galaxy by star count, most first, holding its search. */
+    suspend fun readTopGalaxies(callerId: CallerId?, cursor: EntityCursor.Score) = dbQuery {
+        val after = cursor.score?.let { score ->
+            cursor.recordId?.let { afterCursor(GalaxyTable.starCount, score.toInt(), GalaxyTable.id, it, cursor.direction) }
+        }
+        galaxyQuery(callerId)
+            .where { Op.TRUE andIfNotNull after andIfNotNull galaxyHolds(cursor.search) }
+            .orderBy(GalaxyTable.starCount to cursor.direction.toSortOrder(), GalaxyTable.id to cursor.direction.toSortOrder())
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toGalaxy() }
+    }
+
+    /** The page at [cursor] of every galaxy by creation, newest first, holding its search. */
+    suspend fun readNewGalaxies(callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {
+        val after = cursor.recordAt?.let { recordAt ->
+            cursor.recordId?.let { afterCursor(GalaxyTable.createdAt, recordAt, GalaxyTable.id, it, cursor.direction) }
+        }
+        galaxyQuery(callerId)
+            .where { Op.TRUE andIfNotNull after andIfNotNull galaxyHolds(cursor.search) }
+            .orderBy(GalaxyTable.createdAt to cursor.direction.toSortOrder(), GalaxyTable.id to cursor.direction.toSortOrder())
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toGalaxy() }
+    }
+}
+
+/** The key galaxies are sorted by name with, ignoring case. */
+val GalaxyNameKey = GalaxyTable.name.lowerCase()
+
+/** The condition that a galaxy's name or tagline holds [search], or `null` without a search. */
+private fun galaxyHolds(search: String?) = containsPatternOf(search)?.let { pattern ->
+    GalaxyTable.name.lowerCase().like(pattern) or GalaxyTable.tagline.lowerCase().like(pattern)
+}
+
+/** The sort order of this direction. */
+fun SortDirection.toSortOrder() = when (this) {
+    SortDirection.Ascending -> SortOrder.ASC
+    SortDirection.Descending -> SortOrder.DESC
 }
 
 fun GalaxyEdit.toGalaxy() = Galaxy(

@@ -4,7 +4,8 @@ import kampfire.api.Slug
 import klutch.db.model.CallerId
 import streetlight.model.data.CityContent
 import streetlight.model.data.CityId
-import streetlight.model.data.CityListContent
+import streetlight.model.data.CityFeedContent
+import streetlight.model.data.GalaxyFeedContent
 import streetlight.model.data.EntityFeed
 import streetlight.model.data.FeedContext
 import streetlight.model.data.FeedType
@@ -59,7 +60,69 @@ suspend fun DaoScope.readFeed(request: FeedRequest, callerId: CallerId?): Entity
         is FeedContext.Location -> readLocationEventFeed(context.locationId, callerId, cursor)
         is FeedContext.Galaxy -> readGalaxyFeed(context.galaxyId, callerId, cursor)
         is FeedContext.Star -> readMediaFeed(context, cursor)
+        FeedContext.Galaxies -> readGalaxiesFeed(source.type, callerId, cursor)
+        FeedContext.Cities -> readCitiesFeed(cursor)
     }
+}
+
+/**
+ * The galaxy feed with the first page of its [feed] type, or by default of the galaxies a caller has lit, or of the
+ * top galaxies without one. A visitor is not offered the galaxies of a star.
+ */
+suspend fun DaoScope.readGalaxyFeedContent(callerId: CallerId?, feed: FeedType? = null): GalaxyFeedContent {
+    val types = callerId?.let { FeedContext.Galaxies.types } ?: (FeedContext.Galaxies.types - FeedType.StarGalaxies)
+    val type = feed?.takeIf { it in types } ?: callerId?.let { FeedType.StarGalaxies } ?: FeedType.TopGalaxies
+    val galaxyFeed = readGalaxiesFeed(type, callerId) ?: EntityFeed(emptyList(), source = FeedSource(FeedContext.Galaxies, type))
+    return GalaxyFeedContent(galaxyFeed.copy(types = types))
+}
+
+/**
+ * The page at [cursor] of the galaxies of [type]: those [callerId] has lit, by name; the top, by star count; or the
+ * newest. A cursor of another kind starts the first page, keeping its search. `null` for a type of another context.
+ */
+suspend fun DaoScope.readGalaxiesFeed(
+    type: FeedType,
+    callerId: CallerId?,
+    cursor: EntityCursor? = null,
+): EntityFeed? {
+    val source = FeedSource(FeedContext.Galaxies, type)
+    val search = cursor?.search
+    return when (type) {
+        FeedType.StarGalaxies -> {
+            val nameCursor = cursor as? EntityCursor.Name ?: EntityCursor.Name.Default.copy(search = search)
+            val galaxies = callerId?.let { dao.galaxy.readStarGalaxies(it, nameCursor) } ?: emptyList()
+            pagedFeedOf(galaxies, source) { nameCursor.copy(recordId = it.galaxyId.value, name = it.name.lowercase()) }
+        }
+        FeedType.TopGalaxies -> {
+            val scoreCursor = cursor as? EntityCursor.Score ?: EntityCursor.Score.Default.copy(search = search)
+            val galaxies = dao.galaxy.readTopGalaxies(callerId, scoreCursor)
+            pagedFeedOf(galaxies, source) { scoreCursor.copy(recordId = it.galaxyId.value, score = it.starCount.toDouble()) }
+        }
+        FeedType.NewGalaxies -> {
+            val timeCursor = cursor as? EntityCursor.Time ?: EntityCursor.Default.copy(search = search)
+            val galaxies = dao.galaxy.readNewGalaxies(callerId, timeCursor)
+            pagedFeedOf(galaxies, source) { timeCursor.copy(recordId = it.galaxyId.value, recordAt = it.createdAt) }
+        }
+        else -> null
+    }
+}
+
+/** The city feed with the first page of its cities. */
+suspend fun DaoScope.readCityFeedContent(): CityFeedContent = CityFeedContent(readCitiesFeed())
+
+/** The page at [cursor] of every city by name. A cursor of another kind starts the first page, keeping its search. */
+suspend fun DaoScope.readCitiesFeed(cursor: EntityCursor? = null): EntityFeed {
+    val nameCursor = cursor as? EntityCursor.Name ?: EntityCursor.Name.Default.copy(search = cursor?.search)
+    val cities = dao.city.readCities(nameCursor)
+    return pagedFeedOf(cities, FeedSource(FeedContext.Cities, FeedType.Cities)) {
+        nameCursor.copy(recordId = it.cityId.value, name = it.name.lowercase())
+    }
+}
+
+/** A feed of [entities] from [source], continuing after the last with [nextCursor] when they fill a page. */
+private fun <T : Entity> pagedFeedOf(entities: List<T>, source: FeedSource, nextCursor: (T) -> EntityCursor): EntityFeed {
+    val next = entities.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let(nextCursor)
+    return EntityFeed(entities, nextCursor = next, source = source)
 }
 
 /** The page at [cursor] of the posts of the galaxies [callerId] follows, or of every galaxy without a caller. */
@@ -181,11 +244,6 @@ suspend fun DaoScope.readEarthFeed(query: MapQuery): EntityFeed {
     return EntityFeed(groups, nextCursor = nextCursor)
 }
 
-suspend fun DaoScope.readCityListContent(): CityListContent {
-    val cities = dao.city.readTopCities()
-    return CityListContent(cities = cities)
-}
-
 suspend fun DaoScope.readGalaxyContent(
     slug: Slug,
     callerId: CallerId?,
@@ -218,5 +276,6 @@ fun EntityCursor.next(entities: List<Entity>): EntityCursor? {
         is EntityCursor.Time -> copy(recordId = lastPost.postId.value, recordAt = lastPost.createdAt)
         is EntityCursor.Score -> copy(recordId = lastPost.postId.value, score = lastPost.lean?.toDouble() ?: 0.0)
         is EntityCursor.Mark -> copy(recordId = lastPost.postId.value, count = lastPost.markCount ?: 0)
+        is EntityCursor.Name -> null
     }
 }

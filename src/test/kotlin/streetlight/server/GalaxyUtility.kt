@@ -6,8 +6,13 @@ import streetlight.model.data.GalaxyEdit
 import streetlight.model.data.GalaxyId
 import streetlight.model.data.StarId
 
-suspend fun TestServer.seedGalaxy(founderId: StarId, slug: String = "fox-friends"): GalaxyId {
-    val edit = GalaxyEdit(name = "Fox Friends", slug = Slug(slug), geoRect = DENVER_AREA, marks = emptyList())
+suspend fun TestServer.seedGalaxy(
+    founderId: StarId,
+    slug: String = "fox-friends",
+    name: String = "Fox Friends",
+    tagline: String? = null,
+): GalaxyId {
+    val edit = GalaxyEdit(name = name, slug = Slug(slug), geoRect = DENVER_AREA, marks = emptyList(), tagline = tagline)
     dao.galaxy.create(edit, CallerId(founderId.value), city = null)
     return dao.galaxy.readGalaxy(Slug(slug), null)?.galaxyId ?: error("galaxy was not created: $slug")
 }

@@ -103,6 +103,8 @@ object GalaxyPostAspect {
             is EntityCursor.Mark -> cursor.count?.let {
                 afterCursor(MarkCount, it, PostTable.id, postId, cursor.direction)
             }
+            // posts are not sorted by name; a name cursor reads the first page, newest first
+            is EntityCursor.Name -> null
         }
     }
 }
@@ -138,6 +140,7 @@ fun Query.orderByCursor(cursor: EntityCursor): Query {
         is EntityCursor.Mark -> orderBy(GalaxyPostAspect.MarkCount to order, PostTable.id to order)
         is EntityCursor.Score -> orderBy(PostTable.lean to order, PostTable.id to order)
         is EntityCursor.Time -> orderBy(PostTable.createdAt to order, PostTable.id to order)
+        is EntityCursor.Name -> orderBy(PostTable.createdAt to SortOrder.DESC, PostTable.id to SortOrder.DESC)
     }
 }
 

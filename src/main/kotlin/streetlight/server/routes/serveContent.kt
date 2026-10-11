@@ -8,7 +8,8 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
-import streetlight.server.model.readCityListContent
+import streetlight.server.model.readCityFeedContent
+import streetlight.server.model.readGalaxyFeedContent
 import streetlight.server.model.readHomeContent
 
 fun ApiScope.serveContent() {
@@ -19,8 +20,13 @@ fun ApiScope.serveContent() {
             readHomeContent(identity?.callerId, readParamOrNull(endpoint.feed)).toOutcome()
         }
 
-        getApi(Api.Content.CityList) {
-            readCityListContent().toOutcome()
+        getApi(Api.Content.CityFeed) {
+            readCityFeedContent().toOutcome()
+        }
+
+        getApi(Api.Content.GalaxyFeed) { endpoint ->
+            val identity = call.getIdentityOrNull()
+            readGalaxyFeedContent(identity?.callerId, readParamOrNull(endpoint.feed)).toOutcome()
         }
     }
 }

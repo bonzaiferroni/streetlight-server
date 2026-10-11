@@ -30,6 +30,12 @@ import streetlight.model.data.CountryId
 import streetlight.model.data.State
 import streetlight.model.data.StateId
 import streetlight.server.db.tables.CityTable
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.andIfNotNull
+import org.jetbrains.exposed.v1.core.lowerCase
+import streetlight.model.data.EntityCursor
+import streetlight.server.db.tables.afterCursor
+import streetlight.server.db.tables.containsPatternOf
 import streetlight.server.db.tables.CountryTable
 import streetlight.server.db.tables.LocationTable
 import streetlight.server.db.tables.StateTable
@@ -149,6 +155,19 @@ class CityTableDao : DbService() {
             .map { it.toCity() }
     }
 
+    /** The page at [cursor] of every city by name, holding its search in its name. */
+    suspend fun readCities(cursor: EntityCursor.Name) = dbQuery {
+        val after = cursor.name?.let { name ->
+            cursor.recordId?.let { afterCursor(CityNameKey, name, CityTable.id, it, cursor.direction) }
+        }
+        val holds = containsPatternOf(cursor.search)?.let { CityNameKey.like(it) }
+        CityTable.selectAll()
+            .where { Op.TRUE andIfNotNull after andIfNotNull holds }
+            .orderBy(CityNameKey to cursor.direction.toSortOrder(), CityTable.id to cursor.direction.toSortOrder())
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toCity() }
+    }
+
     suspend fun searchCities(query: String, limit: Int = 10) = dbQuery {
         CityTable.selectAll()
             .where { CityTable.name.like("${query.lowercase()}%")}
@@ -206,3 +225,6 @@ private fun stateOf(
 private fun countryOf(
     name: String,
 ) = Country(CountryId(0), name)
+
+/** The key cities are sorted by name with, ignoring case. */
+val CityNameKey = CityTable.name.lowerCase()
