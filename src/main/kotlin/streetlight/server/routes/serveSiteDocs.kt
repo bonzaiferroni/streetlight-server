@@ -5,8 +5,8 @@ import klutch.server.getApi
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.readDocContent
-import streetlight.web.doc.SiteDocTable
-import streetlight.web.doc.SiteDocTree
+import streetlight.web.model.SiteDocTable
+import streetlight.web.model.SiteDocTree
 
 fun ApiScope.serveSiteDocs() {
 

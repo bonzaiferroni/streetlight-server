@@ -10,8 +10,8 @@ import streetlight.model.data.FeedContext
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
 import streetlight.model.data.StarContent
-import streetlight.web.doc.SiteDocTable
-import streetlight.web.doc.SiteDocTree
+import streetlight.web.model.SiteDocTable
+import streetlight.web.model.SiteDocTree
 
 /** The page content of the location [slug]. The caller can edit it when it has no host or they are its host. */
 suspend fun DaoScope.readLocationContent(slug: Slug, identity: Identity?): LocationContent? {

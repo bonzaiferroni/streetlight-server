@@ -8,9 +8,9 @@ import streetlight.model.Api
 import streetlight.model.data.AuthTokenType
 import streetlight.server.db.datascope.redeemEmailVerification
 import streetlight.server.model.ApiScope
-import streetlight.web.pages.formSubmit
-import streetlight.web.pages.messagePage
-import streetlight.web.shells.passwordResetForm
+import streetlight.web.page.formSubmit
+import streetlight.web.page.messagePage
+import streetlight.web.shell.passwordResetForm
 import koala.component.*
 import koala.layout.*
 

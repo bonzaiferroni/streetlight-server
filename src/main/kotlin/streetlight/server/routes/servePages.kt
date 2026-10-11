@@ -25,9 +25,9 @@ import streetlight.model.data.FeedType
 import streetlight.server.model.*
 import streetlight.model.ui.Screen
 import streetlight.model.ui.readFeedType
-import streetlight.web.pages.*
-import streetlight.web.shells.*
 import java.io.File
+import streetlight.web.page.*
+import streetlight.web.shell.*
 
 private val console = KotlinLogging.logger("server") //globalConsole.getHandle(ApiScope::servePages.name)
 
