@@ -15,6 +15,9 @@ import streetlight.web.layouts.FeedRowCss
 import streetlight.web.layouts.EntityBodyCss
 import streetlight.web.layouts.FeedSectionCss
 import streetlight.web.pages.AppBodyCss
+import streetlight.web.pages.DEFAULT_THEME_KEY
+import streetlight.web.pages.DefaultThemeOnly
+import streetlight.web.pages.PageThemeCss
 import streetlight.web.pages.AppOverlayCss
 import streetlight.web.ui.EarthCss
 import streetlight.web.ui.RouteDockCss
@@ -98,6 +101,7 @@ private val KtStyles = listOf(
     // web module
     StreetlightCss,
     AppBodyCss,
+    PageThemeCss,
     AppOverlayCss,
     EarthCss,
     TalkLogCss,
@@ -144,6 +148,8 @@ private val headScriptConfig = HeadScriptConfig(
     rootSwitches = listOf(
         RootSwitch(FeedRowStyle.Mode, FeedMode.Grid),
     ),
+    rootModifiers = listOf(DefaultThemeOnly),
+    rootStyleKey = DEFAULT_THEME_KEY,
 )
 
 
