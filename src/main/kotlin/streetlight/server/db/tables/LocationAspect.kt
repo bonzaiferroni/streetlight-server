@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.CityId
 import streetlight.model.data.Location
+import streetlight.model.data.LocationTag
 import streetlight.model.data.ResourceType
 import streetlight.server.utils.toRecordId
 
@@ -32,6 +33,7 @@ object LocationAspect {
         LocationTable.mapCategory,
         LocationTable.mapType,
         LocationTable.resources,
+        LocationTable.tags,
         LocationTable.hours,
         LocationTable.website,
         LocationTable.eventsUrl,
@@ -70,6 +72,7 @@ fun ResultRow.toLocation() = Location(
     mapCategory = this[LocationTable.mapCategory],
     mapType = this[LocationTable.mapType],
     resources = this[LocationTable.resources].map { ResourceType.entries[it] }.toSet(),
+    tags = this[LocationTable.tags]?.map { LocationTag.entries[it] },
     hours = this[LocationTable.hours],
     url = this[LocationTable.website]?.toUrl(),
     eventsUrl = this[LocationTable.eventsUrl]?.toUrl(),

@@ -301,6 +301,7 @@ fun LocationEdit.toLocation(cityId: CityId?, locationId: LocationId) = Location(
     city = city,
     state = state,
     resources = resources ?: emptySet(),
+    tags = tags,
     hours = hours,
     url = website,
     starCount = null,

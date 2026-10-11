@@ -21,6 +21,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import streetlight.model.data.EventGroup
 import streetlight.model.data.EventTag
 import streetlight.model.data.LocationId
+import streetlight.model.data.mostSpecific
 
 /** A location with its next event, as an [EventGroup] reads it. */
 object EventGroupAspect {
@@ -91,7 +92,7 @@ fun ResultRow.toEventGroup() = EventGroup(
     image = this[EventGroupAspect.eventImage] ?: this[LocationTable.image],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     eventCount = this[LocationTable.eventCount],
-    tag = this[EventGroupAspect.eventTags]?.firstOrNull()?.let { EventTag.entries[it] },
+    tag = this[EventGroupAspect.eventTags]?.map { EventTag.entries[it] }?.mostSpecific(),
     startsAt = this[EventGroupAspect.eventStartsAt],
     mapPriority = this[LocationTable.mapPriority],
 )

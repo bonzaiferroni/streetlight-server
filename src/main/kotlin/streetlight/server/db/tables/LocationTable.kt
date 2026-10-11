@@ -44,6 +44,7 @@ object LocationTable: UuidTable("location"), SlugTable {
     val mapType = text("map_type").nullable()
     val mapPriority = double("map_priority").nullable()
     val resources = array<Int>("resources")
+    val tags = array<Int>("tags").nullable()
     val hours = jsonb<HoursSchedule>("hours", jsonbConfig).nullable()
     val parseMode = enumeration<ParseMode>("parse_mode").default(ParseMode.Partial)
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
@@ -57,6 +58,10 @@ object LocationTable: UuidTable("location"), SlugTable {
     val checkedAt = timestamp("checked_at").nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    init {
+        index(null, false, tags, indexType = "GIN")
+    }
 
     val imageConfig = imageConfigOf(
         table = this,
@@ -101,6 +106,7 @@ fun UpdateBuilder<*>.updateLocation(location: Location, slugRecord: SlugRecord) 
     this[LocationTable.mapType] = location.mapType
     this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
+    this[LocationTable.tags] = location.tags?.map { it.ordinal }
     this[LocationTable.hours] = location.hours
     this[LocationTable.website] = location.url?.value
     this[LocationTable.eventsUrl] = location.eventsUrl?.value
