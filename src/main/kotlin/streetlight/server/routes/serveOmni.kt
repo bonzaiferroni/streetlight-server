@@ -11,7 +11,7 @@ import io.ktor.sse.ServerSentEvent
 import klutch.db.model.SessionIdentity
 import klutch.server.authGate
 import klutch.server.provide
-import koala.utils.jsonConfig
+import koala.utility.jsonConfig
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializer

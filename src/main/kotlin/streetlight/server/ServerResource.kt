@@ -4,7 +4,6 @@ import koala.JsBundle
 import koala.PageResource
 import koala.interop.buildHeadScript
 import koala.modifier.*
-import koala.html.*
 import koala.interop.HeadScriptConfig
 import koala.interop.RootSwitch
 import koala.model.MarkerSheet
@@ -15,6 +14,7 @@ import streetlight.web.layouts.FeedRowCss
 import streetlight.web.layouts.EntityBodyCss
 import streetlight.web.layouts.FeedSectionCss
 import streetlight.web.pages.AppBodyCss
+import streetlight.web.pages.LogoCss
 import streetlight.web.pages.DEFAULT_THEME_KEY
 import streetlight.web.pages.DefaultThemeOnly
 import streetlight.web.pages.PageThemeCss
@@ -24,9 +24,9 @@ import streetlight.web.ui.RouteDockCss
 import streetlight.web.ui.TagFilterMenuCss
 import koala.jsFileOf
 import koala.markdown.MarkdownCss
-import koala.model.GlowControlCss
-import koala.model.LazyColumnCss
-import koala.model.TextEditorCss
+import koala.component.GlowControlCss
+import koala.layout.LazyColumnCss
+import koala.markdown.TextEditorCss
 import streetlight.web.layouts.FeedMode
 import streetlight.web.layouts.FeedRowStyle
 import streetlight.web.ui.StarToggleCss
@@ -38,6 +38,10 @@ import streetlight.web.ui.LayoutStyleCss
 import streetlight.web.ui.StreetlightCss
 import streetlight.web.ui.TalkLogCss
 import streetlight.web.ui.TextDeltaCss
+import koala.component.*
+import koala.interop.*
+import koala.layout.*
+import koala.markdown.*
 
 /**
  * The resources of every server-rendered page: the script bundle, the stylesheet built from the Kotlin styles,
@@ -81,13 +85,11 @@ private val KtStyles = listOf(
     HeaderImageCss,
     FilePickerCss,
     BlockLabelCss,
-    ImageChooserCss,
     DialogCss,
     LottieCss,
     IconButtonCss,
     ContainImageCss,
     GridColumnsCss,
-    SwapCss,
     RouteDockCss,
     TagFilterMenuCss,
     BodyCss,
@@ -129,7 +131,7 @@ private fun BuildStyles() = buildString {
     appendLine(ButtonCss)
     appendLine(GeoMapCss)
 
-    // styles declared with elements in koala.html
+    // styles declared with components and layouts in koala
     KtStyles.forEach {
         appendLine(it)
     }

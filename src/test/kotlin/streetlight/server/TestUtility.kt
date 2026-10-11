@@ -15,7 +15,7 @@ import kampfire.model.SignUpRequest
 import kampfire.model.Token
 import klutch.db.model.Session
 import klutch.utils.eq
-import koala.html.AppScreen
+import koala.model.AppScreen
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq

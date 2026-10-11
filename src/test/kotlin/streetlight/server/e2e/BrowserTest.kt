@@ -12,7 +12,7 @@ import io.ktor.server.engine.embeddedServer
 import klutch.db.model.Session
 import klutch.server.SESSION_COOKIE_NAME
 import klutch.server.provide
-import koala.html.AppScreen
+import koala.model.AppScreen
 import kotlinx.coroutines.runBlocking
 import streetlight.server.DatabaseTest
 import streetlight.server.db.services.StarSessionService

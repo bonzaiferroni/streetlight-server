@@ -4,7 +4,6 @@ import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.Token
 import koala.PageResource
-import koala.html.*
 import streetlight.model.Api
 import streetlight.model.data.AuthTokenType
 import streetlight.server.db.datascope.redeemEmailVerification
@@ -12,6 +11,8 @@ import streetlight.server.model.ApiScope
 import streetlight.web.pages.formSubmit
 import streetlight.web.pages.messagePage
 import streetlight.web.shells.passwordResetForm
+import koala.component.*
+import koala.layout.*
 
 /** The page of an emailed token link, by its type, or `null` without a token. */
 suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType, resource: PageResource): HtmlRender? {

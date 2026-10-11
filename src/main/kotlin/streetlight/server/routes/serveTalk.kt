@@ -8,7 +8,7 @@ import kampfire.model.toOutcome
 import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.readParamOrNull
-import koala.utils.jsonConfig
+import koala.utility.jsonConfig
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.serializer
