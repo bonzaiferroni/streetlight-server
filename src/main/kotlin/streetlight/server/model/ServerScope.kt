@@ -17,6 +17,9 @@ interface ServerScope: DataScope, ProviderScope
 
 interface DataScope: DaoScope, ClientScope {
     val appEmail: AppEmail
+
+    /** The origin the site is reached at, which every link sent out of the site starts with. */
+    val hostAddress: String
 }
 
 interface DaoScope {

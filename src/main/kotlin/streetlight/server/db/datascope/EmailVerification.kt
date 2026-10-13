@@ -63,8 +63,8 @@ suspend fun DataScope.requestEmailVerification(starId: StarId, email: EmailAddre
 
     val verifyToken = generateToken()
     val disavowToken = generateToken()
-    val verifyUrl = VerifyEmailRoute(verifyToken).toAbsolutePath()
-    val notOwnedUrl = AccountNotOwnedRoute(disavowToken).toAbsolutePath()
+    val verifyUrl = "$hostAddress${VerifyEmailRoute(verifyToken).toRelativePath()}"
+    val notOwnedUrl = "$hostAddress${AccountNotOwnedRoute(disavowToken).toRelativePath()}"
 
     val response = client.postmark.sendEmail(
         Email(
@@ -116,7 +116,7 @@ suspend fun DataScope.redeemEmailVerification(token: Token): Outcome<String> = t
 /** Tells [email] that the account's credentials changed, with a lockdown link. Returns `false` when sending fails. */
 suspend fun DataScope.sendCredentialChangeNotification(starId: StarId, email: EmailAddress): Boolean {
     val token = generateToken()
-    val url = AccountLockdownRoute(token).toAbsolutePath()
+    val url = "$hostAddress${AccountLockdownRoute(token).toRelativePath()}"
 
     val response = client.postmark.sendEmail(
         Email(

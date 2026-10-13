@@ -108,7 +108,7 @@ internal suspend fun DataScope.applyPasswordChange(
     if (email == null) return true
 
     val token = generateToken()
-    val url = AccountLockdownRoute(token).toAbsolutePath()
+    val url = "$hostAddress${AccountLockdownRoute(token).toRelativePath()}"
 
     val response = client.postmark.sendEmail(
         Email(

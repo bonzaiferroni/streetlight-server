@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.EnvKey
 import io.ktor.http.Cookie
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
@@ -45,7 +46,7 @@ import kotlin.time.Duration.Companion.minutes
 
 fun ApiScope.serveAccountActions() {
     val sessionService = provide(SessionService::class)
-    val supportAddress = provide(Environment::class).read("STREETLIGHT_SUPPORT_ADDRESS")
+    val supportAddress = provide(Environment::class).read(EnvKey.STREETLIGHT_SUPPORT_ADDRESS)
 
     rateLimit(RateLimits.AccountActions) {
         postApi(Api.AccountAction.ResetPassword) {

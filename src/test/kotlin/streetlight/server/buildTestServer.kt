@@ -27,6 +27,8 @@ import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.EmailClient
 import streetlight.server.model.MapReferenceClient
+import streetlight.server.model.PaymentClient
+import streetlight.server.model.TestPaymentClient
 import streetlight.server.model.Server
 import streetlight.server.model.ServerConfig
 import streetlight.server.model.ServerScope
@@ -44,6 +46,7 @@ fun buildTestServer(
     mapClient: MapReferenceClient = TestMapReferenceClient(),
     blobClient: BlobClient = TestBlobClient(),
     emailClient: (EmailRouter) -> EmailClient = { TestEmailClient(it) },
+    paymentClient: PaymentClient = TestPaymentClient(),
 ): TestServer {
     val koin = koinApplication {
         modules(module {
@@ -55,7 +58,8 @@ fun buildTestServer(
             single { mapClient }
             single { blobClient }
             single { emailClient(emailRouter) }
-            single { ClientFacade(get(), get(), get()) }
+            single { paymentClient }
+            single { ClientFacade(get(), get(), get(), get()) }
             single { StarSessionService() } bind SessionService::class
             single { Authorizer(get()) }
             single { ConnectionService() }
@@ -84,4 +88,6 @@ class TestServer(
         EmailAddress("info@streetlight.ing"),
         EmailAddress("support@streetlight.ing")
     )
+
+    override val hostAddress = provide<Environment>().hostAddress
 }

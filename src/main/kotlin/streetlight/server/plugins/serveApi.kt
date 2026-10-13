@@ -57,6 +57,7 @@ fun Application.serveApi(server: ServerScope) {
             serveAccountActions()
             serveSubdomains(resource)
             serveMessages()
+            serveSellers()
             serveSystem()
         }
 

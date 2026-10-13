@@ -85,7 +85,7 @@ internal suspend fun DataScope.sendPasswordReset(
     interval: Duration = PasswordResetInterval,
 ): Boolean {
     val token = generateToken()
-    val url = PasswordResetRoute(token).toAbsolutePath()
+    val url = "$hostAddress${PasswordResetRoute(token).toRelativePath()}"
 
     val response = client.postmark.sendEmail(
         Email(

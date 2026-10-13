@@ -17,6 +17,7 @@ import org.koin.dsl.bind
 import streetlight.server.db.services.StarSessionService
 import streetlight.server.external.OSMMapReferenceClient
 import streetlight.server.external.PostmarkEmailClient
+import streetlight.server.external.StripePaymentClient
 
 /** The server's services, one of each. */
 val serverModule = module {
@@ -28,7 +29,8 @@ val serverModule = module {
     single { OSMMapReferenceClient() } bind MapReferenceClient::class
     single { S3BlobClient(get()) } bind BlobClient::class
     single { PostmarkEmailClient(get()) } bind EmailClient::class
-    single { ClientFacade(get(), get(), get()) }
+    single { StripePaymentClient(get()) } bind PaymentClient::class
+    single { ClientFacade(get(), get(), get(), get()) }
 
     // services
     single { StarSessionService() } bind SessionService::class

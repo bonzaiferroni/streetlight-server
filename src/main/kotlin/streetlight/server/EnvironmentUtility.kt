@@ -10,7 +10,26 @@ object EnvKey {
     const val DB_USER = "DB_USER"
     const val DB_URL = "DB_URL"
     const val DB_PASSWORD = "DB_PASSWORD"
+    const val HOST_ADDRESS = "HOST_ADDRESS"
+    const val S3_BUCKET = "S3_BUCKET"
+    const val S3_REGION = "S3_REGION"
+    const val S3_ENDPOINT = "S3_ENDPOINT"
+    const val S3_ACCESS_KEY = "S3_ACCESS_KEY"
+    const val S3_SECRET_KEY = "S3_SECRET_KEY"
+    const val POSTMARK_SERVER_TOKEN = "POSTMARK_SERVER_TOKEN"
+    const val POSTMARK_WEBHOOK_SECRET = "POSTMARK_WEBHOOK_SECRET"
+    const val STREETLIGHT_SUPPORT_ADDRESS = "STREETLIGHT_SUPPORT_ADDRESS"
+    const val STRIPE_SECRET_KEY = "STRIPE_SECRET_KEY"
+    const val STRIPE_CONNECT_WEBHOOK_SECRET = "STRIPE_CONNECT_WEBHOOK_SECRET"
+    const val GEMINI_KEY_A = "GEMINI_KEY_A"
+    const val LM_PROVIDER = "LM_PROVIDER"
+    const val LM_MODEL = "LM_MODEL"
+    const val LM_CONTEXT_LENGTH = "LM_CONTEXT_LENGTH"
+    const val LM_BASE_URL = "LM_BASE_URL"
 }
+
+/** The origin the site is reached at, as `https://streetlight.ing`, with no trailing slash. */
+val Environment.hostAddress get() = read(EnvKey.HOST_ADDRESS).trimEnd('/')
 
 /** The build mode named by `BUILD_ENV`; fails for any other value. */
 val Environment.buildMode get() = when (val value = read(EnvKey.BUILD_ENV)) {

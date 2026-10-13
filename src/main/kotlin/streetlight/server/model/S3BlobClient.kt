@@ -1,5 +1,6 @@
 package streetlight.server.model
 
+import streetlight.server.EnvKey
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.deleteObject
@@ -15,11 +16,11 @@ import kampfire.model.toUrl
 
 /** A [BlobClient] on S3-compatible storage. */
 class S3BlobClient(env: Environment): BlobClient {
-    private val bucket = env.read("S3_BUCKET")
-    private val endpoint = env.read("S3_ENDPOINT")
-    private val region = env.read("S3_REGION")
-    private val accessKey = env.read("S3_ACCESS_KEY")
-    private val secretKey = env.read("S3_SECRET_KEY")
+    private val bucket = env.read(EnvKey.S3_BUCKET)
+    private val endpoint = env.read(EnvKey.S3_ENDPOINT)
+    private val region = env.read(EnvKey.S3_REGION)
+    private val accessKey = env.read(EnvKey.S3_ACCESS_KEY)
+    private val secretKey = env.read(EnvKey.S3_SECRET_KEY)
 
     private val host = "$bucket.$endpoint"
 

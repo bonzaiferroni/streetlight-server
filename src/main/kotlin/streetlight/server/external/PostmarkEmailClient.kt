@@ -1,5 +1,6 @@
 package streetlight.server.external
 
+import streetlight.server.EnvKey
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -24,7 +25,7 @@ import streetlight.server.model.SendEmailResult
 
 /** Sends email through Postmark. */
 class PostmarkEmailClient(env: Environment): EmailClient {
-    private val token = env.read("POSTMARK_SERVER_TOKEN")
+    private val token = env.read(EnvKey.POSTMARK_SERVER_TOKEN)
     // private val fromAddress = env.read("POSTMARK_FROM_ADDRESS")
 
     private val client = HttpClient(CIO) {

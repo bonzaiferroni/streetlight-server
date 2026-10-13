@@ -15,8 +15,11 @@ fun readTestEnvironment(
     ${EnvKey.DB_USER}=$dbUser
     ${EnvKey.DB_PASSWORD}=$dbPassword
     STREETLIGHT_SUPPORT_ADDRESS=$supportAddress
+    HOST_ADDRESS=http://localhost/
     POSTMARK_WEBHOOK_SECRET=test-webhook-secret
     POSTMARK_SERVER_TOKEN=test-postmark-token
+    STRIPE_SECRET_KEY=test-stripe-key
+    STRIPE_CONNECT_WEBHOOK_SECRET=$TEST_STRIPE_WEBHOOK_SECRET
     GEMINI_KEY_A=test-gemini-key
     REPLICATE_KEY=test-replicate-key
     SERVER_IP=127.0.0.1
@@ -28,3 +31,6 @@ fun readTestEnvironment(
     S3_SECRET_KEY=test-secret-key
     """.trimIndent()
 )
+
+/** The signing secret of the Connect webhook under test. */
+const val TEST_STRIPE_WEBHOOK_SECRET = "whsec_test"

@@ -9,6 +9,8 @@ import kampfire.api.deobfuscateEmailForm
 import klutch.gemini.GeminiService
 import klutch.gemini.SpeechService
 import klutch.server.ProviderScope
+import klutch.server.provide
+import streetlight.server.hostAddress
 import streetlight.server.db.services.*
 
 class Server(
@@ -21,6 +23,8 @@ class Server(
         "info at streetlight.ing".deobfuscateEmailForm(),
         "support at streetlight.ing".deobfuscateEmailForm(),
     )
+
+    override val hostAddress = provide<Environment>().hostAddress
 }
 
 /** The data access object of each table group, as `dao.city`. */
@@ -59,13 +63,15 @@ class DaoFacade(
     val parser: ParserTableDao = ParserTableDao(),
     val subdomain: SubdomainTableDao = SubdomainTableDao(),
     val message: MessageTableDao = MessageTableDao(),
+    val seller: SellerTableDao = SellerTableDao(),
 )
 
 /** The clients of external services. */
 class ClientFacade(
     val blob: BlobClient,
     val osm: MapReferenceClient,
-    val postmark: EmailClient
+    val postmark: EmailClient,
+    val payment: PaymentClient,
 )
 
 /** The site's own email addresses. */
