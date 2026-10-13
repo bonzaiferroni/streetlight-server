@@ -12,7 +12,6 @@ import streetlight.web.page.formSubmit
 import streetlight.web.page.messagePage
 import streetlight.web.shell.passwordResetForm
 import koala.component.*
-import koala.layout.*
 
 /** The page of an emailed token link, by its type, or `null` without a token. */
 suspend fun ApiScope.renderTokenPage(arg: String?, tokenType: AuthTokenType, resource: PageResource): HtmlRender? {
