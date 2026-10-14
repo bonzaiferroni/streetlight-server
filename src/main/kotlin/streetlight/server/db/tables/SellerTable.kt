@@ -2,19 +2,21 @@ package streetlight.server.db.tables
 
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CapabilityStatus
 import streetlight.model.data.PaymentProvider
-import streetlight.model.data.Seller
+import streetlight.server.model.Seller
 import streetlight.model.data.SellerConfiguration
+import streetlight.server.model.SellerId
 import streetlight.model.data.StarId
 import streetlight.server.model.ProviderAccount
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /** The registration of each selling star with a payment provider. */
-object SellerTable: Table("seller") {
+object SellerTable: UuidTable("seller") {
     val starId = reference("star_id", StarTable, onDelete = ReferenceOption.CASCADE).index()
     val provider = enumeration<PaymentProvider>("provider")
     val providerAccountId = text("provider_account_id")
@@ -28,14 +30,14 @@ object SellerTable: Table("seller") {
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
-    override val primaryKey = PrimaryKey(starId, provider)
-
     init {
+        uniqueIndex(starId, provider)
         uniqueIndex(provider, providerAccountId)
     }
 }
 
 fun ResultRow.toSeller() = Seller(
+    sellerId = SellerId(this[SellerTable.id].value),
     starId = StarId(this[SellerTable.starId].value),
     provider = this[SellerTable.provider],
     providerAccountId = this[SellerTable.providerAccountId],
@@ -57,6 +59,7 @@ fun UpdateBuilder<*>.createSeller(
     account: ProviderAccount,
     now: Instant,
 ) {
+    this[SellerTable.id] = Uuid.random()
     this[SellerTable.starId] = starId.value
     this[SellerTable.provider] = provider
     this[SellerTable.providerAccountId] = account.accountId

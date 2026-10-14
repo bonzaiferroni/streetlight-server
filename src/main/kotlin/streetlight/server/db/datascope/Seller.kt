@@ -6,7 +6,7 @@ import kampfire.model.Problem
 import kampfire.model.Url
 import streetlight.model.Api
 import streetlight.model.data.CapabilityStatus
-import streetlight.model.data.Seller
+import streetlight.model.data.SellerStatus
 import streetlight.model.data.SellerConfiguration
 import streetlight.model.data.SellerOnboarding
 import streetlight.model.data.StarId
@@ -15,6 +15,7 @@ import streetlight.model.ui.StarConfigRoute
 import streetlight.server.db.services.tryOutcome
 import streetlight.server.model.DataScope
 import streetlight.server.model.ProviderEvent
+import streetlight.server.model.toSellerStatus
 
 /** A link to the provider's onboarding for [starId], creating their seller account from [onboarding] when they have none. */
 suspend fun DataScope.onboardSeller(starId: StarId, onboarding: SellerOnboarding): Outcome<Url> = tryOutcome {
@@ -38,17 +39,17 @@ suspend fun DataScope.refreshSellerLink(starId: StarId): Outcome<Url> = tryOutco
 }
 
 /**
- * The seller account of [starId], or `null` when they have none.
+ * The status of the seller account of [starId], or `null` when they have none.
  *
  * An account not yet active for charges and payouts is read again from the provider first.
  */
-suspend fun DataScope.readSellerStatus(starId: StarId): Outcome<Seller?> = tryOutcome {
+suspend fun DataScope.readSellerStatus(starId: StarId): Outcome<SellerStatus?> = tryOutcome {
     val provider = client.payment.provider
     val seller = dao.seller.readSeller(starId, provider) ?: return@tryOutcome Ok(null)
     if (seller.chargeStatus == CapabilityStatus.Active && seller.payoutStatus == CapabilityStatus.Active)
-        return@tryOutcome Ok(seller)
+        return@tryOutcome Ok(seller.toSellerStatus())
     dao.seller.update(provider, client.payment.readAccount(seller.providerAccountId))
-    Ok(dao.seller.readSeller(starId, provider))
+    Ok(dao.seller.readSeller(starId, provider)?.toSellerStatus())
 }
 
 /** Applies [event] from the provider to the seller it concerns. */

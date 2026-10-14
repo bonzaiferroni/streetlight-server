@@ -9,7 +9,6 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import streetlight.model.Api
 import streetlight.model.data.CapabilityStatus
-import streetlight.model.data.Seller
 import streetlight.model.data.SellerOnboarding
 import streetlight.model.data.StarId
 import streetlight.server.TEST_STRIPE_WEBHOOK_SECRET
@@ -17,6 +16,7 @@ import streetlight.server.db.tables.SellerTable
 import streetlight.server.db.tables.toSeller
 import streetlight.server.external.signStripePayload
 import streetlight.server.loginStar
+import streetlight.server.model.Seller
 import streetlight.server.model.TestPaymentClient
 import streetlight.server.registerStar
 import streetlight.server.toDataOrThrow
@@ -64,9 +64,9 @@ class SellerApiTest : ApiTest() {
         postApi(Api.Sellers.Onboard, SellerOnboarding("US")).toDataOrThrow()
         completeOnboarding(starId)
 
-        val seller = getApi(Api.Sellers.ReadStatus).toDataOrThrow()
+        val status = getApi(Api.Sellers.ReadStatus).toDataOrThrow()
 
-        assertEquals(CapabilityStatus.Active, seller?.chargeStatus, "the status should show charges active")
+        assertEquals(CapabilityStatus.Active, status?.chargeStatus, "the status should show charges active")
         assertEquals(CapabilityStatus.Active, sellerOrNull(starId)?.chargeStatus, "the stored seller should take charges")
     }
 
