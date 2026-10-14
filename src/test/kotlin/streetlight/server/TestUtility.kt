@@ -25,8 +25,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.StarId
 import streetlight.model.ui.Screen
-import streetlight.server.db.datascope.createRegisteredUser
-import streetlight.server.db.datascope.redeemEmailVerification
+import streetlight.server.service.createRegisteredUser
+import streetlight.server.service.redeemEmailVerification
 import streetlight.server.db.tables.AuthToken
 import streetlight.server.db.tables.AuthTokenTable
 import streetlight.server.db.tables.SessionTable

@@ -5,7 +5,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import streetlight.model.data.Policy
 import streetlight.model.data.PolicyId
 import streetlight.model.data.SeedPolicy
-import streetlight.server.db.services.PolicyDao
+import streetlight.server.db.dao.PolicyDao
 import kotlin.time.Clock
 
 /** Creates each [SeedPolicy] not yet stored, matched by label. */

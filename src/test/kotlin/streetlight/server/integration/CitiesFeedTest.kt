@@ -12,7 +12,7 @@ import streetlight.server.DENVER
 import streetlight.server.DENVER_AREA
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.model.readCitiesFeed
+import streetlight.server.service.readCitiesFeed
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

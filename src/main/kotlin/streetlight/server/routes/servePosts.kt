@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readFeedMarks
 import kampfire.model.HttpProblem
 import kampfire.model.toOk
 import klutch.server.authGate

@@ -8,8 +8,8 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import kabinet.utils.Environment
-import streetlight.server.db.datascope.applyProviderEvent
-import streetlight.server.db.datascope.recordBounce
+import streetlight.server.service.applyProviderEvent
+import streetlight.server.service.recordBounce
 import streetlight.server.external.PostmarkBounce
 import streetlight.server.external.isValidStripeSignature
 import streetlight.server.external.readStripeEvent

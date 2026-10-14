@@ -1,5 +1,13 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readCityContent
+import streetlight.server.service.readCityFeedContent
+import streetlight.server.service.readDocContent
+import streetlight.server.service.readGalaxyContent
+import streetlight.server.service.readGalaxyFeedContent
+import streetlight.server.service.readHomeContent
+import streetlight.server.service.readLocationContent
+import streetlight.server.service.readStarContent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml

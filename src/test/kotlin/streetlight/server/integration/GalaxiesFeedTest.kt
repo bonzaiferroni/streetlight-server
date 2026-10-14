@@ -14,8 +14,8 @@ import streetlight.model.data.StarId
 import streetlight.model.data.ToggleType
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.model.readGalaxiesFeed
-import streetlight.server.model.readGalaxyFeedContent
+import streetlight.server.service.readGalaxiesFeed
+import streetlight.server.service.readGalaxyFeedContent
 import streetlight.server.registerStar
 import streetlight.server.seedGalaxy
 import kotlin.test.Test

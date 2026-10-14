@@ -15,7 +15,7 @@ import klutch.server.provide
 import koala.model.AppScreen
 import kotlinx.coroutines.runBlocking
 import streetlight.server.DatabaseTest
-import streetlight.server.db.services.StarSessionService
+import streetlight.server.db.dao.StarSessionDao
 import streetlight.server.streetlightModule
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -43,7 +43,7 @@ abstract class BrowserTest : DatabaseTest() {
         engine = embeddedServer(CIO, port = 0) {
             streetlightModule(
                 server = server,
-                session = server.provide<StarSessionService>(),
+                session = server.provide<StarSessionDao>(),
             )
         }.start(wait = false)
 

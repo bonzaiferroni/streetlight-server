@@ -16,7 +16,7 @@ import klutch.server.SESSION_COOKIE_NAME
 import klutch.server.provide
 import streetlight.model.data.StarId
 import streetlight.server.DatabaseTest
-import streetlight.server.db.services.StarSessionService
+import streetlight.server.db.dao.StarSessionDao
 import streetlight.server.loginStar
 import streetlight.server.registerStar
 import streetlight.server.streetlightModule
@@ -32,7 +32,7 @@ abstract class ApiTest : DatabaseTest() {
         application {
             streetlightModule(
                 server = server,
-                session = server.provide<StarSessionService>(),
+                session = server.provide<StarSessionDao>(),
             )
         }
         val cookies = AcceptAllCookiesStorage()

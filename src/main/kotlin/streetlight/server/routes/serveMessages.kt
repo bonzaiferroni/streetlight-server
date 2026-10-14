@@ -10,7 +10,7 @@ import streetlight.model.Api
 import streetlight.model.data.InboxContent
 import streetlight.model.data.toRecordId
 import streetlight.server.model.ApiScope
-import streetlight.server.model.ConnectionService
+import streetlight.server.service.ConnectionService
 import streetlight.server.model.getIdentity
 
 fun ApiScope.serveMessages() {

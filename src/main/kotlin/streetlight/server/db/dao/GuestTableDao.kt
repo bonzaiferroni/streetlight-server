@@ -1,0 +1,22 @@
+package streetlight.server.db.dao
+
+import klutch.db.DbService
+import klutch.db.read
+import klutch.utils.eq
+import org.jetbrains.exposed.v1.jdbc.insert
+import streetlight.model.data.Guest
+import streetlight.model.data.GuestId
+import streetlight.server.db.tables.GuestTable
+import streetlight.server.db.tables.toGuest
+import streetlight.server.db.tables.createGuest
+
+class GuestTableDao: DbService() {
+
+    suspend fun readById(guestId: GuestId): Guest? = dbQuery {
+        GuestTable.read { it.id.eq(guestId) }.firstOrNull()?.toGuest()
+    }
+
+    suspend fun create(guest: Guest) = dbQuery {
+        GuestTable.insert { it.createGuest(guest) }
+    }
+}

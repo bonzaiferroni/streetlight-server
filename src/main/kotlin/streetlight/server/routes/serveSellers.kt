@@ -8,9 +8,9 @@ import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.ui.StarConfigRoute
-import streetlight.server.db.datascope.onboardSeller
-import streetlight.server.db.datascope.readSellerStatus
-import streetlight.server.db.datascope.refreshSellerLink
+import streetlight.server.service.onboardSeller
+import streetlight.server.service.readSellerStatus
+import streetlight.server.service.refreshSellerLink
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
 import streetlight.server.utils.starId

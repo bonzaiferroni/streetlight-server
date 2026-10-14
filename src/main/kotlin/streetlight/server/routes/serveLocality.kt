@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readCityContent
 import kampfire.api.Slug
 import kampfire.api.toSlug
 import kampfire.model.HttpProblem
@@ -17,10 +18,9 @@ import streetlight.model.data.CityId
 import streetlight.model.external.OSMCity
 import streetlight.server.model.MapReferenceClient
 import streetlight.server.model.ApiScope
-import streetlight.server.db.datascope.updateCity
+import streetlight.server.service.updateCity
 import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
-import streetlight.server.model.readCityContent
 
 fun ApiScope.serveCity() {
     val osm = provide<MapReferenceClient>()

@@ -1,5 +1,7 @@
 package streetlight.server.routes
 
+import streetlight.server.service.checkImageAndStore
+import streetlight.server.service.readStarContent
 import kampfire.model.Ok
 import kampfire.model.Problem
 import kampfire.model.normalize

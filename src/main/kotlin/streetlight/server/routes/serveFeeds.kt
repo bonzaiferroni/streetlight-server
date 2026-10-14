@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readFeed
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import klutch.server.*

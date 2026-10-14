@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readEarthFeed
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import klutch.server.authGate
@@ -9,7 +10,6 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
-import streetlight.server.model.readEarthFeed
 
 fun ApiScope.serveEarth() {
     getApi(Api.EarthNode.Query) {

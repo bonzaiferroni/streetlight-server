@@ -8,7 +8,7 @@ import klutch.server.configureAuth
 import klutch.server.provide
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import streetlight.server.db.services.StarSessionService
+import streetlight.server.db.dao.StarSessionDao
 import streetlight.server.model.ClientFacade
 import streetlight.server.model.DaoFacade
 import streetlight.server.model.Server
@@ -49,7 +49,7 @@ fun Application.module() {
     val dao = provider.provide<DaoFacade>()
     val client = provider.provide<ClientFacade>()
     val server = Server(provider, dao, client)
-    val session = provider.provide<StarSessionService>()
+    val session = provider.provide<StarSessionDao>()
 
     streetlightModule(
         server = server,
@@ -60,7 +60,7 @@ fun Application.module() {
 /** Installs the server's plugins and routes, each optional one by the [ServerConfig] that [server] provides. */
 fun Application.streetlightModule(
     server: ServerScope,
-    session: StarSessionService,
+    session: StarSessionDao,
 ) {
     val config = server.provide<ServerConfig>()
 

@@ -22,10 +22,10 @@ import klutch.server.getApi
 import klutch.server.postApi
 import klutch.server.provide
 import kotlinx.coroutines.launch
-import streetlight.server.db.datascope.createRegisteredUser
-import streetlight.server.db.datascope.requestEmailVerification
+import streetlight.server.service.createRegisteredUser
+import streetlight.server.service.requestEmailVerification
 import streetlight.server.model.ApiScope
-import streetlight.server.model.ConnectionService
+import streetlight.server.service.ConnectionService
 import streetlight.server.model.getIdentity
 import streetlight.server.plugins.RateLimits
 import streetlight.server.utils.starId

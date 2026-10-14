@@ -11,13 +11,13 @@ import streetlight.model.data.EmailStatus
 import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
-import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.datascope.createToken
-import streetlight.server.db.datascope.redeemAccountNotOwned
-import streetlight.server.db.datascope.redeemEmailVerification
-import streetlight.server.db.datascope.redeemPasswordReset
-import streetlight.server.db.datascope.requestEmailVerification
-import streetlight.server.db.datascope.requestPasswordReset
+import streetlight.server.db.dao.StarSessionDao
+import streetlight.server.service.createToken
+import streetlight.server.service.redeemAccountNotOwned
+import streetlight.server.service.redeemEmailVerification
+import streetlight.server.service.redeemPasswordReset
+import streetlight.server.service.requestEmailVerification
+import streetlight.server.service.requestPasswordReset
 import streetlight.server.extractToken
 import streetlight.server.latestMail
 import streetlight.server.registerStar
@@ -132,7 +132,7 @@ class AccountNotOwnedTest : DatabaseTest() {
             // the reset link died with the address
             val refused = redeemPasswordReset(
                 PasswordResetRequest(resetToken, Password("nu8!!ReefKnot@2").obfuscatePassword()),
-                StarSessionService(),
+                StarSessionDao(),
             ).toProblemOrThrow()
             assertEquals("This reset link has expired. Please request a new one.", refused.message)
         }

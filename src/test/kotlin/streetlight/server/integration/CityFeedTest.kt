@@ -14,8 +14,8 @@ import streetlight.model.data.Location
 import streetlight.model.data.StarId
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.model.readCityFeed
-import streetlight.server.model.readCityLocationFeed
+import streetlight.server.service.readCityFeed
+import streetlight.server.service.readCityLocationFeed
 import streetlight.server.registerStar
 import streetlight.server.locationEdit
 import streetlight.server.seedLocation

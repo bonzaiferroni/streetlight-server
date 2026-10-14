@@ -1,5 +1,7 @@
 package streetlight.server
 
+import streetlight.server.model.ImageClient
+import streetlight.server.model.TestImageClient
 import kabinet.utils.Environment
 import kampfire.api.EmailAddress
 import klutch.db.services.SessionService
@@ -13,12 +15,12 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import streetlight.server.db.services.SongTableService
-import streetlight.server.db.services.StarSessionService
+import streetlight.server.db.dao.SongDao
+import streetlight.server.db.dao.StarSessionDao
 import streetlight.server.model.AppEmail
-import streetlight.server.model.ConnectionService
+import streetlight.server.service.ConnectionService
 import streetlight.server.model.EmailRouter
-import streetlight.server.model.OmniService
+import streetlight.server.service.OmniService
 import streetlight.server.model.TestBlobClient
 import streetlight.server.model.TestEmailClient
 import streetlight.server.model.TestMapReferenceClient
@@ -47,6 +49,7 @@ fun buildTestServer(
     blobClient: BlobClient = TestBlobClient(),
     emailClient: (EmailRouter) -> EmailClient = { TestEmailClient(it) },
     paymentClient: PaymentClient = TestPaymentClient(),
+    imageClient: ImageClient = TestImageClient(),
 ): TestServer {
     val koin = koinApplication {
         modules(module {
@@ -59,12 +62,13 @@ fun buildTestServer(
             single { blobClient }
             single { emailClient(emailRouter) }
             single { paymentClient }
-            single { ClientFacade(get(), get(), get(), get()) }
-            single { StarSessionService() } bind SessionService::class
+            single { imageClient }
+            single { ClientFacade(get(), get(), get(), get(), get()) }
+            single { StarSessionDao() } bind SessionService::class
             single { Authorizer(get()) }
             single { ConnectionService() }
             single { OmniService(get()) }
-            single { SongTableService() }
+            single { SongDao() }
         })
     }.koin
 

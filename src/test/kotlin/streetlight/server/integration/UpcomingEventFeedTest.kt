@@ -14,8 +14,8 @@ import streetlight.model.data.Location
 import streetlight.model.data.StarId
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.model.readEventFeed
-import streetlight.server.model.readHomeContent
+import streetlight.server.service.readEventFeed
+import streetlight.server.service.readHomeContent
 import streetlight.server.registerStar
 import streetlight.server.seedLocation
 import kotlin.test.Test

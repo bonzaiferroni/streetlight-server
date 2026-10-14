@@ -1,5 +1,8 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readCityFeedContent
+import streetlight.server.service.readGalaxyFeedContent
+import streetlight.server.service.readHomeContent
 import kampfire.model.Ok
 import kampfire.model.toOutcome
 import klutch.server.authGate
@@ -8,9 +11,6 @@ import klutch.server.readParamOrNull
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentityOrNull
-import streetlight.server.model.readCityFeedContent
-import streetlight.server.model.readGalaxyFeedContent
-import streetlight.server.model.readHomeContent
 
 fun ApiScope.serveContent() {
 

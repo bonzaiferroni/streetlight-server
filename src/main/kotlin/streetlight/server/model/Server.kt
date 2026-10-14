@@ -11,7 +11,7 @@ import klutch.gemini.SpeechService
 import klutch.server.ProviderScope
 import klutch.server.provide
 import streetlight.server.hostAddress
-import streetlight.server.db.services.*
+import streetlight.server.db.dao.*
 
 class Server(
     provider: ProviderScope,
@@ -72,6 +72,7 @@ class ClientFacade(
     val osm: MapReferenceClient,
     val postmark: EmailClient,
     val payment: PaymentClient,
+    val image: ImageClient,
 )
 
 /** The site's own email addresses. */

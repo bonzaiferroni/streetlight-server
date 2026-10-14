@@ -11,9 +11,9 @@ import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
 import streetlight.server.buildTestServer
-import streetlight.server.db.datascope.createToken
-import streetlight.server.db.datascope.redeemEmailVerification
-import streetlight.server.db.datascope.requestEmailVerification
+import streetlight.server.service.createToken
+import streetlight.server.service.redeemEmailVerification
+import streetlight.server.service.requestEmailVerification
 import streetlight.server.extractToken
 import streetlight.server.latestMail
 import streetlight.server.model.TestEmailClient

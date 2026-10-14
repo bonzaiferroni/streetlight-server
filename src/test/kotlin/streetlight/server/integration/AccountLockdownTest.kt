@@ -12,12 +12,12 @@ import streetlight.model.data.EmailStatus
 import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
-import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.datascope.createToken
-import streetlight.server.db.datascope.redeemAccountLockdown
-import streetlight.server.db.datascope.redeemEmailVerification
-import streetlight.server.db.datascope.redeemPasswordReset
-import streetlight.server.db.datascope.requestEmailVerification
+import streetlight.server.db.dao.StarSessionDao
+import streetlight.server.service.createToken
+import streetlight.server.service.redeemAccountLockdown
+import streetlight.server.service.redeemEmailVerification
+import streetlight.server.service.redeemPasswordReset
+import streetlight.server.service.requestEmailVerification
 import streetlight.server.extractToken
 import streetlight.server.latestMail
 import streetlight.server.registerVerifiedStar
@@ -33,7 +33,7 @@ class AccountLockdownTest: DatabaseTest() {
     @Test
     fun `a user locks out an attacker who moved their address`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val userEmail = TestDefault.emailAddress
             val attackerEmail = EmailAddress("blackbeard@gmail.com")
 
@@ -68,7 +68,7 @@ class AccountLockdownTest: DatabaseTest() {
     @Test
     fun `an older lockdown token trumps one the attacker redeems`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val userEmail = TestDefault.emailAddress
             val firstHop = EmailAddress("blackbeard@gmail.com")
             val secondHop = EmailAddress("blackbeard@proton.me")
@@ -96,7 +96,7 @@ class AccountLockdownTest: DatabaseTest() {
     @Test
     fun `a locked-out user recovers with the reset link`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val userEmail = TestDefault.emailAddress
             val attackerEmail = EmailAddress("blackbeard@gmail.com")
             val newPassword = Password("aY3!qmZ0vLp8@wRt")
@@ -129,7 +129,7 @@ class AccountLockdownTest: DatabaseTest() {
     @Test
     fun `an expired lockdown token secures nothing`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val userEmail = TestDefault.emailAddress
             val attackerEmail = EmailAddress("blackbeard@gmail.com")
 
@@ -163,7 +163,7 @@ class AccountLockdownTest: DatabaseTest() {
     @Test
     fun `a second lockdown click changes nothing`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val userEmail = TestDefault.emailAddress
             val attackerEmail = EmailAddress("blackbeard@gmail.com")
             val newPassword = Password("aY3!qmZ0vLp8@wRt")

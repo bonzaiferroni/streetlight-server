@@ -1,10 +1,10 @@
 package streetlight.server.routes
 
+import streetlight.server.service.readDocContent
 import kampfire.model.toOutcome
 import klutch.server.getApi
 import streetlight.model.Api
 import streetlight.server.model.ApiScope
-import streetlight.server.model.readDocContent
 import streetlight.web.model.SiteDocTable
 import streetlight.web.model.SiteDocTree
 

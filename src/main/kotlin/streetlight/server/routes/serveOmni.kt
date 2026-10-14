@@ -2,6 +2,8 @@
 
 package streetlight.server.routes
 
+import streetlight.server.service.ConnectionExit
+import streetlight.server.service.ConnectionMessage
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.sse.ServerSSESession
@@ -25,9 +27,7 @@ import streetlight.model.data.Message
 import streetlight.model.data.OmniHistory
 import streetlight.model.data.OmniMessage
 import streetlight.server.model.ApiScope
-import streetlight.server.model.ConnectionExit
-import streetlight.server.model.ConnectionMessage
-import streetlight.server.model.ConnectionService
+import streetlight.server.service.ConnectionService
 import streetlight.server.utils.starId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds

@@ -1,5 +1,6 @@
 package streetlight.server.routes
 
+import streetlight.server.service.checkImageAndStore
 import kampfire.api.toSlug
 import kampfire.model.HttpProblem
 import kampfire.model.Ok

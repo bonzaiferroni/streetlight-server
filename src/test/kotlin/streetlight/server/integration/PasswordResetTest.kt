@@ -14,11 +14,11 @@ import streetlight.model.ui.Screen
 import streetlight.server.DatabaseTest
 import streetlight.server.TestDefault
 import streetlight.server.buildTestServer
-import streetlight.server.db.services.StarSessionService
-import streetlight.server.db.datascope.createToken
-import streetlight.server.db.datascope.redeemPasswordReset
-import streetlight.server.db.datascope.requestEmailVerification
-import streetlight.server.db.datascope.requestPasswordReset
+import streetlight.server.db.dao.StarSessionDao
+import streetlight.server.service.createToken
+import streetlight.server.service.redeemPasswordReset
+import streetlight.server.service.requestEmailVerification
+import streetlight.server.service.requestPasswordReset
 import streetlight.server.extractToken
 import streetlight.server.latestAuthTokenOrNull
 import streetlight.server.latestMail
@@ -41,7 +41,7 @@ class PasswordResetTest: DatabaseTest() {
     @Test
     fun `a user resets a forgotten password and the old sessions end`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val email = TestDefault.emailAddress
             val newPassword = Password("nu8!!ReefKnot@2")
 
@@ -82,7 +82,7 @@ class PasswordResetTest: DatabaseTest() {
     @Test
     fun `a reset link dies when the address it was sent to changes`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val oldEmail = TestDefault.emailAddress
             val newEmail = EmailAddress("dingo99@protonmail.com")
 
@@ -142,7 +142,7 @@ class PasswordResetTest: DatabaseTest() {
     @Test
     fun `a second reset request sinks the first link`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val email = TestDefault.emailAddress
 
             val starId = registerVerifiedStar(email = email)
@@ -175,7 +175,7 @@ class PasswordResetTest: DatabaseTest() {
     @Test
     fun `an expired reset token opens nothing`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val email = TestDefault.emailAddress
 
             val starId = registerVerifiedStar(email = email)
@@ -207,7 +207,7 @@ class PasswordResetTest: DatabaseTest() {
     @Test
     fun `a forged token and a feeble password both change nothing`() = runTest {
         with(server) {
-            val sessionService = StarSessionService()
+            val sessionService = StarSessionDao()
             val email = TestDefault.emailAddress
 
             val starId = registerVerifiedStar(email = email)

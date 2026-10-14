@@ -1,5 +1,8 @@
 package streetlight.server.routes
 
+import streetlight.server.service.OmniService
+import streetlight.server.service.readLocationContent
+import streetlight.server.service.readLocationUpdaterContent
 import io.ktor.server.routing.RoutingCall
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
@@ -13,8 +16,8 @@ import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 import klutch.server.authGate
-import streetlight.server.db.datascope.createLocation
-import streetlight.server.db.datascope.updateLocation
+import streetlight.server.service.createLocation
+import streetlight.server.service.updateLocation
 import streetlight.server.utils.TimeZones
 
 private val console = globalConsole.getHandle(ApiScope::serveLocations.name)

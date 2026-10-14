@@ -6,7 +6,7 @@ import kampfire.model.Token
 import koala.PageResource
 import streetlight.model.Api
 import streetlight.model.data.AuthTokenType
-import streetlight.server.db.datascope.redeemEmailVerification
+import streetlight.server.service.redeemEmailVerification
 import streetlight.server.model.ApiScope
 import streetlight.web.page.formSubmit
 import streetlight.web.page.messagePage

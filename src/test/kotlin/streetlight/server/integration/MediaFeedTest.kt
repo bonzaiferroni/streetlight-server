@@ -14,7 +14,7 @@ import streetlight.model.data.MediaId
 import streetlight.model.data.StarId
 import streetlight.server.DatabaseTest
 import streetlight.server.TestServer
-import streetlight.server.model.readMediaFeed
+import streetlight.server.service.readMediaFeed
 import streetlight.server.registerStar
 import kotlin.test.Test
 import kotlin.test.assertEquals

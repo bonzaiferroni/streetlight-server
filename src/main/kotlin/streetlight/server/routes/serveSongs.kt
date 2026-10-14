@@ -7,7 +7,7 @@ import streetlight.model.data.toRecordId
 import streetlight.server.model.*
 
 fun ApiScope.serveSongs() {
-    // val service = server.get<SongTableService>()
+    // val service = server.get<SongDao>()
 
     getApi(Api.Songs.ReadId, { it.toRecordId() }) {
         val songId = it.data

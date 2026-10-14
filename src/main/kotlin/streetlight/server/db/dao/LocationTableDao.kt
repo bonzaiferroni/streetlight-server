@@ -1,0 +1,330 @@
+package streetlight.server.db.dao
+
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kampfire.api.Slug
+import kampfire.model.Distance
+import kampfire.model.GeoRect
+import kampfire.model.GeoPoint
+import klutch.db.DbService
+import klutch.db.inRect
+import klutch.db.isNearEq
+import klutch.db.mapFirstOrNull
+import klutch.db.model.CallerId
+import klutch.db.readFirstOrNull
+import klutch.db.withinRadius
+import klutch.utils.eq
+import klutch.utils.toGeoPoint
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.andIfNotNull
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.min
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.wrapAsExpression
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import kotlin.time.Clock
+import streetlight.model.data.Location
+import streetlight.model.data.LocationEdit
+import kampfire.model.normalize
+import kampfire.model.toUrl
+import streetlight.model.data.LocationId
+import streetlight.model.data.LocationLead
+import streetlight.model.data.ParseMode
+import streetlight.model.data.MapId
+import streetlight.model.data.LocationInfo
+import streetlight.server.db.tables.EventTable
+import streetlight.server.db.tables.LocationTable
+import klutch.db.tables.SlugRecord
+import klutch.db.tables.getSlugRecord
+import klutch.db.tables.nextSlugOf
+import klutch.utils.logger
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.insertReturning
+import org.jetbrains.exposed.v1.jdbc.updateReturning
+import streetlight.model.data.CityId
+import streetlight.model.data.EntityCursor
+import streetlight.model.data.LocationConfig
+import streetlight.server.db.tables.afterCursor
+import streetlight.server.db.tables.joinWith
+import streetlight.server.db.tables.toEvent
+import streetlight.server.db.tables.toLocation
+import streetlight.server.db.tables.createLocation
+import streetlight.server.db.tables.locationConfigContentQuery
+import streetlight.server.db.tables.locationLayoutQuery
+import streetlight.server.db.tables.locationQuery
+import streetlight.server.db.tables.toLocationConfigContent
+import streetlight.server.db.tables.toLocationEventFeedOrNull
+import streetlight.server.db.tables.LocationAspect
+import streetlight.server.db.tables.toLocationDesign
+import streetlight.server.db.tables.updateLocation
+import streetlight.server.utils.toRecordId
+import kotlin.time.Duration
+import kotlin.time.Instant
+
+private val log = KotlinLogging.logger(LocationTableDao::class)
+
+class LocationTableDao : DbService() {
+
+//    suspend fun createLocation(userId: UserId, place: Place, isHost: Boolean): LocationId? = dbQuery {
+//        findOrCreatePlace(place, userId, isHost)
+//    }
+
+//    suspend fun updateLocation(userId: UserId, location: Location) = dbQuery {
+//        LocationTable.update(where = { LocationTable.id.eq(location.locationId) and LocationTable.creatorId.eq(userId) }) {
+//            it.writeUpdate(location)
+//        } == 1
+//    }
+
+    suspend fun update(
+        locationId: LocationId,
+        cityId: CityId?,
+        callerId: CallerId?,
+        edit: LocationEdit,
+    ) = dbQuery {
+        val slugBase = edit.getSlugBase(locationId)
+        val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
+        val location = edit.toLocation(cityId, locationId)
+        val isOwnerOrNull = callerId?.let { LocationTable.hostId.isNull() or LocationTable.hostId.eq(it.value) }
+            ?: LocationTable.hostId.isNull()
+        LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
+            it.updateLocation(location, slugRecord)
+        }.singleOrNull()?.toLocation()
+    }
+
+    suspend fun update(config: LocationConfig) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
+            it[LocationTable.parseMode] = config.parseMode
+            it[LocationTable.design] = config.design
+        }
+    }
+
+    suspend fun updateCheckedFeedAt(locationId: LocationId, checkedAt: Instant = Clock.System.now()) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.checkedFeedAt] = checkedAt
+        }
+    }
+
+    suspend fun updateCheckedAt(locationId: LocationId, checkedAt: Instant = Clock.System.now()) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.checkedAt] = checkedAt
+        }
+    }
+
+    /** Counts the upcoming events of each location, updating only the counts that changed. */
+    suspend fun updateEventCounts(now: Instant) = dbQuery {
+        val upcoming = EventTable.select(EventTable.id.count())
+            .where { EventTable.locationId.eq(LocationTable.id) and EventTable.startsAt.greater(now) }
+        LocationTable.update({ LocationTable.eventCount.neq(wrapAsExpression(upcoming)) }) {
+            it[LocationTable.eventCount] = upcoming
+        }
+    }
+
+    /** Every location, with its point and the start of its next event after [now]. */
+    suspend fun readPriorityInputs(now: Instant) = dbQuery {
+        val nextEventAt = EventTable.startsAt.min()
+        LocationTable.joinWith(EventTable) { EventTable.startsAt.greater(now) }
+            .select(LocationTable.id, LocationTable.geoPoint, nextEventAt)
+            .groupBy(LocationTable.id)
+            .map {
+                LocationPriorityInput(
+                    locationId = LocationId(it[LocationTable.id].value),
+                    geoPoint = it[LocationTable.geoPoint].toGeoPoint(),
+                    nextEventAt = it[nextEventAt],
+                )
+            }
+    }
+
+    suspend fun updateMapPriority(locationId: LocationId, mapPriority: Double) = dbQuery {
+        LocationTable.update({ LocationTable.id.eq(locationId) }) {
+            it[LocationTable.mapPriority] = mapPriority
+        }
+    }
+
+    suspend fun create(
+        cityId: CityId?,
+        callerId: CallerId?,
+        edit: LocationEdit,
+    ) = dbQuery {
+        val locationId = LocationId.random()
+        val slugBase = edit.getSlugBase(locationId)
+        val slug = LocationTable.nextSlugOf(slugBase)
+        val location = edit.toLocation(cityId, locationId)
+        LocationTable.insertReturning { it.createLocation(location, callerId, SlugRecord(slug)) }
+            .singleOrNull()?.toLocation()
+    }
+
+    suspend fun searchLocations(query: String, city: String?, state: String?, limit: Int = 10) = dbQuery {
+        val query = query.lowercase()
+        val queryMatch = LocationTable.name.lowerCase().like("%$query%") or
+                LocationTable.address.lowerCase().like("$query%") // td: proper address search
+        val cityMatch = city?.let {
+            LocationTable.city.lowerCase().like("${city.lowercase()}%")
+        }
+        val stateMatch = state?.let {
+            LocationTable.state.lowerCase().eq(state.lowercase())
+        }
+        LocationTable.selectAll().where {
+            queryMatch.andIfNotNull(cityMatch).andIfNotNull(stateMatch)
+        }
+            .limit(limit)
+            .map { it.toLocation() }
+    }
+
+    suspend fun readLocation(locationId: LocationId, callerId: CallerId?) = dbQuery {
+        locationQuery(callerId).where { LocationTable.id.eq(locationId) }.mapFirstOrNull { it.toLocation() }
+    }
+
+    suspend fun readLocation(slug: Slug, callerId: CallerId?) = dbQuery {
+        locationQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocation() }
+    }
+
+    /** The locations with the name or the address, ignoring case. */
+    suspend fun readLocationsAt(name: String?, address: String?): List<Location> = dbQuery {
+        val condition = when {
+            name != null && address != null ->
+                LocationTable.name.lowerCase().eq(name.lowercase()) or LocationTable.address.lowerCase().eq(address.lowercase())
+            name != null -> LocationTable.name.lowerCase().eq(name.lowercase())
+            address != null -> LocationTable.address.lowerCase().eq(address.lowercase())
+            else -> return@dbQuery emptyList()
+        }
+        LocationTable.selectAll().where(condition).map { it.toLocation() }
+    }
+
+    /** The location of the map place [mapId]. */
+    suspend fun readLocationByMapId(mapId: MapId) = dbQuery {
+        LocationTable.readFirstOrNull { it.mapId.eq(mapId) }?.toLocation()
+    }
+
+    suspend fun readLocationAt(point: GeoPoint) = dbQuery {
+        LocationTable.readFirstOrNull { it.geoPoint.isNearEq(point) }?.toLocation()
+    }
+
+    /** The page after [cursor] of the named locations in [cityId], newest first, as seen by [callerId]. */
+    suspend fun readCityLocations(cityId: CityId, callerId: CallerId?, cursor: EntityCursor.Time) = dbQuery {
+        val after = cursor.recordAt?.let { recordAt ->
+            cursor.recordId?.let { afterCursor(LocationTable.createdAt, recordAt, LocationTable.id, it, cursor.direction) }
+        }
+        locationQuery(callerId)
+            .where { LocationTable.cityId.eq(cityId) and LocationTable.name.isNotNull() andIfNotNull after }
+            .orderBy(LocationTable.createdAt to SortOrder.DESC, LocationTable.id to SortOrder.DESC)
+            .limit(EntityCursor.DefaultLimit)
+            .map { it.toLocation() }
+    }
+
+    suspend fun readTop(count: Int) = dbQuery {
+        LocationTable
+            .selectAll()
+            .orderBy(LocationTable.createdAt, SortOrder.DESC)
+            .limit(count)
+            .map { it.toLocation() }
+    }
+
+    suspend fun readNearbyLocations(point: GeoPoint, distance: Distance) = dbQuery {
+        LocationTable.selectAll().withinRadius(LocationTable.geoPoint, point, distance)
+            .map { it.toLocation() }
+    }
+
+    suspend fun readLocationsInBounds(bounds: GeoRect): List<LocationInfo> = dbQuery {
+        LocationTable.leftJoin(EventTable).selectAll()
+            .where { LocationTable.geoPoint.inRect(bounds) }
+            .toList()
+            .groupBy { it[LocationTable.id].toRecordId<LocationId>() }.map { (_, rows) ->
+                val location = rows.first().toLocation()
+                val events = rows.mapNotNull { row -> row.getOrNull(EventTable.id)?.let { row.toEvent() } }
+                LocationInfo(location, events)
+            }
+    }
+
+    suspend fun readConfigContent(locationId: LocationId) = dbQuery {
+        locationConfigContentQuery().where {
+            LocationTable.id.eq(locationId)
+        }.singleOrNull()?.toLocationConfigContent()
+    }
+
+    /** The events pages of the locations not checked within [interval] whose parse mode reads them, oldest first. */
+    suspend fun readCheckableFeeds(interval: Duration, limit: Int) = dbQuery {
+        LocationTable.select(LocationAspect.columns + LocationTable.parseMode).where {
+             LocationTable.eventsUrl.isNotNull() and LocationTable.parseMode.neq(ParseMode.None) and
+                 (LocationTable.checkedFeedAt.isNull() or LocationTable.checkedFeedAt.less(Clock.System.now() - interval))
+         }.orderBy(LocationTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .mapNotNull { it.toLocationEventFeedOrNull() }
+    }
+
+    /** Leads to read the websites of up to [limit] locations without a host whose website was never read, oldest first. */
+    suspend fun readCheckableWebsites(limit: Int) = dbQuery {
+        LocationTable.select(LocationTable.id, LocationTable.website, LocationTable.createdAt).where {
+            LocationTable.website.isNotNull() and LocationTable.checkedAt.isNull() and LocationTable.hostId.isNull()
+        }.orderBy(LocationTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .map { row ->
+                LocationLead(
+                    leadId = null,
+                    initialUrl = requireNotNull(row[LocationTable.website]).toUrl().normalize(),
+                    content = null,
+                    checkedAt = null,
+                    createdAt = row[LocationTable.createdAt],
+                    locationId = row.toRecordId(LocationTable.id),
+                )
+            }
+    }
+
+    suspend fun readDesign(slug: Slug, callerId: CallerId?) = dbQuery {
+        locationLayoutQuery(callerId).where { LocationTable.slug.eq(slug) }.mapFirstOrNull { it.toLocationDesign() }
+    }
+}
+
+fun LocationEdit.toLocation(cityId: CityId?, locationId: LocationId) = Location(
+    locationId = locationId,
+    cityId = cityId,
+    mapId = mapId,
+    timezoneId = timezoneId ?: error("no timezone provided"),
+    slug = Slug.Empty,
+    host = null, // set with trigger
+    scout = null, // set with trigger
+    name = name,
+    geoPoint = geoPoint ?: error("no location geoPoint"),
+    mapRank = mapRank, // td: more credible source for mapRank
+    mapCategory = mapCategory,
+    mapType = mapType,
+    description = description,
+    address = address,
+    city = city,
+    state = state,
+    resources = resources ?: emptySet(),
+    tags = tags,
+    hours = hours,
+    url = website,
+    starCount = null,
+    eventCount = 0,
+    isLit = false,
+    eventsUrl = eventsUrl,
+    extraLinks = extraLinks,
+    image = image,
+    updatedAt = Clock.System.now(),
+    createdAt = Clock.System.now()
+)
+
+/**
+ * The base of the location's slug: its name or else its address, with its city when it has one, or its id when it
+ * has neither.
+ */
+fun LocationEdit.getSlugBase(locationId: LocationId) = (name?.takeIf { it.isNotBlank() } ?: address?.takeIf { it.isNotBlank() })
+    ?.let { base -> city?.let { "$base-$it" } ?: base }
+    ?: locationId.value.toString()
+
+/** The facts a location's map priority is drawn from. */
+data class LocationPriorityInput(
+    val locationId: LocationId,
+    val geoPoint: GeoPoint,
+    val nextEventAt: Instant?,
+)
