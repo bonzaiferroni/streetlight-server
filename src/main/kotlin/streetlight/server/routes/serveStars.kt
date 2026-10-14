@@ -37,7 +37,7 @@ fun ApiScope.serveStars() {
         postApi(Api.Stars.UpdateProfile) { request ->
             val edit = request.data
             val callerId = call.getIdentity().callerId
-            val image = checkImageAndStore(callerId, callerId, edit.image, StarTable.imageConfig)
+            val image = checkImageAndStore(callerId, callerId, edit.image, StarTable)
                 .toDataOr { return@postApi it }
             dao.star.updateProfile(callerId, edit.copy(image = image)).toOutcome()
         }

@@ -30,7 +30,7 @@ suspend fun DataScope.createEvent(
     isImageRequired: Boolean = true,
 ): Outcome<Event> = transaction {
     if (dao.event.hasConflict(edit)) return@transaction Problem("Event already exists")
-    val image = when (val stored = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)) {
+    val image = when (val stored = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable)) {
         is Ok -> stored.data
         is Problem -> if (isImageRequired) return@transaction stored else null
     }
@@ -48,7 +48,7 @@ suspend fun DataScope.updateEvent(
     callerId: CallerId,
     edit: EventEdit,
 ): Outcome<Event> = transaction {
-    val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.eventId, edit.image, EventTable)
         .toDataOr { return@transaction it }
 
     log("updating event: ${edit.title}")

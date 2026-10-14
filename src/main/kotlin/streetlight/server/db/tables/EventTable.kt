@@ -19,7 +19,7 @@ import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
 import streetlight.model.data.ExtraLink
 
-object EventTable : UuidTable("event"), SlugTable {
+object EventTable : UuidTable("event"), SlugTable, ImageColumnTable {
     val hostId = reference("host_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable().index()
     val locationId = reference("location_id", LocationTable, onDelete = ReferenceOption.CASCADE)
     val currentRequestId = reference("current_song_id", RequestTable, onDelete = ReferenceOption.SET_NULL).nullable()
@@ -37,7 +37,8 @@ object EventTable : UuidTable("event"), SlugTable {
     val visibility = integer("visibility").nullable()
     val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val website = text("url").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Event
     val streamUrl = text("stream_url").nullable()
     val timeZoneId = text("time_zone_id")
     val starCount = integer("star_count").default(0)
@@ -49,12 +50,6 @@ object EventTable : UuidTable("event"), SlugTable {
     init {
         index(null, false, tags, indexType = "GIN")
     }
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Event,
-    )
 }
 // td:
 // val doorsAt = timestamp("doors_at").nullable()

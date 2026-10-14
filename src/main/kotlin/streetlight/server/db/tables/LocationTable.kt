@@ -23,7 +23,7 @@ import streetlight.model.data.Location
 import streetlight.model.data.PageDesign
 import streetlight.model.data.ParseMode
 
-object LocationTable: UuidTable("location"), SlugTable {
+object LocationTable: UuidTable("location"), SlugTable, ImageColumnTable {
     val hostId = reference("host_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val scoutId = reference("scout_id", StarTable, ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable).nullable()
@@ -53,7 +53,8 @@ object LocationTable: UuidTable("location"), SlugTable {
     val eventCount = integer("event_count").default(0)
     val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val eventsUrl = text("events_url").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Location
     val checkedFeedAt = timestamp("checked_feed_at").nullable()
     val checkedAt = timestamp("checked_at").nullable()
     val updatedAt = timestamp("updated_at")
@@ -62,12 +63,6 @@ object LocationTable: UuidTable("location"), SlugTable {
     init {
         index(null, false, tags, indexType = "GIN")
     }
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Location,
-    )
 }
 
 val locationCitySync = SyncValueTrigger(LocationTable.cityId, LocationTable.city, CityTable, CityTable.name)

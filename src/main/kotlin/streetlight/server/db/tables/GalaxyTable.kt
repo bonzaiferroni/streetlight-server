@@ -23,7 +23,7 @@ import streetlight.model.data.PageDesign
 import streetlight.model.data.PostPermission
 import streetlight.model.data.PostType
 
-object GalaxyTable: UuidTable("galaxy"), SlugTable {
+object GalaxyTable: UuidTable("galaxy"), SlugTable, ImageColumnTable {
     val starId = reference("star_id", StarTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable()
     val city = text("city").nullable()
@@ -37,7 +37,8 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val postPermission = enumeration<PostPermission>("post_permission")
     val reviewCount = integer("review_count").default(0) // td: remove default value
     val postGuide = text("post_guide").transformMarkdown().nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Galaxy
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
@@ -47,12 +48,6 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val eventCount = integer("event_count").default(0)
     val locationCount = integer("location_count").default(0)
     val postCount = integer("post_count").default(0)
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Galaxy,
-    )
 }
 
 val galaxyLocationCountTrigger = CounterTrigger(GalaxyTable, PostTable, PostTable.galaxyId, GalaxyTable.locationCount,

@@ -8,12 +8,13 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.datetime.timestamp
 
 /** What each star offers for sale through their seller account. */
-object OfferingTable: UuidTable("offering") {
+object OfferingTable: UuidTable("offering"), ImageColumnTable {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).index()
     val title = text("title")
     val description = text("description").transformMarkdown().nullable()
     val tags = array<Int>("tags").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Offering
     val priceCents = integer("price_cents")
     val currency = text("currency")
     val platformCut = integer("platform_cut").default(0)
@@ -24,10 +25,4 @@ object OfferingTable: UuidTable("offering") {
     init {
         index(null, false, tags, indexType = "GIN")
     }
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Offering,
-    )
 }

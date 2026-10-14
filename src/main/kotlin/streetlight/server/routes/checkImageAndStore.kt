@@ -14,20 +14,22 @@ import klutch.db.model.CallerId
 import klutch.utils.logger
 import koala.Image
 import streetlight.model.data.ImageFormat
-import streetlight.server.db.tables.TableImageConfig
+import org.jetbrains.exposed.v1.core.dao.id.UuidTable
+import streetlight.server.db.tables.ImageColumnTable
+import streetlight.server.db.tables.sizes
 import streetlight.server.model.DataScope
 import kotlin.uuid.Uuid
 
 /**
- * The image to save on the row [rowId] of [config]'s table: `null` for a blank image, the current one when
- * unchanged, or a new one stored at the table's sizes.
+ * The image to save on the row [rowId] of [table]: `null` for a blank image, the current one when unchanged, or a
+ * new one stored at the sizes of the table's target.
  */
-suspend fun DataScope.checkImageAndStore(
+suspend fun <T> DataScope.checkImageAndStore(
     callerId: CallerId?,
     rowId: TableId<Uuid>?,
     image: Image?,
-    config: TableImageConfig
-): Outcome<Image?> {
+    table: T,
+): Outcome<Image?> where T: UuidTable, T: ImageColumnTable {
     // associate with user when imageRef is relative
     val userId = callerId.takeIf { image?.isRelative ?: false }
 
@@ -36,10 +38,10 @@ suspend fun DataScope.checkImageAndStore(
         return Ok(null)
     }
     val currentImage = rowId?.let {
-        config.readCurrentImage(it)
+        dao.image.readTableImage(table, it)
     }
     if (currentImage == image) return Ok(currentImage)
-    return provisionImageAndStore(userId, image, config.sizes)
+    return provisionImageAndStore(userId, image, table.imageTarget.sizes)
 }
 
 
@@ -123,4 +125,4 @@ suspend fun RoutingContext.validateImage(
     return fileFormat
 }
 
-private val logger = KotlinLogging.logger(DataScope::checkImageAndStore)
+private val logger = KotlinLogging.logger("checkImageAndStore")

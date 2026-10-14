@@ -26,7 +26,7 @@ import streetlight.model.data.PageDesign
 import streetlight.model.data.StarId
 import streetlight.server.utils.toRecordId
 
-object MediaTable: UuidTable("media"), SlugTable {
+object MediaTable: UuidTable("media"), SlugTable, ImageColumnTable {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
     override val slug = text("slug").index()
     val username = text("username").transform({ it.toUsername() }, { it.value }) .index()
@@ -36,17 +36,12 @@ object MediaTable: UuidTable("media"), SlugTable {
     val text = text("text").transformMarkdown().nullable()
     val link = url("link").nullable()
     val geoPoint = point("geo_point").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Media
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     // td: add unpublished status
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Media,
-    )
 }
 
 val mediaUsernameSync = SyncValueTrigger(MediaTable.starId, MediaTable.username, StarTable, StarTable.username)

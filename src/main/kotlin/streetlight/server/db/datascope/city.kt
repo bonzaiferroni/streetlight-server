@@ -18,7 +18,7 @@ suspend fun DataScope.updateCity(
 ): Outcome<City> = transaction {
     val name = edit.name?.trim()?.takeIf { it.isNotEmpty() } ?: return@transaction HttpProblem.BadRequest
     if (dao.city.isNameTaken(edit.cityId, name)) return@transaction HttpProblem.Conflict
-    val image = checkImageAndStore(callerId, edit.cityId, edit.image, CityTable.imageConfig)
+    val image = checkImageAndStore(callerId, edit.cityId, edit.image, CityTable)
         .toDataOr { return@transaction it }
 
     log("updating city: $name")

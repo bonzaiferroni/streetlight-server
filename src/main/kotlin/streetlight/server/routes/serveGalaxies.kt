@@ -84,7 +84,7 @@ fun ApiScope.serveGalaxies() {
             val starId = identity.callerId
             val city = edit.cityId?.let { dao.city.readCity(it) }
             val imageUserId = starId.takeIf { edit.image?.isRelative ?: false }
-            val image = checkImageAndStore(imageUserId, edit.galaxyId, edit.image, GalaxyTable.imageConfig)
+            val image = checkImageAndStore(imageUserId, edit.galaxyId, edit.image, GalaxyTable)
                 .toDataOr { return it }
 
             return block(city, edit.copy(image = image))

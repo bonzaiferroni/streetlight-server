@@ -26,7 +26,7 @@ import streetlight.model.data.StateId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
-object CityTable : UuidTable("city"), SlugTable {
+object CityTable : UuidTable("city"), SlugTable, ImageColumnTable {
     val stateId = reference("state_id", StateTable.id).index()
     override val slug = text("slug").index()
     val name = text("name")
@@ -39,17 +39,12 @@ object CityTable : UuidTable("city"), SlugTable {
     val geoPoint = point("geo_point") // index
     val geoBounds = array<Double>("geo_bounds")
     val mapRank = float("map_rank").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.City
     val description = text("description").transformMarkdown().nullable()
     val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.City,
-    )
 
     init {
         uniqueIndex(name, stateId)

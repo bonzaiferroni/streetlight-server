@@ -25,7 +25,7 @@ import streetlight.model.data.StarEdit
 import streetlight.model.data.StarId
 import kotlin.time.Clock
 
-object StarTable: UuidTable("star") {
+object StarTable: UuidTable("star"), ImageColumnTable {
     // td: support hometown
     val cityId = reference("city_id", CityTable.id, onDelete = ReferenceOption.SET_NULL).nullable().index()
     val username = text("username").uniqueIndex()
@@ -44,18 +44,13 @@ object StarTable: UuidTable("star") {
     val venmoId = text("venmo_id").nullable()
     val paypalId = text("paypal_id").nullable()
     val cashAppId = text("cashapp_id").nullable()
-    val image = image("image").nullable()
+    override val image = image("image").nullable()
+    override val imageTarget = ImageTarget.Star
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val guestToken = char("guest_token", 64).uniqueIndex().nullable()
     val activeAt = timestamp("active_at").defaultExpression(CurrentTimestamp)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
-
-    val imageConfig = imageConfigOf(
-        table = this,
-        column = image,
-        target = ImageTarget.Star,
-    )
 }
 
 fun List<Int>.toRoleSet() = map { ordinal -> UserRole.entries[ordinal] }.toSet()

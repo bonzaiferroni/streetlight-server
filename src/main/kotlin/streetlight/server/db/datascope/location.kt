@@ -75,7 +75,7 @@ suspend fun DataScope.prepareLocation(
     edit: LocationEdit,
     isImageRequired: Boolean = true,
 ): Outcome<LocationEdit> {
-    val image = when (val stored = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable.imageConfig)) {
+    val image = when (val stored = checkImageAndStore(callerId, edit.locationId, edit.image, LocationTable)) {
         is Ok -> stored.data
         is Problem -> if (isImageRequired) return stored else null
     }
