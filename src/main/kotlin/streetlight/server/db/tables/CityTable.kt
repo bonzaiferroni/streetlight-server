@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import streetlight.model.data.ImageTarget
 import kampfire.api.toSlug
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
@@ -7,7 +8,6 @@ import klutch.db.image
 import klutch.db.jsonbConfig
 import klutch.utils.transformMarkdown
 import klutch.db.point
-import kampfire.model.ImageSize
 import klutch.db.tables.SlugTable
 import klutch.utils.toGeoBounds
 import klutch.utils.toGeoPoint
@@ -48,10 +48,7 @@ object CityTable : UuidTable("city"), SlugTable {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Large,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
+        target = ImageTarget.City,
     )
 
     init {

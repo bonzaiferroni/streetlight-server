@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import kampfire.model.ImageSize
+import streetlight.model.data.ImageTarget
 import klutch.db.image
 import klutch.utils.transformMarkdown
 import org.jetbrains.exposed.v1.core.ReferenceOption
@@ -28,8 +28,6 @@ object OfferingTable: UuidTable("offering") {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
+        target = ImageTarget.Offering,
     )
 }

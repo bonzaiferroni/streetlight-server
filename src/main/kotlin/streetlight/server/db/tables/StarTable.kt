@@ -1,11 +1,11 @@
 package streetlight.server.db.tables
 
+import streetlight.model.data.ImageTarget
 import kampfire.api.PasswordHash
 import kampfire.api.toEmailAddress
 import kampfire.api.toUsername
 import kampfire.model.AccountType
 import kampfire.model.HashedToken
-import kampfire.model.ImageSize
 import kampfire.model.UserRecord
 import kampfire.model.UserRole
 import klutch.db.image
@@ -54,9 +54,7 @@ object StarTable: UuidTable("star") {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb
+        target = ImageTarget.Star,
     )
 }
 

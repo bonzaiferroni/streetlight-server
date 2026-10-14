@@ -1,6 +1,6 @@
 package streetlight.server.db.tables
 
-import kampfire.model.ImageSize
+import streetlight.model.data.ImageTarget
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
@@ -53,9 +53,7 @@ object EventTable : UuidTable("event"), SlugTable {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
+        target = ImageTarget.Event,
     )
 }
 // td:

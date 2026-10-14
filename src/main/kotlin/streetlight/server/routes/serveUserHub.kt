@@ -7,7 +7,8 @@ import io.ktor.http.content.forEachPart
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.post
 import io.ktor.utils.io.readRemaining
-import kampfire.model.ImageSize
+import streetlight.model.data.ImageTarget
+import streetlight.server.db.tables.sizes
 import kampfire.model.Ok
 import kampfire.model.toDataOr
 import kampfire.model.toOutcome
@@ -56,13 +57,15 @@ fun ApiScope.serveUserHub() {
         post(Api.Users.UploadImage.path) {
             val userId = call.getIdentity().callerId
             var meta: Image? = null
+            var target: ImageTarget? = null
             var bytes: ByteArray? = null
             println("ey")
 
             call.receiveMultipart(formFieldLimit = 16 * 1024 * 1024).forEachPart { part ->
                 when (part) {
-                    is PartData.FormItem -> if (part.name == "metadata") {
-                        meta = Json.decodeFromString(part.value)
+                    is PartData.FormItem -> when (part.name) {
+                        "metadata" -> meta = Json.decodeFromString(part.value)
+                        "target" -> target = ImageTarget.valueOf(part.value)
                     }
                     is PartData.FileItem -> bytes = part.provider().readRemaining().readByteArray()
                     else -> {}
@@ -75,7 +78,7 @@ fun ApiScope.serveUserHub() {
                 val image = encodeImageAndStore(
                     bytes = bytes ?: error("bytes not found"),
                     callerId = userId,
-                    sizes = ImageSize.All,
+                    sizes = (target ?: error("target not found")).sizes,
                     meta = meta
                 ).toDataOr { return@apiResponse it }
                 Ok(image)

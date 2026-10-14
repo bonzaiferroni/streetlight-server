@@ -1,8 +1,8 @@
 package streetlight.server.db.tables
 
+import streetlight.model.data.ImageTarget
 import kampfire.api.toSlug
 import kampfire.api.toUsername
-import kampfire.model.ImageSize
 import klutch.db.SyncValueTrigger
 import klutch.db.image
 import klutch.db.jsonbConfig
@@ -45,10 +45,7 @@ object MediaTable: UuidTable("media"), SlugTable {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Large,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
+        target = ImageTarget.Media,
     )
 }
 

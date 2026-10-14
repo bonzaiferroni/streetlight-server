@@ -1,7 +1,7 @@
 package streetlight.server.db.tables
 
+import streetlight.model.data.ImageTarget
 import kampfire.api.Slug
-import kampfire.model.ImageSize
 import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
@@ -51,10 +51,7 @@ object GalaxyTable: UuidTable("galaxy"), SlugTable {
     val imageConfig = imageConfigOf(
         table = this,
         column = image,
-        ImageSize.Large,
-        ImageSize.Medium,
-        ImageSize.Small,
-        ImageSize.Thumb,
+        target = ImageTarget.Galaxy,
     )
 }
 
