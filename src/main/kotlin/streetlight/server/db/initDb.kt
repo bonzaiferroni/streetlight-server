@@ -105,6 +105,7 @@ internal val dbTables = listOf(
     PostMarkCountTable,
     SiteEventTable,
     SellerTable,
+    OfferingTable,
 )
 
 private val counterTriggers get() = listOf(

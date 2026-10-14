@@ -202,29 +202,3 @@ private fun Format.toImageFormat() = when(this) {
     Format.JPEG -> ImageFormat.JPEG
     Format.WEBP -> ImageFormat.WEBP
 }
-
-/** The format of an image from its leading bytes, or `null` when unsupported. */
-fun detectFormatFromImage(bytes: ByteArray): ImageFormat? {
-    fun has(prefix: ByteArray): Boolean =
-        bytes.size >= prefix.size && prefix.indices.all { i -> bytes[i] == prefix[i] }
-
-    // PNG: 89 50 4E 47 0D 0A 1A 0A
-    if (has(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))) return ImageFormat.PNG
-    // JPEG: FF D8 FF
-    if (bytes.size >= 3 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte()) return ImageFormat.JPEG
-    // GIF: "GIF87a" or "GIF89a"
-    if (bytes.size >= 6) {
-        val s = bytes.copyOfRange(0, 6).decodeToString()
-        if (s == "GIF87a" || s == "GIF89a") return ImageFormat.GIF
-    }
-    // WEBP: "RIFF" .... "WEBP"
-    if (bytes.size >= 12) {
-        val riff = bytes.copyOfRange(0, 4).decodeToString()
-        val webp = bytes.copyOfRange(8, 12).decodeToString()
-        if (riff == "RIFF" && webp == "WEBP") return ImageFormat.WEBP
-    }
-    // BMP: "BM"
-    if (bytes.size >= 2 && bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) return ImageFormat.BMP
-
-    return null
-}

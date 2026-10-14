@@ -64,6 +64,7 @@ class DaoFacade(
     val subdomain: SubdomainTableDao = SubdomainTableDao(),
     val message: MessageTableDao = MessageTableDao(),
     val seller: SellerTableDao = SellerTableDao(),
+    val offering: OfferingTableDao = OfferingTableDao(),
 )
 
 /** The clients of external services. */
