@@ -23,7 +23,7 @@ fun ApiScope.serveSellers() {
 
         get(Api.Sellers.Onboard.Refresh.path) {
             val url = refreshSellerLink(call.getIdentity().starId).toDataOrNull()?.value
-                ?: StarConfigRoute.toRelativePath()
+                ?: StarConfigRoute(2).toRelativePath()
             call.respondRedirect(url)
         }
 

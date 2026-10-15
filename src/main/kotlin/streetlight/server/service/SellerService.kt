@@ -33,7 +33,7 @@ suspend fun DataScope.onboardSeller(starId: StarId, onboarding: SellerOnboarding
 suspend fun DataScope.refreshSellerLink(starId: StarId): Outcome<Url> = tryOutcome {
     val seller = dao.seller.readSeller(starId, client.payment.provider)
         ?: return@tryOutcome Problem("No seller account found.")
-    val returnUrl = "$hostAddress${StarConfigRoute.toRelativePath()}"
+    val returnUrl = "$hostAddress${StarConfigRoute(2).toRelativePath()}"
     val refreshUrl = "$hostAddress${Api.Sellers.Onboard.Refresh.path}"
     Ok(client.payment.createOnboardingLink(seller.providerAccountId, returnUrl, refreshUrl))
 }
