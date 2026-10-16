@@ -55,6 +55,11 @@ fun readStripeEvent(payload: String): ProviderEvent {
             eventId = event.id,
             accountId = accountId ?: error("removal event ${event.id} names no account")
         )
+        in invoiceUpdateTypes -> ProviderEvent.InvoiceUpdated(
+            eventId = event.id,
+            accountId = event.context ?: error("invoice event ${event.id} names no account"),
+            invoiceId = event.relatedObject?.id ?: error("invoice event ${event.id} names no invoice"),
+        )
         else -> ProviderEvent.Unhandled(event.id, event.type)
     }
 }
@@ -65,6 +70,13 @@ val accountUpdateTypes = setOf(
     "v2.core.account[requirements].updated",
     "v2.core.account[configuration.merchant].updated",
     "v2.core.account[configuration.merchant].capability_status_updated",
+)
+
+/** The thin event types after which a payment's invoice is read again. */
+val invoiceUpdateTypes = setOf(
+    "v1.invoice.paid",
+    "v1.invoice.voided",
+    "v1.invoice.marked_uncollectible",
 )
 
 /** A thin event: what happened and the object it happened to, without the object's state. */

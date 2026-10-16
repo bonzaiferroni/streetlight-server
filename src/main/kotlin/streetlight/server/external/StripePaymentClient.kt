@@ -7,6 +7,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -15,6 +16,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.Parameters
+import io.ktor.http.ParametersBuilder
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -25,14 +28,22 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import streetlight.model.data.CapabilityStatus
+import streetlight.model.data.CustomerId
+import streetlight.model.data.PaymentStatus
 import streetlight.model.data.PaymentProvider
 import streetlight.model.data.SellerConfiguration
 import streetlight.model.data.StarId
 import streetlight.server.EnvKey
+import streetlight.server.model.InvoiceRequest
 import streetlight.server.model.PaymentClient
+import streetlight.server.model.ProviderInvoice
 import streetlight.server.model.ProviderAccount
+import kotlin.time.Instant
 
-/** Creates and onboards Stripe connected accounts through the Accounts v2 API. */
+/**
+ * Creates and onboards Stripe connected accounts through the Accounts v2 API, and invoices their customers through
+ * the v1 API as the connected account.
+ */
 class StripePaymentClient(env: Environment): PaymentClient {
     private val secretKey by lazy { env.read(EnvKey.STRIPE_SECRET_KEY) }
 
@@ -111,7 +122,57 @@ class StripePaymentClient(env: Environment): PaymentClient {
         }
         return Url(response.readStripe<StripeAccountLink>().url)
     }
+
+    override suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress): String {
+        val response = postV1(accountId, "customers", "customer-$customerId") {
+            append("email", email.value)
+            append("metadata[customerId]", customerId.toString())
+        }
+        return response.readStripe<StripeCustomer>().id
+    }
+
+    override suspend fun sendInvoice(accountId: String, invoice: InvoiceRequest): ProviderInvoice {
+        val paymentId = invoice.paymentId.toString()
+        val draft = postV1(accountId, "invoices", "invoice-$paymentId") {
+            append("customer", invoice.providerCustomerId)
+            append("collection_method", "send_invoice")
+            append("days_until_due", invoice.daysUntilDue.toString())
+            append("currency", invoice.currency)
+            append("pending_invoice_items_behavior", "exclude")
+            append("metadata[paymentId]", paymentId)
+            if (invoice.platformFeeCents > 0) append("application_fee_amount", invoice.platformFeeCents.toString())
+        }.readStripe<StripeInvoice>()
+        postV1(accountId, "invoiceitems", "invoice-item-$paymentId") {
+            append("customer", invoice.providerCustomerId)
+            append("invoice", draft.id)
+            append("amount", invoice.amountCents.toString())
+            append("currency", invoice.currency)
+            append("description", invoice.description)
+        }.readStripe<StripeInvoiceItem>()
+        val response = postV1(accountId, "invoices/${draft.id}/send", "invoice-send-$paymentId") { }
+        return response.readStripe<StripeInvoice>().toProviderInvoice()
+    }
+
+    override suspend fun readInvoice(accountId: String, invoiceId: String): ProviderInvoice {
+        val response = client.get("$STRIPE_V1_URL/invoices/$invoiceId") {
+            header("Stripe-Account", accountId)
+        }
+        return response.readStripe<StripeInvoice>().toProviderInvoice()
+    }
+
+    /** Posts the form [build] makes to the v1 [path], as the seller account [accountId], once for [idempotencyKey]. */
+    private suspend fun postV1(
+        accountId: String,
+        path: String,
+        idempotencyKey: String,
+        build: ParametersBuilder.() -> Unit,
+    ) = client.submitForm("$STRIPE_V1_URL/$path", Parameters.build(build)) {
+        header("Stripe-Account", accountId)
+        header("Idempotency-Key", idempotencyKey)
+    }
 }
+
+private const val STRIPE_V1_URL = "https://api.stripe.com/v1"
 
 /** The Stripe API version every request is pinned to. */
 const val STRIPE_API_VERSION = "2026-09-30.endive"
@@ -289,3 +350,43 @@ private fun StripeCapability?.toCapabilityStatus(isUnderReview: Boolean) = when 
     "restricted" if isUnderReview -> CapabilityStatus.Pending
     else -> CapabilityStatus.Restricted
 }
+
+@Serializable
+data class StripeCustomer(
+    val id: String,
+)
+
+@Serializable
+data class StripeInvoiceItem(
+    val id: String,
+)
+
+/** The fields of a v1 Stripe invoice that a payment's state is read from. */
+@Serializable
+data class StripeInvoice(
+    val id: String,
+    val status: String,
+    @SerialName("hosted_invoice_url") val hostedInvoiceUrl: String? = null,
+    @SerialName("due_date") val dueDate: Long? = null,
+    @SerialName("status_transitions") val statusTransitions: StripeStatusTransitions? = null,
+)
+
+@Serializable
+data class StripeStatusTransitions(
+    @SerialName("paid_at") val paidAt: Long? = null,
+)
+
+fun StripeInvoice.toProviderInvoice() = ProviderInvoice(
+    invoiceId = id,
+    status = when (status) {
+        "draft" -> PaymentStatus.Draft
+        "open" -> PaymentStatus.Open
+        "paid" -> PaymentStatus.Paid
+        "void" -> PaymentStatus.Void
+        "uncollectible" -> PaymentStatus.Uncollectible
+        else -> error("Stripe invoice $id has unknown status $status")
+    },
+    url = hostedInvoiceUrl?.let { Url(it) },
+    dueAt = dueDate?.let { Instant.fromEpochSeconds(it) },
+    paidAt = statusTransitions?.paidAt?.let { Instant.fromEpochSeconds(it) },
+)

@@ -65,6 +65,8 @@ class DaoFacade(
     val message: MessageTableDao = MessageTableDao(),
     val seller: SellerTableDao = SellerTableDao(),
     val offering: OfferingTableDao = OfferingTableDao(),
+    val customer: CustomerTableDao = CustomerTableDao(),
+    val payment: PaymentTableDao = PaymentTableDao(),
 )
 
 /** The clients of external services. */

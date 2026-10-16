@@ -26,10 +26,16 @@ class OfferingTableDao: DbService() {
             .map { it.toOffering() }
     }
 
-    /** The offering [offeringId], or `null` when it is inactive and not [callerId]'s. */
+    /** The offering [offeringId], or `null` when it is not public and not [callerId]'s. */
     suspend fun readOffering(offeringId: OfferingId, callerId: CallerId?) = dbQuery {
-        val isVisible = OfferingTable.isActive.eq(true) orIfNotNull callerId?.let { OfferingTable.starId.eq(it) }
+        val isVisible = OfferingTable.isPublic.eq(true) orIfNotNull callerId?.let { OfferingTable.starId.eq(it) }
         OfferingTable.selectAll().where { OfferingTable.id.eq(offeringId) and isVisible }
+            .singleOrNull()?.toOffering()
+    }
+
+    /** The offering [offeringId] of [starId], or `null` when [starId] has no such offering. */
+    suspend fun readStarOffering(starId: StarId, offeringId: OfferingId) = dbQuery {
+        OfferingTable.selectAll().where { OfferingTable.id.eq(offeringId) and OfferingTable.starId.eq(starId) }
             .singleOrNull()?.toOffering()
     }
 

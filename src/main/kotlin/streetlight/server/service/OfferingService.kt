@@ -17,7 +17,7 @@ import streetlight.server.utils.toStarId
 suspend fun DataScope.readStarOfferings(starId: StarId): Outcome<List<Offering>> =
     Ok(dao.offering.readStarOfferings(starId))
 
-/** The offering [offeringId], or a failure when it is inactive and not [callerId]'s. */
+/** The offering [offeringId], or a failure when it is not public and not [callerId]'s. */
 suspend fun DataScope.readOffering(offeringId: OfferingId, callerId: CallerId?): Outcome<Offering> =
     dao.offering.readOffering(offeringId, callerId)?.let { Ok(it) } ?: HttpProblem.NotFound
 

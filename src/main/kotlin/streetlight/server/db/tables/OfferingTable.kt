@@ -27,7 +27,7 @@ object OfferingTable: UuidTable("offering"), ImageColumnTable {
     val priceCents = integer("price_cents")
     val currency = text("currency")
     val platformCut = integer("platform_cut").default(0)
-    val isActive = bool("is_active").default(false)
+    val isPublic = bool("is_public").default(false)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
@@ -42,7 +42,7 @@ fun ResultRow.toOffering() = Offering(
     priceCents = this[OfferingTable.priceCents],
     currency = this[OfferingTable.currency],
     platformCut = this[OfferingTable.platformCut],
-    isActive = this[OfferingTable.isActive],
+    isPublic = this[OfferingTable.isPublic],
     description = this[OfferingTable.description],
     tags = this[OfferingTable.tags]?.map { OfferingTag.entries[it] },
     image = this[OfferingTable.image],

@@ -53,7 +53,7 @@ suspend fun DataScope.readSellerStatus(starId: StarId): Outcome<SellerStatus?> =
     Ok(dao.seller.readSeller(starId, provider)?.toSellerStatus())
 }
 
-/** Applies [event] from the provider to the seller it concerns. */
+/** Applies [event] from the provider to the seller or payment it concerns. */
 suspend fun DataScope.applyProviderEvent(event: ProviderEvent) {
     val provider = client.payment.provider
     when (event) {
@@ -62,6 +62,10 @@ suspend fun DataScope.applyProviderEvent(event: ProviderEvent) {
             dao.seller.update(provider, client.payment.readAccount(event.accountId))
         }
         is ProviderEvent.AccountRemoved -> dao.seller.delete(provider, event.accountId)
+        is ProviderEvent.InvoiceUpdated -> {
+            val invoice = client.payment.readInvoice(event.accountId, event.invoiceId)
+            dao.payment.updateInvoice(provider, invoice) ?: log("no payment holds ${provider.name} invoice: ${event.invoiceId}")
+        }
         is ProviderEvent.Unhandled -> log("unhandled ${provider.name} event: ${event.type}")
     }
 }

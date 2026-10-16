@@ -1,5 +1,9 @@
 package streetlight.server.model
 
+import kotlin.time.Instant
+import streetlight.model.data.PaymentStatus
+import streetlight.model.data.PaymentId
+import streetlight.model.data.CustomerId
 import kampfire.api.EmailAddress
 import kampfire.model.Url
 import streetlight.model.data.CapabilityStatus
@@ -26,7 +30,38 @@ interface PaymentClient {
      * [returnUrl] when they leave it and sends them to [refreshUrl] when the link has expired.
      */
     suspend fun createOnboardingLink(accountId: String, returnUrl: String, refreshUrl: String): Url
+
+    /** Creates a customer at [email] on the seller account [accountId], tagged with [customerId], and returns its id. */
+    suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress): String
+
+    /** Creates [invoice] on the seller account [accountId], finalizes it and sends it to its customer. */
+    suspend fun sendInvoice(accountId: String, invoice: InvoiceRequest): ProviderInvoice
+
+    suspend fun readInvoice(accountId: String, invoiceId: String): ProviderInvoice
 }
+
+/**
+ * An invoice of one line, [description] at [amountCents] in [currency], to the provider's customer
+ * [providerCustomerId], due [daysUntilDue] after it is sent, withholding [platformFeeCents] for Streetlight.
+ */
+data class InvoiceRequest(
+    val paymentId: PaymentId,
+    val providerCustomerId: String,
+    val description: String,
+    val amountCents: Int,
+    val currency: String,
+    val platformFeeCents: Int,
+    val daysUntilDue: Int,
+)
+
+/** The state of an invoice as the provider reports it, with [url] the page its customer pays on. */
+data class ProviderInvoice(
+    val invoiceId: String,
+    val status: PaymentStatus,
+    val url: Url?,
+    val dueAt: Instant?,
+    val paidAt: Instant?,
+)
 
 /**
  * The state of a seller's account as the provider reports it. [isAwaitingSeller] marks requirements due now that
@@ -51,6 +86,9 @@ sealed interface ProviderEvent {
 
     /** A seller's account was closed, or its seller removed the platform's access to it. */
     data class AccountRemoved(override val eventId: String, val accountId: String): ProviderEvent
+
+    /** An invoice on the seller account [accountId] changed; its new state is read from the provider. */
+    data class InvoiceUpdated(override val eventId: String, val accountId: String, val invoiceId: String): ProviderEvent
 
     /** An event of a [type] that is not handled. */
     data class Unhandled(override val eventId: String, val type: String): ProviderEvent
