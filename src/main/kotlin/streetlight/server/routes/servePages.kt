@@ -31,6 +31,8 @@ import kotlinx.html.HTML
 import streetlight.model.data.AuthTokenType
 import streetlight.model.data.ConnectType
 import streetlight.model.data.FeedType
+import streetlight.model.data.OfferingId
+import kotlin.uuid.Uuid
 import streetlight.server.model.*
 import streetlight.model.ui.Screen
 import streetlight.model.ui.readConnectType
@@ -71,6 +73,7 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.Event -> renderEvent(arg, caller?.callerId, resource)
             Screen.Docs -> renderSiteDoc(arg, resource)
             Screen.Media -> renderMedia(arg, resource)
+            Screen.Offering -> renderOffering(arg, caller?.callerId, resource)
             Screen.VerifyEmail -> renderTokenPage(arg, AuthTokenType.EmailVerification, resource)
             Screen.AccountNotOwned -> renderTokenPage(arg, AuthTokenType.AccountNotOwned, resource)
             Screen.PasswordReset -> renderTokenPage(arg, AuthTokenType.PasswordReset, resource)
@@ -275,6 +278,17 @@ suspend fun ApiScope.renderMedia(arg: String?, resource: PageResource): HtmlRend
     return HtmlRender {
         appPage("${media.title} by ${media.username}", Screen.Media, resource, media.design?.theme) {
             mediaShell(media)
+        }
+    }
+}
+
+suspend fun ApiScope.renderOffering(arg: String?, callerId: CallerId?, resource: PageResource): HtmlRender? {
+    val offeringId = arg?.let { Uuid.parseOrNull(it) }?.let { OfferingId(it) } ?: return null
+    val offering = dao.offering.readOffering(offeringId, callerId) ?: return null
+
+    return HtmlRender {
+        appPage(offering.title, Screen.Offering, resource) {
+            offeringShell(offering)
         }
     }
 }

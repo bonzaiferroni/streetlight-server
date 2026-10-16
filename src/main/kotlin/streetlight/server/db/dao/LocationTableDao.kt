@@ -220,6 +220,14 @@ class LocationTableDao : DbService() {
             .map { it.toLocation() }
     }
 
+    /** The locations [callerId] hosts, by name. */
+    suspend fun readHostedLocations(callerId: CallerId) = dbQuery {
+        locationQuery(callerId)
+            .where { LocationTable.hostId.eq(callerId) }
+            .orderBy(LocationTable.name)
+            .map { it.toLocation() }
+    }
+
     suspend fun readTop(count: Int) = dbQuery {
         LocationTable
             .selectAll()

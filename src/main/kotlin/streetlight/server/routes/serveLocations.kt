@@ -98,6 +98,11 @@ fun ApiScope.serveLocations() {
             updateLocation(locationId, identity.callerId, edit)
         }
 
+        getApi(Api.Locations.ReadHosted) {
+            val identity = call.getIdentity()
+            dao.location.readHostedLocations(identity.callerId).toOutcome()
+        }
+
         getApi(Api.Locations.ReadUpdaterContent) {
             val slug = it.data
             readLocationUpdaterContent(slug).toOutcome()

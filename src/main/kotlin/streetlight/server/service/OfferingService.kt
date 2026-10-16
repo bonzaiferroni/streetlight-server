@@ -17,9 +17,9 @@ import streetlight.server.utils.toStarId
 suspend fun DataScope.readStarOfferings(starId: StarId): Outcome<List<Offering>> =
     Ok(dao.offering.readStarOfferings(starId))
 
-/** The offering [offeringId] of [starId], or a failure when they have no such offering. */
-suspend fun DataScope.readStarOffering(starId: StarId, offeringId: OfferingId): Outcome<Offering> =
-    dao.offering.readStarOffering(starId, offeringId)?.let { Ok(it) } ?: HttpProblem.NotFound
+/** The offering [offeringId], or a failure when it is inactive and not [callerId]'s. */
+suspend fun DataScope.readOffering(offeringId: OfferingId, callerId: CallerId?): Outcome<Offering> =
+    dao.offering.readOffering(offeringId, callerId)?.let { Ok(it) } ?: HttpProblem.NotFound
 
 /** Creates an offering of [callerId] from [edit], priced in their seller account's currency. */
 suspend fun DataScope.createOffering(callerId: CallerId, edit: OfferingEdit): Outcome<Offering> = transaction {
