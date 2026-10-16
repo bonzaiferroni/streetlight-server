@@ -8,6 +8,7 @@ import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
 import streetlight.model.ui.StarConfigRoute
+import streetlight.model.ui.StarConfigTab
 import streetlight.server.service.onboardSeller
 import streetlight.server.service.readSellerStatus
 import streetlight.server.service.refreshSellerLink
@@ -23,7 +24,7 @@ fun ApiScope.serveSellers() {
 
         get(Api.Sellers.Onboard.Refresh.path) {
             val url = refreshSellerLink(call.getIdentity().starId).toDataOrNull()?.value
-                ?: StarConfigRoute(2).toRelativePath()
+                ?: StarConfigRoute(StarConfigTab.ECommerce).toRelativePath()
             call.respondRedirect(url)
         }
 

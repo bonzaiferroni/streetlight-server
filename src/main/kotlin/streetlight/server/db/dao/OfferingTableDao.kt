@@ -23,6 +23,12 @@ class OfferingTableDao: DbService() {
             .map { it.toOffering() }
     }
 
+    /** The offering [offeringId] of [starId], or `null` when [starId] has no such offering. */
+    suspend fun readStarOffering(starId: StarId, offeringId: OfferingId) = dbQuery {
+        OfferingTable.selectAll().where { OfferingTable.id.eq(offeringId) and OfferingTable.starId.eq(starId) }
+            .singleOrNull()?.toOffering()
+    }
+
     suspend fun create(starId: StarId, edit: OfferingEdit, currency: String) = dbQuery {
         OfferingTable.insertReturning { it.createOffering(starId, edit, currency, Clock.System.now()) }
             .single().toOffering()

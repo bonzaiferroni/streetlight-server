@@ -7,6 +7,7 @@ import kampfire.model.toDataOr
 import klutch.db.model.CallerId
 import streetlight.model.data.Offering
 import streetlight.model.data.OfferingEdit
+import streetlight.model.data.OfferingId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.OfferingTable
 import streetlight.server.model.DataScope
@@ -15,6 +16,10 @@ import streetlight.server.utils.toStarId
 /** The offerings of [starId], oldest first. */
 suspend fun DataScope.readStarOfferings(starId: StarId): Outcome<List<Offering>> =
     Ok(dao.offering.readStarOfferings(starId))
+
+/** The offering [offeringId] of [starId], or a failure when they have no such offering. */
+suspend fun DataScope.readStarOffering(starId: StarId, offeringId: OfferingId): Outcome<Offering> =
+    dao.offering.readStarOffering(starId, offeringId)?.let { Ok(it) } ?: HttpProblem.NotFound
 
 /** Creates an offering of [callerId] from [edit], priced in their seller account's currency. */
 suspend fun DataScope.createOffering(callerId: CallerId, edit: OfferingEdit): Outcome<Offering> = transaction {
