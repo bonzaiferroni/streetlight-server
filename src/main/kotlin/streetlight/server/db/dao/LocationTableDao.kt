@@ -26,6 +26,7 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.select
@@ -320,10 +321,15 @@ class LocationTableDao : DbService() {
         }.singleOrNull()?.toLocationConfigContent()
     }
 
-    /** The events pages of the locations not checked within [interval] whose parse mode reads them, oldest first. */
+    /**
+     * The events pages of the locations not checked within [interval] whose parse mode reads them, oldest first. A
+     * location with no parse mode is read only without a host, since a host has yet to give permission.
+     */
     suspend fun readCheckableFeeds(interval: Duration, limit: Int) = dbQuery {
+        val isReadable = LocationTable.parseMode.inList(listOf(ParseMode.Partial, ParseMode.Full)) or
+            (LocationTable.parseMode.isNull() and LocationTable.hostId.isNull())
         LocationTable.select(LocationAspect.columns + LocationTable.parseMode).where {
-             LocationTable.eventsUrl.isNotNull() and LocationTable.parseMode.neq(ParseMode.None) and
+             LocationTable.eventsUrl.isNotNull() and isReadable and
                  (LocationTable.checkedFeedAt.isNull() or LocationTable.checkedFeedAt.less(Clock.System.now() - interval))
          }.orderBy(LocationTable.createdAt, SortOrder.ASC)
             .limit(limit)

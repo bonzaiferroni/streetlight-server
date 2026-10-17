@@ -46,7 +46,7 @@ object LocationTable: UuidTable("location"), SlugTable, ImageColumnTable {
     val resources = array<Int>("resources")
     val tags = array<Int>("tags").nullable()
     val hours = jsonb<HoursSchedule>("hours", jsonbConfig).nullable()
-    val parseMode = enumeration<ParseMode>("parse_mode").default(ParseMode.Partial)
+    val parseMode = enumeration<ParseMode>("parse_mode").nullable()
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
     val website = text("link").nullable()
     val starCount = integer("star_count").default(0)

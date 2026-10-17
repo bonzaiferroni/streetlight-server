@@ -1,5 +1,6 @@
 package streetlight.server.db.tables
 
+import streetlight.model.data.ParseMode
 import kampfire.api.toSlug
 import kampfire.model.normalize
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -29,11 +30,14 @@ fun ResultRow.toLocationConfigContent() = LocationConfigContent(
     config = toLocationConfig(),
 )
 
-/** The events page of the location of this row, its url normalized, or null when it has none. */
+/**
+ * The events page of the location of this row, its url normalized, or null when it has none. A location whose host
+ * has set no parse mode is read as [ParseMode.Partial]; the feed query leaves out a hosted one.
+ */
 fun ResultRow.toLocationEventFeedOrNull(): LocationEventFeed? {
     val location = toLocation()
     val url = location.eventsUrl?.normalize() ?: return null
-    return LocationEventFeed(location, url, this[LocationTable.parseMode])
+    return LocationEventFeed(location, url, this[LocationTable.parseMode] ?: ParseMode.Partial)
 }
 
 fun ResultRow.toLocationConfig() = LocationConfig(
