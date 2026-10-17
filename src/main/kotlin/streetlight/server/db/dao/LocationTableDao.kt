@@ -34,7 +34,9 @@ import kotlin.time.Clock
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import kampfire.model.normalize
+import kampfire.model.Url
 import kampfire.model.toUrl
+import streetlight.model.data.ParseConfig
 import streetlight.model.data.LocationId
 import streetlight.model.data.LocationLead
 import streetlight.model.data.ParseMode
@@ -270,6 +272,31 @@ class LocationTableDao : DbService() {
             }
     }
 
+    /** The events url of a location and when its feed was last read, only one hosted by [hostId] when given. */
+    suspend fun readFeedCheck(locationId: LocationId, hostId: CallerId?) = dbQuery {
+        val hostMatch = hostId?.let { LocationTable.hostId.eq(it) }
+        LocationTable.select(LocationTable.eventsUrl, LocationTable.checkedFeedAt)
+            .where { LocationTable.id.eq(locationId) andIfNotNull hostMatch }
+            .singleOrNull()
+            ?.let { LocationFeedCheck(it[LocationTable.eventsUrl]?.toUrl(), it[LocationTable.checkedFeedAt]) }
+    }
+
+    /**
+     * Updates how a location's events are read, only one hosted by [hostId] when given, and clears when its feed was
+     * last read once the url changes. Returns the count of locations updated.
+     */
+    suspend fun update(config: ParseConfig, hostId: CallerId?) = dbQuery {
+        val hostMatch = hostId?.let { LocationTable.hostId.eq(it) }
+        val where = LocationTable.id.eq(config.locationId) andIfNotNull hostMatch
+        val row = LocationTable.select(LocationTable.eventsUrl).where(where).singleOrNull() ?: return@dbQuery 0
+        val currentUrl = row[LocationTable.eventsUrl]
+        LocationTable.update({ where }) {
+            it[LocationTable.eventsUrl] = config.eventsUrl?.value
+            it[LocationTable.parseMode] = config.parseMode
+            if (config.eventsUrl?.value != currentUrl) it[LocationTable.checkedFeedAt] = null
+        }
+    }
+
     /** Whether [callerId] hosts the location. */
     suspend fun isHost(locationId: LocationId, callerId: CallerId) = dbQuery {
         LocationTable.select(LocationTable.id)
@@ -370,4 +397,10 @@ data class LocationPriorityInput(
     val locationId: LocationId,
     val geoPoint: GeoPoint,
     val nextEventAt: Instant?,
+)
+
+/** The events url of a location, and when its feed was last read. */
+data class LocationFeedCheck(
+    val eventsUrl: Url?,
+    val checkedFeedAt: Instant?,
 )

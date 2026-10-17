@@ -3,6 +3,7 @@ package streetlight.server.routes
 import streetlight.server.service.OmniService
 import streetlight.server.service.readLocationContent
 import streetlight.server.service.readLocationUpdaterContent
+import streetlight.server.service.readGatherStatus
 import io.ktor.server.routing.RoutingCall
 import kabinet.console.globalConsole
 import kampfire.model.GeoPoint
@@ -131,6 +132,17 @@ fun ApiScope.serveLocations() {
         }
 
         postApi(Api.Locations.UpdateConfig) {
+            val hostId = call.getIdentity().hostIdOrNull()
+            if (dao.location.update(it.data, hostId) == 1) Ok(Unit)
+            else HttpProblem.NotAuthorized
+        }
+
+        getApi(Api.Locations.ReadGatherStatus, { it.toRecordId() }) {
+            val hostId = call.getIdentity().hostIdOrNull()
+            readGatherStatus(it.data, hostId)?.let { status -> Ok(status) } ?: HttpProblem.NotAuthorized
+        }
+
+        postApi(Api.Locations.UpdateParseConfig) {
             val hostId = call.getIdentity().hostIdOrNull()
             if (dao.location.update(it.data, hostId) == 1) Ok(Unit)
             else HttpProblem.NotAuthorized

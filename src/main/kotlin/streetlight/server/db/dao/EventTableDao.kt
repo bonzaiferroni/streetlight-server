@@ -154,6 +154,14 @@ class EventTableDao: DbService() {
             .map { it.toEvent() }
     }
 
+    /** The [limit] events at the location created last, newest first. */
+    suspend fun readLatestEvents(locationId: LocationId, limit: Int = 10) = dbQuery {
+        EventTable.read { it.locationId.eq(locationId) }
+            .orderBy(EventTable.createdAt, SortOrder.DESC)
+            .limit(limit)
+            .map { it.toEvent() }
+    }
+
     /** The events at the location starting within [from] until [until]. */
     suspend fun readEventsBetween(locationId: LocationId, from: Instant, until: Instant) = dbQuery {
         EventTable.read {

@@ -2,11 +2,14 @@ package streetlight.server.service
 
 import kampfire.model.CoreProblem
 import kampfire.model.Ok
+import kampfire.model.normalize
 import kampfire.model.Outcome
 import kampfire.model.Problem
 import kampfire.model.toDataOr
 import klutch.db.model.CallerId
 import streetlight.model.data.EditType
+import streetlight.model.data.GatherEventStatus
+import streetlight.model.data.ParseOutcome
 import streetlight.model.data.Location
 import streetlight.model.data.LocationEdit
 import streetlight.model.data.LocationId
@@ -95,3 +98,16 @@ suspend fun DataScope.prepareLocation(
 //    val cityId = readOrCreateCity(edit.city, edit.state)
 //    return block(requireNotNull(cityId) { "city not found" }, imageSet)
 //}
+
+/** How far the crawler has gathered the events of a location, only one hosted by [hostId] when given, or `null` when none matches. */
+suspend fun DataScope.readGatherStatus(locationId: LocationId, hostId: CallerId?): GatherEventStatus? {
+    val check = dao.location.readFeedCheck(locationId, hostId) ?: return null
+    val url = check.eventsUrl ?: return GatherEventStatus.Url
+    check.checkedFeedAt ?: return GatherEventStatus.Unchecked
+    val link = dao.link.readLink(url.normalize()) ?: return GatherEventStatus.Unchecked
+    return when (val outcome = link.parseOutcome) {
+        ParseOutcome.Complete, ParseOutcome.Partial ->
+            GatherEventStatus.Ready(outcome, dao.event.readLatestEvents(locationId))
+        else -> GatherEventStatus.Blocked(link.access, link.content, outcome)
+    }
+}
