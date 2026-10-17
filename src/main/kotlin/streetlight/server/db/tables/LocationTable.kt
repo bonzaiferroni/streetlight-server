@@ -76,14 +76,16 @@ fun LocationTable.joinWith(table: EventTable, additionalConstraint: (() -> Op<Bo
     join(table, JoinType.LEFT, id, table.locationId, additionalConstraint = additionalConstraint)
 
 // Updaters
-fun UpdateBuilder<*>.createLocation(location: Location, starId: CallerId?, slugRecord: SlugRecord) {
+fun UpdateBuilder<*>.createLocation(location: Location, starId: CallerId?, hostId: CallerId?, slugRecord: SlugRecord) {
     this[LocationTable.id] = location.locationId.value
     this[LocationTable.scoutId] = starId?.value
     this[LocationTable.createdAt] = location.createdAt
-    updateLocation(location, slugRecord)
+    updateLocation(location, hostId, slugRecord)
 }
 
-fun UpdateBuilder<*>.updateLocation(location: Location, slugRecord: SlugRecord) {
+/** Writes [location], and [hostId] as its host when given; a `null` host leaves the current one. */
+fun UpdateBuilder<*>.updateLocation(location: Location, hostId: CallerId?, slugRecord: SlugRecord) {
+    hostId?.let { this[LocationTable.hostId] = it.value }
     this[LocationTable.slug] = slugRecord.slug.value
     this[LocationTable.pastSlug] = slugRecord.pastSlug?.value
     this[LocationTable.mapId] = location.mapId

@@ -17,6 +17,7 @@ import koala.PageResource
 import streetlight.model.Api
 import streetlight.model.data.SubdomainConfig
 import streetlight.server.model.ApiScope
+import streetlight.server.model.getIdentity
 import streetlight.server.model.getIdentityOrNull
 import streetlight.server.utils.subdomain
 
@@ -36,7 +37,10 @@ fun ApiScope.serveSubdomains(resource: PageResource) {
 
     authGate {
         postApi(Api.Locations.CheckSubdomain) {
-            call.requireAdminIdentity()
+            val identity = call.getIdentity()
+            if (!identity.isAdmin && !dao.location.isHost(it.data.locationId, identity.callerId)) {
+                return@postApi HttpProblem.NotAuthorized
+            }
             when (val problem = subdomainProblemOrNull(it.data)) {
                 null -> Ok(true)
                 HttpProblem.Conflict -> Ok(false)
@@ -45,8 +49,11 @@ fun ApiScope.serveSubdomains(resource: PageResource) {
         }
 
         postApi(Api.Locations.UpdateSubdomain) {
-            call.requireAdminIdentity()
+            val identity = call.getIdentity()
             val config = it.data
+            if (!identity.isAdmin && !dao.location.isHost(config.locationId, identity.callerId)) {
+                return@postApi HttpProblem.NotAuthorized
+            }
             subdomainProblemOrNull(config)?.let { problem -> return@postApi problem }
             when (val slug = config.slug) {
                 null -> {

@@ -46,7 +46,8 @@ suspend fun DataScope.createLocation(
 
 /**
  * Updates a location in its city when it names one, the city created when new, and logs the edit of a caller. With
- * no caller, only a location without a host is updated. Fails when its image cannot be stored and [isImageRequired];
+ * no caller, only a location without a host is updated; a caller updates one without a host or hosted by them, and
+ * [isAdmin] any. Fails when its image cannot be stored and [isImageRequired];
  * otherwise the location is updated without the image.
  */
 suspend fun DataScope.updateLocation(
@@ -54,12 +55,13 @@ suspend fun DataScope.updateLocation(
     callerId: CallerId?,
     edit: LocationEdit,
     isImageRequired: Boolean = true,
+    isAdmin: Boolean = false,
 ): Outcome<Location> = transaction {
     val cityId = edit.city?.let { readOrCreateCity(it, edit.state) ?: error("city not found: $it") }
     val preparedEdit = prepareLocation(callerId, edit, isImageRequired).toDataOr { return@transaction it }
 
     log("updating location: ${preparedEdit.label}")
-    val location = dao.location.update(locationId, cityId, callerId, preparedEdit)
+    val location = dao.location.update(locationId, cityId, callerId, preparedEdit, isAdmin)
         ?: return@transaction CoreProblem.Something
     callerId?.let { dao.editLog.create(EditType.Update, preparedEdit, locationId, it) }
     Ok(location)

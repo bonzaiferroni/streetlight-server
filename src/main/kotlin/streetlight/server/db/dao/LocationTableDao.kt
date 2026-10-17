@@ -25,6 +25,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.wrapAsExpression
 import org.jetbrains.exposed.v1.jdbc.select
@@ -89,19 +90,23 @@ class LocationTableDao : DbService() {
         cityId: CityId?,
         callerId: CallerId?,
         edit: LocationEdit,
+        isAdmin: Boolean = false,
     ) = dbQuery {
         val slugBase = edit.getSlugBase(locationId)
         val slugRecord = LocationTable.getSlugRecord(locationId, slugBase)
         val location = edit.toLocation(cityId, locationId)
         val isOwnerOrNull = callerId?.let { LocationTable.hostId.isNull() or LocationTable.hostId.eq(it.value) }
             ?: LocationTable.hostId.isNull()
-        LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) and isOwnerOrNull }) {
-            it.updateLocation(location, slugRecord)
+        val mayEdit = if (isAdmin) null else isOwnerOrNull
+        LocationTable.updateReturning(where = { LocationTable.id.eq(locationId) andIfNotNull mayEdit }) {
+            it.updateLocation(location, callerId.takeIf { edit.isHost == true }, slugRecord)
         }.singleOrNull()?.toLocation()
     }
 
-    suspend fun update(config: LocationConfig) = dbQuery {
-        LocationTable.update({ LocationTable.id.eq(config.locationId) }) {
+    /** Updates the config of a location, only one hosted by [hostId] when given. */
+    suspend fun update(config: LocationConfig, hostId: CallerId?) = dbQuery {
+        val hostMatch = hostId?.let { LocationTable.hostId.eq(it) }
+        LocationTable.update({ LocationTable.id.eq(config.locationId) andIfNotNull hostMatch }) {
             it[LocationTable.parseMode] = config.parseMode
             it[LocationTable.design] = config.design
         }
@@ -158,7 +163,9 @@ class LocationTableDao : DbService() {
         val slugBase = edit.getSlugBase(locationId)
         val slug = LocationTable.nextSlugOf(slugBase)
         val location = edit.toLocation(cityId, locationId)
-        LocationTable.insertReturning { it.createLocation(location, callerId, SlugRecord(slug)) }
+        LocationTable.insertReturning {
+            it.createLocation(location, callerId, callerId.takeIf { edit.isHost == true }, SlugRecord(slug))
+        }
             .singleOrNull()?.toLocation()
     }
 
@@ -175,6 +182,17 @@ class LocationTableDao : DbService() {
         LocationTable.selectAll().where {
             queryMatch.andIfNotNull(cityMatch).andIfNotNull(stateMatch)
         }
+            .limit(limit)
+            .map { it.toLocation() }
+    }
+
+    /** The locations whose name holds [name] or whose address holds [address], ignoring case. */
+    suspend fun matchLocations(name: String?, address: String?, limit: Int = 10) = dbQuery {
+        val nameMatch = name?.let { LocationTable.name.lowerCase().like("%${it.lowercase()}%") }
+        val addressMatch = address?.let { LocationTable.address.lowerCase().like("%${it.lowercase()}%") }
+        val condition = listOfNotNull<Op<Boolean>>(nameMatch, addressMatch).reduceOrNull { a, b -> a or b }
+            ?: return@dbQuery emptyList()
+        LocationTable.selectAll().where(condition)
             .limit(limit)
             .map { it.toLocation() }
     }
@@ -252,9 +270,26 @@ class LocationTableDao : DbService() {
             }
     }
 
-    suspend fun readConfigContent(locationId: LocationId) = dbQuery {
+    /** Whether [callerId] hosts the location. */
+    suspend fun isHost(locationId: LocationId, callerId: CallerId) = dbQuery {
+        LocationTable.select(LocationTable.id)
+            .where { LocationTable.id.eq(locationId) and LocationTable.hostId.eq(callerId) }
+            .limit(1)
+            .any()
+    }
+
+    /** The config content of the locations [callerId] hosts, by name. */
+    suspend fun readHostedConfigContents(callerId: CallerId) = dbQuery {
+        locationConfigContentQuery().where { LocationTable.hostId.eq(callerId) }
+            .orderBy(LocationTable.name)
+            .map { it.toLocationConfigContent() }
+    }
+
+    /** The config content of a location, only one hosted by [hostId] when given. */
+    suspend fun readConfigContent(locationId: LocationId, hostId: CallerId?) = dbQuery {
+        val hostMatch = hostId?.let { LocationTable.hostId.eq(it) }
         locationConfigContentQuery().where {
-            LocationTable.id.eq(locationId)
+            LocationTable.id.eq(locationId) andIfNotNull hostMatch
         }.singleOrNull()?.toLocationConfigContent()
     }
 

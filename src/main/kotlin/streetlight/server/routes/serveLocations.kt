@@ -38,6 +38,17 @@ fun ApiScope.serveLocations() {
         }.toOutcome()
     }
 
+    getApi(Api.Locations.Match) { endpoint ->
+        val name = readParam(endpoint.name).trim()
+        val address = readParam(endpoint.address)?.trim()?.takeIf { it.isNotBlank() }
+
+        if (name.isBlank() && address == null) {
+            emptyList()
+        } else {
+            dao.location.matchLocations(name.takeIf { it.isNotBlank() }, address)
+        }.toOutcome()
+    }
+
     getApi(Api.Locations.ReadTop) { endpoint ->
         val count = readParam(endpoint.count)
         dao.location.readTop(count).toOutcome()
@@ -59,10 +70,6 @@ fun ApiScope.serveLocations() {
         //                null -> dao.location.createLocation(starId, edit, imageSet)
         //                else -> dao.location.updateLocation(locationId, starId, edit, imageSet)
         //            }.toResponse()
-
-        postApi(Api.Locations.ParseLocation) {
-            HttpProblem.NotImplemented
-        }
 
         getApi(Api.Locations.ReadContent) {
             val slug = it.data
@@ -95,12 +102,17 @@ fun ApiScope.serveLocations() {
             val edit = request.data
             val locationId = requireNotNull(edit.locationId)
             val identity = call.getIdentity()
-            updateLocation(locationId, identity.callerId, edit)
+            updateLocation(locationId, identity.callerId, edit, isAdmin = identity.isAdmin)
         }
 
         getApi(Api.Locations.ReadHosted) {
             val identity = call.getIdentity()
             dao.location.readHostedLocations(identity.callerId).toOutcome()
+        }
+
+        getApi(Api.Locations.ReadHostedConfigs) {
+            val identity = call.getIdentity()
+            dao.location.readHostedConfigContents(identity.callerId).toOutcome()
         }
 
         getApi(Api.Locations.ReadUpdaterContent) {
@@ -109,8 +121,9 @@ fun ApiScope.serveLocations() {
         }
 
         getApi(Api.Locations.ReadConfigContent, { it.toRecordId() }) {
-            call.requireAdminIdentity()
-            dao.location.readConfigContent(it.data).toOutcome()
+            val hostId = call.getIdentity().hostIdOrNull()
+            dao.location.readConfigContent(it.data, hostId)?.let { content -> Ok(content) }
+                ?: HttpProblem.NotAuthorized
         }
 
         postApi(Api.Locations.ParseEventSchema) {
@@ -118,9 +131,9 @@ fun ApiScope.serveLocations() {
         }
 
         postApi(Api.Locations.UpdateConfig) {
-            call.requireAdminIdentity()
-            if (dao.location.update(it.data) != 1) error("Update not applied")
-            Ok(Unit)
+            val hostId = call.getIdentity().hostIdOrNull()
+            if (dao.location.update(it.data, hostId) == 1) Ok(Unit)
+            else HttpProblem.NotAuthorized
         }
 
         postApi(Api.Locations.UploadSchemas) {
@@ -128,6 +141,9 @@ fun ApiScope.serveLocations() {
         }
     }
 }
+
+/** The caller as the host a location must have, or `null` for an admin, who may act on any location. */
+fun Identity.hostIdOrNull() = callerId.takeUnless { isAdmin }
 
 /** The caller's identity; throws when the caller is not an admin. */
 fun RoutingCall.requireAdminIdentity(): Identity {
