@@ -7,8 +7,8 @@ import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
-import streetlight.model.ui.StarConfigRoute
-import streetlight.model.ui.StarConfigTab
+import streetlight.model.ui.StarDashRoute
+import streetlight.model.ui.StarDashTab
 import streetlight.server.service.onboardSeller
 import streetlight.server.service.readSellerStatus
 import streetlight.server.service.refreshSellerLink
@@ -24,7 +24,7 @@ fun ApiScope.serveSellers() {
 
         get(Api.Sellers.Onboard.Refresh.path) {
             val url = refreshSellerLink(call.getIdentity().starId).toDataOrNull()?.value
-                ?: StarConfigRoute(StarConfigTab.ECommerce).toRelativePath()
+                ?: StarDashRoute(StarDashTab.ECommerce).toRelativePath()
             call.respondRedirect(url)
         }
 

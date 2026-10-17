@@ -11,8 +11,8 @@ import streetlight.model.data.SellerConfiguration
 import streetlight.model.data.SellerOnboarding
 import streetlight.model.data.StarId
 import streetlight.model.data.viableEmail
-import streetlight.model.ui.StarConfigRoute
-import streetlight.model.ui.StarConfigTab
+import streetlight.model.ui.StarDashRoute
+import streetlight.model.ui.StarDashTab
 import streetlight.server.db.dao.tryOutcome
 import streetlight.server.model.DataScope
 import streetlight.server.model.ProviderEvent
@@ -34,7 +34,7 @@ suspend fun DataScope.onboardSeller(starId: StarId, onboarding: SellerOnboarding
 suspend fun DataScope.refreshSellerLink(starId: StarId): Outcome<Url> = tryOutcome {
     val seller = dao.seller.readSeller(starId, client.payment.provider)
         ?: return@tryOutcome Problem("No seller account found.")
-    val returnUrl = "$hostAddress${StarConfigRoute(StarConfigTab.ECommerce).toRelativePath()}"
+    val returnUrl = "$hostAddress${StarDashRoute(StarDashTab.ECommerce).toRelativePath()}"
     val refreshUrl = "$hostAddress${Api.Sellers.Onboard.Refresh.path}"
     Ok(client.payment.createOnboardingLink(seller.providerAccountId, returnUrl, refreshUrl))
 }
