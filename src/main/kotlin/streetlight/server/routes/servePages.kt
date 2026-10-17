@@ -29,7 +29,7 @@ import koala.model.UsernameParse
 import koala.model.UuidParse
 import kotlinx.html.HTML
 import streetlight.model.data.AuthTokenType
-import streetlight.model.data.ConnectType
+import streetlight.model.data.OnboardType
 import streetlight.model.data.FeedType
 import streetlight.model.data.OfferingId
 import kotlin.uuid.Uuid
@@ -63,7 +63,7 @@ fun ApiScope.servePages(resource: PageResource) {
         return when (screen) {
             Screen.Home -> renderHome(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.AboutApp -> renderAboutApp(resource)
-            Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType(), resource)
+            Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType() ?: OnboardType.LocationHost, resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityFeed -> renderCityFeed(resource)
             Screen.GalaxyFeed -> renderGalaxyFeed(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
@@ -208,7 +208,7 @@ suspend fun ApiScope.renderAboutApp(resource: PageResource): HtmlRender {
     }
 }
 
-fun renderConnect(type: ConnectType?, resource: PageResource): HtmlRender {
+fun renderConnect(type: OnboardType, resource: PageResource): HtmlRender {
     return HtmlRender {
         appPage("Connect", Screen.Connect, resource) {
             connectShell(type)
