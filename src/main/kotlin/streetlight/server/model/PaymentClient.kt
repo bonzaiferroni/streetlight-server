@@ -31,8 +31,14 @@ interface PaymentClient {
      */
     suspend fun createOnboardingLink(accountId: String, returnUrl: String, refreshUrl: String): Url
 
-    /** Creates a customer at [email] on the seller account [accountId], tagged with [customerId], and returns its id. */
-    suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress): String
+    /**
+     * Creates a customer, [name] at [email], on the seller account [accountId], tagged with [customerId], and returns
+     * its id.
+     */
+    suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress, name: String?): String
+
+    /** Sets the name of the customer [providerCustomerId] on the seller account [accountId]. */
+    suspend fun updateCustomerName(accountId: String, providerCustomerId: String, name: String)
 
     /** Creates [invoice] on the seller account [accountId], finalizes it and sends it to its customer. */
     suspend fun sendInvoice(accountId: String, invoice: InvoiceRequest): ProviderInvoice

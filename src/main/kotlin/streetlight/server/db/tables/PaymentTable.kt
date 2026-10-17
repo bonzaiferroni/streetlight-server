@@ -15,7 +15,7 @@ import streetlight.model.data.Payment
 import streetlight.model.data.PaymentId
 import streetlight.model.data.PaymentProvider
 import streetlight.model.data.PaymentStatus
-import streetlight.server.model.Customer
+import streetlight.server.model.ProviderCustomer
 import streetlight.server.model.ProviderInvoice
 import streetlight.server.model.Seller
 import kotlin.time.Instant
@@ -59,11 +59,16 @@ fun ResultRow.toPayment() = Payment(
     updatedAt = this[PaymentTable.updatedAt],
 )
 
-/** Writes a payment [seller] requests for [offering] from [customer], awaiting its invoice. */
+/**
+ * Writes a payment [seller] requests for [offering] from [customer], at [priceCents] with Streetlight's [platformCut],
+ * awaiting its invoice.
+ */
 fun UpdateBuilder<*>.createPayment(
     offering: Offering,
     seller: Seller,
-    customer: Customer,
+    customer: ProviderCustomer,
+    priceCents: Int,
+    platformCut: Int,
     now: Instant,
 ) {
     this[PaymentTable.id] = Uuid.random()
@@ -73,9 +78,9 @@ fun UpdateBuilder<*>.createPayment(
     this[PaymentTable.buyerEmail] = customer.email.value
     this[PaymentTable.provider] = seller.provider
     this[PaymentTable.providerAccountId] = seller.providerAccountId
-    this[PaymentTable.amountCents] = offering.priceCents
+    this[PaymentTable.amountCents] = priceCents
     this[PaymentTable.currency] = offering.currency
-    this[PaymentTable.platformFeeCents] = offering.priceCents * offering.platformCut / MAX_PLATFORM_CUT
+    this[PaymentTable.platformFeeCents] = priceCents * platformCut / MAX_PLATFORM_CUT
     this[PaymentTable.paymentStatus] = PaymentStatus.Draft
     this[PaymentTable.fulfillmentStatus] = FulfillmentStatus.Open
     this[PaymentTable.createdAt] = now

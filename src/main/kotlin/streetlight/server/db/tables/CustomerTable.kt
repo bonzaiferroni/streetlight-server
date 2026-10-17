@@ -9,7 +9,8 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import streetlight.model.data.CustomerId
 import streetlight.model.data.PaymentProvider
 import streetlight.model.data.StarId
-import streetlight.server.model.Customer
+import streetlight.model.data.Customer
+import streetlight.server.model.ProviderCustomer
 import streetlight.server.model.Seller
 import kotlin.time.Instant
 
@@ -31,6 +32,13 @@ object CustomerTable: UuidTable("customer") {
 
 fun ResultRow.toCustomer() = Customer(
     customerId = CustomerId(this[CustomerTable.id].value),
+    email = this[CustomerTable.email].toEmailAddress(),
+    name = this[CustomerTable.name],
+    createdAt = this[CustomerTable.createdAt],
+)
+
+fun ResultRow.toProviderCustomer() = ProviderCustomer(
+    customerId = CustomerId(this[CustomerTable.id].value),
     starId = StarId(this[CustomerTable.starId].value),
     provider = this[CustomerTable.provider],
     providerAccountId = this[CustomerTable.providerAccountId],
@@ -39,12 +47,13 @@ fun ResultRow.toCustomer() = Customer(
     name = this[CustomerTable.name],
 )
 
-/** Writes the customer [customerId] of [seller] at [email], known to the provider as [providerCustomerId]. */
+/** Writes the customer [customerId] of [seller], [name] at [email], known to the provider as [providerCustomerId]. */
 fun UpdateBuilder<*>.createCustomer(
     customerId: CustomerId,
     seller: Seller,
     providerCustomerId: String,
     email: EmailAddress,
+    name: String?,
     now: Instant,
 ) {
     this[CustomerTable.id] = customerId.value
@@ -53,6 +62,7 @@ fun UpdateBuilder<*>.createCustomer(
     this[CustomerTable.providerAccountId] = seller.providerAccountId
     this[CustomerTable.providerCustomerId] = providerCustomerId
     this[CustomerTable.email] = email.value
+    this[CustomerTable.name] = name
     this[CustomerTable.createdAt] = now
     this[CustomerTable.updatedAt] = now
 }

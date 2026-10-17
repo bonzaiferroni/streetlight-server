@@ -49,9 +49,18 @@ class TestPaymentClient: PaymentClient {
         return Url("https://connect.stripe.test/setup/$accountId")
     }
 
-    override suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress): String {
+    override suspend fun createCustomer(
+        accountId: String,
+        customerId: CustomerId,
+        email: EmailAddress,
+        name: String?,
+    ): String {
         readAccount(accountId)
         return customers.getOrPut(email) { "cus_test_${customers.size + 1}" }
+    }
+
+    override suspend fun updateCustomerName(accountId: String, providerCustomerId: String, name: String) {
+        readAccount(accountId)
     }
 
     override suspend fun sendInvoice(accountId: String, invoice: InvoiceRequest): ProviderInvoice {

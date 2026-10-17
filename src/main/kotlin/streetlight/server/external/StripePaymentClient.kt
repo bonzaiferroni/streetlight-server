@@ -123,12 +123,24 @@ class StripePaymentClient(env: Environment): PaymentClient {
         return Url(response.readStripe<StripeAccountLink>().url)
     }
 
-    override suspend fun createCustomer(accountId: String, customerId: CustomerId, email: EmailAddress): String {
+    override suspend fun createCustomer(
+        accountId: String,
+        customerId: CustomerId,
+        email: EmailAddress,
+        name: String?,
+    ): String {
         val response = postV1(accountId, "customers", "customer-$customerId") {
             append("email", email.value)
+            name?.let { append("name", it) }
             append("metadata[customerId]", customerId.toString())
         }
         return response.readStripe<StripeCustomer>().id
+    }
+
+    override suspend fun updateCustomerName(accountId: String, providerCustomerId: String, name: String) {
+        postV1(accountId, "customers/$providerCustomerId", "customer-name-$providerCustomerId-$name") {
+            append("name", name)
+        }.readStripe<StripeCustomer>()
     }
 
     override suspend fun sendInvoice(accountId: String, invoice: InvoiceRequest): ProviderInvoice {

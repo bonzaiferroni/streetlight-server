@@ -6,7 +6,7 @@ import streetlight.model.data.PaymentProvider
 import streetlight.model.data.StarId
 
 /** A buyer of [starId]'s, known to the provider as [providerCustomerId] on the seller's account [providerAccountId]. */
-data class Customer(
+data class ProviderCustomer(
     val customerId: CustomerId,
     val starId: StarId,
     val provider: PaymentProvider,
