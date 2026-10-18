@@ -190,12 +190,13 @@ class LocationTableDao : DbService() {
     }
 
     /** The locations whose name holds [name] or whose address holds [address], ignoring case. */
-    suspend fun matchLocations(name: String?, address: String?, limit: Int = 10) = dbQuery {
+    suspend fun matchLocations(name: String?, address: String?, city: String?, limit: Int = 10) = dbQuery {
         val nameMatch = name?.let { LocationTable.name.lowerCase().like("%${it.lowercase()}%") }
         val addressMatch = address?.let { LocationTable.address.lowerCase().like("%${it.lowercase()}%") }
         val condition = listOfNotNull<Op<Boolean>>(nameMatch, addressMatch).reduceOrNull { a, b -> a or b }
             ?: return@dbQuery emptyList()
-        LocationTable.selectAll().where(condition)
+        val cityMatch = city?.let { LocationTable.city.lowerCase().like("%${it.lowercase()}%") }
+        LocationTable.selectAll().where(cityMatch?.let { condition and it } ?: condition)
             .limit(limit)
             .map { it.toLocation() }
     }

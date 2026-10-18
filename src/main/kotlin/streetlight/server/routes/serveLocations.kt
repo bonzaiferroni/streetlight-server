@@ -43,11 +43,12 @@ fun ApiScope.serveLocations() {
     getApi(Api.Locations.Match) { endpoint ->
         val name = readParam(endpoint.name).trim()
         val address = readParam(endpoint.address)?.trim()?.takeIf { it.isNotBlank() }?.expandAddress()
+        val city = readParam(endpoint.city)?.trim()?.takeIf { it.isNotBlank() }
 
         if (name.isBlank() && address == null) {
             emptyList()
         } else {
-            dao.location.matchLocations(name.takeIf { it.isNotBlank() }, address)
+            dao.location.matchLocations(name.takeIf { it.isNotBlank() }, address, city)
         }.toOutcome()
     }
 
