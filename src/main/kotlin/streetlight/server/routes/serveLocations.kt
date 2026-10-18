@@ -15,6 +15,7 @@ import klutch.db.model.Identity
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
+import streetlight.model.utils.expandAddress
 import streetlight.server.model.*
 import klutch.server.authGate
 import streetlight.server.service.createLocation
@@ -41,7 +42,7 @@ fun ApiScope.serveLocations() {
 
     getApi(Api.Locations.Match) { endpoint ->
         val name = readParam(endpoint.name).trim()
-        val address = readParam(endpoint.address)?.trim()?.takeIf { it.isNotBlank() }
+        val address = readParam(endpoint.address)?.trim()?.takeIf { it.isNotBlank() }?.expandAddress()
 
         if (name.isBlank() && address == null) {
             emptyList()

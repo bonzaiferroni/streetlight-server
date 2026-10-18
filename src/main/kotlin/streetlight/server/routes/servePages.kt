@@ -63,7 +63,7 @@ fun ApiScope.servePages(resource: PageResource) {
         return when (screen) {
             Screen.Home -> renderHome(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.AboutApp -> renderAboutApp(resource)
-            Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType() ?: OnboardType.LocationHost, resource)
+            Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType() ?: OnboardType.BusinessOwner, resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityFeed -> renderCityFeed(resource)
             Screen.GalaxyFeed -> renderGalaxyFeed(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
