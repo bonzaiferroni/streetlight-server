@@ -79,7 +79,7 @@ private val KtStyles = listOf(
     TextLabelCss,
     MessageBoxCss,
     SwitchCss,
-    OptionSwitchCss,
+    SwitchMenuCss,
     SideTabsCss,
     SubrouterCss,
     FlowBlockCss,
