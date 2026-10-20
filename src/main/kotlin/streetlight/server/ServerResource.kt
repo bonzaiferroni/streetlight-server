@@ -36,6 +36,7 @@ class ServerResource(mode: BuildMode): PageResource {
 class ServerBundle(mode: BuildMode): JsBundle {
     override val web = jsFileOf("web.js", basePath = mode.bundleBuildPath)
     override val passwordReset = jsFileOf("passwordReset.js", basePath = mode.bundleBuildPath)
+    override val locationApp = jsFileOf("locationApp.js", basePath = mode.bundleBuildPath)
     override val koala = jsFileOf("koala.js", basePath = mode.bundleBuildPath)
 }
 

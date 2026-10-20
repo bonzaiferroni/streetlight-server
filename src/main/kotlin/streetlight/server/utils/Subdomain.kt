@@ -1,6 +1,9 @@
 package streetlight.server.utils
 
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpHeaders
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.uri
+import io.ktor.server.response.respondRedirect
 import io.ktor.http.parametersOf
 import io.ktor.server.request.host
 import io.ktor.server.routing.Route
@@ -20,6 +23,15 @@ class SubdomainSelector(private vararg val roots: String) : RouteSelector() {
             parametersOf("subdomain", label)
         )
     }
+}
+
+/**
+ * Redirects to this request's path and query on the host its subdomain sits under, keeping the port and, through a
+ * scheme-relative address, the scheme.
+ */
+suspend fun ApplicationCall.respondBaseHostRedirect() {
+    val host = request.headers[HttpHeaders.Host] ?: request.host()
+    respondRedirect("//${host.substringAfter('.')}${request.uri}", permanent = false)
 }
 
 /** Routes [build] for hosts one label below one of [roots]. */

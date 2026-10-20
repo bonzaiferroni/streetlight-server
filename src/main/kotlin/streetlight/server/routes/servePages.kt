@@ -85,18 +85,7 @@ fun ApiScope.servePages(resource: PageResource) {
 
     authGate(optional = true) {
         Screen.entries.forEach { screen ->
-
-            val paths = when (val parse = screen.routeParse) {
-                is SlugParse -> listOf("${screen.pathBase}/{${parse.label}?}")
-                is UsernameParse -> listOf("${screen.pathBase}/{${parse.label}?}")
-                is SlugOrNullParse -> listOf("${screen.pathBase}/{${parse.label}?}")
-                is IdParse -> listOf("${screen.pathBase}/{${parse.label}}")
-                is UuidParse -> listOf("${screen.pathBase}/{${parse.label}}")
-                is StaticParse -> listOf(screen.pathBase)
-                is PathParse -> parse.roots.map { "${screen.pathBase}/$it/{id?}" } + screen.pathBase
-            }
-
-            paths.forEach { path ->
+            screen.toRoutePaths().forEach { path ->
                 get(path) {
                     val identity = call.getIdentityOrNull()
                     val arg = when (val parse = screen.routeParse) {
@@ -135,6 +124,17 @@ fun ApiScope.servePages(resource: PageResource) {
 //            eventSignUp(event, SiteStyles)
 //        }
     }
+}
+
+/** The routing paths that reach this screen, with its argument as a path parameter named by its parse. */
+fun AppScreen.toRoutePaths() = when (val parse = routeParse) {
+    is SlugParse -> listOf("$pathBase/{${parse.label}?}")
+    is UsernameParse -> listOf("$pathBase/{${parse.label}?}")
+    is SlugOrNullParse -> listOf("$pathBase/{${parse.label}?}")
+    is IdParse -> listOf("$pathBase/{${parse.label}}")
+    is UuidParse -> listOf("$pathBase/{${parse.label}}")
+    is StaticParse -> listOf(pathBase)
+    is PathParse -> parse.roots.map { "$pathBase/$it/{id?}" } + pathBase
 }
 
 val uploadFolder = File("../upload")

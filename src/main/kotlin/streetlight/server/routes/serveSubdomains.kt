@@ -11,28 +11,60 @@ import kampfire.model.CoreProblem
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
 import kampfire.model.Problem
+import kampfire.model.toOutcome
 import klutch.server.authGate
 import klutch.server.postApi
+import klutch.server.getApi
 import koala.PageResource
 import streetlight.model.Api
 import streetlight.model.data.SubdomainConfig
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
-import streetlight.server.model.getIdentityOrNull
 import streetlight.server.utils.subdomain
+import streetlight.server.service.readLocationContentBySubdomain
+import streetlight.model.ui.LocationAppScreen
+import streetlight.web.page.locationAppPage
+import streetlight.web.shell.locationAppShell
+import streetlight.web.shell.locationAppEventShell
+import streetlight.model.ui.Screen
+import streetlight.server.utils.respondBaseHostRedirect
+import kampfire.api.Slug
 
 fun ApiScope.serveSubdomains(resource: PageResource) {
     authGate(optional = true) {
         subdomain("streetlight.ing", "localhost") {
             get("/") {
                 val slug = call.parameters.getOrFail("subdomain").toSlug()
-                val locationSlug = dao.subdomain.readLocationSlug(slug) ?: return@get call.respond(HttpStatusCode.NotFound)
-                val render = renderLocation(locationSlug.value, call.getIdentityOrNull(), resource) ?: return@get call.respond(HttpStatusCode.NotFound)
+                val render = renderLocationApp(slug, resource) ?: return@get call.respond(HttpStatusCode.NotFound)
                 call.respondHtml {
                     render.block(this)
                 }
             }
+
+            Screen.Event.toRoutePaths().forEach { path ->
+                get(path) {
+                    val slug = call.parameters.getOrFail("subdomain").toSlug()
+                    val eventSlug = call.parameters[Screen.Event.routeParse.label]?.toSlug()
+                        ?: return@get call.respondBaseHostRedirect()
+                    val render = renderLocationAppEvent(slug, eventSlug, resource)
+                        ?: return@get call.respondBaseHostRedirect()
+                    call.respondHtml {
+                        render.block(this)
+                    }
+                }
+            }
+
+            // the base app answers every path the LocationApp does not
+            Screen.entries.filter { it != Screen.Home && it != Screen.Event }.forEach { screen ->
+                screen.toRoutePaths().forEach { path ->
+                    get(path) { call.respondBaseHostRedirect() }
+                }
+            }
         }
+    }
+
+    getApi(Api.Locations.ReadSubdomainContent) {
+        readLocationContentBySubdomain(it.data, null).toOutcome()
     }
 
     authGate {
@@ -76,6 +108,34 @@ private suspend fun ApiScope.subdomainProblemOrNull(config: SubdomainConfig): Pr
         ReservedSubdomain.isReserved(slug.value) -> HttpProblem.Conflict
         !dao.subdomain.isAvailable(slug, config.locationId) -> HttpProblem.Conflict
         else -> null
+    }
+}
+
+/** The home of the LocationApp at the subdomain [slug], or `null` when no location holds it. Its visitors are not signed in. */
+suspend fun ApiScope.renderLocationApp(slug: Slug, resource: PageResource): HtmlRender? {
+    val content = readLocationContentBySubdomain(slug, null) ?: return null
+
+    return HtmlRender {
+        locationAppPage(content.location.name ?: "Location", LocationAppScreen.Home, resource, content.design?.theme) {
+            locationAppShell(content)
+        }
+    }
+}
+
+/**
+ * The event [eventSlug] in the LocationApp at the subdomain [slug], in the location's theme, or `null` when the event
+ * is not at the subdomain's location.
+ */
+suspend fun ApiScope.renderLocationAppEvent(slug: Slug, eventSlug: Slug, resource: PageResource): HtmlRender? {
+    val locationSlug = dao.subdomain.readLocationSlug(slug) ?: return null
+    val event = dao.event.readEventLocationBySlug(eventSlug, null) ?: return null
+    if (event.locationSlug != locationSlug) return null
+    val design = dao.location.readDesign(locationSlug, null)?.design
+
+    return HtmlRender {
+        locationAppPage(event.title, Screen.Event, resource, design?.theme) {
+            locationAppEventShell(event)
+        }
     }
 }
 
