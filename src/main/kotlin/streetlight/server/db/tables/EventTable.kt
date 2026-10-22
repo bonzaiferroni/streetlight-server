@@ -29,7 +29,7 @@ object EventTable : UuidTable("event"), SlugTable, ImageColumnTable {
     val locationSlug = text("location_slug").index().default("")
     val title = text("title")
     val description = text("description").transformMarkdown().nullable()
-    val tags = array<Int>("tags").nullable()
+    val tags = array<String>("tags").nullable()
     val status = enumeration<EventStatus>("status")
     val contact = text("contact").nullable()
     val ageMin = integer("age_min").nullable()
@@ -77,7 +77,7 @@ fun UpdateBuilder<*>.updateEvent(event: Event, slugRecord: SlugRecord) {
     this[EventTable.streamUrl] = event.streamUrl
     this[EventTable.title] = event.title
     this[EventTable.description] = event.description
-    this[EventTable.tags] = event.tags?.map { it.ordinal }
+    this[EventTable.tags] = event.tags?.map { it.name }
     this[EventTable.status] = event.status
     this[EventTable.contact] = event.contact
     this[EventTable.ageMin] = event.ageMin

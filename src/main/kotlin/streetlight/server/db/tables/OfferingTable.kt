@@ -21,7 +21,7 @@ object OfferingTable: UuidTable("offering"), ImageColumnTable {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE).index()
     val title = text("title")
     val description = text("description").transformMarkdown().nullable()
-    val tags = array<Int>("tags").nullable()
+    val tags = array<String>("tags").nullable()
     override val image = image("image").nullable()
     override val imageTarget = ImageTarget.Offering
     val priceCents = integer("price_cents")
@@ -44,7 +44,7 @@ fun ResultRow.toOffering() = Offering(
     platformCut = this[OfferingTable.platformCut],
     isPublic = this[OfferingTable.isPublic],
     description = this[OfferingTable.description],
-    tags = this[OfferingTable.tags]?.map { OfferingTag.entries[it] },
+    tags = this[OfferingTable.tags]?.map { OfferingTag.valueOf(it) },
     image = this[OfferingTable.image],
 )
 
@@ -59,7 +59,7 @@ fun UpdateBuilder<*>.createOffering(starId: StarId, edit: OfferingEdit, currency
 fun UpdateBuilder<*>.updateOffering(edit: OfferingEdit, now: Instant) {
     this[OfferingTable.title] = edit.title ?: error("title not found")
     this[OfferingTable.description] = edit.description
-    this[OfferingTable.tags] = edit.tags.takeIf { it.isNotEmpty() }?.map { it.ordinal }
+    this[OfferingTable.tags] = edit.tags.takeIf { it.isNotEmpty() }?.map { it.name }
     this[OfferingTable.image] = edit.image
     this[OfferingTable.priceCents] = edit.priceCents ?: error("price not found")
     this[OfferingTable.platformCut] = edit.platformCut

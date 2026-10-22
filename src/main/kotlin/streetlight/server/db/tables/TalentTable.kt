@@ -10,7 +10,7 @@ import kotlin.time.Clock
 import streetlight.model.data.Talent
 import streetlight.model.data.TalentId
 import streetlight.model.data.TalentLevel
-import streetlight.model.data.TalentType
+import streetlight.model.data.TalentTag
 import streetlight.server.utils.toRecordId
 
 object TalentTable : UuidTable("talent") {
@@ -19,11 +19,15 @@ object TalentTable : UuidTable("talent") {
     val description = text("description").nullable()
     val imageUrl = text("image_url").nullable()
     val experience = integer("experience")
-    val talentType = enumeration<TalentType>("talent_type")
+    val tags = array<String>("tags").nullable()
     val talentLevel = enumeration<TalentLevel>("talent_level")
     val yearStarted = integer("year_started")
     val updatedAt = timestamp("updated_at")
     val createdAt = timestamp("created_at")
+
+    init {
+        index(null, false, tags, indexType = "GIN")
+    }
 }
 
 fun ResultRow.toTalent() = Talent(
@@ -32,7 +36,7 @@ fun ResultRow.toTalent() = Talent(
     description = this[TalentTable.description],
     imageUrl = this[TalentTable.imageUrl],
     experience = this[TalentTable.experience],
-    talentType = this[TalentTable.talentType],
+    tags = this[TalentTable.tags]?.map { TalentTag.valueOf(it) },
     talentLevel = this[TalentTable.talentLevel],
     yearStarted = this[TalentTable.yearStarted],
     updatedAt = this[TalentTable.updatedAt],
@@ -52,7 +56,7 @@ fun UpdateBuilder<*>.updateTalent(talent: Talent) {
     this[TalentTable.description] = talent.description
     this[TalentTable.imageUrl] = talent.imageUrl
     this[TalentTable.experience] = talent.experience
-    this[TalentTable.talentType] = talent.talentType
+    this[TalentTable.tags] = talent.tags?.takeIf { it.isNotEmpty() }?.map { it.name }
     this[TalentTable.talentLevel] = talent.talentLevel
     this[TalentTable.yearStarted] = talent.yearStarted
     this[TalentTable.updatedAt] = Clock.System.now()

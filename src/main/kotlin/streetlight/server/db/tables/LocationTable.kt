@@ -44,7 +44,7 @@ object LocationTable: UuidTable("location"), SlugTable, ImageColumnTable {
     val mapType = text("map_type").nullable()
     val mapPriority = double("map_priority").nullable()
     val resources = array<Int>("resources")
-    val tags = array<Int>("tags").nullable()
+    val tags = array<String>("tags").nullable()
     val hours = jsonb<HoursSchedule>("hours", jsonbConfig).nullable()
     val parseMode = enumeration<ParseMode>("parse_mode").nullable()
     val design = jsonb<PageDesign>("design", jsonbConfig).nullable()
@@ -100,7 +100,7 @@ fun UpdateBuilder<*>.updateLocation(location: Location, hostId: CallerId?, slugR
     this[LocationTable.mapType] = location.mapType
     this[LocationTable.mapRank] = location.mapRank
     this[LocationTable.resources] = location.resources.map { it.ordinal }
-    this[LocationTable.tags] = location.tags?.map { it.ordinal }
+    this[LocationTable.tags] = location.tags?.map { it.name }
     this[LocationTable.hours] = location.hours
     this[LocationTable.website] = location.url?.value
     this[LocationTable.eventsUrl] = location.eventsUrl?.value

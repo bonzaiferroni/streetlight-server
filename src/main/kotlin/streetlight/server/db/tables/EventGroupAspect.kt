@@ -70,8 +70,10 @@ fun LocationTable.joinWith(aspect: EventGroupAspect, tag: Int? = null, search: S
     join(aspect.nextEventOf(tag, search), JoinType.INNER, lateral = true) { Op.TRUE }
 
 /** Filters events to those carrying the tag of ordinal [tag], or leaves them all without one. */
-fun Query.whereTagged(tag: Int?): Query =
-    tag?.let { andWhere { EventTable.tags.arrayContains(it) } } ?: this
+fun Query.whereTagged(tag: Int?): Query = tag?.let { ordinal ->
+    val name = EventTag.entries.getOrNull(ordinal)?.name
+    andWhere { name?.let { EventTable.tags.arrayContains(it) } ?: Op.FALSE }
+} ?: this
 
 /** A pattern matching text that holds [search] in any case, or `null` without a search. */
 fun containsPatternOf(search: String?): LikePattern? = search?.lowercase()?.let { text ->
@@ -92,7 +94,7 @@ fun ResultRow.toEventGroup() = EventGroup(
     image = this[EventGroupAspect.eventImage] ?: this[LocationTable.image],
     geoPoint = this[LocationTable.geoPoint].toGeoPoint(),
     eventCount = this[LocationTable.eventCount],
-    tag = this[EventGroupAspect.eventTags]?.map { EventTag.entries[it] }?.mostSpecific(),
+    tag = this[EventGroupAspect.eventTags]?.map { EventTag.valueOf(it) }?.mostSpecific(),
     startsAt = this[EventGroupAspect.eventStartsAt],
     mapPriority = this[LocationTable.mapPriority],
 )
