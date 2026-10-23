@@ -65,6 +65,7 @@ fun ApiScope.servePages(resource: PageResource) {
         return when (screen) {
             Screen.Home -> renderHome(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.AboutApp -> renderAboutApp(resource)
+            Screen.Contribute -> renderContribute(resource)
             Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType() ?: OnboardType.BusinessOwner, resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityFeed -> renderCityFeed(resource)
@@ -208,6 +209,14 @@ fun ApiScope.renderNotFound(resource: PageResource): HtmlRender {
 suspend fun ApiScope.renderAboutApp(resource: PageResource): HtmlRender {
     return HtmlRender {
         aboutPage(resource)
+    }
+}
+
+fun renderContribute(resource: PageResource): HtmlRender {
+    return HtmlRender {
+        appPage("Contribute", Screen.Contribute, resource) {
+            contributeShell()
+        }
     }
 }
 
