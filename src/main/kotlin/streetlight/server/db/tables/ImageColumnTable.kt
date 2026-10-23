@@ -15,6 +15,7 @@ interface ImageColumnTable {
 val ImageTarget.sizes get() = when (this) {
     ImageTarget.Event, ImageTarget.Star, ImageTarget.Offering ->
         listOf(ImageSize.Medium, ImageSize.Small, ImageSize.Thumb)
-    ImageTarget.Location, ImageTarget.Galaxy, ImageTarget.City, ImageTarget.Media, ImageTarget.Block ->
+    ImageTarget.Location, ImageTarget.Galaxy, ImageTarget.City, ImageTarget.Media, ImageTarget.Block,
+    ImageTarget.Talent ->
         listOf(ImageSize.Large, ImageSize.Medium, ImageSize.Small, ImageSize.Thumb)
 }

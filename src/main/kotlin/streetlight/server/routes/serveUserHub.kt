@@ -22,6 +22,7 @@ import koala.Image
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import streetlight.server.service.editTalent
 import streetlight.server.service.encodeImageAndStore
 
 fun ApiScope.serveUserHub() {
@@ -38,13 +39,7 @@ fun ApiScope.serveUserHub() {
         }
 
         postApi(Api.Users.EditTalent) {
-            val userId = call.getIdentity().callerId
-            val talentId = it.data.talentId
-            if (talentId != null) {
-                dao.talent.edit(talentId, it.data, userId)
-            } else {
-                dao.talent.create(it.data, userId)
-            }.toOutcome()
+            editTalent(call.getIdentity().callerId, it.data)
         }
 
         postApi(Api.Users.UploadAvatar) {
