@@ -17,7 +17,7 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Event
 import streetlight.model.data.EventStatus
-import streetlight.model.data.ExtraLink
+import koala.model.ExtraLink
 
 object EventTable : UuidTable("event"), SlugTable, ImageColumnTable {
     val hostId = reference("host_id", StarTable, onDelete = ReferenceOption.SET_NULL).nullable().index()

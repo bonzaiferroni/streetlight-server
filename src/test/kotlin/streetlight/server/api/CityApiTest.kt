@@ -5,7 +5,7 @@ import kampfire.model.toUrl
 import streetlight.model.Api
 import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
-import streetlight.model.data.ExtraLink
+import koala.model.ExtraLink
 import streetlight.server.loginStar
 import streetlight.server.registerStar
 import streetlight.server.seedCity

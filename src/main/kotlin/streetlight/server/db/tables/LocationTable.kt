@@ -17,7 +17,7 @@ import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.ExtraLink
+import koala.model.ExtraLink
 import streetlight.model.data.HoursSchedule
 import streetlight.model.data.Location
 import streetlight.model.data.PageDesign

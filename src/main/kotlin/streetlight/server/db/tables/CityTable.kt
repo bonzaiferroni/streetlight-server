@@ -21,7 +21,7 @@ import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.City
 import streetlight.model.data.CityEdit
 import streetlight.model.data.CityId
-import streetlight.model.data.ExtraLink
+import koala.model.ExtraLink
 import streetlight.model.data.StateId
 import kotlin.time.Clock
 import kotlin.uuid.Uuid

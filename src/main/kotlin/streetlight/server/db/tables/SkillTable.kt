@@ -11,6 +11,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
 import org.jetbrains.exposed.v1.json.jsonb
+import koala.model.ExtraLink
 import streetlight.model.data.ImageTarget
 import streetlight.model.data.InterviewQuestion
 import streetlight.model.data.Skill
@@ -28,6 +29,7 @@ object SkillTable : UuidTable("skill"), ImageColumnTable {
     val experience = integer("experience")
     val tags = array<String>("tags").nullable()
     val interview = jsonb<List<InterviewQuestion>>("interview", jsonbConfig).nullable()
+    val links = jsonb<List<ExtraLink>>("links", jsonbConfig).nullable()
     val skillLevel = enumeration<SkillLevel>("skill_level")
     val yearStarted = integer("year_started")
     val updatedAt = timestamp("updated_at")
@@ -46,6 +48,7 @@ fun ResultRow.toSkill() = Skill(
     experience = this[SkillTable.experience],
     tags = this[SkillTable.tags]?.map { SkillTag.valueOf(it) },
     interview = this[SkillTable.interview].orEmpty(),
+    links = this[SkillTable.links],
     skillLevel = this[SkillTable.skillLevel],
     yearStarted = this[SkillTable.yearStarted],
     updatedAt = this[SkillTable.updatedAt],
@@ -67,6 +70,7 @@ fun UpdateBuilder<*>.updateSkill(skill: Skill) {
     this[SkillTable.experience] = skill.experience
     this[SkillTable.tags] = skill.tags?.takeIf { it.isNotEmpty() }?.map { it.name }
     this[SkillTable.interview] = skill.interview.takeIf { it.isNotEmpty() }
+    this[SkillTable.links] = skill.links?.takeIf { it.isNotEmpty() }
     this[SkillTable.skillLevel] = skill.skillLevel
     this[SkillTable.yearStarted] = skill.yearStarted
     this[SkillTable.updatedAt] = Clock.System.now()
