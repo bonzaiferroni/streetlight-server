@@ -62,6 +62,7 @@ suspend fun DaoScope.readFeed(request: FeedRequest, callerId: CallerId?): Entity
         is FeedContext.Location -> readLocationEventFeed(context.locationId, callerId, cursor)
         is FeedContext.Galaxy -> readGalaxyFeed(context.galaxyId, callerId, cursor)
         is FeedContext.Star -> readMediaFeed(context, cursor)
+        is FeedContext.Skill -> readMediaFeed(context, cursor)
         FeedContext.Galaxies -> readGalaxiesFeed(source.type, callerId, cursor)
         FeedContext.Cities -> readCitiesFeed(cursor)
     }
@@ -150,7 +151,8 @@ suspend fun DaoScope.readGalaxyFeed(
 suspend fun DaoScope.readMediaFeed(context: FeedContext, cursor: EntityCursor = EntityCursor.Default): EntityFeed {
     val timeCursor = cursor.timeOr(EntityCursor.Default)
     val username = (context as? FeedContext.Star)?.username
-    val media = dao.media.readNewestMedia(timeCursor, username)
+    val skillId = (context as? FeedContext.Skill)?.skillId
+    val media = dao.media.readNewestMedia(timeCursor, username, skillId)
     val nextCursor = media.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let {
         timeCursor.copy(recordId = it.mediaId.value, recordAt = it.createdAt)
     }

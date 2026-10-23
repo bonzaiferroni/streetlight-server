@@ -10,6 +10,7 @@ import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
 import streetlight.model.Api
+import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.MediaTable
 import streetlight.server.model.ApiScope
 import streetlight.server.model.getIdentity
@@ -20,6 +21,10 @@ fun ApiScope.serveMedia() {
         getApi(Api.Medias.ReadMedia, { it.toSlug() }) {
             val slug = it.data
             Ok(dao.media.readMedia(slug) ?: return@getApi HttpProblem.NotFound)
+        }
+
+        getApi(Api.Medias.ReadSkillIds, { it.toRecordId() }) {
+            Ok(dao.media.readSkillIds(it.data))
         }
     }
 

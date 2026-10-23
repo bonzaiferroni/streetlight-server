@@ -7,6 +7,7 @@ import streetlight.server.service.readGalaxyContent
 import streetlight.server.service.readGalaxyFeedContent
 import streetlight.server.service.readHomeContent
 import streetlight.server.service.readLocationContent
+import streetlight.server.service.readSkillContent
 import streetlight.server.service.readStarContent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.ApplicationCall
@@ -32,6 +33,7 @@ import streetlight.model.data.AuthTokenType
 import streetlight.model.data.OnboardType
 import streetlight.model.data.FeedType
 import streetlight.model.data.OfferingId
+import streetlight.model.data.SkillId
 import kotlin.uuid.Uuid
 import streetlight.server.model.*
 import streetlight.model.ui.Screen
@@ -74,6 +76,7 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.Docs -> renderSiteDoc(arg, resource)
             Screen.Media -> renderMedia(arg, resource)
             Screen.Offering -> renderOffering(arg, caller?.callerId, resource)
+            Screen.SkillProfile -> renderSkill(arg, resource)
             Screen.VerifyEmail -> renderTokenPage(arg, AuthTokenType.EmailVerification, resource)
             Screen.AccountNotOwned -> renderTokenPage(arg, AuthTokenType.AccountNotOwned, resource)
             Screen.PasswordReset -> renderTokenPage(arg, AuthTokenType.PasswordReset, resource)
@@ -289,6 +292,17 @@ suspend fun ApiScope.renderOffering(arg: String?, callerId: CallerId?, resource:
     return HtmlRender {
         appPage(offering.title, Screen.Offering, resource) {
             offeringShell(offering)
+        }
+    }
+}
+
+suspend fun ApiScope.renderSkill(arg: String?, resource: PageResource): HtmlRender? {
+    val skillId = arg?.let { Uuid.parseOrNull(it) }?.let { SkillId(it) } ?: return null
+    val content = readSkillContent(skillId) ?: return null
+
+    return HtmlRender {
+        appPage(content.skill.name, Screen.SkillProfile, resource) {
+            skillShell(content)
         }
     }
 }

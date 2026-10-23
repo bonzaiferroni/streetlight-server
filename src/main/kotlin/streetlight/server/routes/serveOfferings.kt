@@ -3,6 +3,7 @@ package streetlight.server.routes
 import klutch.server.authGate
 import klutch.server.getApi
 import klutch.server.postApi
+import kampfire.model.Ok
 import streetlight.model.Api
 import streetlight.model.data.toRecordId
 import streetlight.server.model.ApiScope
@@ -18,6 +19,9 @@ fun ApiScope.serveOfferings() {
     authGate(optional = true) {
         getApi(Api.Offerings.Read, { it.toRecordId() }) {
             readOffering(it.data, call.getIdentityOrNull()?.callerId)
+        }
+        getApi(Api.Offerings.ReadSkillIds, { it.toRecordId() }) {
+            Ok(dao.offering.readSkillIds(it.data))
         }
     }
 

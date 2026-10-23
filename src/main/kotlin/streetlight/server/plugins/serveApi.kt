@@ -59,6 +59,7 @@ fun Application.serveApi(server: ServerScope) {
             serveMessages()
             serveSellers()
             serveOfferings()
+            serveSkills()
             servePayments()
             serveSystem()
         }

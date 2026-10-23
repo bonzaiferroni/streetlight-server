@@ -26,6 +26,12 @@ import streetlight.server.db.tables.afterCursor
 import streetlight.server.db.tables.createMedia
 import streetlight.server.db.tables.toMedia
 import streetlight.server.db.tables.updateMedia
+import streetlight.server.db.tables.SkillMediaTable
+import streetlight.server.db.tables.linkSkills
+import streetlight.server.db.tables.recordIdsOf
+import streetlight.model.data.SkillId
+import org.jetbrains.exposed.v1.core.inSubQuery
+import streetlight.server.db.tables.readSkillIds
 import kotlin.time.Clock
 
 class MediaTableDao: DbService() {
@@ -34,31 +40,40 @@ class MediaTableDao: DbService() {
         val mediaId = MediaId.random()
         val slug = MediaTable.nextSlugOf(edit.title ?: mediaId.value.toString())
         val media = edit.toMedia(mediaId, slug)
-        MediaTable.insert {
+        val created = MediaTable.insert {
             it.createMedia(media, callerId)
         }.resultedValues?.singleOrNull()?.toMedia()
+        edit.skillIds?.let { if (created != null) SkillMediaTable.linkSkills(mediaId, it, callerId) }
+        created
     }
 
     suspend fun update(edit: MediaEdit, callerId: CallerId) = dbQuery {
         val mediaId = edit.mediaId.requireNotNull { "mediaId missing" }
         val media = edit.toMedia(mediaId)
-        MediaTable.updateReturning(where = { MediaTable.id.eq(mediaId) and MediaTable.starId.eq(callerId) } ) {
+        val updated = MediaTable.updateReturning(where = { MediaTable.id.eq(mediaId) and MediaTable.starId.eq(callerId) } ) {
             it.updateMedia(media)
         }.singleOrNull()?.toMedia()
+        edit.skillIds?.let { if (updated != null) SkillMediaTable.linkSkills(mediaId, it, callerId) }
+        updated
+    }
+
+    suspend fun readSkillIds(mediaId: MediaId) = dbQuery {
+        SkillMediaTable.readSkillIds(mediaId)
     }
 
     suspend fun readMedia(slug: Slug) = dbQuery {
         MediaTable.read { it.slug.eq(slug) }.firstOrNull()?.toMedia()
     }
 
-    /** The page after [cursor] of media newest first, those of [username] alone when given. */
-    suspend fun readNewestMedia(cursor: EntityCursor.Time, username: Username? = null) = dbQuery {
+    /** The page after [cursor] of media newest first, those of [username] or linked to [skillId] alone when given. */
+    suspend fun readNewestMedia(cursor: EntityCursor.Time, username: Username? = null, skillId: SkillId? = null) = dbQuery {
         val after = cursor.recordAt?.let { recordAt ->
             cursor.recordId?.let { afterCursor(MediaTable.createdAt, recordAt, MediaTable.id, it, cursor.direction) }
         }
         val byStar = username?.let { MediaTable.username.eq(it) }
+        val bySkill = skillId?.let { MediaTable.id.inSubQuery(SkillMediaTable.recordIdsOf(it)) }
         MediaTable.selectAll()
-            .where { Op.TRUE andIfNotNull byStar andIfNotNull after }
+            .where { Op.TRUE andIfNotNull byStar andIfNotNull bySkill andIfNotNull after }
             .orderBy(MediaTable.createdAt to SortOrder.DESC, MediaTable.id to SortOrder.DESC)
             .limit(EntityCursor.DefaultLimit)
             .map { it.toMedia() }

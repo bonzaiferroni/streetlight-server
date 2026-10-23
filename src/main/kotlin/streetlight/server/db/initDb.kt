@@ -64,6 +64,8 @@ internal val dbTables = listOf(
     TransitRouteStopTable,
     ImageTable,
     SkillTable,
+    SkillMediaTable,
+    SkillOfferingTable,
     GalaxyTable,
     GalaxyHostTable,
     GalaxyCommentTable,
@@ -139,6 +141,7 @@ private val syncValueTriggers get() = listOf(
     editUsernameSync,
     mediaUsernameSync,
     feedbackUsernameSync,
+    skillUsernameSync,
 )
 
 fun connectDb(url: String, user: String, password: String) = Database.connect(

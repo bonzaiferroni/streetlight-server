@@ -14,6 +14,9 @@ import streetlight.model.data.OfferingEdit
 import streetlight.model.data.OfferingId
 import streetlight.model.data.StarId
 import streetlight.server.db.tables.OfferingTable
+import streetlight.server.db.tables.SkillOfferingTable
+import streetlight.server.db.tables.linkSkills
+import streetlight.server.db.tables.readSkillIds
 import streetlight.server.db.tables.createOffering
 import streetlight.server.db.tables.toOffering
 import streetlight.server.db.tables.updateOffering
@@ -40,15 +43,23 @@ class OfferingTableDao: DbService() {
     }
 
     suspend fun create(starId: StarId, edit: OfferingEdit, currency: String) = dbQuery {
-        OfferingTable.insertReturning { it.createOffering(starId, edit, currency, Clock.System.now()) }
+        val offering = OfferingTable.insertReturning { it.createOffering(starId, edit, currency, Clock.System.now()) }
             .single().toOffering()
+        edit.skillIds?.let { SkillOfferingTable.linkSkills(offering.offeringId, it, starId) }
+        offering
     }
 
     /** Writes [edit] to the offering [offeringId] of [starId], or returns `null` when [starId] has no such offering. */
     suspend fun update(starId: StarId, offeringId: OfferingId, edit: OfferingEdit) = dbQuery {
-        OfferingTable.updateReturning(where = {
+        val offering = OfferingTable.updateReturning(where = {
             OfferingTable.id.eq(offeringId) and OfferingTable.starId.eq(starId)
         }) { it.updateOffering(edit, Clock.System.now()) }
             .singleOrNull()?.toOffering()
+        if (offering != null) edit.skillIds?.let { SkillOfferingTable.linkSkills(offeringId, it, starId) }
+        offering
+    }
+
+    suspend fun readSkillIds(offeringId: OfferingId) = dbQuery {
+        SkillOfferingTable.readSkillIds(offeringId)
     }
 }

@@ -11,6 +11,8 @@ import streetlight.model.data.EventUpdaterContent
 import streetlight.model.data.FeedContext
 import streetlight.model.data.LocationContent
 import streetlight.model.data.LocationUpdaterContent
+import streetlight.model.data.SkillContent
+import streetlight.model.data.SkillId
 import streetlight.model.data.StarContent
 import streetlight.web.model.SiteDocTable
 import streetlight.web.model.SiteDocTree
@@ -61,6 +63,15 @@ suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): Sta
         feed = readMediaFeed(FeedContext.Star(username)),
         skills = dao.skill.readStarSkills(username),
         isCaller = caller?.username == star.username
+    )
+}
+
+/** The page content of the skill [skillId]: the skill and the first page of media linked to it. */
+suspend fun DaoScope.readSkillContent(skillId: SkillId): SkillContent? {
+    val skill = dao.skill.readSkill(skillId) ?: return null
+    return SkillContent(
+        skill = skill,
+        feed = readMediaFeed(FeedContext.Skill(skillId)),
     )
 }
 

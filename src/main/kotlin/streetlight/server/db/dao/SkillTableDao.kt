@@ -54,6 +54,7 @@ class SkillTableDao : DbService() {
         val id: SkillId = SkillTable.insertAndGetId {
             it.createSkill(Skill(
                 skillId = SkillId.random(),
+                username = null,
                 name = skill.name,
                 description = skill.description,
                 image = skill.image,
@@ -74,6 +75,7 @@ class SkillTableDao : DbService() {
         val updatedRows = SkillTable.update(where = { SkillTable.id.eq(skillId) and SkillTable.starId.eq(callerId) }) {
             it.updateSkill(Skill(
                 skillId = skillId,
+                username = null,
                 name = skill.name,
                 description = skill.description,
                 image = skill.image,

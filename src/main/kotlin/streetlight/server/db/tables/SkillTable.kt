@@ -1,5 +1,7 @@
 package streetlight.server.db.tables
 
+import kampfire.api.toUsername
+import klutch.db.SyncValueTrigger
 import klutch.db.image
 import klutch.db.jsonbConfig
 import klutch.db.model.CallerId
@@ -22,6 +24,7 @@ import streetlight.server.utils.toRecordId
 
 object SkillTable : UuidTable("skill"), ImageColumnTable {
     val starId = reference("star_id", StarTable, ReferenceOption.CASCADE)
+    val username = text("username").nullable()
     val name = text("name")
     val description = text("description").transformMarkdown().nullable()
     override val image = image("image").nullable()
@@ -40,8 +43,11 @@ object SkillTable : UuidTable("skill"), ImageColumnTable {
     }
 }
 
+val skillUsernameSync = SyncValueTrigger(SkillTable.starId, SkillTable.username, StarTable, StarTable.username)
+
 fun ResultRow.toSkill() = Skill(
     skillId = toRecordId<SkillId>(SkillTable.id),
+    username = this[SkillTable.username]?.toUsername(),
     name = this[SkillTable.name],
     description = this[SkillTable.description],
     image = this[SkillTable.image],
