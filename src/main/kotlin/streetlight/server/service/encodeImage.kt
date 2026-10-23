@@ -17,7 +17,9 @@ import streetlight.model.data.ImageFormat
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 import java.time.Duration
 import kotlin.math.roundToInt
 
@@ -25,6 +27,12 @@ private val logger = KotlinLogging.logger(::encodeImage)
 
 private const val WEBP_QUALITY = 75
 private const val WEBP_EFFORT = 6
+
+/** The most bytes of an image the server takes in, by upload or download. */
+const val MAX_IMAGE_BYTES = 16 * 1024 * 1024
+/** The most pixels a frame may hold, and the most across all of an animation's frames, before it is decoded. */
+const val MAX_FRAME_PIXELS = 40_000_000L
+const val MAX_TOTAL_PIXELS = 150_000_000L
 
 @Suppress("ArrayInDataClass")
 data class ImageEncoding(
@@ -46,6 +54,12 @@ fun encodeImage(
     val format = FormatDetector.detect(bytes.inputStream()).orElse(null) ?: return ImageProblem.InvalidFormat
 
     if (format == Format.WEBP && bytes.isAnimatedWebp()) return ImageProblem.AnimatedWebp
+    if (bytes.size > MAX_IMAGE_BYTES) return ImageProblem.TooLarge
+
+    val dimensions = headerDimensionsOf(bytes, format) ?: return ImageProblem.InvalidFormat
+    if (dimensions.framePixels > MAX_FRAME_PIXELS || dimensions.totalPixels > MAX_TOTAL_PIXELS) {
+        return ImageProblem.TooLarge
+    }
 
     return if (format == Format.GIF) {
         resizeAnimatedImage(format, bytes, sizes)
@@ -201,4 +215,44 @@ private fun Format.toImageFormat() = when(this) {
     Format.GIF -> ImageFormat.GIF
     Format.JPEG -> ImageFormat.JPEG
     Format.WEBP -> ImageFormat.WEBP
+}
+
+/** The size an image declares in its header: [width] by [height], over [frames] frames. */
+private data class HeaderDimensions(val width: Int, val height: Int, val frames: Int) {
+    val framePixels get() = width.toLong() * height
+    val totalPixels get() = framePixels * frames
+}
+
+/** The dimensions [bytes] declares, read from the header without decoding any pixels, or `null` when unreadable. */
+private fun headerDimensionsOf(bytes: ByteArray, format: Format): HeaderDimensions? =
+    if (format == Format.WEBP) webpDimensionsOf(bytes) else runCatching {
+        ImageIO.createImageInputStream(ByteArrayInputStream(bytes)).use { stream ->
+            val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return@use null
+            try {
+                reader.setInput(stream, false, true)
+                val frames = if (format == Format.GIF) reader.getNumImages(true) else 1
+                HeaderDimensions(reader.getWidth(0), reader.getHeight(0), frames)
+            } finally {
+                reader.dispose()
+            }
+        }
+    }.getOrNull()
+
+/** The canvas of a still WebP from its VP8, VP8L or VP8X chunk header. */
+private fun webpDimensionsOf(bytes: ByteArray): HeaderDimensions? {
+    if (bytes.size < 30) return null
+    fun u8(i: Int) = bytes[i].toInt() and 0xff
+    return when (bytes.decodeToString(12, 16)) {
+        "VP8X" -> HeaderDimensions(
+            1 + (u8(24) or (u8(25) shl 8) or (u8(26) shl 16)),
+            1 + (u8(27) or (u8(28) shl 8) or (u8(29) shl 16)),
+            1,
+        )
+        "VP8 " -> HeaderDimensions((u8(26) or (u8(27) shl 8)) and 0x3fff, (u8(28) or (u8(29) shl 8)) and 0x3fff, 1)
+        "VP8L" -> {
+            val bits = u8(21) or (u8(22) shl 8) or (u8(23) shl 16) or (u8(24) shl 24)
+            HeaderDimensions(1 + (bits and 0x3fff), 1 + ((bits shr 14) and 0x3fff), 1)
+        }
+        else -> null
+    }
 }

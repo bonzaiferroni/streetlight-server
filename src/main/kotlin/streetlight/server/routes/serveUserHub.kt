@@ -20,6 +20,8 @@ import klutch.server.getApi
 import klutch.server.postApi
 import koala.Image
 import kotlinx.io.readByteArray
+import streetlight.server.service.ImageProblem
+import streetlight.server.service.MAX_IMAGE_BYTES
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import streetlight.server.service.editSkill
@@ -62,13 +64,14 @@ fun ApiScope.serveUserHub() {
                         "metadata" -> meta = Json.decodeFromString(part.value)
                         "target" -> target = ImageTarget.valueOf(part.value)
                     }
-                    is PartData.FileItem -> bytes = part.provider().readRemaining().readByteArray()
+                    is PartData.FileItem -> bytes = part.provider().readRemaining(MAX_IMAGE_BYTES + 1L).readByteArray()
                     else -> {}
                 }
                 part.release()
             }
 
             apiResponse {
+                if ((bytes?.size ?: 0) > MAX_IMAGE_BYTES) return@apiResponse ImageProblem.TooLarge
                 val image = encodeImageAndStore(
                     bytes = bytes ?: error("bytes not found"),
                     callerId = userId,
