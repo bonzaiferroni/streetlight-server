@@ -22,7 +22,7 @@ import koala.Image
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import streetlight.server.service.editTalent
+import streetlight.server.service.editSkill
 import streetlight.server.service.encodeImageAndStore
 
 fun ApiScope.serveUserHub() {
@@ -33,13 +33,13 @@ fun ApiScope.serveUserHub() {
 //            app.dao.userFile.readUserFiles(userId, 100).map { it.url }
         }
 
-        getApi(Api.Users.Talents) { _ ->
+        getApi(Api.Users.Skills) { _ ->
             val userId = call.getIdentity().callerId
-            dao.talent.readUserTalents(userId).toOutcome()
+            dao.skill.readUserSkills(userId).toOutcome()
         }
 
-        postApi(Api.Users.EditTalent) {
-            editTalent(call.getIdentity().callerId, it.data)
+        postApi(Api.Users.EditSkill) {
+            editSkill(call.getIdentity().callerId, it.data)
         }
 
         postApi(Api.Users.UploadAvatar) {

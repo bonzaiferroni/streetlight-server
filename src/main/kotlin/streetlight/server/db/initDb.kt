@@ -63,7 +63,7 @@ internal val dbTables = listOf(
     TransitStopTable,
     TransitRouteStopTable,
     ImageTable,
-    TalentTable,
+    SkillTable,
     GalaxyTable,
     GalaxyHostTable,
     GalaxyCommentTable,

@@ -38,7 +38,7 @@ class DaoFacade(
     val event: EventTableDao = EventTableDao(),
     val rendition: RenditionTableDao = RenditionTableDao(),
     val spark: SparkTableDao = SparkTableDao(),
-    val talent: TalentTableDao = TalentTableDao(),
+    val skill: SkillTableDao = SkillTableDao(),
     val request: RequestTableDao = RequestTableDao(),
     val guest: GuestTableDao = GuestTableDao(),
     val transitRoute: TransitRouteTableDao = TransitRouteTableDao(),

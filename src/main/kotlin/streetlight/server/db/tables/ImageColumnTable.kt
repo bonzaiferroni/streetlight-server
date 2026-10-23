@@ -16,6 +16,6 @@ val ImageTarget.sizes get() = when (this) {
     ImageTarget.Event, ImageTarget.Star, ImageTarget.Offering ->
         listOf(ImageSize.Medium, ImageSize.Small, ImageSize.Thumb)
     ImageTarget.Location, ImageTarget.Galaxy, ImageTarget.City, ImageTarget.Media, ImageTarget.Block,
-    ImageTarget.Talent ->
+    ImageTarget.Skill ->
         listOf(ImageSize.Large, ImageSize.Medium, ImageSize.Small, ImageSize.Thumb)
 }
