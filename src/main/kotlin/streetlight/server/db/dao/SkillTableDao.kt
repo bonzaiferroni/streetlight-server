@@ -1,5 +1,6 @@
 package streetlight.server.db.dao
 
+import kampfire.api.Username
 import klutch.db.DbService
 import klutch.db.model.CallerId
 import klutch.db.read
@@ -7,6 +8,7 @@ import klutch.utils.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
@@ -15,6 +17,7 @@ import streetlight.model.data.Skill
 import streetlight.model.data.SkillId
 import streetlight.model.data.toRecordId
 import streetlight.server.db.tables.SkillTable
+import streetlight.server.db.tables.StarTable
 import streetlight.server.db.tables.toSkill
 import streetlight.server.db.tables.createSkill
 import streetlight.server.db.tables.updateSkill
@@ -32,6 +35,13 @@ class SkillTableDao : DbService() {
 
     suspend fun readUserSkills(callerId: CallerId) = dbQuery {
         SkillTable.read { it.starId.eq(callerId) }.map { it.toSkill() }
+    }
+
+    /** The skills of the star [username]. */
+    suspend fun readStarSkills(username: Username) = dbQuery {
+        SkillTable.innerJoin(StarTable).select(SkillTable.columns)
+            .where { StarTable.username.eq(username) }
+            .map { it.toSkill() }
     }
 
     suspend fun create(skill: Skill, callerId: CallerId): SkillId = dbQuery {

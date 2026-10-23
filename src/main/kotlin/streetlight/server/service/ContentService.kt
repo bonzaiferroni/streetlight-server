@@ -59,6 +59,7 @@ suspend fun DaoScope.readStarContent(username: Username, caller: Identity?): Sta
     return StarContent(
         star = star,
         feed = readMediaFeed(FeedContext.Star(username)),
+        skills = dao.skill.readStarSkills(username),
         isCaller = caller?.username == star.username
     )
 }
