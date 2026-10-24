@@ -34,6 +34,7 @@ import streetlight.server.service.changePasswordFromSession
 import streetlight.server.service.redeemAccountLockdown
 import streetlight.server.service.redeemAccountNotOwned
 import streetlight.server.service.redeemPasswordReset
+import streetlight.server.service.changeEmail
 import streetlight.server.service.requestEmailVerification
 import streetlight.server.service.requestPasswordReset
 import streetlight.server.model.ApiScope
@@ -79,9 +80,7 @@ fun ApiScope.serveAccountActions() {
             }
 
             postApi(Api.AccountAction.ChangeEmail) {
-                val email = it.data.newEmail
-                val starId = call.getIdentity().starId
-                requestEmailVerification(starId, email)
+                changeEmail(call.getIdentity().starId, it.data)
             }
         }
 
