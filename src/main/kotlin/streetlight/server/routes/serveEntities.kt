@@ -5,7 +5,7 @@ import kampfire.model.toOutcome
 import klutch.server.*
 import streetlight.model.Api
 import streetlight.model.data.Entity
-import streetlight.model.data.EntityType
+import streetlight.model.data.PostType
 import streetlight.server.model.*
 
 fun ApiScope.serveEntities() {
@@ -15,9 +15,9 @@ fun ApiScope.serveEntities() {
             val slug = readParam(endpoint.slug).toSlug()
             val callerId = call.getIdentityOrNull()?.callerId
             val entity: Entity? = when (type) {
-                EntityType.Location -> dao.location.readLocation(slug, callerId)
-                EntityType.Media -> dao.media.readMedia(slug)
-                EntityType.Event -> dao.event.readEventLocationBySlug(slug, callerId)
+                PostType.Location -> dao.location.readLocation(slug, callerId)
+                PostType.Media -> dao.media.readMedia(slug)
+                PostType.Event -> dao.event.readEventLocationBySlug(slug, callerId)
             }
             entity.toOutcome()
         }
