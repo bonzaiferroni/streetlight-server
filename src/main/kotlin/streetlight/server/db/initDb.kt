@@ -121,6 +121,7 @@ private val counterTriggers get() = listOf(
     eventStarCountTrigger,
     postStarCountTrigger,
     locationStarCountTrigger,
+    starSkillCountTrigger,
 )
 
 private val syncValueTriggers get() = listOf(

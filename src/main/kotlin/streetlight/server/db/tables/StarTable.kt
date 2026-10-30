@@ -40,6 +40,7 @@ object StarTable: UuidTable("star"), ImageColumnTable {
     val accountType = enumeration<AccountType>("account_type")
     val emailStatus = enumeration<EmailStatus>("email_status").nullable()
     val scoutLevel = integer("scout_level").default(0)
+    val skillCount = integer("skill_count").default(0)
     val stripeId = text("stripe_id").nullable()
     val venmoId = text("venmo_id").nullable()
     val paypalId = text("paypal_id").nullable()

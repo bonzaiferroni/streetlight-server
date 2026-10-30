@@ -11,7 +11,7 @@ object StarQuery {
     val columns = listOf(
         StarTable.username, StarTable.roles, StarTable.accountType, StarTable.name, StarTable.identityVisibility,
         StarTable.image, StarTable.tagline, StarTable.description,
-        StarTable.scoutLevel, StarTable.createdAt,
+        StarTable.scoutLevel, StarTable.skillCount, StarTable.createdAt,
     )
 
     fun getColumns(withDesign: Boolean) = if (withDesign) columns + StarTable.design else columns
@@ -29,6 +29,7 @@ fun ResultRow.toStar() = Star(
     description = this[StarTable.description]?.toMarkdown(),
 
     scoutLevel = this[StarTable.scoutLevel],
+    skillCount = this[StarTable.skillCount],
     createdAt = this[StarTable.createdAt],
 )
 

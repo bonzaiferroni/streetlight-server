@@ -23,6 +23,14 @@ import streetlight.server.db.tables.toAccount
 import streetlight.server.db.tables.toStar
 import streetlight.server.db.tables.updateStar
 import streetlight.server.utils.toRecordId
+import kampfire.model.AccountType
+import org.jetbrains.exposed.v1.core.andIfNotNull
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.or
+import streetlight.model.data.EntityCursor
+import streetlight.server.db.tables.afterCursor
+import streetlight.server.db.tables.containsPatternOf
 import kotlin.let
 
 class StarTableDao: DbService() {
@@ -74,6 +82,21 @@ class StarTableDao: DbService() {
             .firstOrNull()
     }
 
+    /**
+     * The page at [cursor] of every registered star by joining, newest first, holding its search, each paired with its
+     * id for the next cursor.
+     */
+    suspend fun readNewStars(cursor: EntityCursor.Time) = dbQuery {
+        val after = cursor.recordAt?.let { recordAt ->
+            cursor.recordId?.let { afterCursor(StarTable.createdAt, recordAt, StarTable.id, it, cursor.direction) }
+        }
+        StarTable.select(StarQuery.columns + StarTable.id)
+            .where { StarTable.accountType.eq(AccountType.Registered) andIfNotNull after andIfNotNull starHolds(cursor.search) }
+            .orderBy(StarTable.createdAt to cursor.direction.toSortOrder(), StarTable.id to cursor.direction.toSortOrder())
+            .limit(EntityCursor.DefaultLimit)
+            .map { it[StarTable.id].value to it.toStar() }
+    }
+
     suspend fun readIdByUsername(username: Username): StarId? = dbQuery {
         StarTable.select(StarTable.id)
             .where { StarTable.username.eq(username) }
@@ -112,4 +135,9 @@ class StarTableDao: DbService() {
             StarTable.id.eq(starId)
         }.singleOrNull()?.let { it[StarTable.passwordHash]?.let { value -> PasswordHash(value) } }
     }
+}
+
+/** The condition that a star's username or tagline holds [search], or `null` without a search. */
+private fun starHolds(search: String?) = containsPatternOf(search)?.let { pattern ->
+    StarTable.username.lowerCase().like(pattern) or StarTable.tagline.lowerCase().like(pattern)
 }

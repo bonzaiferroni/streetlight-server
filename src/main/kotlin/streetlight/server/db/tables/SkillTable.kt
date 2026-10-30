@@ -1,6 +1,7 @@
 package streetlight.server.db.tables
 
 import kampfire.api.toUsername
+import klutch.db.CounterTrigger
 import klutch.db.SyncValueTrigger
 import klutch.db.image
 import klutch.db.jsonbConfig
@@ -44,6 +45,7 @@ object SkillTable : UuidTable("skill"), ImageColumnTable {
 }
 
 val skillUsernameSync = SyncValueTrigger(SkillTable.starId, SkillTable.username, StarTable, StarTable.username)
+val starSkillCountTrigger = CounterTrigger(StarTable, SkillTable, SkillTable.starId, StarTable.skillCount)
 
 fun ResultRow.toSkill() = Skill(
     skillId = toRecordId<SkillId>(SkillTable.id),

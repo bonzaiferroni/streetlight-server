@@ -9,6 +9,7 @@ import streetlight.server.service.readHomeContent
 import streetlight.server.service.readLocationContent
 import streetlight.server.service.readSkillContent
 import streetlight.server.service.readStarContent
+import streetlight.server.service.readStarFeedContent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml
@@ -69,6 +70,7 @@ fun ApiScope.servePages(resource: PageResource) {
             Screen.Connect -> renderConnect(call.request.queryParameters.readConnectType() ?: OnboardType.BusinessOwner, resource)
             Screen.Location -> renderLocation(arg, caller, resource)
             Screen.CityFeed -> renderCityFeed(resource)
+            Screen.StarFeed -> renderStarFeed(resource)
             Screen.GalaxyFeed -> renderGalaxyFeed(caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.City -> renderCity(arg, caller?.callerId, call.request.queryParameters.readFeedType(), resource)
             Screen.Galaxy -> renderGalaxy(arg, caller?.callerId, resource)
@@ -173,6 +175,16 @@ suspend fun ApiScope.renderCityFeed(resource: PageResource): HtmlRender {
     return HtmlRender {
         appPage("Cities", Screen.CityFeed, resource) {
             cityFeedShell(content)
+        }
+    }
+}
+
+suspend fun ApiScope.renderStarFeed(resource: PageResource): HtmlRender {
+    val content = readStarFeedContent()
+
+    return HtmlRender {
+        appPage("Stars", Screen.StarFeed, resource) {
+            starFeedShell(content)
         }
     }
 }

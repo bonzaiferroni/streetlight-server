@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import streetlight.server.service.readCityFeedContent
+import streetlight.server.service.readStarFeedContent
 import streetlight.server.service.readGalaxyFeedContent
 import streetlight.server.service.readHomeContent
 import kampfire.model.Ok
@@ -22,6 +23,10 @@ fun ApiScope.serveContent() {
 
         getApi(Api.Content.CityFeed) {
             readCityFeedContent().toOutcome()
+        }
+
+        getApi(Api.Content.StarFeed) {
+            readStarFeedContent().toOutcome()
         }
 
         getApi(Api.Content.GalaxyFeed) { endpoint ->

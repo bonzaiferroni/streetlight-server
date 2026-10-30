@@ -7,6 +7,7 @@ import klutch.db.model.CallerId
 import streetlight.model.data.CityContent
 import streetlight.model.data.CityId
 import streetlight.model.data.CityFeedContent
+import streetlight.model.data.StarFeedContent
 import streetlight.model.data.GalaxyFeedContent
 import streetlight.model.data.EntityFeed
 import streetlight.model.data.FeedContext
@@ -65,6 +66,7 @@ suspend fun DaoScope.readFeed(request: FeedRequest, callerId: CallerId?): Entity
         is FeedContext.Skill -> readMediaFeed(context, cursor)
         FeedContext.Galaxies -> readGalaxiesFeed(source.type, callerId, cursor)
         FeedContext.Cities -> readCitiesFeed(cursor)
+        FeedContext.Stars -> readStarsFeed(cursor)
     }
 }
 
@@ -120,6 +122,22 @@ suspend fun DaoScope.readCitiesFeed(cursor: EntityCursor? = null): EntityFeed {
     return pagedFeedOf(cities, FeedSource(FeedContext.Cities, FeedType.Cities)) {
         nameCursor.copy(recordId = it.cityId.value, name = it.name.lowercase())
     }
+}
+
+/** The star feed with the first page of its stars. */
+suspend fun DaoScope.readStarFeedContent(): StarFeedContent = StarFeedContent(readStarsFeed())
+
+/**
+ * The page at [cursor] of every registered star, newest first, each with its skill count. A cursor of another kind
+ * starts the first page, keeping its search.
+ */
+suspend fun DaoScope.readStarsFeed(cursor: EntityCursor? = null): EntityFeed {
+    val timeCursor = cursor as? EntityCursor.Time ?: EntityCursor.Default.copy(search = cursor?.search)
+    val stars = dao.star.readNewStars(timeCursor)
+    val next = stars.takeIf { it.size >= EntityCursor.DefaultLimit }?.last()?.let { (starId, star) ->
+        timeCursor.copy(recordId = starId, recordAt = star.createdAt)
+    }
+    return EntityFeed(stars.map { it.second }, nextCursor = next, source = FeedSource(FeedContext.Stars, FeedType.Stars))
 }
 
 /** A feed of [entities] from [source], continuing after the last with [nextCursor] when they fill a page. */
