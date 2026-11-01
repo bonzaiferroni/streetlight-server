@@ -2,6 +2,8 @@ package streetlight.server
 
 import streetlight.server.model.ImageClient
 import streetlight.server.model.TestImageClient
+import streetlight.server.model.AudioClient
+import streetlight.server.model.TestAudioClient
 import kabinet.utils.Environment
 import kampfire.api.EmailAddress
 import klutch.db.services.SessionService
@@ -50,6 +52,7 @@ fun buildTestServer(
     emailClient: (EmailRouter) -> EmailClient = { TestEmailClient(it) },
     paymentClient: PaymentClient = TestPaymentClient(),
     imageClient: ImageClient = TestImageClient(),
+    audioClient: AudioClient = TestAudioClient(),
 ): TestServer {
     val koin = koinApplication {
         modules(module {
@@ -63,7 +66,8 @@ fun buildTestServer(
             single { emailClient(emailRouter) }
             single { paymentClient }
             single { imageClient }
-            single { ClientFacade(get(), get(), get(), get(), get()) }
+            single { audioClient }
+            single { ClientFacade(get(), get(), get(), get(), get(), get()) }
             single { StarSessionDao() } bind SessionService::class
             single { Authorizer(get()) }
             single { ConnectionService() }

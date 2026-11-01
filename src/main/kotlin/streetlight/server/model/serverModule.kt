@@ -20,6 +20,7 @@ import streetlight.server.db.dao.StarSessionDao
 import streetlight.server.external.OSMMapReferenceClient
 import streetlight.server.external.PostmarkEmailClient
 import streetlight.server.external.HttpImageClient
+import streetlight.server.external.FfmpegAudioClient
 import streetlight.server.external.StripePaymentClient
 
 /** The server's services, one of each. */
@@ -34,7 +35,8 @@ val serverModule = module {
     single { PostmarkEmailClient(get()) } bind EmailClient::class
     single { StripePaymentClient(get()) } bind PaymentClient::class
     single { HttpImageClient() } bind ImageClient::class
-    single { ClientFacade(get(), get(), get(), get(), get()) }
+    single { FfmpegAudioClient() } bind AudioClient::class
+    single { ClientFacade(get(), get(), get(), get(), get(), get()) }
 
     // services
     single { StarSessionDao() } bind SessionService::class

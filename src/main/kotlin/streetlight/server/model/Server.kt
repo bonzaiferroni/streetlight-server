@@ -45,6 +45,7 @@ class DaoFacade(
     val city: CityTableDao = CityTableDao(),
     val transitStop: TransitStopTableDao = TransitStopTableDao(),
     val image: ImageTableDao = ImageTableDao(),
+    val audio: AudioTableDao = AudioTableDao(),
     val talk: CommentTableDao = CommentTableDao(),
     val omni: OmniTableDao = OmniTableDao(),
     val light: LightTableDao = LightTableDao(),
@@ -76,6 +77,7 @@ class ClientFacade(
     val postmark: EmailClient,
     val payment: PaymentClient,
     val image: ImageClient,
+    val audio: AudioClient,
 )
 
 /** The site's own email addresses. */

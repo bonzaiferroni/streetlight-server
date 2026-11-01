@@ -21,6 +21,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import streetlight.model.data.Media
+import streetlight.model.data.MediaMeta
 import streetlight.model.data.MediaType
 import streetlight.model.data.PageDesign
 import streetlight.model.data.StarId
@@ -34,7 +35,8 @@ object MediaTable: UuidTable("media"), SlugTable, ImageColumnTable {
     val title = text("title").nullable()
     val subtitle = text("subtitle").nullable()
     val text = text("text").transformMarkdown().nullable()
-    val link = url("link").nullable()
+    val url = url("url").nullable()
+    val meta = jsonb<MediaMeta>("meta", jsonbConfig).nullable()
     val geoPoint = point("geo_point").nullable()
     override val image = image("image").nullable()
     override val imageTarget = ImageTarget.Media
@@ -60,7 +62,8 @@ fun UpdateBuilder<*>.updateMedia(media: Media) {
     this[MediaTable.subtitle] = media.subtitle
     this[MediaTable.username] = media.username
     this[MediaTable.text] = media.text
-    this[MediaTable.link] = media.link
+    this[MediaTable.url] = media.url
+    this[MediaTable.meta] = media.meta
     this[MediaTable.geoPoint] = media.geoPoint?.toPGpoint()
     this[MediaTable.image] = media.image
     this[MediaTable.design] = media.design

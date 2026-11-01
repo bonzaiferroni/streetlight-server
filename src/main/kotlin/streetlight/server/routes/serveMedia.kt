@@ -1,6 +1,7 @@
 package streetlight.server.routes
 
 import streetlight.server.service.checkImageAndStore
+import streetlight.server.service.checkMediaAudio
 import kampfire.api.toSlug
 import kampfire.model.HttpProblem
 import kampfire.model.Ok
@@ -35,8 +36,10 @@ fun ApiScope.serveMedia() {
 
             val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable)
                 .toDataOr { return@postApi it }
+            val checked = checkMediaAudio(identity.callerId, edit.copy(image = image))
+                .toDataOr { return@postApi it }
 
-            dao.media.create(edit.copy(image = image), identity.callerId).toOutcome()
+            dao.media.create(checked, identity.callerId).toOutcome()
         }
 
         postApi(Api.Medias.UpdateMedia) { request ->
@@ -44,8 +47,10 @@ fun ApiScope.serveMedia() {
             val identity = call.getIdentity()
             val image = checkImageAndStore(identity.callerId, edit.mediaId, edit.image, MediaTable)
                 .toDataOr { return@postApi it }
+            val checked = checkMediaAudio(identity.callerId, edit.copy(image = image))
+                .toDataOr { return@postApi it }
 
-            dao.media.update(edit.copy(image = image), identity.callerId).toOutcome()
+            dao.media.update(checked, identity.callerId).toOutcome()
         }
     }
 }

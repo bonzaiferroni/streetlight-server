@@ -63,6 +63,7 @@ internal val dbTables = listOf(
     TransitStopTable,
     TransitRouteStopTable,
     ImageTable,
+    AudioTable,
     SkillTable,
     SkillMediaTable,
     SkillOfferingTable,

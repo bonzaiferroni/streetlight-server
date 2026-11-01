@@ -26,6 +26,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import streetlight.server.service.editSkill
 import streetlight.server.service.encodeImageAndStore
+import streetlight.server.service.encodeAudioAndStore
+import streetlight.server.service.MAX_AUDIO_BYTES
 
 fun ApiScope.serveUserHub() {
     authGate {
@@ -79,6 +81,29 @@ fun ApiScope.serveUserHub() {
                     meta = meta
                 ).toDataOr { return@apiResponse it }
                 Ok(image)
+            }
+        }
+
+        post(Api.Users.UploadAudio.path) {
+            val callerId = call.getIdentity().callerId
+            var name: String? = null
+            var bytes: ByteArray? = null
+
+            call.receiveMultipart(formFieldLimit = MAX_AUDIO_BYTES + 1L).forEachPart { part ->
+                when (part) {
+                    is PartData.FormItem -> if (part.name == "name") name = part.value
+                    is PartData.FileItem -> bytes = part.provider().readRemaining(MAX_AUDIO_BYTES + 1L).readByteArray()
+                    else -> {}
+                }
+                part.release()
+            }
+
+            apiResponse {
+                encodeAudioAndStore(
+                    bytes = bytes ?: error("bytes not found"),
+                    callerId = callerId,
+                    name = name,
+                )
             }
         }
     }
