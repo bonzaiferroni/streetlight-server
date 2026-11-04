@@ -13,7 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.update
 import kotlin.time.Clock
 import streetlight.model.data.NewSong
 import streetlight.model.data.RequestItem
-import streetlight.model.data.Song
+import streetlight.model.data.SongLegacy
 import streetlight.model.data.SongId
 import streetlight.model.data.StarId
 import streetlight.model.data.toRecordId
@@ -36,7 +36,7 @@ class SongTableDao: DbService() {
     suspend fun createSong(starId: StarId, newSong: NewSong): SongId = dbQuery {
         val now = Clock.System.now()
         SongTable.insertAndGetId {
-            it.createSong(Song(
+            it.createSong(SongLegacy(
                 songId = SongId.random(),
                 starId = starId,
                 title = newSong.title,
@@ -51,7 +51,7 @@ class SongTableDao: DbService() {
         }.value.toRecordId()
     }
 
-    suspend fun updateSong(starId: StarId, song: Song): Boolean = dbQuery {
+    suspend fun updateSong(starId: StarId, song: SongLegacy): Boolean = dbQuery {
         SongTable.update({ SongTable.starId.eq(starId) and SongTable.id.eq(song.songId) }) {
             it.updateSong(song)
         } > 0

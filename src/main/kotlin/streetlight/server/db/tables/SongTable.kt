@@ -1,14 +1,13 @@
 package streetlight.server.db.tables
 
 import klutch.db.jsonbConfig
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
-import streetlight.model.data.Song
+import streetlight.model.data.SongLegacy
 import streetlight.model.data.SongNotation
 import streetlight.server.utils.toRecordId
 
@@ -24,7 +23,7 @@ object SongTable : UuidTable("song") {
     val createdAt = timestamp("created_at")
 }
 
-fun ResultRow.toSong() = Song(
+fun ResultRow.toSong() = SongLegacy(
     songId = toRecordId(SongTable.id),
     starId = toRecordId(SongTable.starId),
     title = this[SongTable.name],
@@ -38,14 +37,14 @@ fun ResultRow.toSong() = Song(
 )
 
 // Updaters
-fun UpdateBuilder<*>.createSong(song: Song) {
+fun UpdateBuilder<*>.createSong(song: SongLegacy) {
     this[SongTable.id] = song.songId.value
     this[SongTable.starId] = song.starId.value
     this[SongTable.createdAt] = song.createdAt
     updateSong(song)
 }
 
-fun UpdateBuilder<*>.updateSong(song: Song) {
+fun UpdateBuilder<*>.updateSong(song: SongLegacy) {
     this[SongTable.name] = song.title
     this[SongTable.artist] = song.artist
     this[SongTable.notation] = song.notation
