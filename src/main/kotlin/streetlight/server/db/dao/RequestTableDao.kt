@@ -9,7 +9,7 @@ import streetlight.model.data.EventId
 import streetlight.model.data.NewRequest
 import streetlight.model.data.Request
 import streetlight.model.data.RequestId
-import streetlight.model.data.SongId
+import streetlight.model.music.SongId
 import streetlight.server.db.tables.RequestTable
 import streetlight.server.db.tables.toRequest
 import streetlight.server.db.tables.createRequest

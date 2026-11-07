@@ -14,9 +14,9 @@ import kotlin.time.Clock
 import streetlight.model.data.NewSong
 import streetlight.model.data.RequestItem
 import streetlight.model.data.SongLegacy
-import streetlight.model.data.SongId
 import streetlight.model.data.StarId
 import streetlight.model.data.toRecordId
+import streetlight.model.music.SongId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.SongTable
 import streetlight.server.db.tables.toSong

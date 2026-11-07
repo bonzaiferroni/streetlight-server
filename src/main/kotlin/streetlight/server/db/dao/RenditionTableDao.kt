@@ -10,9 +10,9 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import streetlight.model.data.SongId
 import streetlight.model.data.Rendition
 import streetlight.model.data.RenditionId
+import streetlight.model.music.SongId
 import streetlight.server.db.tables.RenditionTable
 import streetlight.server.db.tables.toRendition
 import streetlight.model.data.NewRendition
