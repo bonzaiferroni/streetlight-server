@@ -8,7 +8,7 @@ The server's dependency container: the scope interfaces a receiver carries, the 
 
 | Package | Provides |
 |---|---|
-| `streetlight.server.db.dao` | The daos in `DaoFacade` |
+| `streetlight.server.db.dao` | The read and write operations `DaoFacade` groups |
 | `klutch.server` | Providers and identity |
 | `streetlight.model.data` | DTOs |
 | `org.koin` | The container |

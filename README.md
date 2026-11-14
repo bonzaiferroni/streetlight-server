@@ -15,7 +15,7 @@ The Streetlight server: a Ktor application that serves the pages, the API and th
 | [`streetlight.server.model`](src/main/kotlin/streetlight/server/model/README.md) | The dependency container and the server's own DTOs |
 | `streetlight.server.db` | The setup of the database and its policies |
 | [`streetlight.server.db.dao`](src/main/kotlin/streetlight/server/db/dao/README.md) | The read and write operations over the tables |
-| [`streetlight.server.db.tables`](src/main/kotlin/streetlight/server/db/tables/README.md) | Exposed table definitions |
+| [`streetlight.server.db.tables`](src/main/kotlin/streetlight/server/db/tables/README.md) | The Exposed tables, one per file, and the queries that read them |
 | `streetlight.server.external` | The clients of outside services, such as Stripe, Postmark and OpenStreetMap |
 | `streetlight.server.utils` | Utilities for files, images, ids, sessions, subdomains and time zones |
 | `streetlight.server.tools` | Tasks run by hand, such as generating a migration |
