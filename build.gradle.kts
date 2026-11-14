@@ -149,6 +149,6 @@ tasks.register<JavaExec>("checkMigration") {
 // the package documents appear on the package pages of the API reference
 dokka {
     dokkaSourceSets.configureEach {
-        includes.from(fileTree("src/main") { include("**/README.md") })
+        includes.from("README.md", fileTree("src/main") { include("**/README.md") })
     }
 }
