@@ -149,9 +149,6 @@ tasks.register<JavaExec>("checkMigration") {
 // the package documents appear on the package pages of the API reference
 dokka {
     dokkaSourceSets.configureEach {
-        includes.from(fileTree(rootDir.resolve("docs/packages")) {
-            include("streetlight.server.*.md")
-            exclude("streetlight.server.api.md", "streetlight.server.integration.md", "streetlight.server.e2e.md")
-        })
+        includes.from(fileTree("src/main") { include("**/README.md") })
     }
 }
